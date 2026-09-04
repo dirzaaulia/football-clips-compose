@@ -117,12 +117,15 @@ android {
                 ?: System.getenv("KEYSTORE_FILE") 
                 ?: "C:/Users/ASUS/OneDrive/Keystore/keystore.jks"
             val keystoreFile = file(keystorePath)
+            val storePass = providers.gradleProperty("KEYSTORE_PASSWORD").orNull ?: System.getenv("KEYSTORE_PASSWORD") ?: ""
+            val alias = providers.gradleProperty("KEY_ALIAS").orNull ?: System.getenv("KEY_ALIAS") ?: ""
+            val keyPass = providers.gradleProperty("KEY_PASSWORD").orNull ?: System.getenv("KEY_PASSWORD") ?: ""
             
-            if (keystoreFile.exists()) {
+            if (keystoreFile.exists() && storePass.isNotEmpty()) {
                 storeFile = keystoreFile
-                storePassword = providers.gradleProperty("KEYSTORE_PASSWORD").orNull ?: System.getenv("KEYSTORE_PASSWORD") ?: ""
-                keyAlias = providers.gradleProperty("KEY_ALIAS").orNull ?: System.getenv("KEY_ALIAS") ?: ""
-                keyPassword = providers.gradleProperty("KEY_PASSWORD").orNull ?: System.getenv("KEY_PASSWORD") ?: ""
+                storePassword = storePass
+                keyAlias = alias
+                keyPassword = keyPass
             } else {
                 initWith(getByName("debug"))
             }
