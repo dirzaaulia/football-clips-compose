@@ -17,3 +17,8 @@ local.properties
 fastlane/play-console-key.json
 *.keystore
 *.jks
+
+# Python
+__pycache__/
+*.pyc
+

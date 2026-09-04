@@ -1,0 +1,5138 @@
+[
+  {
+    "timestamp": "2026-09-05 00:37:22 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚽ [SKOR!] Olympique Lyonnais 2 - 0 AJ Auxerre",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "WARN",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 8999, Reset PT dalam: 13.4 jam):",
+          "   🎥 [PROSES] Mencari video untuk: Real Sociedad de Fútbol vs RC Celta de Vigo (Umur Match: 22.6 jam)",
+          "   -> Memeriksa channel: @LaLiga",
+          "      🔎 Hit API YouTube | Channel: @LaLiga | Query: 'real sociedad celta'",
+          "      📋 [DEBUG YOUTUBE] Ditemukan 5 video mentah:",
+          "         -> 1. [⏱️ 2m 57s] [🌐 100% Global] [ID: jmrGAcizaCk] 'REAL SOCIEDAD 0 - 0 CELTA | RESUMEN LALIGA EA SPORTS' (https://youtu.be/jmrGAcizaCk)",
+          "         -> 2. [❌ TITLE FILTER: Preview] [ID: s4AoPNSJ9iI] '🔴 REAL SOCIEDAD vs CELTA - PREVIA DEL PARTIDO' (https://youtu.be/s4AoPNSJ9iI)",
+          "         -> 3. [⏱️ 22m 5s] [🌐 100% Global] [ID: XHTMNe4PGrc] 'Claudio Giráldez: \"Nos está costando mucho finalizar las acciones de ataque\"' (https://youtu.be/XHTMNe4PGrc)",
+          "         -> 4. [❌ DURATION FILTER: 0m 7s] [ID: HFD-3IOcfH8] 'TURRIENTES😱' (https://youtu.be/HFD-3IOcfH8)",
+          "         -> 5. [❌ DURATION FILTER: 0m 14s] [ID: 40STBSW7EUU] '🧤 ¡Qué parada tan increíble la de Radu!' (https://youtu.be/40STBSW7EUU)",
+          "      🚨 [AI ERROR] 503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}. Mengaktifkan fallback scoring.",
+          "      🛡️ [FALLBACK SELECT] Terpilih: 'REAL SOCIEDAD 0 - 0 CELTA | RESUMEN LALIGA EA SPORTS'",
+          "         └─ ID: jmrGAcizaCk (⏱️ 2m 57s) ➔ https://youtu.be/jmrGAcizaCk",
+          "   ✅ [BERHASIL LINK] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ https://youtu.be/jmrGAcizaCk (ID: jmrGAcizaCk) [🌐 100% Global] disimpan ke Supabase.",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "📊 Ringkasan YouTube: 1 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:36:18 WIB",
+    "mode": "FULL SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: FULL SYNC (H-2 s/d H+7)",
+          "📥 Menerima 67 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-11)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | 2026-09-04 17:30:00Z ➔ TIMED",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | 2026-09-04 17:45:00Z ➔ TIMED",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | 2026-09-04 18:00:00Z ➔ TIMED",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | 2026-09-04 18:05:00Z ➔ TIMED",
+          "✅ Berhasil sinkronisasi 67 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 8999, Reset PT dalam: 13.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:35:42 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 8999, Reset PT dalam: 13.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:34:38 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:33:35 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | TIMED ➔ 2026-09-04 17:30:00Z",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | TIMED ➔ 2026-09-04 17:45:00Z",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | TIMED ➔ 2026-09-04 18:00:00Z",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | TIMED ➔ 2026-09-04 18:05:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:32:32 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.5 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.9 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.9 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:31:29 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚽ [SKOR!] Olympique Lyonnais 0 - 1 AJ Auxerre",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | 2026-09-04 17:30:00Z ➔ TIMED",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | 2026-09-04 17:45:00Z ➔ TIMED",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | 2026-09-04 18:00:00Z ➔ TIMED",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | 2026-09-04 18:05:00Z ➔ TIMED",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.5 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.9 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.9 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:30:26 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | TIMED ➔ 2026-09-04 17:30:00Z",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | TIMED ➔ 2026-09-04 17:45:00Z",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | TIMED ➔ 2026-09-04 18:00:00Z",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | TIMED ➔ 2026-09-04 18:05:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.5 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.9 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.9 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:29:24 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚽ [SKOR!] Olympique Lyonnais 1 - 1 AJ Auxerre",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.5 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.9 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.9 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:28:21 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.5 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.9 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.9 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:27:18 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.5 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.9 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.9 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:26:15 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.6 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.8 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.8 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:25:12 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | 2026-09-04 17:30:00Z ➔ TIMED",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | 2026-09-04 17:45:00Z ➔ TIMED",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | 2026-09-04 18:00:00Z ➔ TIMED",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | 2026-09-04 18:05:00Z ➔ TIMED",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.6 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.8 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.8 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:24:09 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚽ [SKOR!] Olympique Lyonnais 1 - 0 AJ Auxerre",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | TIMED ➔ 2026-09-04 17:30:00Z",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | TIMED ➔ 2026-09-04 17:45:00Z",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | TIMED ➔ 2026-09-04 18:00:00Z",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | TIMED ➔ 2026-09-04 18:05:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.6 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.8 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.8 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:23:05 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.6 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.8 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.8 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:22:02 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.6 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.8 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.8 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:20:59 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | 2026-09-04 17:30:00Z ➔ TIMED",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | 2026-09-04 17:45:00Z ➔ TIMED",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | 2026-09-04 18:00:00Z ➔ TIMED",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | 2026-09-04 18:05:00Z ➔ TIMED",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.6 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.8 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.8 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:19:56 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | TIMED ➔ 2026-09-04 17:30:00Z",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | TIMED ➔ 2026-09-04 17:45:00Z",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | TIMED ➔ 2026-09-04 18:00:00Z",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | TIMED ➔ 2026-09-04 18:05:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.7 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.7 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.7 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:18:53 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | TIMED ➔ 2026-09-04 18:00:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.7 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.7 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.7 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:17:50 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | 2026-09-04 17:30:00Z ➔ TIMED",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | 2026-09-04 17:45:00Z ➔ TIMED",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | 2026-09-04 18:00:00Z ➔ TIMED",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | 2026-09-04 18:00:00Z ➔ TIMED",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | 2026-09-04 18:05:00Z ➔ TIMED",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.7 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.7 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.7 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:16:47 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.7 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.7 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.7 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:15:44 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.7 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.7 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.7 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:14:40 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | TIMED ➔ 2026-09-04 17:30:00Z",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | TIMED ➔ 2026-09-04 17:45:00Z",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | TIMED ➔ 2026-09-04 18:00:00Z",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | TIMED ➔ 2026-09-04 18:00:00Z",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | TIMED ➔ 2026-09-04 18:05:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.8 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.6 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.6 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:13:36 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | 2026-09-04 17:30:00Z ➔ TIMED",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | 2026-09-04 17:45:00Z ➔ TIMED",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | 2026-09-04 18:00:00Z ➔ TIMED",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | 2026-09-04 18:00:00Z ➔ TIMED",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | 2026-09-04 18:05:00Z ➔ TIMED",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.8 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.6 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.6 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:12:32 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.8 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.6 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.6 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:11:27 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.8 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.6 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.6 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:10:23 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] Olympique Lyonnais vs AJ Auxerre | TIMED ➔ IN_PLAY",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | TIMED ➔ 2026-09-04 17:30:00Z",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | TIMED ➔ 2026-09-04 17:45:00Z",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | TIMED ➔ 2026-09-04 18:00:00Z",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | TIMED ➔ 2026-09-04 18:05:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 13.8 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.6 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.6 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-05 00:00:19 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "10 Menit (⏳ MATCH HARI INI (< 2 JAM). Interval 10 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 14.0 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.4 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.4 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 23:58:15 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "2 Menit (⏳ KICK-OFF SEBENTAR LAGI (1 menit). Interval 2 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | TIMED ➔ 2026-09-04 18:00:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 14.0 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.4 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.4 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 23:56:12 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "2 Menit (⏳ KICK-OFF SEBENTAR LAGI (3 menit). Interval 2 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🔄 [STATUS] Olympique Lyonnais vs AJ Auxerre | 2026-09-04 16:00:00Z ➔ TIMED",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | 2026-09-04 17:30:00Z ➔ TIMED",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | 2026-09-04 17:45:00Z ➔ TIMED",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | 2026-09-04 18:00:00Z ➔ TIMED",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | 2026-09-04 18:00:00Z ➔ TIMED",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | 2026-09-04 18:05:00Z ➔ TIMED",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 14.1 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.3 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.3 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 23:26:08 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 14.6 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.8 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.8 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 22:56:04 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 15.1 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.3 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.3 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 22:26:00 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] Olympique Lyonnais vs AJ Auxerre | TIMED ➔ 2026-09-04 16:00:00Z",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | TIMED ➔ 2026-09-04 17:30:00Z",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | TIMED ➔ 2026-09-04 17:45:00Z",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | TIMED ➔ 2026-09-04 18:00:00Z",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | TIMED ➔ 2026-09-04 18:05:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 15.6 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 0.8 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 0.8 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 22:15:55 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "10 Menit (⏳ MATCH HARI INI (< 2 JAM). Interval 10 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 15.7 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 0.7 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 0.7 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 22:05:51 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "10 Menit (⏳ MATCH HARI INI (< 2 JAM). Interval 10 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] Olympique Lyonnais vs AJ Auxerre | 2026-09-04 16:00:00Z ➔ TIMED",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | 2026-09-04 17:30:00Z ➔ TIMED",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | 2026-09-04 17:45:00Z ➔ TIMED",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | 2026-09-04 18:00:00Z ➔ TIMED",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | 2026-09-04 18:05:00Z ➔ TIMED",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 15.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 0.5 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 0.5 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 21:35:46 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 16.4 jam):",
+          "   🎥 [PROSES] Mencari video untuk: Real Sociedad de Fútbol vs RC Celta de Vigo (Umur Match: 19.6 jam)",
+          "   -> Memeriksa channel: @LaLiga",
+          "      🔎 Hit API YouTube | Channel: @LaLiga | Query: 'real sociedad fútbol rc celta vigo'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "   🎥 [PROSES] Mencari video untuk: Toulouse FC vs Lille OSC (Umur Match: 19.8 jam)",
+          "   -> Memeriksa channel: @Ligue1",
+          "      🔎 Hit API YouTube | Channel: @Ligue1 | Query: 'toulouse lille osc'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "📊 Ringkasan YouTube: 2 diproses, 0 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 21:05:43 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] Olympique Lyonnais vs AJ Auxerre | TIMED ➔ 2026-09-04 16:00:00Z",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | TIMED ➔ 2026-09-04 17:30:00Z",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | TIMED ➔ 2026-09-04 17:45:00Z",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | TIMED ➔ 2026-09-04 18:00:00Z",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | TIMED ➔ 2026-09-04 18:05:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 16.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.5 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.5 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 20:35:39 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 17.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 20:05:34 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | TIMED ➔ 2026-09-04 18:00:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 17.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.5 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.5 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 19:35:30 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 18.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.0 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.0 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 19:05:26 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🔄 [STATUS] Olympique Lyonnais vs AJ Auxerre | 2026-09-04 16:00:00Z ➔ TIMED",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | 2026-09-04 17:30:00Z ➔ TIMED",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | 2026-09-04 17:45:00Z ➔ TIMED",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | 2026-09-04 18:00:00Z ➔ TIMED",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | 2026-09-04 18:00:00Z ➔ TIMED",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | 2026-09-04 18:05:00Z ➔ TIMED",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 18.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.5 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.5 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 18:35:21 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Toulouse FC vs Lille OSC tetap FINISHED",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] Olympique Lyonnais vs AJ Auxerre | TIMED ➔ 2026-09-04 16:00:00Z",
+          "🔄 [STATUS] VfB Stuttgart vs 1. FC Köln | TIMED ➔ 2026-09-04 17:30:00Z",
+          "🔄 [STATUS] Genoa CFC vs Como 1907 | TIMED ➔ 2026-09-04 17:45:00Z",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | TIMED ➔ 2026-09-04 18:00:00Z",
+          "🔄 [STATUS] Ipswich Town FC vs Liverpool FC | TIMED ➔ 2026-09-04 18:00:00Z",
+          "🔄 [STATUS] Paris Saint-Germain FC vs AS Monaco FC | TIMED ➔ 2026-09-04 18:05:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 19.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.0 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.0 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 18:05:18 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | 2026-09-04 18:00:00Z ➔ TIMED",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 19.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 0.5 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 0.5 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 17:35:13 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9500, Reset PT dalam: 20.4 jam):",
+          "   🎥 [PROSES] Mencari video untuk: Real Sociedad de Fútbol vs RC Celta de Vigo (Umur Match: 15.6 jam)",
+          "   -> Memeriksa channel: @LaLiga",
+          "      🔎 Hit API YouTube | Channel: @LaLiga | Query: 'real sociedad fútbol rc celta vigo'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "   🎥 [PROSES] Mencari video untuk: Toulouse FC vs Lille OSC (Umur Match: 15.8 jam)",
+          "   -> Memeriksa channel: @Ligue1",
+          "      🔎 Hit API YouTube | Channel: @Ligue1 | Query: 'toulouse lille osc'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "📊 Ringkasan YouTube: 2 diproses, 0 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 17:05:09 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | TIMED ➔ 2026-09-04 18:00:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9500, Reset PT dalam: 20.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.5 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.5 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 16:35:05 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | 2026-09-04 18:00:00Z ➔ TIMED",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9500, Reset PT dalam: 21.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 16:05:00 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9500, Reset PT dalam: 21.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.5 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.5 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 15:34:56 WIB",
+    "mode": "FULL SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: FULL SYNC (H-2 s/d H+7)",
+          "📥 Menerima 67 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-11)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] Athletic Club vs Club Atlético de Madrid | 2026-09-05 14:15:00Z ➔ TIMED",
+          "✨ [NEW MATCH] Ditemukan jadwal baru: Fenerbahçe SK vs AS Roma",
+          "✨ [NEW MATCH] Ditemukan jadwal baru: PSV vs FK Shakhtar Donetsk",
+          "✨ [NEW MATCH] Ditemukan jadwal baru: FC Bayern München vs FK Bodø/Glimt",
+          "✨ [NEW MATCH] Ditemukan jadwal baru: Como 1907 vs RB Leipzig",
+          "✨ [NEW MATCH] Ditemukan jadwal baru: SK Slavia Praha vs Racing Club de Lens",
+          "✨ [NEW MATCH] Ditemukan jadwal baru: Manchester United FC vs Sabah FK",
+          "✅ Berhasil sinkronisasi 67 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9500, Reset PT dalam: 22.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.0 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.0 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 15:04:53 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9500, Reset PT dalam: 22.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.5 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.5 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 14:34:49 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🛡️ [BLOCKED REGRESSION] Real Sociedad de Fútbol vs RC Celta de Vigo tetap FINISHED",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | TIMED ➔ 2026-09-04 18:00:00Z",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9500, Reset PT dalam: 23.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.0 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.0 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 14:04:45 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9500, Reset PT dalam: 23.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 0.5 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 0.5 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 13:34:40 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 7900, Reset PT dalam: 0.4 jam):",
+          "   ⚡ [OPPORTUNISTIC HIT] Real Sociedad de Fútbol vs RC Celta de Vigo: Cooldown (3.5 jam) melewati waktu reset (0.4 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @LaLiga",
+          "      🔎 Hit API YouTube | Channel: @LaLiga | Query: 'real sociedad fútbol rc celta vigo'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "   ⚡ [OPPORTUNISTIC HIT] Toulouse FC vs Lille OSC: Cooldown (3.5 jam) melewati waktu reset (0.4 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @Ligue1",
+          "      🔎 Hit API YouTube | Channel: @Ligue1 | Query: 'toulouse lille osc'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "📊 Ringkasan YouTube: 2 diproses, 0 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 13:04:35 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 8100, Reset PT dalam: 0.9 jam):",
+          "   ⚡ [OPPORTUNISTIC HIT] Real Sociedad de Fútbol vs RC Celta de Vigo: Cooldown (3.5 jam) melewati waktu reset (0.9 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @LaLiga",
+          "      🔎 Hit API YouTube | Channel: @LaLiga | Query: 'real sociedad fútbol rc celta vigo'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "   ⚡ [OPPORTUNISTIC HIT] Toulouse FC vs Lille OSC: Cooldown (3.5 jam) melewati waktu reset (0.9 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @Ligue1",
+          "      🔎 Hit API YouTube | Channel: @Ligue1 | Query: 'toulouse lille osc'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "📊 Ringkasan YouTube: 2 diproses, 0 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 12:34:31 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 8300, Reset PT dalam: 1.4 jam):",
+          "   ⚡ [OPPORTUNISTIC HIT] Real Sociedad de Fútbol vs RC Celta de Vigo: Cooldown (3.5 jam) melewati waktu reset (1.4 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @LaLiga",
+          "      🔎 Hit API YouTube | Channel: @LaLiga | Query: 'real sociedad fútbol rc celta vigo'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "   ⚡ [OPPORTUNISTIC HIT] Toulouse FC vs Lille OSC: Cooldown (3.5 jam) melewati waktu reset (1.4 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @Ligue1",
+          "      🔎 Hit API YouTube | Channel: @Ligue1 | Query: 'toulouse lille osc'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "📊 Ringkasan YouTube: 2 diproses, 0 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 12:04:25 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 8500, Reset PT dalam: 1.9 jam):",
+          "   ⚡ [OPPORTUNISTIC HIT] Real Sociedad de Fútbol vs RC Celta de Vigo: Cooldown (3.5 jam) melewati waktu reset (1.9 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @LaLiga",
+          "      🔎 Hit API YouTube | Channel: @LaLiga | Query: 'real sociedad fútbol rc celta vigo'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "   ⚡ [OPPORTUNISTIC HIT] Toulouse FC vs Lille OSC: Cooldown (3.5 jam) melewati waktu reset (1.9 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @Ligue1",
+          "      🔎 Hit API YouTube | Channel: @Ligue1 | Query: 'toulouse lille osc'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "📊 Ringkasan YouTube: 2 diproses, 0 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 11:34:21 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 8700, Reset PT dalam: 2.4 jam):",
+          "   ⚡ [OPPORTUNISTIC HIT] Real Sociedad de Fútbol vs RC Celta de Vigo: Cooldown (3.5 jam) melewati waktu reset (2.4 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @LaLiga",
+          "      🔎 Hit API YouTube | Channel: @LaLiga | Query: 'real sociedad fútbol rc celta vigo'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "   ⚡ [OPPORTUNISTIC HIT] Toulouse FC vs Lille OSC: Cooldown (3.5 jam) melewati waktu reset (2.4 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @Ligue1",
+          "      🔎 Hit API YouTube | Channel: @Ligue1 | Query: 'toulouse lille osc'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "📊 Ringkasan YouTube: 2 diproses, 0 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 11:04:16 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 8900, Reset PT dalam: 2.9 jam):",
+          "   ⚡ [OPPORTUNISTIC HIT] Real Sociedad de Fútbol vs RC Celta de Vigo: Cooldown (3.5 jam) melewati waktu reset (2.9 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @LaLiga",
+          "      🔎 Hit API YouTube | Channel: @LaLiga | Query: 'real sociedad fútbol rc celta vigo'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "   ⚡ [OPPORTUNISTIC HIT] Toulouse FC vs Lille OSC: Cooldown (3.5 jam) melewati waktu reset (2.9 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @Ligue1",
+          "      🔎 Hit API YouTube | Channel: @Ligue1 | Query: 'toulouse lille osc'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "📊 Ringkasan YouTube: 2 diproses, 0 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 10:34:11 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9100, Reset PT dalam: 3.4 jam):",
+          "   ⚡ [OPPORTUNISTIC HIT] Real Sociedad de Fútbol vs RC Celta de Vigo: Cooldown (3.5 jam) melewati waktu reset (3.4 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @LaLiga",
+          "      🔎 Hit API YouTube | Channel: @LaLiga | Query: 'real sociedad fútbol rc celta vigo'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "   ⚡ [OPPORTUNISTIC HIT] Toulouse FC vs Lille OSC: Cooldown (3.5 jam) melewati waktu reset (3.4 jam). Memaksa pencarian!",
+          "   -> Memeriksa channel: @Ligue1",
+          "      🔎 Hit API YouTube | Channel: @Ligue1 | Query: 'toulouse lille osc'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "📊 Ringkasan YouTube: 2 diproses, 0 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 10:04:06 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 3.9 jam):",
+          "   🎥 [PROSES] Mencari video untuk: Real Sociedad de Fútbol vs RC Celta de Vigo (Umur Match: 8.1 jam)",
+          "   -> Memeriksa channel: @LaLiga",
+          "      🔎 Hit API YouTube | Channel: @LaLiga | Query: 'real sociedad fútbol rc celta vigo'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "   🎥 [PROSES] Mencari video untuk: Toulouse FC vs Lille OSC (Umur Match: 8.3 jam)",
+          "   -> Memeriksa channel: @Ligue1",
+          "      🔎 Hit API YouTube | Channel: @Ligue1 | Query: 'toulouse lille osc'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "📊 Ringkasan YouTube: 2 diproses, 0 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 09:34:02 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 4.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.5 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.5 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 09:03:58 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 4.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 3.0 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 08:33:54 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 5.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.5 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.5 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 08:03:50 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 5.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.0 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 2.0 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 07:33:46 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "🔄 [STATUS] Real Betis Balompié vs Real Madrid CF | 2026-09-05 13:15:00Z ➔ TIMED",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 6.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.5 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.5 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 07:03:41 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 8 data mentah dari API Football-Data (Range: 2026-09-03 s/d 2026-09-05)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 8 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 6.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.0 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 1.0 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 06:33:38 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9300, Reset PT dalam: 7.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Tier 1 Cooldown (Baru dicek 0.5 jam lalu)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Tier 1 Cooldown (Baru dicek 0.5 jam lalu)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 06:03:33 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9500, Reset PT dalam: 7.9 jam):",
+          "   🎥 [PROSES] Mencari video untuk: Real Sociedad de Fútbol vs RC Celta de Vigo (Umur Match: 4.1 jam)",
+          "   -> Memeriksa channel: @LaLiga",
+          "      🔎 Hit API YouTube | Channel: @LaLiga | Query: 'real sociedad fútbol rc celta vigo'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "   🎥 [PROSES] Mencari video untuk: Toulouse FC vs Lille OSC (Umur Match: 4.3 jam)",
+          "   -> Memeriksa channel: @Ligue1",
+          "      🔎 Hit API YouTube | Channel: @Ligue1 | Query: 'toulouse lille osc'",
+          "      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.",
+          "   ❌ [NIHIL] Video resmi belum tersedia.",
+          "📊 Ringkasan YouTube: 2 diproses, 0 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 05:33:29 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9500, Reset PT dalam: 8.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Inkubasi (< 4 jam, umur 3.6 jam)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 3.8 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 05:03:24 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9500, Reset PT dalam: 8.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Inkubasi (< 4 jam, umur 3.1 jam)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 3.3 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 04:33:19 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9500, Reset PT dalam: 9.4 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Inkubasi (< 4 jam, umur 2.6 jam)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.8 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 04:03:17 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "30 Menit (⏳ JADWAL AMAN. Interval 30 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "🏁 [FULL TIME] Real Sociedad de Fútbol 0 - 0 RC Celta de Vigo",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 2 antrean match (Sisa Quota: 9500, Reset PT dalam: 9.9 jam):",
+          "   ⏳ [SKIP] Real Sociedad de Fútbol vs RC Celta de Vigo ➔ Alasan: Inkubasi (< 4 jam, umur 2.1 jam)",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.3 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 2 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 04:02:14 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.0 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.3 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 04:01:11 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.0 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.3 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 04:00:01 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.0 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.3 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:58:58 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.0 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.2 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:57:55 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.0 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.2 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:56:52 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.1 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.2 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:55:49 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.1 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.2 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:54:46 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.1 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.2 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:53:43 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.1 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.1 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:52:39 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.1 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.1 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:51:37 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.1 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.1 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:50:34 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.2 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.1 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:49:32 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.2 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.1 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:48:28 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.2 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.1 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:47:26 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.2 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.0 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:46:22 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.2 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.0 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:45:19 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.2 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.0 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:44:14 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "🏁 [FULL TIME] Toulouse FC 0 - 1 Lille OSC",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "🔍 YouTube Engine: Memindai 1 antrean match (Sisa Quota: 9500, Reset PT dalam: 10.3 jam):",
+          "   ⏳ [SKIP] Toulouse FC vs Lille OSC ➔ Alasan: Inkubasi (< 4 jam, umur 2.0 jam)",
+          "📊 Ringkasan YouTube: 0 diproses, 1 dilewati."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:43:11 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:42:08 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:41:06 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:40:01 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:38:59 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:37:56 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:36:54 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:35:51 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:34:49 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:33:47 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:32:44 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:31:42 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:30:39 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:29:35 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:28:33 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:27:30 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:26:27 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:25:25 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:24:22 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:23:19 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚽ [SKOR!] Toulouse FC 0 - 1 Lille OSC",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:22:15 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:21:12 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:20:04 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:19:00 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:17:58 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:16:55 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:15:52 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:14:49 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:13:46 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:12:43 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "🔄 [STATUS] Real Sociedad de Fútbol vs RC Celta de Vigo | PAUSED ➔ IN_PLAY",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:11:39 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:10:37 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:09:33 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:08:30 WIB",
+    "mode": "FULL SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: FULL SYNC (H-2 s/d H+7)",
+          "📥 Menerima 61 data mentah dari API Football-Data (Range: 2026-09-01 s/d 2026-09-10)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 61 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:08:08 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:07:05 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:05:59 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:04:57 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:03:54 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:02:51 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:01:48 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 03:00:44 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:59:41 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:58:38 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:57:35 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:56:33 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:55:29 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "🔄 [STATUS] Toulouse FC vs Lille OSC | PAUSED ➔ IN_PLAY",
+          "🔄 [STATUS] Real Sociedad de Fútbol vs RC Celta de Vigo | IN_PLAY ➔ PAUSED",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:54:26 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:53:23 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:52:20 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:51:16 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:50:13 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:49:10 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:48:07 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:47:04 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:46:00 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:44:58 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:43:54 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:42:52 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:41:49 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-09-04 02:40:46 WIB",
+    "mode": "LIVE SYNC",
+    "next_sleep": "1 Menit (🔥 ADA MATCH LIVE! Interval 1 MENIT.)",
+    "steps": [
+      {
+        "title": "1. Football Data",
+        "status": "OK",
+        "events": [
+          "📡 Mode Sinkronisasi: LIVE SYNC (H-1 s/d H+1)",
+          "📥 Menerima 2 data mentah dari API Football-Data (Range: 2026-09-02 s/d 2026-09-04)",
+          "⚪ Tidak ada perubahan skor atau status.",
+          "✅ Berhasil sinkronisasi 2 jadwal ke Supabase."
+        ]
+      },
+      {
+        "title": "2. YouTube & AI Engine",
+        "status": "OK",
+        "events": [
+          "⚪ YouTube: Semua match FINISHED sudah memiliki video highlight."
+        ]
+      },
+      {
+        "title": "3. Maintenance",
+        "status": "OK",
+        "events": [
+          "⚪ Database bersih (Tidak ada data >15 hari)."
+        ]
+      }
+    ]
+  }
+]
