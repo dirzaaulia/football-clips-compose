@@ -106,9 +106,10 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         
+        val fallbackVersionCode = ((System.currentTimeMillis() / 60000) - 28000000).toInt().coerceAtLeast(30)
         val autoVersionCode = providers.gradleProperty("VERSION_CODE").orNull?.toIntOrNull() 
             ?: providers.environmentVariable("VERSION_CODE").orNull?.toIntOrNull() 
-            ?: 27
+            ?: fallbackVersionCode
 
         versionCode = autoVersionCode
         versionName = "3.0.$autoVersionCode"
