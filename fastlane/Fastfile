@@ -10,6 +10,7 @@ platform :android do
     upload_to_play_store(
       track: "internal",
       aab: "app/build/outputs/bundle/release/app-release.aab",
+      json_key_data: ENV['PLAY_CONSOLE_JSON_KEY'],
       skip_upload_apk: true,
       skip_upload_metadata: true,
       skip_upload_images: true,
@@ -26,6 +27,7 @@ platform :android do
     upload_to_play_store(
       track: "alpha",
       aab: "app/build/outputs/bundle/release/app-release.aab",
+      json_key_data: ENV['PLAY_CONSOLE_JSON_KEY'],
       skip_upload_apk: true,
       skip_upload_metadata: true,
       skip_upload_images: true,
@@ -42,6 +44,7 @@ platform :android do
     upload_to_play_store(
       track: "beta",
       aab: "app/build/outputs/bundle/release/app-release.aab",
+      json_key_data: ENV['PLAY_CONSOLE_JSON_KEY'],
       skip_upload_apk: true,
       skip_upload_metadata: true,
       skip_upload_images: true,
@@ -58,6 +61,7 @@ platform :android do
     upload_to_play_store(
       track: "production",
       aab: "app/build/outputs/bundle/release/app-release.aab",
+      json_key_data: ENV['PLAY_CONSOLE_JSON_KEY'],
       skip_upload_apk: true,
       skip_upload_metadata: true,
       skip_upload_images: true,

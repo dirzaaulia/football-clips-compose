@@ -40,11 +40,6 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Decode Play Console Service Account JSON Key
-        run: |
-          mkdir -p fastlane
-          echo "${{ secrets.PLAY_CONSOLE_JSON_KEY }}" > fastlane/play-console-key.json
-
       - name: Run Fastlane Lane
         run: fastlane android ${{ github.event.inputs.lane }}
         env:
