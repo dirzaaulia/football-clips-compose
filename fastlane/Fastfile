@@ -2,17 +2,8 @@ default_platform(:android)
 
 platform :android do
   def get_next_version_code
-    begin
-      codes = google_play_track_version_codes(
-        package_name: "com.dirzaaulia.footballclips",
-        json_key_data: ENV['PLAY_CONSOLE_JSON_KEY']
-      )
-      max_code = codes.compact.max || 26
-      [max_code + 1, 27].max
-    rescue => e
-      UI.message("Could not fetch version code from Play Console: #{e.message}")
-      27
-    end
+    # Monotonic Timestamp Version Code ensures 100% unique, higher integer across all Play Console tracks
+    (Time.now.to_i - 1700000000)
   end
 
   desc "Build and Upload Release AAB to Google Play Console Internal Track"

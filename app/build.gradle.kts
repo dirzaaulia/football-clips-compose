@@ -106,9 +106,10 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         
-        val autoVersionCode = providers.gradleProperty("VERSION_CODE").orNull?.toIntOrNull()?.coerceAtLeast(27)
-            ?: providers.environmentVariable("VERSION_CODE").orNull?.toIntOrNull()?.coerceAtLeast(27)
-            ?: 27
+        val timestampCode = ((System.currentTimeMillis() / 1000) - 1700000000).toInt().coerceAtLeast(30)
+        val autoVersionCode = providers.gradleProperty("VERSION_CODE").orNull?.toIntOrNull()
+            ?: providers.environmentVariable("VERSION_CODE").orNull?.toIntOrNull()
+            ?: timestampCode
 
         versionCode = autoVersionCode
         versionName = "3.0.$autoVersionCode"
