@@ -111,10 +111,28 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            val keystorePath = providers.gradleProperty("KEYSTORE_FILE").orNull 
+                ?: System.getenv("KEYSTORE_FILE") 
+                ?: "C:/Users/ASUS/OneDrive/Keystore/keystore.jks"
+            val keystoreFile = file(keystorePath)
+            
+            if (keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = providers.gradleProperty("KEYSTORE_PASSWORD").orNull ?: System.getenv("KEYSTORE_PASSWORD") ?: ""
+                keyAlias = providers.gradleProperty("KEY_ALIAS").orNull ?: System.getenv("KEY_ALIAS") ?: ""
+                keyPassword = providers.gradleProperty("KEY_PASSWORD").orNull ?: System.getenv("KEY_PASSWORD") ?: ""
+            } else {
+                initWith(getByName("debug"))
+            }
+        }
+    }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
