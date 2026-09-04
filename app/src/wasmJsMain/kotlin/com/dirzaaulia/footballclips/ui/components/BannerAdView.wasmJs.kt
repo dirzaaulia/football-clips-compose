@@ -1,6 +1,7 @@
 package com.dirzaaulia.footballclips.ui.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +33,37 @@ actual fun BannerAdView(onAdLoaded: () -> Unit, onAdFailed: (String) -> Unit, mo
     } else {
         // PRODUCTION: Inject Real AdSense
         AdSenseContainer(onAdLoaded, onAdFailed, modifier)
+    }
+}
+
+@Composable
+private fun AdPlaceholder(
+    modifier: Modifier = Modifier,
+    title: String,
+    message: String
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth().height(100.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
