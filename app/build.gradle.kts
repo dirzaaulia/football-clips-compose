@@ -9,6 +9,8 @@ plugins {
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 kotlin {
@@ -78,6 +80,8 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.revenuecat.sdk)
+            implementation("com.google.firebase:firebase-crashlytics:19.3.0")
+            implementation("com.google.firebase:firebase-analytics:22.1.2")
         }
         
         wasmJsMain.dependencies {
