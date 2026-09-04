@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "394025609994",
+    "project_number": "581482290296",
     "project_id": "football-clips-51f56",
-    "storage_bucket": "football-clips-51f56.appspot.com"
+    "storage_bucket": "football-clips-51f56.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:394025609994:android:a1b2c3d4e5f67890",
+        "mobilesdk_app_id": "1:581482290296:android:80dbd728603430e70f218d",
         "android_client_info": {
           "package_name": "com.dirzaaulia.footballclips"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDummyApiKeyForFirebaseCrashlytics"
+          "current_key": "AIzaSyAd947ztyQ9uOQtsqXLCbM2HJ8mJwT3sf0"
         }
       ],
       "services": {
