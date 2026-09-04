@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Background color of the splash screen -->
+        <item name="windowSplashScreenBackground">#1C1B1F</item>
+        <!-- Icon to be displayed -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/avd_splash_ball</item>
+        <item name="windowSplashScreenAnimationDuration">800</item>
+        <!-- Post-splash theme -->
+        <item name="postSplashScreenTheme">@style/Theme.FootballClips</item>
+    </style>
+
+    <style name="Theme.FootballClips" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

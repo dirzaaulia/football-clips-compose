@@ -1,0 +1,67 @@
+default_platform(:android)
+
+platform :android do
+  desc "Build and Upload Release AAB to Google Play Console Internal Track"
+  lane :internal do
+    gradle(
+      task: "bundle",
+      build_type: "Release"
+    )
+    upload_to_play_store(
+      track: "internal",
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Build and Upload Release AAB to Google Play Console Alpha Track (Closed Testing)"
+  lane :alpha do
+    gradle(
+      task: "bundle",
+      build_type: "Release"
+    )
+    upload_to_play_store(
+      track: "alpha",
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Build and Upload Release AAB to Google Play Console Beta Track (Open Testing)"
+  lane :beta do
+    gradle(
+      task: "bundle",
+      build_type: "Release"
+    )
+    upload_to_play_store(
+      track: "beta",
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Build and Upload Release AAB to Google Play Console Production Track"
+  lane :production do
+    gradle(
+      task: "bundle",
+      build_type: "Release"
+    )
+    upload_to_play_store(
+      track: "production",
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end
