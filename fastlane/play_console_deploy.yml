@@ -28,14 +28,14 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Ruby and Fastlane
+      - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2'
-          bundler-cache: true
 
       - name: Install Fastlane
-        run: gem install fastlane
+        run: |
+          gem install fastlane -N
 
       - name: Decode Play Console Service Account JSON Key
         run: |
@@ -43,6 +43,6 @@ jobs:
           echo "${{ secrets.PLAY_CONSOLE_JSON_KEY }}" > fastlane/play-console-key.json
 
       - name: Run Fastlane Lane
-        run: bundle exec fastlane android ${{ github.event.inputs.lane }}
+        run: fastlane android ${{ github.event.inputs.lane }}
         env:
           PLAY_CONSOLE_JSON_KEY: ${{ secrets.PLAY_CONSOLE_JSON_KEY }}
