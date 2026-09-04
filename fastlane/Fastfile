@@ -8,22 +8,21 @@ platform :android do
         json_key_data: ENV['PLAY_CONSOLE_JSON_KEY']
       )
       max_code = codes.compact.max || 26
-      max_code + 1
+      [max_code + 1, 27].max
     rescue => e
       UI.message("Could not fetch version code from Play Console: #{e.message}")
-      nil
+      27
     end
   end
 
   desc "Build and Upload Release AAB to Google Play Console Internal Track"
   lane :internal do
     next_code = get_next_version_code
-    gradle_props = {}
-    gradle_props["VERSION_CODE"] = next_code.to_s if next_code
-
     gradle(
       task: ":app:bundleRelease",
-      properties: gradle_props
+      properties: {
+        "VERSION_CODE" => next_code.to_s
+      }
     )
     upload_to_play_store(
       track: "internal",
@@ -39,12 +38,11 @@ platform :android do
   desc "Build and Upload Release AAB to Google Play Console Alpha Track (Closed Testing)"
   lane :alpha do
     next_code = get_next_version_code
-    gradle_props = {}
-    gradle_props["VERSION_CODE"] = next_code.to_s if next_code
-
     gradle(
       task: ":app:bundleRelease",
-      properties: gradle_props
+      properties: {
+        "VERSION_CODE" => next_code.to_s
+      }
     )
     upload_to_play_store(
       track: "alpha",
@@ -60,12 +58,11 @@ platform :android do
   desc "Build and Upload Release AAB to Google Play Console Beta Track (Open Testing)"
   lane :beta do
     next_code = get_next_version_code
-    gradle_props = {}
-    gradle_props["VERSION_CODE"] = next_code.to_s if next_code
-
     gradle(
       task: ":app:bundleRelease",
-      properties: gradle_props
+      properties: {
+        "VERSION_CODE" => next_code.to_s
+      }
     )
     upload_to_play_store(
       track: "beta",
@@ -81,12 +78,11 @@ platform :android do
   desc "Build and Upload Release AAB to Google Play Console Production Track"
   lane :production do
     next_code = get_next_version_code
-    gradle_props = {}
-    gradle_props["VERSION_CODE"] = next_code.to_s if next_code
-
     gradle(
       task: ":app:bundleRelease",
-      properties: gradle_props
+      properties: {
+        "VERSION_CODE" => next_code.to_s
+      }
     )
     upload_to_play_store(
       track: "production",
