@@ -1,13 +1,15 @@
 package com.dirzaaulia.footballclips.ui.components
 
 import android.app.Activity
-import android.util.Log
+import android.graphics.Color
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import com.dirzaaulia.footballclips.data.admob.AdMobManager
 import com.dirzaaulia.footballclips.data.constants.AdConfiguration
 import com.google.android.libraries.ads.mobile.sdk.banner.AdSize
 import com.google.android.libraries.ads.mobile.sdk.banner.AdView
@@ -20,6 +22,10 @@ import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError
 actual fun BannerAdView(onAdLoaded: () -> Unit, onAdFailed: (String) -> Unit, modifier: Modifier) {
     val context = LocalContext.current
     val activity = context as? Activity
+
+    LaunchedEffect(Unit) {
+        AdMobManager.initializeMobileAds(context)
+    }
     
     BoxWithConstraints(modifier = modifier) {
         val adWidth = maxWidth.value.toInt()
@@ -27,7 +33,7 @@ actual fun BannerAdView(onAdLoaded: () -> Unit, onAdFailed: (String) -> Unit, mo
             AndroidView(
                 factory = {
                     val adView = AdView(act).apply {
-                        setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                        setBackgroundColor(Color.TRANSPARENT)
                     }
                     val adSize = AdSize.getLargeAnchoredAdaptiveBannerAdSize(act, adWidth)
                     val adRequest = BannerAdRequest.Builder(

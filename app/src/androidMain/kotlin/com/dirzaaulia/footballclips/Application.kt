@@ -8,15 +8,10 @@ import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.svg.SvgDecoder
 import com.dirzaaulia.footballclips.di.appModules
-import com.google.android.libraries.ads.mobile.sdk.MobileAds
-import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
 import com.revenuecat.purchases.LogLevel
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesConfiguration
 import java.lang.ref.WeakReference
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
@@ -46,16 +41,6 @@ class FootballClipsApplication : Application(), SingletonImageLoader.Factory {
         Purchases.configure(
             PurchasesConfiguration.Builder(this, "goog_gHDMIAwmoTGZQkfkTZDyjnfetoK").build()
         )
-
-        // Initialize Mobile Ads SDK asynchronously in background
-        CoroutineScope(Dispatchers.IO).launch {
-            MobileAds.initialize(
-                this@FootballClipsApplication,
-                InitializationConfig.Builder("ca-app-pub-3940256099942544~3347511713")
-                    .setNativeValidatorDisabled()
-                    .build()
-            )
-        }
 
         // Initialize Koin DI
         startKoin {

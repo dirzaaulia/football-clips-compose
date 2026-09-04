@@ -4,22 +4,49 @@ import android.app.Activity
 import android.content.Context
 import android.util.Log
 import com.dirzaaulia.footballclips.FootballClipsApplication
-
+import com.dirzaaulia.footballclips.data.constants.AdConfiguration
+import com.google.android.libraries.ads.mobile.sdk.MobileAds
+import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
 import com.google.android.libraries.ads.mobile.sdk.interstitial.InterstitialAd
 import com.google.android.libraries.ads.mobile.sdk.interstitial.InterstitialAdEventCallback
 import com.google.android.libraries.ads.mobile.sdk.common.AdRequest
 import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback
 import com.google.android.libraries.ads.mobile.sdk.common.FullScreenContentError
 import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 actual class AdMobManager(private val context: Context) {
+
+    companion object {
+        private var isInitialized = false
+
+        fun initializeMobileAds(context: Context) {
+            if (!isInitialized) {
+                isInitialized = true
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        MobileAds.initialize(
+                            context.applicationContext,
+                            InitializationConfig.Builder(AdConfiguration.ADMOB_APP_ID).build()
+                        )
+                        Log.d("AdMobManager", "MobileAds initialized on demand")
+                    } catch (t: Throwable) {
+                        Log.e("AdMobManager", "MobileAds initialization failed: ${t.message}")
+                    }
+                }
+            }
+        }
+    }
 
     private var interstitialAd: InterstitialAd? = null
     private var lastInterstitialTime: Long = 0
     private val interstitialCooldown = TimeUnit.MINUTES.toMillis(3)
 
     init {
+        initializeMobileAds(context)
         loadInterstitial()
     }
 

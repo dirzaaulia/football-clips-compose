@@ -37,26 +37,26 @@ class ScoreRepositoryImpl(private val client: HttpClient) : ScoreRepository {
                     
                     competitionId?.let { 
                         if (it.isNotBlank()) {
-                            parameters.append("competition_id", "eq.$it")
+                            parameters.append("competition_id", "ilike.$it")
                         }
                     }
-                    status?.let {
+                    status?.let { 
                         if (it.isNotBlank()) {
-                            parameters.append("status", "eq.$it")
+                            parameters.append("status", "ilike.$it")
                         }
                     }
-                    excludeStatus?.let {
+                    excludeStatus?.let { 
                         if (it.isNotBlank()) {
-                            parameters.append("status", "neq.$it")
+                            parameters.append("status", "not.ilike.$it")
                         }
                     }
                     
-                    startDate?.let {
+                    startDate?.let { 
                         if (it.isNotBlank()) {
                             parameters.append("utc_date", "gte.${it}T00:00:00Z")
                         }
                     }
-                    endDate?.let {
+                    endDate?.let { 
                         if (it.isNotBlank()) {
                             parameters.append("utc_date", "lte.${it}T23:59:59Z")
                         }

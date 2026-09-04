@@ -13,6 +13,7 @@ object AdConfiguration {
     )
 
     // Google AdMob (Android)
+    const val ADMOB_APP_ID = "ca-app-pub-3940256099942544~3347511713"
     const val ADMOB_BANNER_ID = "ca-app-pub-3940256099942544/6300978111"
 
     // RevenueCat Paddle Sandbox (WASM)

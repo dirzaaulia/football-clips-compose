@@ -37,6 +37,9 @@ jobs:
         run: |
           gem install fastlane -N
 
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
       - name: Decode Play Console Service Account JSON Key
         run: |
           mkdir -p fastlane
