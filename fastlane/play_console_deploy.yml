@@ -40,7 +40,13 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Generate Debug Keystore for CI
+      - name: Decode Release Keystore
+        if: "${{ secrets.KEYSTORE_BASE64 != '' }}"
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+
+      - name: Generate Debug Keystore Fallback
+        if: "${{ secrets.KEYSTORE_BASE64 == '' }}"
         run: |
           mkdir -p ~/.android ~/.config/.android
           keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" || true
@@ -50,3 +56,7 @@ jobs:
         run: fastlane android ${{ github.event.inputs.lane }}
         env:
           PLAY_CONSOLE_JSON_KEY: ${{ secrets.PLAY_CONSOLE_JSON_KEY }}
+          KEYSTORE_FILE: ${{ github.workspace }}/keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
