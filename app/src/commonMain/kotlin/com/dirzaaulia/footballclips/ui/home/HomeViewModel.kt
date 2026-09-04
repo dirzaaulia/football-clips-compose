@@ -44,7 +44,6 @@ class HomeViewModel(
     val selectedLeagueId: StateFlow<Int?> = _selectedLeagueId.asStateFlow()
     
     private val _selectedCompetitionId = MutableStateFlow<String?>(null)
-    val selectedCompetitionId: StateFlow<String?> = _selectedCompetitionId.asStateFlow()
 
     private val _selectedItem = MutableStateFlow<HighlightUiItem?>(null)
     val selectedItem: StateFlow<HighlightUiItem?> = _selectedItem.asStateFlow()
@@ -375,7 +374,7 @@ class HomeViewModel(
                     allHighlights.addAll(newHighlights)
                     currentOffset += limit
                     
-                    updateUiState(canLoadMore = currentOffset < totalCount)
+                    updateUiState()
                 }
                 is NetworkResult.Error -> {
                     handleNetworkError(isRefresh, "Error: ${result.code} - ${result.message}")
@@ -400,7 +399,7 @@ class HomeViewModel(
         }
     }
 
-    private fun updateUiState(canLoadMore: Boolean? = null, removed: Boolean? = null) {
+    private fun updateUiState(removed: Boolean? = null) {
         val currentRemoved = removed ?: isAdsRemoved.value
         
         val items = mutableListOf<HighlightUiItem>()

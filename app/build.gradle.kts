@@ -105,8 +105,13 @@ android {
         applicationId = "com.dirzaaulia.footballclips"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 26
-        versionName = "3.0"
+        
+        val autoVersionCode = providers.gradleProperty("VERSION_CODE").orNull?.toIntOrNull() 
+            ?: providers.environmentVariable("VERSION_CODE").orNull?.toIntOrNull() 
+            ?: 27
+
+        versionCode = autoVersionCode
+        versionName = "3.0.$autoVersionCode"
     }
 
     packaging {

@@ -1,10 +1,27 @@
 default_platform(:android)
 
 platform :android do
+  def get_next_version_code
+    begin
+      codes = google_play_track_version_codes(
+        json_key_data: ENV['PLAY_CONSOLE_JSON_KEY']
+      )
+      max_code = codes.max || 26
+      max_code + 1
+    rescue => e
+      UI.message("Could not fetch version code from Play Console: #{e.message}. Falling back to 27")
+      27
+    end
+  end
+
   desc "Build and Upload Release AAB to Google Play Console Internal Track"
   lane :internal do
+    next_code = get_next_version_code
     gradle(
-      task: ":app:bundleRelease"
+      task: ":app:bundleRelease",
+      properties: {
+        "VERSION_CODE" => next_code.to_s
+      }
     )
     upload_to_play_store(
       track: "internal",
@@ -19,8 +36,12 @@ platform :android do
 
   desc "Build and Upload Release AAB to Google Play Console Alpha Track (Closed Testing)"
   lane :alpha do
+    next_code = get_next_version_code
     gradle(
-      task: ":app:bundleRelease"
+      task: ":app:bundleRelease",
+      properties: {
+        "VERSION_CODE" => next_code.to_s
+      }
     )
     upload_to_play_store(
       track: "alpha",
@@ -35,8 +56,12 @@ platform :android do
 
   desc "Build and Upload Release AAB to Google Play Console Beta Track (Open Testing)"
   lane :beta do
+    next_code = get_next_version_code
     gradle(
-      task: ":app:bundleRelease"
+      task: ":app:bundleRelease",
+      properties: {
+        "VERSION_CODE" => next_code.to_s
+      }
     )
     upload_to_play_store(
       track: "beta",
@@ -51,8 +76,12 @@ platform :android do
 
   desc "Build and Upload Release AAB to Google Play Console Production Track"
   lane :production do
+    next_code = get_next_version_code
     gradle(
-      task: ":app:bundleRelease"
+      task: ":app:bundleRelease",
+      properties: {
+        "VERSION_CODE" => next_code.to_s
+      }
     )
     upload_to_play_store(
       track: "production",

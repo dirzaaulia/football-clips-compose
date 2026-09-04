@@ -6,7 +6,6 @@ import com.dirzaaulia.footballclips.data.billing.BillingManager
 import com.dirzaaulia.footballclips.data.local.PreferenceManager
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.NetworkResult
-import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.domain.model.toMatch
 import com.dirzaaulia.footballclips.data.repository.ScoreRepository
 import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
