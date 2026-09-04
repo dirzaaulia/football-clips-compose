@@ -13,45 +13,45 @@ import com.google.android.libraries.ads.mobile.sdk.common.AdRequest
 import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback
 import com.google.android.libraries.ads.mobile.sdk.common.FullScreenContentError
 import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 actual class AdMobManager(private val context: Context) {
 
-    companion object {
-        private var isInitialized = false
-
-        fun initializeMobileAds(context: Context) {
-            if (!isInitialized) {
-                isInitialized = true
-                CoroutineScope(Dispatchers.IO).launch {
-                    try {
-                        MobileAds.initialize(
-                            context.applicationContext,
-                            InitializationConfig.Builder(AdConfiguration.ADMOB_APP_ID).build()
-                        )
-                        Log.d("AdMobManager", "MobileAds initialized on demand")
-                    } catch (t: Throwable) {
-                        Log.e("AdMobManager", "MobileAds initialization failed: ${t.message}")
-                    }
-                }
-            }
-        }
-    }
-
     private var interstitialAd: InterstitialAd? = null
     private var lastInterstitialTime: Long = 0
     private val interstitialCooldown = TimeUnit.MINUTES.toMillis(3)
+    private var isInitialized = false
 
     init {
-        initializeMobileAds(context)
-        loadInterstitial()
+        initializeAndLoad()
+    }
+
+    private fun initializeAndLoad() {
+        if (isInitialized) {
+            loadInterstitial()
+            return
+        }
+
+        try {
+            MobileAds.initialize(
+                context.applicationContext,
+                InitializationConfig.Builder(AdConfiguration.ADMOB_APP_ID).build()
+            ) {
+                isInitialized = true
+                Log.d("AdMobManager", "MobileAds initialized successfully")
+                loadInterstitial()
+            }
+        } catch (t: Throwable) {
+            Log.e("AdMobManager", "MobileAds initialization error: ${t.message}")
+        }
     }
 
     private fun loadInterstitial() {
-        // Using Google Test Interstitial ID for reliable testing
+        if (!isInitialized) {
+            initializeAndLoad()
+            return
+        }
+
         val adRequest = AdRequest.Builder("ca-app-pub-3940256099942544/1033173712").build()
         InterstitialAd.load(
             adRequest,
@@ -104,7 +104,7 @@ actual class AdMobManager(private val context: Context) {
             interstitialAd?.show(activity)
         } else {
             if (interstitialAd == null) {
-                loadInterstitial() // Reload if null
+                loadInterstitial()
             }
             onAdDismissed()
         }

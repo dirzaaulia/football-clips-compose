@@ -5,11 +5,9 @@ import android.graphics.Color
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import com.dirzaaulia.footballclips.data.admob.AdMobManager
 import com.dirzaaulia.footballclips.data.constants.AdConfiguration
 import com.google.android.libraries.ads.mobile.sdk.banner.AdSize
 import com.google.android.libraries.ads.mobile.sdk.banner.AdView
@@ -23,10 +21,6 @@ actual fun BannerAdView(onAdLoaded: () -> Unit, onAdFailed: (String) -> Unit, mo
     val context = LocalContext.current
     val activity = context as? Activity
 
-    LaunchedEffect(Unit) {
-        AdMobManager.initializeMobileAds(context)
-    }
-    
     BoxWithConstraints(modifier = modifier) {
         val adWidth = maxWidth.value.toInt()
         activity?.let { act ->
@@ -40,15 +34,19 @@ actual fun BannerAdView(onAdLoaded: () -> Unit, onAdFailed: (String) -> Unit, mo
                         AdConfiguration.ADMOB_BANNER_ID,
                         adSize
                     ).build()
-                    adView.loadAd(adRequest, object : AdLoadCallback<BannerAd> {
-                        override fun onAdLoaded(ad: BannerAd) {
-                            onAdLoaded()
-                        }
+                    try {
+                        adView.loadAd(adRequest, object : AdLoadCallback<BannerAd> {
+                            override fun onAdLoaded(ad: BannerAd) {
+                                onAdLoaded()
+                            }
 
-                        override fun onAdFailedToLoad(adError: LoadAdError) {
-                            onAdFailed(adError.message)
-                        }
-                    })
+                            override fun onAdFailedToLoad(adError: LoadAdError) {
+                                onAdFailed(adError.message)
+                            }
+                        })
+                    } catch (t: Throwable) {
+                        onAdFailed(t.message ?: "Ad load error")
+                    }
                     adView
                 },
                 modifier = Modifier.fillMaxWidth(),
