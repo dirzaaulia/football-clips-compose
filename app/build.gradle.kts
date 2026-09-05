@@ -1,3 +1,4 @@
+import java.util.Properties
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -121,15 +122,34 @@ android {
         }
     }
 
+    val localProperties = Properties().apply {
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { stream ->
+                load(stream)
+            }
+        }
+    }
+
     signingConfigs {
         create("release") {
-            val keystorePath = providers.gradleProperty("KEYSTORE_FILE").orNull 
+            val keystorePath = localProperties.getProperty("KEYSTORE_FILE")
+                ?: providers.gradleProperty("KEYSTORE_FILE").orNull 
                 ?: System.getenv("KEYSTORE_FILE") 
                 ?: "C:/Users/ASUS/OneDrive/Keystore/keystore.jks"
             val keystoreFile = file(keystorePath)
-            val storePass = providers.gradleProperty("KEYSTORE_PASSWORD").orNull ?: System.getenv("KEYSTORE_PASSWORD") ?: ""
-            val alias = providers.gradleProperty("KEY_ALIAS").orNull ?: System.getenv("KEY_ALIAS") ?: ""
-            val keyPass = providers.gradleProperty("KEY_PASSWORD").orNull ?: System.getenv("KEY_PASSWORD") ?: ""
+            val storePass = localProperties.getProperty("KEYSTORE_PASSWORD")
+                ?: providers.gradleProperty("KEYSTORE_PASSWORD").orNull 
+                ?: System.getenv("KEYSTORE_PASSWORD") 
+                ?: ""
+            val alias = localProperties.getProperty("KEY_ALIAS")
+                ?: providers.gradleProperty("KEY_ALIAS").orNull 
+                ?: System.getenv("KEY_ALIAS") 
+                ?: ""
+            val keyPass = localProperties.getProperty("KEY_PASSWORD")
+                ?: providers.gradleProperty("KEY_PASSWORD").orNull 
+                ?: System.getenv("KEY_PASSWORD") 
+                ?: ""
             
             if (keystoreFile.exists() && storePass.isNotEmpty()) {
                 storeFile = keystoreFile
@@ -143,6 +163,9 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("release")
+        }
         getByName("release") {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
