@@ -6,12 +6,12 @@ import com.dirzaaulia.footballclips.domain.model.Match
 sealed class HighlightUiItem {
     data class SupabaseMatch(val match: Match) : HighlightUiItem()
     data class Highlight(val highlight: HighlightUiModel) : HighlightUiItem()
-    data object BannerAd : HighlightUiItem()
+    data class BannerAd(val id: String) : HighlightUiItem()
 }
 
 val HighlightUiItem.uniqueId: String
     get() = when (this) {
         is HighlightUiItem.SupabaseMatch -> "match-${match.id}"
         is HighlightUiItem.Highlight -> "highlight-${highlight.id}"
-        else -> "none"
+        is HighlightUiItem.BannerAd -> "ad-$id"
     }

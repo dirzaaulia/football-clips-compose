@@ -747,7 +747,7 @@ private fun MatchTheater(
                                 relatedHighlights.forEachIndexed { index, item ->
                                     result.add(item)
                                     if ((index + 1) % 4 == 0 && index != relatedHighlights.lastIndex) {
-                                        result.add(HighlightUiItem.BannerAd)
+                                        result.add(HighlightUiItem.BannerAd("rel-ad-$index"))
                                     }
                                 }
                                 result
@@ -757,7 +757,10 @@ private fun MatchTheater(
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                                 modifier = Modifier.fillMaxSize().padding(vertical = 8.dp)
                             ) {
-                                items(relatedWithAds) { relatedItem ->
+                                items(
+                                    items = relatedWithAds,
+                                    key = { it.uniqueId }
+                                ) { relatedItem ->
                                     if (relatedItem is HighlightUiItem.BannerAd) {
                                         TheaterAdCard(
                                             modifier = Modifier
@@ -783,7 +786,7 @@ private fun MatchTheater(
                                 fixtures.forEachIndexed { index, item ->
                                     result.add(item)
                                     if ((index + 1) % 5 == 0 && index != fixtures.lastIndex) {
-                                        result.add(HighlightUiItem.BannerAd)
+                                        result.add(HighlightUiItem.BannerAd("fix-ad-$index"))
                                     }
                                 }
                                 result
@@ -793,7 +796,10 @@ private fun MatchTheater(
                                 verticalArrangement = Arrangement.spacedBy(1.dp),
                                 modifier = Modifier.fillMaxSize().padding(vertical = 8.dp)
                             ) {
-                                items(fixturesWithAds) { fixtureItem ->
+                                items(
+                                    items = fixturesWithAds,
+                                    key = { it.uniqueId }
+                                ) { fixtureItem ->
                                     if (fixtureItem is HighlightUiItem.BannerAd) {
                                         TheaterAdCard(
                                             modifier = Modifier

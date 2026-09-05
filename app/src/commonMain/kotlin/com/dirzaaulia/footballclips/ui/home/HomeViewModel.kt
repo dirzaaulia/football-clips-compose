@@ -16,6 +16,7 @@ import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
 import com.dirzaaulia.footballclips.data.repository.ScoreRepository
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.domain.model.toMatch
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -132,7 +133,7 @@ class HomeViewModel(
     private fun observeAdsRemoved() {
         viewModelScope.launch {
             isAdsRemoved.collectLatest { removed ->
-                if (_uiState.value is HomeState.Success) {
+                if (_uiState.value is HomeState.Success && supabaseMatches.isNotEmpty()) {
                     updateUiState(removed = removed)
                 }
             }
@@ -156,7 +157,7 @@ class HomeViewModel(
         viewModelScope.launch {
             _uiState.value = HomeState.Loading
             getSupabaseHighlights()
-            if (_showExternalHighlights.value) {
+            if (_showExternalHighlights.value || supabaseMatches.isEmpty()) {
                 getExternalHighlights(isRefresh = true)
             } else {
                 updateUiState()
@@ -284,37 +285,38 @@ class HomeViewModel(
 
         if (!hasMoreSupabase) return
 
-        var result = scoreRepository.getMatches(
-            competitionId = _selectedCompetitionId.value,
-            hasHighlight = true,
-            ascending = false,
-            limit = supabaseLimit,
-            offset = supabaseOffset
-        )
-        
-        // Quick retry if initial cold-boot network call encountered a timeout
-        if (result !is NetworkResult.Success) {
-            delay(400)
-            result = scoreRepository.getMatches(
+        var attempt = 0
+        var success = false
+
+        while (attempt < 3 && !success) {
+            attempt++
+            val result = scoreRepository.getMatches(
                 competitionId = _selectedCompetitionId.value,
                 hasHighlight = true,
                 ascending = false,
                 limit = supabaseLimit,
                 offset = supabaseOffset
             )
-        }
 
-        when (result) {
-            is NetworkResult.Success -> {
-                val newMatches = result.data.map { it.toMatch() }
-                supabaseMatches.addAll(newMatches)
-                if (newMatches.size < supabaseLimit) {
-                    hasMoreSupabase = false
+            when (result) {
+                is NetworkResult.Success -> {
+                    val newMatches = result.data.map { it.toMatch() }
+                    val existingIds = supabaseMatches.map { it.id }.toSet()
+                    val uniqueNew = newMatches.filter { it.id !in existingIds }
+                    supabaseMatches.addAll(uniqueNew)
+                    if (newMatches.size < supabaseLimit) {
+                        hasMoreSupabase = false
+                    }
+                    supabaseOffset += supabaseLimit
+                    success = true
                 }
-                supabaseOffset += supabaseLimit
-            }
-            else -> {
-                hasMoreSupabase = false
+                else -> {
+                    if (attempt < 3) {
+                        delay(500L * attempt)
+                    } else {
+                        hasMoreSupabase = true
+                    }
+                }
             }
         }
     }
@@ -323,15 +325,20 @@ class HomeViewModel(
         if (isFetching) return
 
         viewModelScope.launch {
-            if (hasMoreSupabase) {
-                val currentState = _uiState.value
-                if (currentState is HomeState.Success) {
-                    _uiState.value = currentState.copy(isLoadingMore = true)
+            isFetching = true
+            try {
+                if (hasMoreSupabase) {
+                    val currentState = _uiState.value
+                    if (currentState is HomeState.Success) {
+                        _uiState.value = currentState.copy(isLoadingMore = true)
+                    }
+                    getSupabaseHighlights(isRefresh = false)
+                    updateUiState()
+                } else if (_showExternalHighlights.value) {
+                    getExternalHighlights(isRefresh = false)
                 }
-                getSupabaseHighlights(isRefresh = false)
-                updateUiState()
-            } else if (_showExternalHighlights.value) {
-                getExternalHighlights(isRefresh = false)
+            } finally {
+                isFetching = false
             }
         }
     }
@@ -360,30 +367,33 @@ class HomeViewModel(
 
         isFetching = true
         viewModelScope.launch {
-            val result = highlightRepository.getHighlights(
-                limit = limit,
-                offset = currentOffset,
-                leagueId = _selectedLeagueId.value?.toString()
-            )
-            
-            when (result) {
-                is NetworkResult.Success -> {
-                    totalCount = result.data.pagination?.totalCount ?: 0
-                    val newHighlights = result.data.data?.mapNotNull { it.toUiModel() } ?: emptyList()
-                    
-                    allHighlights.addAll(newHighlights)
-                    currentOffset += limit
-                    
-                    updateUiState()
+            try {
+                val result = highlightRepository.getHighlights(
+                    limit = limit,
+                    offset = currentOffset,
+                    leagueId = _selectedLeagueId.value?.toString()
+                )
+                
+                when (result) {
+                    is NetworkResult.Success -> {
+                        totalCount = result.data.pagination?.totalCount ?: 0
+                        val newHighlights = result.data.data?.mapNotNull { it.toUiModel() } ?: emptyList()
+                        
+                        allHighlights.addAll(newHighlights)
+                        currentOffset += limit
+                        
+                        updateUiState()
+                    }
+                    is NetworkResult.Error -> {
+                        handleNetworkError(isRefresh, "Error: ${result.code} - ${result.message}")
+                    }
+                    is NetworkResult.Exception -> {
+                        handleNetworkError(isRefresh, "Exception: ${result.e.message}")
+                    }
                 }
-                is NetworkResult.Error -> {
-                    handleNetworkError(isRefresh, "Error: ${result.code} - ${result.message}")
-                }
-                is NetworkResult.Exception -> {
-                    handleNetworkError(isRefresh, "Exception: ${result.e.message}")
-                }
+            } finally {
+                isFetching = false
             }
-            isFetching = false
         }
     }
 
@@ -400,64 +410,72 @@ class HomeViewModel(
     }
 
     private fun updateUiState(removed: Boolean? = null) {
-        val currentRemoved = removed ?: isAdsRemoved.value
-        
-        val items = mutableListOf<HighlightUiItem>()
-        
-        // 1. Add Supabase Matches with filtering
-        val filteredSupabase = supabaseMatches.filter { match ->
-            val matchSearch = searchQuery.isEmpty() || 
-                    match.homeTeamName.contains(searchQuery, ignoreCase = true) || 
-                    match.awayTeamName.contains(searchQuery, ignoreCase = true)
-
-            val matchesSelectedFilters = selectedLeagues.isEmpty() || match.competitionName in selectedLeagues
-                
-            matchSearch && matchesSelectedFilters
-        }
-        items.addAll(filteredSupabase.map { HighlightUiItem.SupabaseMatch(it) })
-        
-        // 2. Add External Highlights if enabled
-        if (_showExternalHighlights.value) {
-            val topLeague = BigLeaguesConstants.leagues.find { 
-                (it.leagueId != null && it.leagueId == _selectedLeagueId.value) || 
-                (it.competitionId != null && it.competitionId == _selectedCompetitionId.value)
-            }
-
-            val filteredExternal = allHighlights.filter { highlight ->
-                val matchSearch = searchQuery.isEmpty() || 
-                        highlight.homeTeam.contains(searchQuery, ignoreCase = true) || 
-                        highlight.awayTeam.contains(searchQuery, ignoreCase = true) ||
-                        highlight.title.contains(searchQuery, ignoreCase = true)
-
-                val matchesSelectedFilters = (selectedCountries.isEmpty() || highlight.countryName in selectedCountries) &&
-                (selectedLeagues.isEmpty() || highlight.leagueName in selectedLeagues)
-                
-                val matchesTopLeague = topLeague == null || topLeague.leagueId == null ||
-                                       highlight.leagueName.contains(topLeague.name, ignoreCase = true) ||
-                                       (topLeague.name == "La Liga" && highlight.countryName.contains("Spain", ignoreCase = true))
-
-                matchSearch && matchesSelectedFilters && matchesTopLeague
-            }
+        viewModelScope.launch(Dispatchers.Default) {
+            val currentRemoved = removed ?: isAdsRemoved.value
             
-            items.addAll(filteredExternal.map { HighlightUiItem.Highlight(it) })
+            val items = mutableListOf<HighlightUiItem>()
+            
+            // 1. Add Supabase Matches with filtering
+            val filteredSupabase = supabaseMatches.filter { match ->
+                val matchSearch = searchQuery.isEmpty() || 
+                        match.homeTeamName.contains(searchQuery, ignoreCase = true) || 
+                        match.awayTeamName.contains(searchQuery, ignoreCase = true)
+
+                val matchesSelectedFilters = selectedLeagues.isEmpty() || 
+                        selectedLeagues.any { it.equals(match.competitionName, ignoreCase = true) }
+                    
+                matchSearch && matchesSelectedFilters
+            }
+            items.addAll(filteredSupabase.map { HighlightUiItem.SupabaseMatch(it) })
+            
+            // 2. Add External Highlights if enabled OR if Supabase has 0 matches
+            if (_showExternalHighlights.value || supabaseMatches.isEmpty()) {
+                val topLeague = BigLeaguesConstants.leagues.find { 
+                    (it.leagueId != null && it.leagueId == _selectedLeagueId.value) || 
+                    (it.competitionId != null && it.competitionId == _selectedCompetitionId.value)
+                }
+
+                val filteredExternal = allHighlights.filter { highlight ->
+                    val matchSearch = searchQuery.isEmpty() || 
+                            highlight.homeTeam.contains(searchQuery, ignoreCase = true) || 
+                            highlight.awayTeam.contains(searchQuery, ignoreCase = true) ||
+                            highlight.title.contains(searchQuery, ignoreCase = true)
+
+                    val matchesSelectedFilters = (selectedCountries.isEmpty() || highlight.countryName in selectedCountries) &&
+                    (selectedLeagues.isEmpty() || selectedLeagues.any { it.equals(highlight.leagueName, ignoreCase = true) })
+                    
+                    val matchesTopLeague = topLeague == null || topLeague.leagueId == null ||
+                                           highlight.leagueName.contains(topLeague.name, ignoreCase = true) ||
+                                           (topLeague.name == "La Liga" && highlight.countryName.contains("Spain", ignoreCase = true))
+
+                    matchSearch && matchesSelectedFilters && matchesTopLeague
+                }
+                
+                items.addAll(filteredExternal.map { HighlightUiItem.Highlight(it) })
+            }
+
+            val finalCanLoadMore = hasMoreSupabase || (_showExternalHighlights.value && currentOffset < totalCount)
+
+            val builtItems = buildListWithAds(items, currentRemoved)
+
+            val filterStateCalculated = extractAllFilters(
+                supabaseMatches = supabaseMatches,
+                externalHighlights = allHighlights,
+                searchQuery = searchQuery,
+                selectedCountries = selectedCountries,
+                selectedLeagues = selectedLeagues,
+                filteredCount = items.size
+            )
+
+            _uiState.value = HomeState.Success(
+                items = builtItems,
+                isAdsRemoved = currentRemoved,
+                canLoadMore = finalCanLoadMore,
+                isLoadingMore = false
+            )
+            
+            _filterState.value = filterStateCalculated
         }
-
-        val finalCanLoadMore = hasMoreSupabase || (_showExternalHighlights.value && currentOffset < totalCount)
-
-        _uiState.value = HomeState.Success(
-            items = buildListWithAds(items, currentRemoved),
-            isAdsRemoved = currentRemoved,
-            canLoadMore = finalCanLoadMore,
-            isLoadingMore = false
-        )
-        
-        _filterState.value = extractAllFilters(
-            supabaseMatches = supabaseMatches,
-            externalHighlights = allHighlights,
-            searchQuery = searchQuery,
-            selectedCountries = selectedCountries,
-            selectedLeagues = selectedLeagues
-        )
     }
 
     private fun buildListWithAds(items: List<HighlightUiItem>, isAdsRemoved: Boolean): List<HighlightUiItem> {
@@ -466,12 +484,12 @@ class HomeViewModel(
 
         val result = mutableListOf<HighlightUiItem>()
         result.add(items[0])
-        result.add(HighlightUiItem.BannerAd)
+        result.add(HighlightUiItem.BannerAd("ad-0"))
         
         for (i in 1 until items.size) {
             result.add(items[i])
             if (i % 5 == 0 && i < items.size - 1) {
-                result.add(HighlightUiItem.BannerAd)
+                result.add(HighlightUiItem.BannerAd("ad-$i"))
             }
         }
         return result

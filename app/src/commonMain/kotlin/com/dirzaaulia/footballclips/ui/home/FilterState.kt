@@ -25,7 +25,8 @@ fun extractAllFilters(
     externalHighlights: List<HighlightUiModel>,
     searchQuery: String,
     selectedCountries: Set<String>,
-    selectedLeagues: Set<String>
+    selectedLeagues: Set<String>,
+    filteredCount: Int
 ): FilterState {
     val countries = externalHighlights.groupBy { it.countryName }
         .map { (name, list) ->
@@ -60,36 +61,13 @@ fun extractAllFilters(
         FilterOption(name, totalCount, logo)
     }.sortedByDescending { it.count }
 
-    val filteredSupabaseCount = supabaseMatches.filter { match ->
-        val matchSearch = searchQuery.isEmpty() ||
-                match.homeTeamName.contains(searchQuery, ignoreCase = true) ||
-                match.awayTeamName.contains(searchQuery, ignoreCase = true)
-
-        val matchesSelectedFilters = (selectedCountries.isEmpty()) &&
-                (selectedLeagues.isEmpty() || match.competitionName in selectedLeagues)
-
-        matchSearch && matchesSelectedFilters
-    }.size
-
-    val filteredExternalCount = externalHighlights.filter { highlight ->
-        val matchSearch = searchQuery.isEmpty() ||
-                highlight.homeTeam.contains(searchQuery, ignoreCase = true) ||
-                highlight.awayTeam.contains(searchQuery, ignoreCase = true) ||
-                highlight.title.contains(searchQuery, ignoreCase = true)
-
-        val matchesSelectedFilters = (selectedCountries.isEmpty() || highlight.countryName in selectedCountries) &&
-                (selectedLeagues.isEmpty() || highlight.leagueName in selectedLeagues)
-
-        matchSearch && matchesSelectedFilters
-    }.size
-
     return FilterState(
         searchQuery = searchQuery,
         selectedCountries = selectedCountries,
         selectedLeagues = selectedLeagues,
         availableCountries = countries,
         availableLeagues = leagues,
-        matchesFound = filteredSupabaseCount + filteredExternalCount,
+        matchesFound = filteredCount,
         totalMatchesLoaded = supabaseMatches.size + externalHighlights.size
     )
 }

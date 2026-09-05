@@ -1,7 +1,6 @@
 package com.dirzaaulia.footballclips.di
 
 import com.chuckerteam.chucker.api.ChuckerInterceptor
-import com.dirzaaulia.footballclips.BuildConfig
 import com.dirzaaulia.footballclips.data.admob.AdMobManager
 import com.dirzaaulia.footballclips.data.billing.BillingManager
 import com.dirzaaulia.footballclips.data.billing.AndroidBillingManager
@@ -9,7 +8,6 @@ import com.dirzaaulia.footballclips.data.local.PreferenceManager
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
@@ -28,12 +26,9 @@ actual val platformModule: Module = module {
             install(ContentNegotiation) {
                 json(Json {
                     ignoreUnknownKeys = true
-                    prettyPrint = true
+                    prettyPrint = false
                     isLenient = true
                 })
-            }
-            install(Logging) {
-                level = if (BuildConfig.DEBUG) LogLevel.INFO else LogLevel.NONE
             }
         }
     }

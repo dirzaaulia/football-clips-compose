@@ -12,6 +12,23 @@
             </InsightsFilterSettings>
           </value>
         </entry>
+        <entry key="Firebase Crashlytics">
+          <value>
+            <InsightsFilterSettings>
+              <option name="connection">
+                <ConnectionSetting>
+                  <option name="appId" value="com.dirzaaulia.footballclips" />
+                  <option name="mobileSdkAppId" value="1:581482290296:android:80dbd728603430e70f218d" />
+                  <option name="projectId" value="football-clips-51f56" />
+                  <option name="projectNumber" value="581482290296" />
+                </ConnectionSetting>
+              </option>
+              <option name="signal" value="SIGNAL_UNSPECIFIED" />
+              <option name="timeIntervalDays" value="THIRTY_DAYS" />
+              <option name="visibilityType" value="ALL" />
+            </InsightsFilterSettings>
+          </value>
+        </entry>
       </map>
     </option>
   </component>

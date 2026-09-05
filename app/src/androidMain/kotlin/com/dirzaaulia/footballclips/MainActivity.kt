@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
         // Handle Deep Link if activity is created via URL
         supabase.handleDeeplinks(intent)
 
-        // Smooth, elegant fade exit animation
+        // Fast, smooth fade exit animation
         splashScreen.setOnExitAnimationListener { splashScreenView ->
             val fadeOut = ObjectAnimator.ofFloat(
                 splashScreenView.view,
@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
                 1f,
                 0f
             )
-            fadeOut.duration = 300L
+            fadeOut.duration = 150L
             fadeOut.doOnEnd { splashScreenView.remove() }
             fadeOut.start()
         }

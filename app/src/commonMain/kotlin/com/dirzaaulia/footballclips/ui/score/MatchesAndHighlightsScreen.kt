@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
+import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.BigLeaguesQuickFilterBar
 import com.dirzaaulia.footballclips.ui.components.EmptyState
@@ -126,6 +127,7 @@ fun MatchesAndHighlightsScreen(
                                 ) {
                                     items(
                                         items = state.matches,
+                                        key = { it.uniqueId },
                                         span = { item ->
                                             if (item is HighlightUiItem.BannerAd) GridItemSpan(maxLineSpan)
                                             else GridItemSpan(1)
@@ -160,7 +162,10 @@ fun MatchesAndHighlightsScreen(
                                     contentPadding = PaddingValues(16.dp),
                                     verticalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
-                                    items(state.matches) { item ->
+                                    items(
+                                        items = state.matches,
+                                        key = { it.uniqueId }
+                                    ) { item ->
                                         when (item) {
                                             is HighlightUiItem.SupabaseMatch -> {
                                                 MatchCard(

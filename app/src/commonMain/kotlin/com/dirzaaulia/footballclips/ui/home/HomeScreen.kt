@@ -34,6 +34,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
+import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.util.isDebugBuild
 import kotlinx.datetime.Clock
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -436,7 +437,10 @@ fun HomeScreen(
                                         )
                                     }
                                 } else {
-                                    items(gridItems) { item ->
+                                    items(
+                                        items = gridItems,
+                                        key = { item -> item.uniqueId }
+                                    ) { item ->
                                         when (item) {
                                             is HighlightUiItem.SupabaseMatch, is HighlightUiItem.Highlight -> {
                                                 WebHighlightCard(
@@ -546,7 +550,10 @@ fun HomeScreen(
                                         )
                                     }
                                 } else {
-                                    items(gridItems) { item ->
+                                    items(
+                                        items = gridItems,
+                                        key = { item -> item.uniqueId }
+                                    ) { item ->
                                         when (item) {
                                             is HighlightUiItem.SupabaseMatch -> {
                                                 MatchCard(
