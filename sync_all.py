@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import json
 import html
@@ -94,8 +95,8 @@ EUROPEAN_CLUB_HANDLES = {
     "liverpool": "@liverpoolfc",
     "manchester city": "@mancity",
     "manchester united": "@manutd",
-    "newcastle united": "@newcastle",
-    "newcastle": "@newcastle",
+    "newcastle united": "@NUFC",
+    "newcastle": "@NUFC",
     "nottingham forest": "@NottinghamForestFC",
     "sunderland": "@sunderlandafc",
     "tottenham": "@tottenhamhotspur",
@@ -162,6 +163,11 @@ EUROPEAN_CLUB_HANDLES = {
     "marseille": "@om_officiel",
     "ogc nice": "@ogcnice",
     "nice": "@ogcnice",
+    "rc lens": "@RCLens",
+    "racing club de lens": "@RCLens",
+    "lens": "@RCLens",
+    "fc lorient": "@FCLorientOfficiel",
+    "lorient": "@FCLorientOfficiel",
 
     # Portugal, Netherlands, Scotland, Turkey & Other UEFA League Phase
     "sporting cp": "@sportingcp",
@@ -214,8 +220,9 @@ PERMANENT_CHANNEL_IDS = {
     "@liverpoolfc": "UC9LQwHZoucFT94I2h6JOcjw",
     "@mancity": "UCkzCjdRMrW2vXLx8mvPVLdQ",
     "@manutd": "UC6yW44UGJJBvYTlfC7CRg2Q",
-    "@newcastle": "UCdfrgbb2njONUvgXqcpbD6Q",
-    "@newcastleunited": "UCdfrgbb2njONUvgXqcpbD6Q",
+    "@newcastle": "UCywGl_BPp9QhD0uAcP2HsJw",
+    "@newcastleunited": "UCywGl_BPp9QhD0uAcP2HsJw",
+    "@NUFC": "UCywGl_BPp9QhD0uAcP2HsJw",
     "@NottinghamForestFC": "UCyAxjuAr8f_BFDGCO3Htbxw",
     "@sunderlandafc": "UCrw-7k6yJc0EMJdf-0BAkoQ",
     "@tottenhamhotspur": "UCEg25rdRZXg32iwai6N6l0w",
@@ -263,6 +270,9 @@ PERMANENT_CHANNEL_IDS = {
     "@om_officiel": "UCoKweTwEeA-D9vuSVw_Z_DQ",
     "@om": "UCoKweTwEeA-D9vuSVw_Z_DQ",
     "@ogcnice": "UCAvm8jHWe-8K2kZK-7ynIHA",
+    "@RCLens": "UCE-f1Taamum6q2S-Ve4koSw",
+    "@FCLorientOfficiel": "UC1LeTxFgKYwMeQjRjLyGRTQ",
+    "@fclorient": "UC1LeTxFgKYwMeQjRjLyGRTQ",
     
     # Netherlands, Portugal, Scotland & Others
     "@feyenoord": "UCg_DGzRRIQlXpHxCrMMiAIQ",
@@ -328,6 +338,9 @@ CUSTOM_KEYWORD_ALIASES = {
     "fc köln": ["köln", "koln", "cologne"],
     "brentford fc": ["brentford"],
     "sunderland afc": ["sunderland"],
+    "newcastle united fc": ["newcastle", "nufc", "magpies"],
+    "afc bournemouth": ["bournemouth", "cherries"],
+    "fc lorient": ["lorient"],
     "tsg 1899 hoffenheim": ["hoffenheim"],
     "1899 hoffenheim": ["hoffenheim"],
     "07 elversberg": ["elversberg"],
@@ -1090,25 +1103,29 @@ def sync_targeted_highlights(log_events=None):
         else:
             hours_since_check = float('inf')
 
-        # HITUNG COOLDOWN TIER
+        # HITUNG COOLDOWN TIER (Disesuaikan karena metode playlistItems sangat hemat kuota)
         required_cooldown_hours = 0
         skip_reason = None
-        if match_age_hours < 4:
-            required_cooldown_hours = 4 - match_age_hours
-            skip_reason = f"Inkubasi (< 4 jam, umur {match_age_hours:.1f} jam)"
-        elif 4 <= match_age_hours <= 24 and hours_since_check < 4:
-            required_cooldown_hours = 4 - hours_since_check
+        if match_age_hours < 2:
+            required_cooldown_hours = 2 - match_age_hours
+            skip_reason = f"Inkubasi (< 2 jam, umur {match_age_hours:.1f} jam)"
+        elif 2 <= match_age_hours <= 24 and hours_since_check < 2:
+            required_cooldown_hours = 2 - hours_since_check
             skip_reason = f"Tier 1 Cooldown (Baru dicek {hours_since_check:.1f} jam lalu)"
-        elif 24 < match_age_hours <= 48 and hours_since_check < 12:
-            required_cooldown_hours = 12 - hours_since_check
+        elif 24 < match_age_hours <= 48 and hours_since_check < 4:
+            required_cooldown_hours = 4 - hours_since_check
             skip_reason = f"Tier 2 Cooldown (Baru dicek {hours_since_check:.1f} jam lalu)"
-        elif match_age_hours > 48 and hours_since_check < 24:
-            required_cooldown_hours = 24 - hours_since_check
+        elif match_age_hours > 48 and hours_since_check < 12:
+            required_cooldown_hours = 12 - hours_since_check
             skip_reason = f"Tier 3 Cooldown (Baru dicek {hours_since_check:.1f} jam lalu)"
 
-        # SMART GLOBAL CHECK
+        # SMART GLOBAL CHECK / FORCE MODE
         force_execute = False
-        if skip_reason and remaining_quota >= 500:
+        is_force_mode = "--force" in sys.argv or os.environ.get("FORCE_SYNC") == "true"
+        if is_force_mode:
+            force_execute = True
+            log_events.append(f"   ⚡ [FORCE MODE] Memaksa pencarian untuk {home} vs {away} (Bypass cooldown)")
+        elif skip_reason and remaining_quota >= 500:
             if required_cooldown_hours >= hours_until_reset and not (comp_id in ["CL", "EL"] and match_age_hours < 2.5):
                 force_execute = True
                 log_events.append(f"   ⚡ [OPPORTUNISTIC HIT] {home} vs {away}: Cooldown ({required_cooldown_hours:.1f} jam) melewati waktu reset ({hours_until_reset:.1f} jam). Memaksa pencarian!")
