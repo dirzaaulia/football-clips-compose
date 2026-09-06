@@ -141,15 +141,6 @@ android {
         }
     }
 
-    val localProperties = Properties().apply {
-        val localPropertiesFile = rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            localPropertiesFile.inputStream().use { stream ->
-                load(stream)
-            }
-        }
-    }
-
     signingConfigs {
         create("release") {
             val keystorePath = localProperties.getProperty("KEYSTORE_FILE")
