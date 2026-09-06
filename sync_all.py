@@ -46,8 +46,9 @@ except Exception:
     WIB = timezone(timedelta(hours=7))
     PACIFIC_TZ = timezone(timedelta(hours=-7))
 
-# Rentang durasi paten video highlight: 90 detik (1.5 menit) s/d 1500 detik (25 menit)
-MIN_DURATION_SECONDS = 90
+# Rentang durasi paten video highlight: 45 detik (0.75 menit) s/d 1500 detik (25 menit)
+# Catatan: Channel resmi Bundesliga (@bundesliga) merilis highlight cepat berdurasi 50s-75s
+MIN_DURATION_SECONDS = 45
 MAX_DURATION_SECONDS = 1500
 
 # Pola kata terlarang murni untuk filter judul video (bukan parameter deskripsi API)
@@ -323,8 +324,10 @@ CUSTOM_KEYWORD_ALIASES = {
     "toulouse fc": ["toulouse"],
     "parma calcio 1913": ["parma"],
     "juventus fc": ["juventus"],
-    "1. fc köln": ["köln", "koln"],
-    "fc köln": ["köln", "koln"],
+    "1. fc köln": ["köln", "koln", "cologne"],
+    "fc köln": ["köln", "koln", "cologne"],
+    "brentford fc": ["brentford"],
+    "sunderland afc": ["sunderland"],
     "tsg 1899 hoffenheim": ["hoffenheim"],
     "1899 hoffenheim": ["hoffenheim"],
     "07 elversberg": ["elversberg"],
@@ -693,13 +696,77 @@ def search_channel_for_highlight(channel_handle: str, query: str, home_team: str
     if not channel_id: return None, None
 
     match_start = safe_parse_iso(match_date)
+    pub_after_dt = match_start - timedelta(hours=2)
+    pub_before_dt = match_start + timedelta(hours=72)
     pub_after = match_start.strftime("%Y-%m-%dT%H:%M:%SZ")
-    pub_before = (match_start + timedelta(hours=72)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    pub_before = pub_before_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    log_events.append(f"      🔎 Hit API YouTube | Channel: {channel_handle} | Query: '{query}'")
-        
-    try:
-        items = []
+    h_clean = clean_team_name_for_search(home_team).lower()
+    a_clean = clean_team_name_for_search(away_team).lower()
+    
+    # Kumpulkan kata kunci / alias pencarian tim
+    h_aliases = [h_clean]
+    a_aliases = [a_clean]
+    for k, aliases in CUSTOM_KEYWORD_ALIASES.items():
+        if k in home_team.lower() or home_team.lower() in k:
+            h_aliases.extend([a.lower() for a in aliases])
+        if k in away_team.lower() or away_team.lower() in k:
+            a_aliases.extend([a.lower() for a in aliases])
+    h_aliases = [a for a in set(h_aliases) if len(a) >= 3]
+    a_aliases = [a for a in set(a_aliases) if len(a) >= 3]
+
+    items = []
+    used_playlist_scan = False
+
+    # 1. METODE UTAMA: SCAN UPLOADS PLAYLIST (1 UNIT KUOTA, 0 DETIK INDEXING LAG)
+    # Sangat efektif untuk video baru rilis (< 24 jam) yang belum diindeks YouTube Search API
+    if channel_id.startswith("UC"):
+        uploads_playlist_id = "UU" + channel_id[2:]
+        try:
+            pl_req = youtube.playlistItems().list(
+                playlistId=uploads_playlist_id,
+                part="snippet",
+                maxResults=30
+            )
+            pl_res = pl_req.execute()
+            increment_quota(1)
+            
+            pl_items = pl_res.get("items", [])
+            matched_pl_items = []
+            
+            for p_item in pl_items:
+                snippet = p_item.get("snippet", {})
+                v_title = html.unescape(snippet.get("title", ""))
+                v_title_lower = v_title.lower()
+                v_pub_str = snippet.get("publishedAt", "")
+                v_pub_dt = safe_parse_iso(v_pub_str)
+                
+                # Cek rentang waktu rilis (mulai 2 jam sebelum kick-off s/d 72 jam pasca laga)
+                if not (pub_after_dt <= v_pub_dt <= pub_before_dt):
+                    continue
+                
+                # Cek apakah judul mengandung nama tim yang bertanding
+                has_h = any(alias in v_title_lower for alias in h_aliases)
+                has_a = any(alias in v_title_lower for alias in a_aliases)
+                
+                if has_h or has_a:
+                    v_id = snippet.get("resourceId", {}).get("videoId")
+                    if v_id:
+                        matched_pl_items.append({
+                            "id": {"videoId": v_id},
+                            "snippet": snippet
+                        })
+            
+            if matched_pl_items:
+                items = matched_pl_items
+                used_playlist_scan = True
+                log_events.append(f"      ⚡ [PLAYLIST SCAN] Ditemukan {len(items)} video kandidat dari upload terbaru {channel_handle} (1 unit kuota)")
+        except Exception as e:
+            pass
+
+    # 2. FALLBACK KE SEARCH API JIKA PLAYLIST SCAN TIDAK MENEMUKAN KANDIDAT
+    if not items:
+        log_events.append(f"      🔎 Hit API YouTube | Channel: {channel_handle} | Query: '{query}'")
         for attempt in range(1, 4):
             try:
                 req = youtube.search().list(
@@ -707,7 +774,6 @@ def search_channel_for_highlight(channel_handle: str, query: str, home_team: str
                     channelId=channel_id,
                     part="snippet",
                     type="video",
-                    videoEmbeddable="true",
                     publishedAfter=pub_after,
                     publishedBefore=pub_before,
                     order="relevance",
@@ -727,86 +793,95 @@ def search_channel_for_highlight(channel_handle: str, query: str, home_team: str
                     log_events.append(f"      🚨 Error YouTube API: {e}")
                     return "ERROR", None
 
-        if not items:
-            log_events.append(f"      🚫 YouTube tidak menemukan hasil video apapun untuk query ini.")
-            return None, None
-
-        # Ambil durasi dan data regionRestriction via videos().list (1 unit kuota) dengan retry
-        video_ids = [item["id"]["videoId"] for item in items]
-        durations_map = {}
-        regions_map = {}
-        for attempt in range(1, 4):
-            try:
-                dur_req = youtube.videos().list(part="contentDetails", id=",".join(video_ids))
-                dur_res = dur_req.execute()
-                increment_quota(1)
-                for v_item in dur_res.get("items", []):
-                    c_details = v_item.get("contentDetails", {})
-                    dur_sec = parse_iso8601_duration_seconds(c_details.get("duration", ""))
-                    durations_map[v_item["id"]] = dur_sec
-                    regions_map[v_item["id"]] = c_details.get("regionRestriction")
-                break
-            except Exception as e:
-                err_msg = str(e).lower()
-                if ("timed out" in err_msg or "timeout" in err_msg or "connection" in err_msg or "reset" in err_msg) and attempt < 3:
-                    time.sleep(2)
-                    continue
-                else:
-                    log_events.append(f"      🚨 Error fetch durasi/region video: {e}")
-                    return "ERROR", None
-
-        log_events.append(f"      📋 [DEBUG YOUTUBE] Ditemukan {len(items)} video mentah:")
-        
-        raw_candidates = []
-        for idx, item in enumerate(items):
-            v_id = item["id"]["videoId"]
-            raw_title = html.unescape(item["snippet"]["title"])
-            duration_sec = durations_map.get(v_id, 0)
-            dur_text = f"{duration_sec // 60}m {duration_sec % 60}s"
-            yt_link = f"https://youtu.be/{v_id}"
-            reg_info = regions_map.get(v_id)
-            geo_penalty, geo_desc = get_geoblock_penalty(reg_info)
-            
-            # 1. Filter kata terlarang murni di judul (Python title filter)
-            is_forbidden, reason = check_forbidden_title(raw_title)
-            if is_forbidden:
-                log_events.append(f"         -> {idx+1}. [❌ TITLE FILTER: {reason}] [ID: {v_id}] '{raw_title}' ({yt_link})")
-                continue
-
-            # 2. Filter durasi paten: 90 detik s/d 1500 detik (1.5m – 25m)
-            if not (MIN_DURATION_SECONDS <= duration_sec <= MAX_DURATION_SECONDS):
-                log_events.append(f"         -> {idx+1}. [❌ DURATION FILTER: {dur_text}] [ID: {v_id}] '{raw_title}' ({yt_link})")
-                continue
-
-            # 3. Filter geoblocking ekstrem (whitelist negara tertutup, penalti >= 900)
-            if geo_penalty >= 900:
-                log_events.append(f"         -> {idx+1}. [❌ GEOBLOCK FILTER: {geo_desc}] [ID: {v_id}] '{raw_title}' ({yt_link})")
-                continue
-
-            geo_tag = " [🌐 100% Global]" if geo_penalty == 0 else f" [⚠️ {geo_desc}]"
-            log_events.append(f"         -> {idx+1}. [⏱️ {dur_text}]{geo_tag} [ID: {v_id}] '{raw_title}' ({yt_link})")
-            raw_candidates.append({
-                "id": v_id, 
-                "title": raw_title, 
-                "duration_sec": duration_sec,
-                "region_restriction": reg_info,
-                "geo_penalty": geo_penalty
-            })
-
-        if not raw_candidates:
-            log_events.append(f"      🚫 Semua video tereliminasi oleh filter judul, durasi, atau pembatasan wilayah global.")
-            return None, None
-
-        # Rerank kandidat video via Gemini AI (dengan Fallback Otomatis)
-        chosen_video_id = ai_pick_best_highlight(home_team, away_team, comp_id, raw_candidates, log_events)
-        if chosen_video_id:
-            chosen_reg = next((c.get("region_restriction") for c in raw_candidates if c["id"] == chosen_video_id), None)
-            return chosen_video_id, chosen_reg
+    if not items:
+        log_events.append(f"      🚫 YouTube tidak menemukan hasil video apapun untuk query/channel ini.")
         return None, None
 
-    except Exception as e:
-        log_events.append(f"      🚨 Error YouTube API: {e}")
-        return "ERROR", None
+    # Ambil durasi, status embed, dan regionRestriction via videos().list (1 unit kuota) dengan retry
+    video_ids = [item["id"]["videoId"] for item in items if item.get("id", {}).get("videoId")]
+    if not video_ids:
+        log_events.append(f"      🚫 Tidak ada ID video valid ditemukan.")
+        return None, None
+
+    durations_map = {}
+    regions_map = {}
+    embeddable_map = {}
+    for attempt in range(1, 4):
+        try:
+            dur_req = youtube.videos().list(part="contentDetails,status", id=",".join(video_ids))
+            dur_res = dur_req.execute()
+            increment_quota(1)
+            for v_item in dur_res.get("items", []):
+                c_details = v_item.get("contentDetails", {})
+                v_status = v_item.get("status", {})
+                dur_sec = parse_iso8601_duration_seconds(c_details.get("duration", ""))
+                durations_map[v_item["id"]] = dur_sec
+                regions_map[v_item["id"]] = c_details.get("regionRestriction")
+                embeddable_map[v_item["id"]] = v_status.get("embeddable", True)
+            break
+        except Exception as e:
+            err_msg = str(e).lower()
+            if ("timed out" in err_msg or "timeout" in err_msg or "connection" in err_msg or "reset" in err_msg) and attempt < 3:
+                time.sleep(2)
+                continue
+            else:
+                log_events.append(f"      🚨 Error fetch durasi/region video: {e}")
+                return "ERROR", None
+
+    log_events.append(f"      📋 [DEBUG YOUTUBE] Ditemukan {len(items)} video mentah:")
+    
+    raw_candidates = []
+    for idx, item in enumerate(items):
+        v_id = item["id"]["videoId"]
+        raw_title = html.unescape(item["snippet"]["title"])
+        duration_sec = durations_map.get(v_id, 0)
+        dur_text = f"{duration_sec // 60}m {duration_sec % 60}s"
+        yt_link = f"https://youtu.be/{v_id}"
+        reg_info = regions_map.get(v_id)
+        geo_penalty, geo_desc = get_geoblock_penalty(reg_info)
+        is_embeddable = embeddable_map.get(v_id, True)
+
+        # 0. Filter video tidak bisa di-embed di app
+        if not is_embeddable:
+            log_events.append(f"         -> {idx+1}. [❌ EMBED DISABLED] [ID: {v_id}] '{raw_title}' ({yt_link})")
+            continue
+        
+        # 1. Filter kata terlarang murni di judul (Python title filter)
+        is_forbidden, reason = check_forbidden_title(raw_title)
+        if is_forbidden:
+            log_events.append(f"         -> {idx+1}. [❌ TITLE FILTER: {reason}] [ID: {v_id}] '{raw_title}' ({yt_link})")
+            continue
+
+        # 2. Filter durasi paten: 45 detik s/d 1500 detik (0.75m – 25m)
+        if not (MIN_DURATION_SECONDS <= duration_sec <= MAX_DURATION_SECONDS):
+            log_events.append(f"         -> {idx+1}. [❌ DURATION FILTER: {dur_text}] [ID: {v_id}] '{raw_title}' ({yt_link})")
+            continue
+
+        # 3. Filter geoblocking ekstrem (whitelist negara tertutup, penalti >= 900)
+        if geo_penalty >= 900:
+            log_events.append(f"         -> {idx+1}. [❌ GEOBLOCK FILTER: {geo_desc}] [ID: {v_id}] '{raw_title}' ({yt_link})")
+            continue
+
+        geo_tag = " [🌐 100% Global]" if geo_penalty == 0 else f" [⚠️ {geo_desc}]"
+        log_events.append(f"         -> {idx+1}. [⏱️ {dur_text}]{geo_tag} [ID: {v_id}] '{raw_title}' ({yt_link})")
+        raw_candidates.append({
+            "id": v_id, 
+            "title": raw_title, 
+            "duration_sec": duration_sec,
+            "region_restriction": reg_info,
+            "geo_penalty": geo_penalty
+        })
+
+    if not raw_candidates:
+        log_events.append(f"      🚫 Semua video tereliminasi oleh filter judul, durasi, atau pembatasan wilayah global.")
+        return None, None
+
+    # Rerank kandidat video via Gemini AI (dengan Fallback Otomatis)
+    chosen_video_id = ai_pick_best_highlight(home_team, away_team, comp_id, raw_candidates, log_events)
+    if chosen_video_id:
+        chosen_reg = next((c.get("region_restriction") for c in raw_candidates if c["id"] == chosen_video_id), None)
+        return chosen_video_id, chosen_reg
+    return None, None
 
 def find_and_link_match_highlight(match, log_events):
     home, away, match_date, comp_id = match["home_team_name"], match["away_team_name"], match["utc_date"], match["competition_id"]
@@ -830,8 +905,17 @@ def find_and_link_match_highlight(match, log_events):
         for b_handle in BROADCASTER_MAP.get(comp_id, []): 
             h_clean = clean_team_name_for_search(home)
             a_clean = clean_team_name_for_search(away)
-                
             target_channels.append((b_handle, f'{h_clean} {a_clean}'))
+            
+        # Fallback ke official club channel jika broadcaster nihil
+        h_handle = get_club_handle(home)
+        a_handle = get_club_handle(away)
+        h_clean = clean_team_name_for_search(home)
+        a_clean = clean_team_name_for_search(away)
+        if h_handle:
+            target_channels.append((h_handle, f'{a_clean} highlights'))
+        if a_handle and a_handle != h_handle:
+            target_channels.append((a_handle, f'{h_clean} highlights'))
 
     if not target_channels:
         log_events.append(f"   ⚠️ Channel tujuan untuk kompetisi {comp_id} ({home} vs {away}) tidak terdaftar.")
