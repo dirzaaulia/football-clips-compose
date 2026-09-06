@@ -93,55 +93,52 @@ fun InfoScreen(
                             verticalArrangement = Arrangement.spacedBy(20.dp),
                             maxItemsInEachRow = 2
                         ) {
-                            DataSourceCard(
+                            SupportDeveloperCard(
                                 initialExpanded = true,
+                                uriHandler = uriHandler,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            )
+                            DataSourceCard(
+                                initialExpanded = false,
                                 modifier = Modifier
                                     .weight(1f)
                                     .widthIn(min = 380.dp)
                             )
                             AccountPurchasesCard(
-                                initialExpanded = true,
+                                initialExpanded = false,
                                 modifier = Modifier
                                     .weight(1f)
                                     .widthIn(min = 380.dp)
                             )
                             DisclaimerCard(
-                                initialExpanded = true,
+                                initialExpanded = false,
                                 modifier = Modifier
                                     .weight(1f)
                                     .widthIn(min = 380.dp)
                             )
                             PrivacyPolicyCard(
-                                initialExpanded = true,
+                                initialExpanded = false,
                                 modifier = Modifier
                                     .weight(1f)
                                     .widthIn(min = 380.dp)
                             )
                         }
-
-                        // Expressive Support Developer Banner
-                        SupportDeveloperBanner(uriHandler = uriHandler)
                     }
                 } else {
-                    // Mobile Layout: Tidy Collapsible Accordion + Support Banner
+                    // Mobile Layout: Support Developer Card at the Top + Collapsible Cards
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            DataSourceCard(initialExpanded = true)
-                            AccountPurchasesCard(initialExpanded = false)
-                            DisclaimerCard(initialExpanded = false)
-                            PrivacyPolicyCard(initialExpanded = false)
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Expressive Support Developer Banner
-                        SupportDeveloperBanner(uriHandler = uriHandler)
+                        SupportDeveloperCard(
+                            initialExpanded = true,
+                            uriHandler = uriHandler
+                        )
+                        DataSourceCard(initialExpanded = false)
+                        AccountPurchasesCard(initialExpanded = false)
+                        DisclaimerCard(initialExpanded = false)
+                        PrivacyPolicyCard(initialExpanded = false)
                     }
                 }
             }
@@ -236,102 +233,66 @@ private fun WasmHeroBanner() {
     }
 }
 
+@Composable
+private fun SupportDeveloperCard(
+    initialExpanded: Boolean = true,
+    uriHandler: UriHandler,
+    modifier: Modifier = Modifier
+) {
+    CollapsibleInfoCard(
+        title = "Support Developer",
+        icon = Icons.Default.Favorite,
+        initialExpanded = initialExpanded,
+        modifier = modifier
+    ) {
+        SupportDeveloperContent(uriHandler = uriHandler)
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SupportDeveloperBanner(uriHandler: UriHandler) {
-    val isDark = isSystemInDarkTheme()
-    val heartTint = if (isDark) Color(0xFFFF6B6B) else MaterialTheme.colorScheme.primary
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+private fun SupportDeveloperContent(uriHandler: UriHandler) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                            MaterialTheme.colorScheme.surface,
-                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
-                        )
-                    )
-                )
-                .padding(24.dp)
+        Text(
+            text = "If FootballClips brings you joy, consider supporting independent development:",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Surface(
-                    color = heartTint.copy(alpha = 0.15f),
-                    shape = CircleShape,
-                    border = BorderStroke(1.dp, heartTint.copy(alpha = 0.3f)),
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Favorite,
-                            contentDescription = null,
-                            tint = heartTint,
-                            modifier = Modifier.size(26.dp)
-                        )
-                    }
-                }
+            ExpressiveSupportCard(
+                title = "Website",
+                subtitle = "dirzaaulia.com",
+                icon = Icons.Default.Language,
+                onClick = { uriHandler.openUri("https://dirzaaulia.com") },
+                modifier = Modifier.widthIn(min = 220.dp)
+            )
 
-                Spacer(Modifier.height(12.dp))
+            ExpressiveSupportCard(
+                title = "Buy me a Coffee",
+                subtitle = "ko-fi.com/dirzaaulia",
+                icon = Icons.Default.Coffee,
+                onClick = { uriHandler.openUri("https://ko-fi.com/dirzaaulia") },
+                modifier = Modifier.widthIn(min = 220.dp)
+            )
 
-                Text(
-                    text = "Support the Developer",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Spacer(Modifier.height(4.dp))
-
-                Text(
-                    text = "If FootballClips brings you joy, consider supporting independent development:",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(Modifier.height(20.dp))
-
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    ExpressiveSupportCard(
-                        title = "Portfolio Website",
-                        subtitle = "dirzaaulia.com",
-                        icon = Icons.Default.Language,
-                        onClick = { uriHandler.openUri("https://dirzaaulia.com") },
-                        modifier = Modifier.widthIn(min = 220.dp)
-                    )
-
-                    ExpressiveSupportCard(
-                        title = "Buy me a Coffee",
-                        subtitle = "ko-fi.com/dirzaaulia",
-                        icon = Icons.Default.Coffee,
-                        onClick = { uriHandler.openUri("https://ko-fi.com/dirzaaulia") },
-                        modifier = Modifier.widthIn(min = 220.dp)
-                    )
-
-                    ExpressiveSupportCard(
-                        title = "Saweria",
-                        subtitle = "saweria.co/dirzaaulia",
-                        icon = Icons.Default.VolunteerActivism,
-                        onClick = { uriHandler.openUri("https://saweria.co/dirzaaulia") },
-                        modifier = Modifier.widthIn(min = 220.dp)
-                    )
-                }
-            }
+            ExpressiveSupportCard(
+                title = "Saweria",
+                subtitle = "saweria.co/dirzaaulia",
+                icon = Icons.Default.VolunteerActivism,
+                onClick = { uriHandler.openUri("https://saweria.co/dirzaaulia") },
+                modifier = Modifier.widthIn(min = 220.dp)
+            )
         }
     }
 }
@@ -514,8 +475,10 @@ private fun PrivacyPolicyCard(
     initialExpanded: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val uriHandler = LocalUriHandler.current
+
     CollapsibleInfoCard(
-        title = "Privacy Policy",
+        title = "Privacy Policy & Terms",
         icon = Icons.Default.PrivacyTip,
         initialExpanded = initialExpanded,
         modifier = modifier
@@ -525,6 +488,29 @@ private fun PrivacyPolicyCard(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
+
+        Spacer(Modifier.height(14.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ExpressiveSupportCard(
+                title = "Privacy Policy",
+                subtitle = "fc.dirzaaulia.com/privacy",
+                icon = Icons.Default.PrivacyTip,
+                onClick = { uriHandler.openUri("https://fc.dirzaaulia.com/privacy") },
+                modifier = Modifier.weight(1f)
+            )
+
+            ExpressiveSupportCard(
+                title = "Terms & Conditions",
+                subtitle = "fc.dirzaaulia.com/tnc",
+                icon = Icons.Default.Gavel,
+                onClick = { uriHandler.openUri("https://fc.dirzaaulia.com/tnc") },
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 

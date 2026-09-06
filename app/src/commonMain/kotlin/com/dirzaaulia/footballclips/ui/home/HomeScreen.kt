@@ -1,56 +1,111 @@
 package com.dirzaaulia.footballclips.ui.home
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.EaseInCubic
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Diamond
-import androidx.compose.material.icons.filled.Explore
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.VideoLibrary
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.dirzaaulia.footballclips.data.model.HighlightUiItem
-import com.dirzaaulia.footballclips.data.model.uniqueId
-import com.dirzaaulia.footballclips.util.isDebugBuild
-import kotlinx.datetime.Clock
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.compose.auth.ComposeAuth
-import io.github.jan.supabase.compose.auth.composeAuth
-import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle
-import org.koin.compose.koinInject
-import com.dirzaaulia.footballclips.ui.components.*
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Diamond
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.dirzaaulia.footballclips.ui.theme.rememberThemeCapture
+import com.dirzaaulia.footballclips.data.model.HighlightUiItem
+import com.dirzaaulia.footballclips.data.model.uniqueId
+import com.dirzaaulia.footballclips.ui.components.BannerAdItem
+import com.dirzaaulia.footballclips.ui.components.BigLeaguesQuickFilterBar
+import com.dirzaaulia.footballclips.ui.components.DeveloperOptionsBottomSheet
+import com.dirzaaulia.footballclips.ui.components.EmptyState
+import com.dirzaaulia.footballclips.ui.components.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.FilterBottomSheet
+import com.dirzaaulia.footballclips.ui.components.HeroCard
+import com.dirzaaulia.footballclips.ui.components.PaywallBottomSheet
+import com.dirzaaulia.footballclips.ui.components.VerticalHighlightCard
+import com.dirzaaulia.footballclips.ui.components.WebHighlightCard
 import com.dirzaaulia.footballclips.ui.score.components.MatchCard
+import com.dirzaaulia.footballclips.util.isDebugBuild
+import io.github.jan.supabase.compose.auth.ComposeAuth
+import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
+import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,6 +129,8 @@ fun HomeScreen(
 
     val isDarkMode by viewModel.isDarkMode.collectAsState()
     val isDebugPremium by viewModel.isDebugPremium.collectAsState()
+    val isForceNonPremium by viewModel.isForceNonPremium.collectAsState()
+    val isBillingLoading by viewModel.isBillingLoading.collectAsState()
 
     var titleTapCount by remember { mutableStateOf(0) }
     var lastTitleTapTime by remember { mutableStateOf(0L) }
@@ -126,52 +183,72 @@ fun HomeScreen(
         }
 
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            snackbarHost = { 
-                SnackbarHost(
-                    hostState = snackbarHostState,
-                    modifier = Modifier.padding(bottom = 120.dp)
-                ) 
-            },
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = if (isWeb) "FootballClips" else "Highlights",
-                            style = if (isWeb) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = if (isWeb) 2.sp else 0.sp,
-                            modifier = Modifier.clickable {
-                                if (!isWeb && isDebugBuild) {
-                                    val now = Clock.System.now().toEpochMilliseconds()
-                                    if (now - lastTitleTapTime < 800) {
-                                        titleTapCount++
-                                    } else {
-                                        titleTapCount = 1
-                                    }
-                                    lastTitleTapTime = now
+                modifier = Modifier.fillMaxSize(),
+                snackbarHost = { 
+                    SnackbarHost(
+                        hostState = snackbarHostState,
+                        modifier = Modifier.padding(bottom = 120.dp)
+                    ) 
+                },
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                text = if (isWeb) "FootballClips" else "Highlights",
+                                style = if (isWeb) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = if (isWeb) 2.sp else 0.sp,
+                                modifier = Modifier.clickable {
+                                    if (!isWeb && isDebugBuild) {
+                                        val now = Clock.System.now().toEpochMilliseconds()
+                                        if (now - lastTitleTapTime < 800) {
+                                            titleTapCount++
+                                        } else {
+                                            titleTapCount = 1
+                                        }
+                                        lastTitleTapTime = now
 
-                                    if (titleTapCount >= 3) {
-                                        titleTapCount = 0
-                                        showDevScreen = true
+                                        if (titleTapCount >= 3) {
+                                            titleTapCount = 0
+                                            showDevScreen = true
+                                        }
                                     }
                                 }
+                            )
+                        },
+                        actions = {
+                            if (!isWeb) {
+                                var lastThemeToggleTime by remember { mutableStateOf(0L) }
+                                val triggerThemeCapture = rememberThemeCapture()
+                                var toggleCenter by remember { mutableStateOf(Offset.Zero) }
+
+                                IconButton(
+                                    onClick = {
+                                        val now = Clock.System.now().toEpochMilliseconds()
+                                        if (now - lastThemeToggleTime >= 750) {
+                                            lastThemeToggleTime = now
+                                            triggerThemeCapture(toggleCenter)
+                                            viewModel.setDarkMode(!isDarkMode)
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .padding(end = 4.dp)
+                                        .onGloballyPositioned { coordinates ->
+                                            val pos = coordinates.positionInWindow()
+                                            val size = coordinates.size
+                                            toggleCenter = Offset(
+                                                x = pos.x + size.width / 2f,
+                                                y = pos.y + size.height / 2f
+                                            )
+                                        }
+                                ) {
+                                    Icon(
+                                        imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                        contentDescription = "Toggle Theme",
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                             }
-                        )
-                    },
-                    actions = {
-                        if (!isWeb) {
-                            IconButton(
-                                onClick = { viewModel.setDarkMode(!isDarkMode) },
-                                modifier = Modifier.padding(end = 4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
-                                    contentDescription = "Toggle Theme",
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
 
                         Button(
                             onClick = { showPaywall = true },
@@ -205,105 +282,85 @@ fun HomeScreen(
             },
             floatingActionButton = {
                 if (!isWeb) {
-                    var expanded by remember { mutableStateOf(false) }
-                    
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.padding(bottom = 100.dp)
-                    ) {
-                        // Menu Items
-                        AnimatedVisibility(
-                            visible = expanded,
-                            enter = fadeIn() + expandVertically(expandFrom = Alignment.Bottom),
-                            exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Bottom)
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.End,
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                // Scroll to Top Item
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.clickable { 
-                                        expanded = false
-                                        coroutineScope.launch { listState.animateScrollToItem(0) }
-                                    }
-                                ) {
-                                    Surface(
-                                        color = MaterialTheme.colorScheme.secondaryContainer,
-                                        shape = RoundedCornerShape(8.dp),
-                                        shadowElevation = 2.dp
-                                    ) {
-                                        Text(
-                                            "Scroll to Top",
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                            style = MaterialTheme.typography.labelMedium
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    SmallFloatingActionButton(
-                                        onClick = {
-                                            expanded = false
-                                            coroutineScope.launch { listState.animateScrollToItem(0) }
-                                        },
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                        shape = CircleShape
-                                    ) {
-                                        Icon(Icons.Default.KeyboardArrowUp, contentDescription = null)
-                                    }
-                                }
+                    val showScrollToTop by remember {
+                        derivedStateOf { listState.firstVisibleItemIndex > 1 }
+                    }
 
-                                // Filter Item
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 100.dp, end = 8.dp)
+                    ) {
+                        // Scroll To Top Pill (Appears when scrolled)
+                        AnimatedVisibility(
+                            visible = showScrollToTop,
+                            enter = fadeIn() + slideInVertically { it / 2 } + scaleIn(),
+                            exit = fadeOut() + slideOutVertically { it / 2 } + scaleOut()
+                        ) {
+                            Surface(
+                                onClick = {
+                                    coroutineScope.launch { listState.animateScrollToItem(0) }
+                                },
+                                shape = RoundedCornerShape(24.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
+                                tonalElevation = 6.dp,
+                                shadowElevation = 8.dp,
+                                border = BorderStroke(
+                                    0.5.dp, 
+                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                                )
+                            ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.clickable { 
-                                        expanded = false
-                                        showFilterSheet = true 
-                                    }
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
                                 ) {
-                                    Surface(
-                                        color = MaterialTheme.colorScheme.primaryContainer,
-                                        shape = RoundedCornerShape(8.dp),
-                                        shadowElevation = 2.dp
-                                    ) {
-                                        Text(
-                                            "Filter Results",
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                            style = MaterialTheme.typography.labelMedium
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    SmallFloatingActionButton(
-                                        onClick = {
-                                            expanded = false
-                                            showFilterSheet = true
-                                        },
-                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        shape = CircleShape
-                                    ) {
-                                        Icon(Icons.Default.FilterList, contentDescription = null)
-                                    }
+                                    Icon(
+                                        imageVector = Icons.Default.KeyboardArrowUp,
+                                        contentDescription = "Scroll to top",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Top",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                 }
                             }
                         }
 
-                        // Main FAB
-                        FloatingActionButton(
-                            onClick = { expanded = !expanded },
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            shape = RoundedCornerShape(20.dp)
-                        ) {
-                            val rotation by animateFloatAsState(if (expanded) 90f else 0f)
-                            val icon = if (expanded) Icons.Default.Close else Icons.Default.Menu
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = "Menu",
-                                modifier = Modifier.rotate(rotation)
+                        // Quick Filter Pill
+                        Surface(
+                            onClick = { showFilterSheet = true },
+                            shape = RoundedCornerShape(24.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.95f),
+                            tonalElevation = 6.dp,
+                            shadowElevation = 8.dp,
+                            border = androidx.compose.foundation.BorderStroke(
+                                0.5.dp, 
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                             )
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.FilterList,
+                                    contentDescription = "Filter",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Filter",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
                         }
                     }
                 }
@@ -315,14 +372,31 @@ fun HomeScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                when (val state = uiState) {
-                    is HomeState.Loading -> {
-                        ExpressiveLoadingIndicator(
-                            modifier = Modifier.size(48.dp),
-                            strokeWidth = 5.dp
-                        )
-                    }
-                    is HomeState.Success -> {
+                AnimatedContent(
+                    targetState = uiState,
+                    transitionSpec = {
+                        (fadeIn(animationSpec = tween(400, easing = EaseOutCubic)) +
+                                slideInVertically(animationSpec = tween(400, easing = EaseOutCubic)) { it / 10 })
+                            .togetherWith(
+                                fadeOut(animationSpec = tween(200, easing = EaseInCubic))
+                            )
+                    },
+                    label = "HomeScreenStateTransition",
+                    modifier = Modifier.fillMaxSize()
+                ) { state ->
+                    when (state) {
+                        is HomeState.Loading -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                ExpressiveLoadingIndicator(
+                                    modifier = Modifier.size(48.dp),
+                                    strokeWidth = 5.dp
+                                )
+                            }
+                        }
+                        is HomeState.Success -> {
                         val items = state.items
                         
                         val isFiltering = selectedLeagueId != null || filterState.searchQuery.isNotEmpty() || 
@@ -650,14 +724,55 @@ fun HomeScreen(
                         }
                     }
                     is HomeState.Error -> {
-                        Text(text = state.message)
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = state.message)
+                        }
                     }
+                }
                 }
             }
 
         val composeAuth = koinInject<ComposeAuth>()
         val googleSignInAction = composeAuth.rememberSignInWithGoogle(
+            onResult = { result ->
+                when (result) {
+                    is NativeSignInResult.Success -> {
+                        println("Native Google Sign-In Success!")
+                        viewModel.setVerifyingAuth(false)
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Sign in successful!")
+                        }
+                    }
+                    is NativeSignInResult.Error -> {
+                        println("Native Google Sign-In Error: ${result.message}")
+                        viewModel.setVerifyingAuth(false)
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Native error: ${result.message}, opening browser...")
+                        }
+                        viewModel.signIn()
+                    }
+                    is NativeSignInResult.NetworkError -> {
+                        println("Native Google Sign-In NetworkError: ${result.message}")
+                        viewModel.setVerifyingAuth(false)
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Network error: ${result.message}")
+                        }
+                    }
+                    NativeSignInResult.ClosedByUser -> {
+                        println("Native Google Sign-In ClosedByUser")
+                        viewModel.setVerifyingAuth(false)
+                    }
+                }
+            },
             fallback = {
+                println("Native Sign-In Fallback triggered")
+                viewModel.setVerifyingAuth(false)
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Native sign in unavailable, opening browser...")
+                }
                 viewModel.signIn()
             }
         )
@@ -668,7 +783,9 @@ fun HomeScreen(
                 profile = profile,
                 customerInfo = customerInfo,
                 offerings = offerings,
+                isLoading = isBillingLoading,
                 onSignInClick = {
+                    viewModel.setVerifyingAuth(true)
                     googleSignInAction.startFlow()
                 },
                 onPurchaseClick = { rcPackage ->
@@ -704,6 +821,10 @@ fun HomeScreen(
                 isDebugPremium = isDebugPremium,
                 onToggleDebugPremium = { enabled ->
                     viewModel.setDebugPremium(enabled)
+                },
+                isForceNonPremium = isForceNonPremium,
+                onToggleForceNonPremium = { enabled ->
+                    viewModel.setForceNonPremium(enabled)
                 },
                 onDismiss = { showDevScreen = false }
             )

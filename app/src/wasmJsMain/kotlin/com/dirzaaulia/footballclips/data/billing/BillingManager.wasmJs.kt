@@ -50,10 +50,11 @@ class WasmBillingManager : BillingManager {
         _customerInfo.value = null
     }
 
-    override fun purchasePackage(packageToPurchase: Any) {
+    override fun purchasePackage(packageToPurchase: Any, onComplete: ((Boolean) -> Unit)?) {
         val uid = currentUserId
         if (uid.isNullOrEmpty()) {
             sendError("Please sign in with Google first so your purchase can be linked to your account.")
+            onComplete?.invoke(false)
             return
         }
 
@@ -71,8 +72,9 @@ class WasmBillingManager : BillingManager {
         _isLoading.value = false
     }
 
-    override fun restorePurchases() {
+    override fun restorePurchases(onComplete: ((Boolean) -> Unit)?) {
         sendMessage("On Web, purchases are automatically linked to your Google account. Sign in to sync your access.")
+        onComplete?.invoke(_isPremium.value)
     }
 
     private fun sendError(message: String) {

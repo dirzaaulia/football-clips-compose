@@ -35,7 +35,7 @@ actual class AdMobManager(private val context: Context) {
         try {
             MobileAds.initialize(
                 context.applicationContext,
-                InitializationConfig.Builder(AdConfiguration.ADMOB_APP_ID).build()
+                InitializationConfig.Builder(com.dirzaaulia.footballclips.BuildConfig.ADMOB_APP_ID).build()
             ) {
                 isInitialized = true
                 Log.d("AdMobManager", "MobileAds initialized successfully")
@@ -52,7 +52,7 @@ actual class AdMobManager(private val context: Context) {
             return
         }
 
-        val adRequest = AdRequest.Builder("ca-app-pub-3940256099942544/1033173712").build()
+        val adRequest = AdRequest.Builder(com.dirzaaulia.footballclips.BuildConfig.ADMOB_INTERSTITIAL_ID).build()
         InterstitialAd.load(
             adRequest,
             object : AdLoadCallback<InterstitialAd> {

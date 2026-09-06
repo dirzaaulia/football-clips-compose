@@ -25,6 +25,7 @@ class ScoreRepositoryImpl(private val client: HttpClient) : ScoreRepository {
     ): NetworkResult<List<MatchDto>> {
         return try {
             val order = if (ascending) "utc_date.asc" else "utc_date.desc"
+            val effectiveLimit = if (limit > 0) limit else 20
             val response = client.get(baseUrl) {
                 header("apikey", supabaseKey)
                 header("Authorization", "Bearer $supabaseKey")
@@ -32,7 +33,7 @@ class ScoreRepositoryImpl(private val client: HttpClient) : ScoreRepository {
                 url {
                     parameters.append("select", "*")
                     parameters.append("order", order)
-                    parameters.append("limit", limit.toString())
+                    parameters.append("limit", effectiveLimit.toString())
                     parameters.append("offset", offset.toString())
                     
                     competitionId?.let { 

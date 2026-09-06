@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Football Clips & Live Score</title>
+    <meta name="description" content="Privacy Policy for Football Clips & Live Score (Football Clips / FC) - football highlights, scores, and match schedules.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f17;
+            --surface-color: #131b2a;
+            --surface-border: #1e293b;
+            --primary: #38bdf8;
+            --primary-hover: #0284c7;
+            --accent: #10b981;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(16px);
+            background: rgba(11, 15, 23, 0.85);
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .nav-container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.25rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary);
+        }
+
+        main {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 5rem;
+        }
+
+        .hero {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .meta-date {
+            color: var(--text-dim);
+            font-size: 0.875rem;
+        }
+
+        h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 2.25rem 0 1rem;
+            letter-spacing: -0.015em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 1.25rem;
+            color: var(--text-muted);
+            font-size: 0.975rem;
+        }
+
+        ul {
+            margin: 0 0 1.5rem 1.5rem;
+            color: var(--text-muted);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            font-size: 0.975rem;
+        }
+
+        li strong {
+            color: var(--text-main);
+        }
+
+        .info-card {
+            background: var(--surface-color);
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .info-card h3 {
+            font-size: 1.05rem;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .info-card p {
+            margin-bottom: 0;
+            font-size: 0.925rem;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        a:hover {
+            color: var(--primary-hover);
+        }
+
+        footer {
+            border-top: 1px solid var(--surface-border);
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 1.85rem; }
+            h2 { font-size: 1.2rem; }
+            .nav-container { flex-direction: column; gap: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <span>⚽</span>
+                <span>Football Clips & Live Score</span>
+            </a>
+            <nav class="nav-links">
+                <a href="/">App</a>
+                <a href="/privacy" class="active">Privacy Policy</a>
+                <a href="/tnc">Terms & Conditions</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <span class="badge">Legal Document</span>
+            <h1>Privacy Policy</h1>
+            <p class="meta-date">Last updated: September 5, 2026 • Effective date: September 5, 2026</p>
+        </section>
+
+        <section>
+            <p>Welcome to <strong>Football Clips & Live Score</strong> (also referred to as <strong>Football Clips</strong> or <strong>FC</strong>, "we", "our", or "us"), developed by <strong>Dirza Aulia</strong>. Football Clips & Live Score is available across Android and Web platforms (<a href="https://fc.dirzaaulia.com">fc.dirzaaulia.com</a>) to provide football video highlights, match scores, and schedules.</p>
+            
+            <p>We respect your privacy and are committed to protecting your personal data. This Privacy Policy explains how our service collects, uses, and safeguards information when you use our application.</p>
+
+            <h2>1. Information We Collect</h2>
+            <p>We aim to collect the absolute minimum amount of data required to deliver a seamless experience across your devices:</p>
+            <ul>
+                <li><strong>Account & Sign-In Data:</strong> If you choose to sign in with Google (via Google Credential Manager or OAuth), we receive basic public profile information (such as your email address, display name, and unique user ID) provided by Google. This data is handled securely via <strong>Supabase Auth</strong>. Signing in is strictly used to link and sync your lifetime or active Premium ("Remove Ads") purchase across multiple devices.</li>
+                <li><strong>Purchase Data:</strong> When you purchase "Remove Ads" via Google Play Billing or our Web platform, transaction and receipt validation data are processed securely via <strong>RevenueCat</strong>. We do not store or process your credit card or financial details directly.</li>
+                <li><strong>Device & Usage Data:</strong> When running the app, basic non-personally identifiable diagnostic data (such as OS version, device model, and crash logs) may be gathered via <strong>Firebase Crashlytics & Analytics</strong> to help us troubleshoot errors and improve performance.</li>
+            </ul>
+
+            <h2>2. Third-Party Services & Integrations</h2>
+            <p>Our application integrates with reputable third-party service providers who may collect information used to identify your device:</p>
+            
+            <div class="info-card">
+                <h3>📺 YouTube API Services</h3>
+                <p>Match highlights and clips in Football Clips & Live Score are embedded using official YouTube Player APIs from verified broadcaster channels. By using Football Clips & Live Score, you agree to be bound by the <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener">YouTube Terms of Service</a> and the <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy</a>.</p>
+            </div>
+
+            <div class="info-card">
+                <h3>📢 Advertising (Google AdMob & Google AdSense)</h3>
+                <p>We use Google AdMob (on mobile) and Google AdSense (on web) to display advertisements. Google may use advertising IDs and cookies to serve personalized or non-personalized ads. You can opt out of personalized ads at any time by visiting <a href="https://adssettings.google.com" target="_blank" rel="noopener">Google Ads Settings</a>.</p>
+            </div>
+
+            <div class="info-card">
+                <h3>💳 In-App Purchases (RevenueCat & Google Play)</h3>
+                <p>We use RevenueCat to manage entitlements and validate receipts for digital purchases. For more information, consult <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">RevenueCat's Privacy Policy</a>.</p>
+            </div>
+
+            <div class="info-card">
+                <h3>🛡️ Backend & Authentication (Supabase)</h3>
+                <p>User sessions and entitlement verification are securely powered by Supabase. Data is encrypted in transit using HTTPS/TLS. View the <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Supabase Privacy Policy</a>.</p>
+            </div>
+
+            <h2>3. How We Use Your Information</h2>
+            <p>The information we collect is strictly used to:</p>
+            <ul>
+                <li>Provide and maintain the core features of Football Clips & Live Score (FC).</li>
+                <li>Verify, restore, and synchronize your Premium ("Remove Ads") status across devices.</li>
+                <li>Monitor stability, diagnose bugs, and resolve application crashes.</li>
+                <li>Serve relevant advertisements to non-premium users in accordance with Google's advertising policies.</li>
+            </ul>
+
+            <h2>4. Data Retention & Deletion Rights</h2>
+            <p>We retain your account identifier only for as long as needed to maintain your purchase entitlements. You have the right to request the deletion of your account and associated profile data at any time.</p>
+            <p>To request data deletion, please contact us at <a href="mailto:dirzaaulia@gmail.com">dirzaaulia@gmail.com</a>. Upon receiving your request, your account data will be permanently removed from our databases within 30 days.</p>
+
+            <h2>5. Children's Privacy</h2>
+            <p>Football Clips & Live Score is not targeted at children under the age of 13. We do not knowingly collect personal identifiable information from children under 13. If you believe that a child has provided us with personal data, please contact us immediately so we can take appropriate action.</p>
+
+            <h2>6. Changes to This Privacy Policy</h2>
+            <p>We may update our Privacy Policy from time to time. Any changes will be posted on this page with an updated "Last updated" date. We encourage you to review this page periodically.</p>
+
+            <h2>7. Contact Us</h2>
+            <p>If you have questions or suggestions regarding this Privacy Policy, feel free to contact us:</p>
+            <ul>
+                <li><strong>Developer:</strong> Dirza Aulia</li>
+                <li><strong>Email:</strong> <a href="mailto:dirzaaulia@gmail.com">dirzaaulia@gmail.com</a></li>
+                <li><strong>Website:</strong> <a href="https://fc.dirzaaulia.com">fc.dirzaaulia.com</a></li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Football Clips & Live Score (Dirza Aulia). All rights reserved.</p>
+    </footer>
+</body>
+</html>

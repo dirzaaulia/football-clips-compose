@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface ProfilesRepository {
     val profile: Flow<Profile?>
+    suspend fun updatePremiumStatus(isPremium: Boolean)
     suspend fun signInWithSupabase()
     suspend fun signInWithGoogle()
     suspend fun signOut()

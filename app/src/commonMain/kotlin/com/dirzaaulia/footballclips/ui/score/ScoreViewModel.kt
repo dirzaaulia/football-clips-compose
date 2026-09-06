@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import com.dirzaaulia.footballclips.util.DateTimeUtils
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
@@ -49,6 +50,14 @@ class ScoreViewModel(
     val selectedDate: StateFlow<String?> = _selectedDate.asStateFlow()
 
     val availableDates: List<DateOption> = generateDateOptions()
+
+    val hasLiveMatch: StateFlow<Boolean> = uiState.map { state ->
+        if (state is ScoreState.Success) {
+            state.matches.any { item ->
+                (item as? HighlightUiItem.SupabaseMatch)?.match?.isLive == true
+            }
+        } else false
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val isPremium: StateFlow<Boolean> = combine(
         billingManager.isPremium,

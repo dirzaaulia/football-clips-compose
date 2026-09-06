@@ -1,5 +1,7 @@
 package com.dirzaaulia.footballclips.ui.components
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -23,6 +25,12 @@ import com.dirzaaulia.footballclips.data.billing.CustomerInfoModel
 import com.dirzaaulia.footballclips.data.model.remote.Profile
 import com.dirzaaulia.footballclips.util.isWasmTarget
 
+enum class PaywallState {
+    PREMIUM_ACTIVE,
+    VERIFYING,
+    NON_PREMIUM
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaywallBottomSheet(
@@ -30,6 +38,7 @@ fun PaywallBottomSheet(
     profile: Profile?,
     customerInfo: CustomerInfoModel?,
     offerings: Any?,
+    isLoading: Boolean = false,
     onSignInClick: () -> Unit,
     onPurchaseClick: (Any) -> Unit,
     onRestoreClick: () -> Unit,
@@ -38,6 +47,12 @@ fun PaywallBottomSheet(
     // Platform-specific info extraction
     val displayInfo = extractOfferingInfo(offerings)
     val isWasm = isWasmTarget
+
+    val paywallState = when {
+        isPremium -> PaywallState.PREMIUM_ACTIVE
+        isLoading -> PaywallState.VERIFYING
+        else -> PaywallState.NON_PREMIUM
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -72,44 +87,96 @@ fun PaywallBottomSheet(
                 }
             }
 
-            if (isPremium) {
-                PremiumActiveHeader()
-                
-                customerInfo?.let {
-                    PremiumSummaryCard(it)
-                }
-            } else {
-                NonPremiumContent(
-                    profile = profile,
-                    displayInfo = displayInfo,
-                    onSignInClick = onSignInClick,
-                    onPurchaseClick = onPurchaseClick
-                )
-                
-                // Show Restore ALWAYS on Android (Play Store Compliance). 
-                // On WASM, Login IS the restore (account-based truth in Supabase).
-                if (!isWasm) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    TextButton(
-                        onClick = onRestoreClick,
-                        modifier = Modifier.padding(top = 8.dp)
-                    ) {
-                        Text("Restore Purchase", color = Color(0xFFD4AF37))
-                    }
+            AnimatedContent(
+                targetState = paywallState,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(350)) togetherWith fadeOut(animationSpec = tween(200))
+                },
+                label = "PaywallStateTransition"
+            ) { state ->
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    when (state) {
+                        PaywallState.PREMIUM_ACTIVE -> {
+                            PremiumActiveHeader()
+                            
+                            customerInfo?.let {
+                                PremiumSummaryCard(it)
+                            }
+                        }
+                        PaywallState.VERIFYING -> {
+                            VerifyingEntitlementHeader()
+                        }
+                        PaywallState.NON_PREMIUM -> {
+                            NonPremiumContent(
+                                profile = profile,
+                                displayInfo = displayInfo,
+                                onSignInClick = onSignInClick,
+                                onPurchaseClick = onPurchaseClick
+                            )
+                            
+                            // Show Restore ALWAYS on Android (Play Store Compliance). 
+                            // On WASM, Login IS the restore (account-based truth in Supabase).
+                            if (!isWasm) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                
+                                TextButton(
+                                    onClick = onRestoreClick,
+                                    modifier = Modifier.padding(top = 8.dp)
+                                ) {
+                                    Text("Restore Purchase", color = Color(0xFFD4AF37))
+                                }
 
-                    Text(
-                        text = "Already bought Premium on Google Play? Tap 'Restore Purchase' to sync your lifetime access to this account.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.5f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp)
-                    )
+                                Text(
+                                    text = "Already bought Premium on Google Play? Tap 'Restore Purchase' to sync your lifetime access to this account.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.White.copy(alpha = 0.5f),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             }
             
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+}
+
+@Composable
+private fun VerifyingEntitlementHeader() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator(
+            color = Color(0xFFD4AF37),
+            strokeWidth = 3.dp,
+            modifier = Modifier.size(48.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Text(
+            text = "Checking Access...",
+            style = MaterialTheme.typography.headlineSmall,
+            color = Color.White,
+            fontWeight = FontWeight.Bold
+        )
+        
+        Text(
+            text = "Verifying and restoring your Premium entitlement. Please wait...",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.White.copy(alpha = 0.65f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp, start = 24.dp, end = 24.dp)
+        )
     }
 }
 

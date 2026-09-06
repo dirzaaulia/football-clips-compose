@@ -10,6 +10,7 @@ import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.data.model.NetworkResult
 import com.dirzaaulia.footballclips.data.model.remote.HighlightUiModel
+import com.dirzaaulia.footballclips.data.model.remote.Profile
 import com.dirzaaulia.footballclips.data.model.remote.toUiModel
 import com.dirzaaulia.footballclips.data.repository.HighlightRepository
 import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
@@ -61,6 +62,7 @@ class HomeViewModel(
     private val _showExternalHighlights = MutableStateFlow(false)
     val showExternalHighlights: StateFlow<Boolean> = _showExternalHighlights.asStateFlow()
 
+    private var currentProfile: Profile? = null
     private val _isPendingInterstitial = MutableStateFlow(false)
 
     val isDebugPremium: StateFlow<Boolean> = preferenceManager.isDebugPremium
@@ -81,30 +83,65 @@ class HomeViewModel(
         }
     }
 
+    val isForceNonPremium: StateFlow<Boolean> = preferenceManager.isForceNonPremium
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun setForceNonPremium(isForce: Boolean) {
+        viewModelScope.launch {
+            preferenceManager.setForceNonPremium(isForce)
+        }
+    }
+
     val isPremium: StateFlow<Boolean> = combine(
         billingManager.isPremium,
         profilesRepository.profile,
-        preferenceManager.isDebugPremium
-    ) { premium, supabaseProfile, debugPremium ->
-        premium || supabaseProfile?.isPremium == true || debugPremium
+        preferenceManager.isDebugPremium,
+        preferenceManager.isForceNonPremium
+    ) { premium, supabaseProfile, debugPremium, forceNonPremium ->
+        if (forceNonPremium) {
+            false
+        } else {
+            premium || supabaseProfile?.isPremium == true || debugPremium
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val isAdsRemoved: StateFlow<Boolean> = combine(
         preferenceManager.isAdsRemoved,
-        isPremium
-    ) { local, premium ->
-        local || premium
+        isPremium,
+        preferenceManager.isForceNonPremium
+    ) { local, premium, forceNonPremium ->
+        if (forceNonPremium) {
+            false
+        } else {
+            local || premium
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val currentUserProfile = profilesRepository.profile
     
     val customerInfo = billingManager.customerInfo
 
+    private val _isVerifyingAuth = MutableStateFlow(false)
+    val isBillingLoading: StateFlow<Boolean> = combine(
+        billingManager.isLoading,
+        _isVerifyingAuth
+    ) { billingLoading, authVerifying ->
+        billingLoading || authVerifying
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun setVerifyingAuth(verifying: Boolean) {
+        _isVerifyingAuth.value = verifying
+    }
+
     private val limit = 40
     private var currentOffset = 0
     private var totalCount = 0
     private var isFetching = false
     
+    private val supabaseLimit = 20
+    private var supabaseOffset = 0
+    private var hasMoreSupabase = true
+
     private val supabaseMatches = mutableListOf<Match>()
     private val allHighlights = mutableListOf<HighlightUiModel>()
     private var selectedCountries = mutableSetOf<String>()
@@ -121,6 +158,8 @@ class HomeViewModel(
     private fun observeProfileForBilling() {
         viewModelScope.launch {
             profilesRepository.profile.collectLatest { profile ->
+                currentProfile = profile
+                _isVerifyingAuth.value = false
                 if (profile != null) {
                     billingManager.identify(profile.id)
                 } else {
@@ -271,10 +310,6 @@ class HomeViewModel(
                 .map { HighlightUiItem.SupabaseMatch(it) }
         }
     }
-
-    private val supabaseLimit = 20
-    private var supabaseOffset = 0
-    private var hasMoreSupabase = true
 
     private suspend fun getSupabaseHighlights(isRefresh: Boolean = true) {
         if (isRefresh) {
@@ -532,11 +567,34 @@ class HomeViewModel(
     }
 
     fun purchasePackage(packageToPurchase: Any) {
-        billingManager.purchasePackage(packageToPurchase)
+        billingManager.purchasePackage(packageToPurchase) { isSuccess ->
+            if (isSuccess) {
+                viewModelScope.launch {
+                    val profile = currentProfile ?: profilesRepository.profile.firstOrNull()
+                    if (profile != null) {
+                        println("HomeViewModel: purchasePackage succeeded, explicitly syncing is_premium to Supabase for ${profile.id}")
+                        profilesRepository.updatePremiumStatus(true)
+                    }
+                }
+            }
+        }
     }
 
     fun restorePurchases() {
-        billingManager.restorePurchases()
+        billingManager.restorePurchases { isRestoredPremium ->
+            if (isRestoredPremium) {
+                viewModelScope.launch {
+                    val profile = currentProfile ?: profilesRepository.profile.firstOrNull()
+                    if (profile != null) {
+                        println("HomeViewModel: restorePurchases succeeded, explicitly syncing is_premium to Supabase for ${profile.id}")
+                        profilesRepository.updatePremiumStatus(true)
+                    } else {
+                        println("HomeViewModel: restorePurchases succeeded locally, user not signed in to Supabase.")
+                        _errorMessage.emit("Purchases restored on Google Play! Sign in with Google to sync your Premium status across all platforms.")
+                    }
+                }
+            }
+        }
     }
 
     fun showInterstitial(onAdDismissed: () -> Unit) {

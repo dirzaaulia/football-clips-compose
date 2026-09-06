@@ -677,24 +677,24 @@ fun LeagueHeader(
 
     Surface(
         color = if (useDarkStyle) {
-            Color.White.copy(alpha = 0.15f)
+            MaterialTheme.colorScheme.surfaceContainerHigh
         } else {
-            MaterialTheme.colorScheme.primaryContainer
+            MaterialTheme.colorScheme.secondaryContainer
         },
         shape = RoundedCornerShape(8.dp),
         modifier = modifier,
-        border = if (useDarkStyle) {
-            BorderStroke(1.dp, Color.White.copy(alpha = 0.25f))
-        } else {
-            androidx.compose.foundation.BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
-        }
+        border = BorderStroke(
+            1.dp,
+            if (useDarkStyle) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            else MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+        )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         ) {
             Surface(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = CircleShape,
                 modifier = Modifier.size(18.dp)
             ) {
@@ -724,9 +724,9 @@ fun LeagueHeader(
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.ExtraBold,
                 color = if (useDarkStyle) {
-                    Color.White
+                    MaterialTheme.colorScheme.onSurface
                 } else {
-                    MaterialTheme.colorScheme.onPrimaryContainer
+                    MaterialTheme.colorScheme.onSecondaryContainer
                 },
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

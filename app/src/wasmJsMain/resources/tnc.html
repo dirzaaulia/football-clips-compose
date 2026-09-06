@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms and Conditions - Football Clips & Live Score</title>
+    <meta name="description" content="Terms and Conditions of Service for Football Clips & Live Score (Football Clips / FC) - football highlights, scores, and match schedules.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f17;
+            --surface-color: #131b2a;
+            --surface-border: #1e293b;
+            --primary: #38bdf8;
+            --primary-hover: #0284c7;
+            --accent: #10b981;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(16px);
+            background: rgba(11, 15, 23, 0.85);
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .nav-container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.25rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary);
+        }
+
+        main {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 5rem;
+        }
+
+        .hero {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .meta-date {
+            color: var(--text-dim);
+            font-size: 0.875rem;
+        }
+
+        h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 2.25rem 0 1rem;
+            letter-spacing: -0.015em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 1.25rem;
+            color: var(--text-muted);
+            font-size: 0.975rem;
+        }
+
+        ul {
+            margin: 0 0 1.5rem 1.5rem;
+            color: var(--text-muted);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            font-size: 0.975rem;
+        }
+
+        li strong {
+            color: var(--text-main);
+        }
+
+        .info-card {
+            background: var(--surface-color);
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .info-card h3 {
+            font-size: 1.05rem;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .info-card p {
+            margin-bottom: 0;
+            font-size: 0.925rem;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        a:hover {
+            color: var(--primary-hover);
+        }
+
+        footer {
+            border-top: 1px solid var(--surface-border);
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 1.85rem; }
+            h2 { font-size: 1.2rem; }
+            .nav-container { flex-direction: column; gap: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <span>⚽</span>
+                <span>Football Clips & Live Score</span>
+            </a>
+            <nav class="nav-links">
+                <a href="/">App</a>
+                <a href="/privacy">Privacy Policy</a>
+                <a href="/tnc" class="active">Terms & Conditions</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <span class="badge">Agreement</span>
+            <h1>Terms and Conditions</h1>
+            <p class="meta-date">Last updated: September 5, 2026 • Effective date: September 5, 2026</p>
+        </section>
+
+        <section>
+            <p>Welcome to <strong>Football Clips & Live Score</strong> (also referred to as <strong>Football Clips</strong> or <strong>FC</strong>, "we", "us", or "our"), developed by <strong>Dirza Aulia</strong>. These Terms and Conditions ("Terms") govern your access to and use of the Football Clips & Live Score mobile application, website (<a href="https://fc.dirzaaulia.com">fc.dirzaaulia.com</a>), and related services.</p>
+
+            <p>By downloading, accessing, or using Football Clips & Live Score, you agree to be bound by these Terms. If you do not agree to these Terms, please do not use our services.</p>
+
+            <h2>1. Service Overview & Intellectual Property</h2>
+            <p>Football Clips & Live Score is a football companion platform providing match highlights, scores, and fixtures across major leagues:</p>
+            <ul>
+                <li><strong>Official Video Embeds:</strong> Football Clips & Live Score does <em>not</em> host, upload, or broadcast pirated video media. All match clips and video highlights are embedded directly from official broadcaster and club channels via the standard <strong>YouTube Player API</strong>.</li>
+                <li><strong>Third-Party Content Rights:</strong> All video content, team logos, trademarks, and broadcaster assets belong entirely to their respective copyright holders. Use of embedded videos is governed by the <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener">YouTube Terms of Service</a>.</li>
+                <li><strong>App Intellectual Property:</strong> The Football Clips & Live Score application, user interface design, logo, and source code are the intellectual property of Dirza Aulia.</li>
+            </ul>
+
+            <h2>2. In-App Purchases & "Remove Ads"</h2>
+            <p>Football Clips & Live Score is free to use with optional in-app digital purchases:</p>
+            <ul>
+                <li><strong>Remove Ads Feature:</strong> Users can optionally purchase a lifetime or recurring "Remove Ads" entitlement to enjoy an ad-free experience.</li>
+                <li><strong>Billing & Processing:</strong> On Android, purchases are processed securely through Google Play Billing and validated via RevenueCat. On the Web, purchases are processed via our authorized web payment provider.</li>
+                <li><strong>Account Linking:</strong> You may sign in with your Google Account to restore and synchronize your purchase across supported devices.</li>
+                <li><strong>Refunds:</strong> Refund requests for in-app purchases on Android are subject to Google Play's standard refund policies. You can submit refund requests directly via the Google Play Store.</li>
+            </ul>
+
+            <h2>3. User Conduct & Acceptable Use</h2>
+            <p>When using Football Clips & Live Score (FC), you agree not to:</p>
+            <ul>
+                <li>Reverse-engineer, decompile, or attempt to extract the source code of the application.</li>
+                <li>Circumvent or tamper with digital rights management, advertising systems, or entitlement checks.</li>
+                <li>Use automated bots, scrapers, or excessive queries that could disrupt or burden our backend infrastructure.</li>
+            </ul>
+
+            <h2>4. Advertisements</h2>
+            <p>To support ongoing maintenance and server costs, Football Clips & Live Score displays advertisements served by Google AdMob (on mobile) and Google AdSense (on web) for non-premium users. We are not responsible for the content of third-party advertisements or external links provided in ads.</p>
+
+            <h2>5. Disclaimer of Warranties</h2>
+            <p>Football Clips & Live Score is provided on an <strong>"AS IS"</strong> and <strong>"AS AVAILABLE"</strong> basis without warranties of any kind, whether express or implied. While we strive to maintain accurate live scores and up-to-date highlight links, we do not warrant that:</p>
+            <ul>
+                <li>The service will be uninterrupted, error-free, or entirely secure.</li>
+                <li>Highlight videos hosted on YouTube will remain available indefinitely (availability depends on rights holders).</li>
+            </ul>
+
+            <h2>6. Limitation of Liability</h2>
+            <p>To the maximum extent permitted by applicable law, Dirza Aulia and Football Clips & Live Score shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your access to or use of the application.</p>
+
+            <h2>7. Termination</h2>
+            <p>We reserve the right to suspend or terminate your access to Football Clips & Live Score at our sole discretion, without prior notice, for conduct that violates these Terms or harms other users or the service.</p>
+
+            <h2>8. Changes to These Terms</h2>
+            <p>We reserve the right to modify or replace these Terms at any time. If revisions are material, we will update the "Last updated" date at the top of this page. Your continued use of Football Clips & Live Score following any changes signifies your acceptance of the updated Terms.</p>
+
+            <h2>9. Contact Information</h2>
+            <p>If you have any questions or feedback regarding these Terms, please contact us:</p>
+            <ul>
+                <li><strong>Developer:</strong> Dirza Aulia</li>
+                <li><strong>Email:</strong> <a href="mailto:dirzaaulia@gmail.com">dirzaaulia@gmail.com</a></li>
+                <li><strong>Website:</strong> <a href="https://fc.dirzaaulia.com">fc.dirzaaulia.com</a></li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Football Clips & Live Score (Dirza Aulia). All rights reserved.</p>
+    </footer>
+</body>
+</html>

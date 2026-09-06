@@ -11,4 +11,7 @@ expect class PreferenceManager {
 
     val isDebugPremium: Flow<Boolean>
     suspend fun setDebugPremium(isPremium: Boolean)
+
+    val isForceNonPremium: Flow<Boolean>
+    suspend fun setForceNonPremium(isForce: Boolean)
 }

@@ -237,7 +237,7 @@ fun LeagueFilterItem(
 ) {
     Column(
         modifier = Modifier
-            .width(64.dp)
+            .width(76.dp)
             .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -279,8 +279,8 @@ fun LeagueFilterItem(
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            maxLines = 2,
+            lineHeight = 12.sp,
             textAlign = TextAlign.Center
         )
     }

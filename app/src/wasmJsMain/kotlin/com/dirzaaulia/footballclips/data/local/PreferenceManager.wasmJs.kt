@@ -12,4 +12,7 @@ actual class PreferenceManager {
 
     actual val isDebugPremium: Flow<Boolean> = flowOf(false)
     actual suspend fun setDebugPremium(isPremium: Boolean) {}
+
+    actual val isForceNonPremium: Flow<Boolean> = flowOf(false)
+    actual suspend fun setForceNonPremium(isForce: Boolean) {}
 }

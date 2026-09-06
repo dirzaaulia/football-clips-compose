@@ -19,6 +19,13 @@ import com.dirzaaulia.footballclips.ui.navigation.NavDestination
 import com.dirzaaulia.footballclips.ui.score.MatchesAndHighlightsScreen
 import com.dirzaaulia.footballclips.util.extractVideoId
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import com.dirzaaulia.footballclips.ui.score.ScoreViewModel
+import org.koin.compose.viewmodel.koinViewModel
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MobileMatchesScreen() {
@@ -48,7 +55,11 @@ fun MobileMatchesScreen() {
             NavHost(
                 navController = navController,
                 startDestination = NavDestination.Home.route,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                enterTransition = { fadeIn(animationSpec = tween(350)) + slideInVertically(animationSpec = tween(350)) { it / 16 } },
+                exitTransition = { fadeOut(animationSpec = tween(200)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(350)) },
+                popExitTransition = { fadeOut(animationSpec = tween(200)) }
             ) {
                 composable(NavDestination.Home.route, content = homeContent)
                 composable(NavDestination.Fixtures.route, content = fixturesContent)
@@ -56,11 +67,15 @@ fun MobileMatchesScreen() {
             }
 
             // Floating Pill Navigation Bar
+            val scoreViewModel: ScoreViewModel = koinViewModel()
+            val hasLiveMatch by scoreViewModel.hasLiveMatch.collectAsState()
+
             FloatingPillNavigationBar(
                 currentDestination = currentDestination,
+                hasLiveMatch = hasLiveMatch,
                 onNavigate = { route ->
                     navController.navigate(route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
+                        popUpTo(navController.graph.findStartDestination().route ?: NavDestination.Home.route) {
                             saveState = true
                         }
                         launchSingleTop = true

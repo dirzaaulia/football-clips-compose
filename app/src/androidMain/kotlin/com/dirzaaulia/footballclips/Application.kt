@@ -36,19 +36,17 @@ class FootballClipsApplication : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
 
+        // Initialize RevenueCat before Koin DI resolves BillingManager
+        Purchases.logLevel = if (BuildConfig.DEBUG) LogLevel.DEBUG else LogLevel.WARN
+        Purchases.configure(
+            PurchasesConfiguration.Builder(this, BuildConfig.REVENUECAT_API_KEY).build()
+        )
+
         // Initialize Koin DI
         startKoin {
             androidContext(this@FootballClipsApplication)
             modules(appModules)
         }
-
-        // Initialize RevenueCat in background thread to prevent cold boot main thread blocking
-        Thread {
-            Purchases.logLevel = if (BuildConfig.DEBUG) LogLevel.DEBUG else LogLevel.WARN
-            Purchases.configure(
-                PurchasesConfiguration.Builder(this, "goog_gHDMIAwmoTGZQkfkTZDyjnfetoK").build()
-            )
-        }.start()
 
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {

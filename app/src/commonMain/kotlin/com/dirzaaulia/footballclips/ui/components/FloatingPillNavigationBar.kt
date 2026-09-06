@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination
@@ -29,6 +30,7 @@ import com.dirzaaulia.footballclips.ui.navigation.bottomNavItems
 fun FloatingPillNavigationBar(
     currentDestination: NavDestination?,
     onNavigate: (String) -> Unit,
+    hasLiveMatch: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -56,6 +58,7 @@ fun FloatingPillNavigationBar(
                 PillNavItem(
                     screen = screen,
                     selected = selected,
+                    hasLiveMatch = hasLiveMatch && screen == com.dirzaaulia.footballclips.ui.navigation.NavDestination.Fixtures,
                     onClick = { onNavigate(screen.route) }
                 )
             }
@@ -67,6 +70,7 @@ fun FloatingPillNavigationBar(
 private fun PillNavItem(
     screen: com.dirzaaulia.footballclips.ui.navigation.NavDestination,
     selected: Boolean,
+    hasLiveMatch: Boolean = false,
     onClick: () -> Unit
 ) {
     val scale by animateFloatAsState(
@@ -95,12 +99,30 @@ private fun PillNavItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.scale(scale)
         ) {
-            Icon(
-                imageVector = screen.icon,
-                contentDescription = screen.title,
-                tint = iconColor,
-                modifier = Modifier.size(24.dp)
-            )
+            Box(contentAlignment = Alignment.TopEnd) {
+                Icon(
+                    imageVector = screen.icon,
+                    contentDescription = screen.title,
+                    tint = iconColor,
+                    modifier = Modifier.size(24.dp)
+                )
+
+                if (hasLiveMatch) {
+                    Surface(
+                        color = Color(0xFFFF3B30),
+                        shape = RoundedCornerShape(6.dp),
+                        modifier = Modifier.offset(x = 10.dp, y = (-4).dp)
+                    ) {
+                        Text(
+                            text = "LIVE",
+                            color = Color.White,
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Black,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                        )
+                    }
+                }
+            }
             if (selected) {
                 Text(
                     text = screen.title,

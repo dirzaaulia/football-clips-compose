@@ -37,36 +37,43 @@ class AndroidBillingManager(
     override val messageEvent: SharedFlow<String> = _messageEvent.asSharedFlow()
 
     init {
-        Purchases.sharedInstance.updatedCustomerInfoListener = UpdatedCustomerInfoListener { customerInfo ->
-            updatePremiumStatus(customerInfo)
-        }
-        
-        Purchases.sharedInstance.getCustomerInfo(object : ReceiveCustomerInfoCallback {
-            override fun onReceived(customerInfo: CustomerInfo) {
+        if (Purchases.isConfigured) {
+            Purchases.sharedInstance.updatedCustomerInfoListener = UpdatedCustomerInfoListener { customerInfo ->
                 updatePremiumStatus(customerInfo)
             }
+            
+            Purchases.sharedInstance.getCustomerInfo(object : ReceiveCustomerInfoCallback {
+                override fun onReceived(customerInfo: CustomerInfo) {
+                    updatePremiumStatus(customerInfo)
+                }
 
-            override fun onError(error: PurchasesError) {
-                sendError("Could not check subscription status: ${error.message}")
-            }
-        })
+                override fun onError(error: PurchasesError) {
+                    sendError("Could not check subscription status: ${error.message}")
+                }
+            })
 
-        loadOfferings()
+            loadOfferings()
+        }
     }
 
     override fun identify(userId: String) {
+        if (!Purchases.isConfigured) return
+        _isLoading.value = true
         Purchases.sharedInstance.logIn(userId, object : LogInCallback {
             override fun onReceived(customerInfo: CustomerInfo, created: Boolean) {
                 updatePremiumStatus(customerInfo)
+                _isLoading.value = false
             }
 
             override fun onError(error: PurchasesError) {
                 sendError("Billing login failed: ${error.message}")
+                _isLoading.value = false
             }
         })
     }
 
     override fun logOut() {
+        if (!Purchases.isConfigured) return
         if (!Purchases.sharedInstance.isAnonymous) {
             Purchases.sharedInstance.logOut(object : ReceiveCustomerInfoCallback {
                 override fun onReceived(customerInfo: CustomerInfo) {
@@ -91,6 +98,7 @@ class AndroidBillingManager(
     }
 
     private fun loadOfferings() {
+        if (!Purchases.isConfigured) return
         Purchases.sharedInstance.getOfferings(object : ReceiveOfferingsCallback {
             override fun onReceived(offerings: Offerings) {
                 _offerings.value = offerings
@@ -102,16 +110,19 @@ class AndroidBillingManager(
         })
     }
 
-    override fun purchasePackage(packageToPurchase: Any) {
+    override fun purchasePackage(packageToPurchase: Any, onComplete: ((Boolean) -> Unit)?) {
+        if (!Purchases.isConfigured) return
         val rcPackage = packageToPurchase as? Package
         if (rcPackage == null) {
             sendError("Invalid purchase package selected. Please try again.")
+            onComplete?.invoke(false)
             return
         }
 
         val activity = FootballClipsApplication.getCurrentActivity()
         if (activity == null) {
             sendError("Unable to open Google Play Store. App window not ready.")
+            onComplete?.invoke(false)
             return
         }
 
@@ -124,6 +135,8 @@ class AndroidBillingManager(
                     updatePremiumStatus(customerInfo)
                     sendMessage("Purchase completed successfully! Premium features unlocked.")
                     _isLoading.value = false
+                    val isActive = customerInfo.entitlements["remove_ads"]?.isActive == true
+                    onComplete?.invoke(isActive)
                 }
 
                 override fun onError(error: PurchasesError, userCancelled: Boolean) {
@@ -133,28 +146,36 @@ class AndroidBillingManager(
                         sendError("Purchase failed: ${error.message}")
                     }
                     _isLoading.value = false
+                    onComplete?.invoke(false)
                 }
             }
         )
     }
 
-    override fun restorePurchases() {
+    override fun restorePurchases(onComplete: ((Boolean) -> Unit)?) {
+        if (!Purchases.isConfigured) {
+            onComplete?.invoke(false)
+            return
+        }
         _isLoading.value = true
 
         Purchases.sharedInstance.restorePurchases(object : ReceiveCustomerInfoCallback {
             override fun onReceived(customerInfo: CustomerInfo) {
                 updatePremiumStatus(customerInfo)
-                if (_isPremium.value) {
+                val isPrem = _isPremium.value
+                if (isPrem) {
                     sendMessage("Purchases restored successfully! Premium access is active.")
                 } else {
                     sendMessage("No active purchases or subscriptions found on this Google Play account.")
                 }
                 _isLoading.value = false
+                onComplete?.invoke(isPrem)
             }
 
             override fun onError(error: PurchasesError) {
                 sendError("Restore failed: ${error.message}")
                 _isLoading.value = false
+                onComplete?.invoke(false)
             }
         })
     }

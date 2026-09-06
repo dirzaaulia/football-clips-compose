@@ -1,12 +1,21 @@
 {
   "hosting": {
     "public": "app/build/dist/wasmJs/productionExecutable",
+    "cleanUrls": true,
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
     "rewrites": [
+      {
+        "source": "/privacy",
+        "destination": "/privacy.html"
+      },
+      {
+        "source": "/tnc",
+        "destination": "/tnc.html"
+      },
       {
         "source": "**",
         "destination": "/index.html"

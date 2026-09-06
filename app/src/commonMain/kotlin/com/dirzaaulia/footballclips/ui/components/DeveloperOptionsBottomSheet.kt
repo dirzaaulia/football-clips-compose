@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.sp
 fun DeveloperOptionsBottomSheet(
     isDebugPremium: Boolean,
     onToggleDebugPremium: (Boolean) -> Unit,
+    isForceNonPremium: Boolean,
+    onToggleForceNonPremium: (Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
     ModalBottomSheet(
@@ -71,7 +73,7 @@ fun DeveloperOptionsBottomSheet(
             )
 
             Text(
-                text = "Toggle debug features for Play Store screenshots and testing.",
+                text = "Toggle debug features for testing negative flows and screenshots.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp)
@@ -79,6 +81,77 @@ fun DeveloperOptionsBottomSheet(
 
             Spacer(Modifier.height(24.dp))
 
+            // Negative Testing Card: Force Free / Non-Premium
+            OutlinedCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(
+                    1.dp,
+                    if (isForceNonPremium) MaterialTheme.colorScheme.error.copy(alpha = 0.6f) 
+                    else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Surface(
+                            color = if (isForceNonPremium) MaterialTheme.colorScheme.error.copy(alpha = 0.2f) 
+                                   else MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.BugReport,
+                                    contentDescription = null,
+                                    tint = if (isForceNonPremium) MaterialTheme.colorScheme.error 
+                                           else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.width(16.dp))
+
+                        Column {
+                            Text(
+                                text = "Force Non-Premium (Negative Test)",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = if (isForceNonPremium) 
+                                    "Simulating free user: ads shown, premium locked" 
+                                else "Standard account & billing behavior",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Switch(
+                        checked = isForceNonPremium,
+                        onCheckedChange = { checked ->
+                            if (checked && isDebugPremium) {
+                                onToggleDebugPremium(false)
+                            }
+                            onToggleForceNonPremium(checked)
+                        }
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Force Premium Card
             OutlinedCard(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -128,7 +201,12 @@ fun DeveloperOptionsBottomSheet(
 
                     Switch(
                         checked = isDebugPremium,
-                        onCheckedChange = onToggleDebugPremium
+                        onCheckedChange = { checked ->
+                            if (checked && isForceNonPremium) {
+                                onToggleForceNonPremium(false)
+                            }
+                            onToggleDebugPremium(checked)
+                        }
                     )
                 }
             }

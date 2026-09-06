@@ -12,8 +12,8 @@ interface BillingManager {
     val messageEvent: SharedFlow<String>
 
     fun identify(userId: String)
-    fun purchasePackage(packageToPurchase: Any)
-    fun restorePurchases()
+    fun purchasePackage(packageToPurchase: Any, onComplete: ((isPremium: Boolean) -> Unit)? = null)
+    fun restorePurchases(onComplete: ((isPremium: Boolean) -> Unit)? = null)
     fun logOut()
 }
 

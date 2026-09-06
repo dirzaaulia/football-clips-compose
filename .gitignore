@@ -15,10 +15,16 @@
 local.properties
 .artifacts/
 fastlane/play-console-key.json
+play-key.json
+*service-account*.json
 *.keystore
 *.jks
 
 # Python
 __pycache__/
 *.pyc
+
+# Kotlin & Firebase cache
+.kotlin/
+.firebase/
 

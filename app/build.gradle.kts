@@ -102,6 +102,15 @@ android {
         buildConfig = true
     }
 
+    val localProperties = Properties().apply {
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { stream ->
+                load(stream)
+            }
+        }
+    }
+
     defaultConfig {
         applicationId = "com.dirzaaulia.footballclips"
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -114,6 +123,16 @@ android {
 
         versionCode = autoVersionCode
         versionName = "3.0.$autoVersionCode"
+
+        manifestPlaceholders["admobAppId"] = localProperties.getProperty("ADMOB_APP_ID") ?: ""
+
+        buildConfigField("String", "REVENUECAT_API_KEY", "\"${localProperties.getProperty("REVENUECAT_API_KEY", "")}\"")
+        buildConfigField("String", "SUPABASE_URL", "\"${localProperties.getProperty("SUPABASE_URL", "")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProperties.getProperty("SUPABASE_ANON_KEY", "")}\"")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${localProperties.getProperty("GOOGLE_WEB_CLIENT_ID", "")}\"")
+        buildConfigField("String", "ADMOB_APP_ID", "\"${localProperties.getProperty("ADMOB_APP_ID", "")}\"")
+        buildConfigField("String", "ADMOB_BANNER_ID", "\"${localProperties.getProperty("ADMOB_BANNER_ID", "")}\"")
+        buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"${localProperties.getProperty("ADMOB_INTERSTITIAL_ID", "")}\"")
     }
 
     packaging {
@@ -136,7 +155,7 @@ android {
             val keystorePath = localProperties.getProperty("KEYSTORE_FILE")
                 ?: providers.gradleProperty("KEYSTORE_FILE").orNull 
                 ?: System.getenv("KEYSTORE_FILE") 
-                ?: "C:/Users/ASUS/OneDrive/Keystore/keystore.jks"
+                ?: ""
             val keystoreFile = file(keystorePath)
             val storePass = localProperties.getProperty("KEYSTORE_PASSWORD")
                 ?: providers.gradleProperty("KEYSTORE_PASSWORD").orNull 

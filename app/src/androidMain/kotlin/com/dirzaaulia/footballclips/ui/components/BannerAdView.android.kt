@@ -22,7 +22,12 @@ actual fun BannerAdView(onAdLoaded: () -> Unit, onAdFailed: (String) -> Unit, mo
     val activity = context as? Activity
 
     BoxWithConstraints(modifier = modifier) {
-        val adWidth = maxWidth.value.toInt()
+        val displayMetrics = context.resources.displayMetrics
+        val density = displayMetrics.density
+        val screenDpWidth = (displayMetrics.widthPixels / density).toInt()
+        val rawWidth = this.maxWidth.value.toInt()
+        val adWidth = if (rawWidth in 1..screenDpWidth) rawWidth else if (screenDpWidth > 0) screenDpWidth else 320
+
         activity?.let { act ->
             AndroidView(
                 factory = {
@@ -31,20 +36,23 @@ actual fun BannerAdView(onAdLoaded: () -> Unit, onAdFailed: (String) -> Unit, mo
                     }
                     val adSize = AdSize.getLargeAnchoredAdaptiveBannerAdSize(act, adWidth)
                     val adRequest = BannerAdRequest.Builder(
-                        AdConfiguration.ADMOB_BANNER_ID,
+                        com.dirzaaulia.footballclips.BuildConfig.ADMOB_BANNER_ID,
                         adSize
                     ).build()
                     try {
                         adView.loadAd(adRequest, object : AdLoadCallback<BannerAd> {
                             override fun onAdLoaded(ad: BannerAd) {
+                                println("BannerAdView loaded successfully for width $adWidth")
                                 onAdLoaded()
                             }
 
                             override fun onAdFailedToLoad(adError: LoadAdError) {
+                                println("BannerAdView failed to load: ${adError.message} (Code: ${adError.code})")
                                 onAdFailed(adError.message)
                             }
                         })
                     } catch (t: Throwable) {
+                        println("BannerAdView load exception: ${t.message}")
                         onAdFailed(t.message ?: "Ad load error")
                     }
                     adView
