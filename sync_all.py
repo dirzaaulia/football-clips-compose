@@ -635,9 +635,13 @@ def ai_pick_best_highlight(home_team: str, away_team: str, competition: str, vid
         log_events.append("      ℹ️ AI Client belum aktif, menggunakan fallback rule-based.")
         return fallback_pick(home_team, away_team, video_candidates, log_events)
 
+    current_year = datetime.now(timezone.utc).year
     prompt = f"""
-Kamu adalah juri sistem verifikasi video sepak bola resmi.
-Pertandingan: {home_team} vs {away_team} (Kompetisi: {competition})
+Kamu adalah juri sistem verifikasi video highlight sepak bola resmi.
+Waktu saat ini: September {current_year} (Musim sepak bola aktif yang sedang berjalan adalah musim {current_year}/{current_year + 1} atau disingkat 26/27).
+PENTING: Tahun {current_year} dan musim 2026/2027 (26/27) adalah MUSIM AKTIF SAAT INI di dunia nyata, BUKAN masa depan dan BUKAN simulasi game!
+
+Pertandingan yang dicari: {home_team} vs {away_team} (Kompetisi: {competition})
 
 Daftar kandidat video dari YouTube API:
 {json.dumps([{'id': v['id'], 'title': v['title'], 'duration_sec': v['duration_sec']} for v in video_candidates], ensure_ascii=False, indent=2)}
@@ -645,10 +649,15 @@ Daftar kandidat video dari YouTube API:
 Tugas:
 Pilih SATU video yang merupakan highlight resmi pertandingan tersebut (extended highlights, match recap, resumen, atau cuplikan resmi laga ini).
 
-Kriteria Penolakan (TOLAK jika):
+Kriteria Penerimaan:
+- Video dari channel resmi liga/klub yang menampilkan pertandingan {home_team} vs {away_team}.
+- Label "26/27", "2026/27", "2026/2027", "Week X", "Matchday X", atau skor pertandingan (contoh: "ESTAC TROYES - RC STRASBOURG ALSACE (2-6) | Week 3 - Ligue 1 McDonald's 26/27") adalah HIGHLIGHT RESMI yang VALID untuk musim berjalan saat ini.
+
+Kriteria Penolakan (TOLAK HANYA jika):
 1. Video Shorts, press conference, post-match interview, reaksi fans/reaction, training, behind-the-scenes (Inside Anfield, dsb), vlog.
 2. Video kompilasi seluruh pekan / ringkasan semua gol pekanan (contoh: "Résumé 2ème journée", "Tous les buts de la journée").
-3. Video pertandingan tim lain atau musim lain.
+3. Video pertandingan tim lain atau musim lama (misal musim 2023/24, 2024/25).
+JANGAN PERNAH menolak video dengan alasan "musim 26/27 belum terjadi" atau "simulasi" karena musim 26/27 adalah musim saat ini!
 
 Balas HANYA format JSON valid berikut:
 {{"chosen_id": "VIDEO_ID_YANG_LOLOS_ATAU_NULL", "reason": "Alasan singkat"}}
@@ -680,6 +689,11 @@ Balas HANYA format JSON valid berikut:
             return chosen_id
         else:
             log_events.append(f"      🤖 [AI GEMINI REJECT] Tidak ada video yang cocok menurut AI. (Alasan: {reason})")
+            # Safety net: jika Gemini menolak karena halusinasi atau alasan keliru, cek fallback_pick
+            fallback_id = fallback_pick(home_team, away_team, video_candidates, log_events)
+            if fallback_id:
+                log_events.append(f"      🛡️ [FALLBACK RECOVERY] AI menolak, namun video lolos scoring rule-based: {fallback_id}")
+                return fallback_id
             return None
     except Exception as e:
         log_events.append(f"      🚨 [AI ERROR] {e}. Mengaktifkan fallback scoring.")
