@@ -595,7 +595,7 @@ def get_geoblock_penalty(region_info: dict | None) -> tuple[int, str]:
         return 1000 - len(allowed), f"Restricted Whitelist: {len(allowed)} negara (allowed: {allowed})"
     return 0, "100% Global (Unrestricted)"
 
-def fallback_score_video(title: str, duration_sec: int, home_team: str, away_team: str, geo_penalty: int = 0) -> int:
+def fallback_score_video(title: str, duration_sec: int, home_team: str, away_team: str, geo_penalty: int = 0, is_embeddable: bool = True) -> int:
     t = title.lower()
     score = 0
     if "extended" in t: score += 15
@@ -609,15 +609,25 @@ def fallback_score_video(title: str, duration_sec: int, home_team: str, away_tea
 
     # Skor bobot durasi highlight optimal (2m – 15m)
     if 120 <= duration_sec <= 900:
-        score += 5
-    elif MIN_DURATION_SECONDS <= duration_sec <= MAX_DURATION_SECONDS:
-        score += 2
+        score += 8
+    elif 90 <= duration_sec < 120:
+        score += 4
+    elif MIN_DURATION_SECONDS <= duration_sec < 90:
+        score -= 5  # Klip pendek (<90s) mendapat penalti skor dibandingkan full highlight
 
     # Bonus keterbukaan global
     if geo_penalty == 0:
         score += 3
     elif geo_penalty >= 900:
         score -= 50
+
+    # Prioritas Embed (Opsi B):
+    # Embeddable mendapat bonus +6. Non-Embeddable mendapat -2.
+    # Highlight resmi panjang non-embed (skor ~30) tetap menang atas klip pendek embeddable (skor ~15).
+    if is_embeddable:
+        score += 6
+    else:
+        score -= 2
 
     # Penalti konten sampingan / non-highlight
     if any(w in t for w in ["tous les buts", "all highlights", "inside", "press", "interview", "training", "previa", "preview", "reaction"]):
@@ -644,18 +654,23 @@ PENTING: Tahun {current_year} dan musim 2026/2027 (26/27) adalah MUSIM AKTIF SAA
 Pertandingan yang dicari: {home_team} vs {away_team} (Kompetisi: {competition})
 
 Daftar kandidat video dari YouTube API:
-{json.dumps([{'id': v['id'], 'title': v['title'], 'duration_sec': v['duration_sec']} for v in video_candidates], ensure_ascii=False, indent=2)}
+{json.dumps([{'id': v['id'], 'title': v['title'], 'duration_sec': v['duration_sec'], 'embeddable': v.get('embeddable', True)} for v in video_candidates], ensure_ascii=False, indent=2)}
 
 Tugas:
 Pilih SATU video yang merupakan highlight resmi pertandingan tersebut (extended highlights, match recap, resumen, atau cuplikan resmi laga ini).
 
+PANDUAN PRIORITAS PILIHAN:
+1. Prioritaskan video highlight resmi penuh (durasi >= 90 detik) yang 'embeddable: true'.
+2. Jika semua highlight penuh memiliki 'embeddable: false', kamu TETAP HARUS MEMILIH highlight resmi tersebut (misal Extended Highlights / Highlights 2-15 menit) daripada memilih klip pendek (< 90 detik), karena aplikasi akan mengarahkan pengguna menonton di YouTube.
+3. HANYA tolak (pilih null) jika tidak ada video yang berkaitan dengan laga ini atau semua video adalah game/fan reaction/konten palsu.
+
 Kriteria Penerimaan:
 - Video dari channel resmi liga/klub yang menampilkan pertandingan {home_team} vs {away_team}.
-- Label "26/27", "2026/27", "2026/2027", "Week X", "Matchday X", atau skor pertandingan (contoh: "ESTAC TROYES - RC STRASBOURG ALSACE (2-6) | Week 3 - Ligue 1 McDonald's 26/27") adalah HIGHLIGHT RESMI yang VALID untuk musim berjalan saat ini.
+- Label "26/27", "2026/27", "2026/2027", "Week X", "Matchday X", atau skor pertandingan adalah HIGHLIGHT RESMI yang VALID untuk musim berjalan saat ini.
 
 Kriteria Penolakan (TOLAK HANYA jika):
-1. Video Shorts, press conference, post-match interview, reaksi fans/reaction, training, behind-the-scenes (Inside Anfield, dsb), vlog.
-2. Video kompilasi seluruh pekan / ringkasan semua gol pekanan (contoh: "Résumé 2ème journée", "Tous les buts de la journée").
+1. Video Shorts/klip <30s, press conference, post-match interview, reaksi fans/reaction, training, behind-the-scenes, vlog.
+2. Video kompilasi seluruh pekan / ringkasan semua gol pekanan.
 3. Video pertandingan tim lain atau musim lama (misal musim 2023/24, 2024/25).
 JANGAN PERNAH menolak video dengan alasan "musim 26/27 belum terjadi" atau "simulasi" karena musim 26/27 adalah musim saat ini!
 
@@ -682,9 +697,10 @@ Balas HANYA format JSON valid berikut:
             c_title = matched_cand["title"] if matched_cand else "Unknown"
             c_dur = matched_cand.get("duration_sec", 0) if matched_cand else 0
             dur_str = f"{c_dur // 60}m {c_dur % 60}s" if c_dur else ""
+            emb_str = "Embed: YA" if matched_cand.get("embeddable", True) else "Embed: TIDAK (Redirect)"
             c_idx = (video_candidates.index(matched_cand) + 1) if matched_cand else "?"
             log_events.append(f"      🤖 [AI GEMINI MATCH] Terpilih Video #{c_idx}: '{c_title}'")
-            log_events.append(f"         └─ ID: {chosen_id} (⏱️ {dur_str}) ➔ https://youtu.be/{chosen_id}")
+            log_events.append(f"         └─ ID: {chosen_id} (⏱️ {dur_str}) [{emb_str}] ➔ https://youtu.be/{chosen_id}")
             log_events.append(f"         └─ Alasan AI: {reason}")
             return chosen_id
         else:
@@ -703,24 +719,26 @@ def fallback_pick(home_team: str, away_team: str, video_candidates: list, log_ev
     scored = []
     for c in video_candidates:
         geo_penalty = c.get("geo_penalty", 0)
-        s = fallback_score_video(c["title"], c.get("duration_sec", 0), home_team, away_team, geo_penalty)
+        is_emb = c.get("embeddable", True)
+        s = fallback_score_video(c["title"], c.get("duration_sec", 0), home_team, away_team, geo_penalty, is_emb)
         if s > 0:
             scored.append((s, c))
     if scored:
         best = max(scored, key=lambda x: x[0])[1]
         b_dur = best.get("duration_sec", 0)
         dur_str = f"{b_dur // 60}m {b_dur % 60}s" if b_dur else ""
+        emb_str = "Embed: YA" if best.get("embeddable", True) else "Embed: TIDAK (Redirect)"
         log_events.append(f"      🛡️ [FALLBACK SELECT] Terpilih: '{best['title']}'")
-        log_events.append(f"         └─ ID: {best['id']} (⏱️ {dur_str}) ➔ https://youtu.be/{best['id']}")
+        log_events.append(f"         └─ ID: {best['id']} (⏱️ {dur_str}) [{emb_str}] ➔ https://youtu.be/{best['id']}")
         return best["id"]
     return None
 
 # ==============================================================================
 # 4. YOUTUBE API SEARCH & DURATION FETCHER (90s – 1500s)
 # ==============================================================================
-def search_channel_for_highlight(channel_handle: str, query: str, home_team: str, away_team: str, match_date: str, comp_id: str, log_events: list) -> tuple[str | None, dict | None]:
+def search_channel_for_highlight(channel_handle: str, query: str, home_team: str, away_team: str, match_date: str, comp_id: str, log_events: list) -> tuple[str | None, dict | None, bool, int, str]:
     channel_id = get_channel_id_from_handle(channel_handle, log_events)
-    if not channel_id: return None, None
+    if not channel_id: return None, None, False, 0, ""
 
     match_start = safe_parse_iso(match_date)
     pub_after_dt = match_start - timedelta(hours=2)
@@ -818,17 +836,17 @@ def search_channel_for_highlight(channel_handle: str, query: str, home_team: str
                     continue
                 else:
                     log_events.append(f"      🚨 Error YouTube API: {e}")
-                    return "ERROR", None
+                    return "ERROR", None, False, 0, ""
 
     if not items:
         log_events.append(f"      🚫 YouTube tidak menemukan hasil video apapun untuk query/channel ini.")
-        return None, None
+        return None, None, False, 0, ""
 
     # Ambil durasi, status embed, dan regionRestriction via videos().list (1 unit kuota) dengan retry
     video_ids = [item["id"]["videoId"] for item in items if item.get("id", {}).get("videoId")]
     if not video_ids:
         log_events.append(f"      🚫 Tidak ada ID video valid ditemukan.")
-        return None, None
+        return None, None, False, 0, ""
 
     durations_map = {}
     regions_map = {}
@@ -853,7 +871,7 @@ def search_channel_for_highlight(channel_handle: str, query: str, home_team: str
                 continue
             else:
                 log_events.append(f"      🚨 Error fetch durasi/region video: {e}")
-                return "ERROR", None
+                return "ERROR", None, False, 0, ""
 
     log_events.append(f"      📋 [DEBUG YOUTUBE] Ditemukan {len(items)} video mentah:")
     
@@ -868,20 +886,22 @@ def search_channel_for_highlight(channel_handle: str, query: str, home_team: str
         geo_penalty, geo_desc = get_geoblock_penalty(reg_info)
         is_embeddable = embeddable_map.get(v_id, True)
 
-        # 0. Filter video tidak bisa di-embed di app
-        if not is_embeddable:
-            log_events.append(f"         -> {idx+1}. [❌ EMBED DISABLED] [ID: {v_id}] '{raw_title}' ({yt_link})")
-            continue
-        
-        # 1. Filter kata terlarang murni di judul (Python title filter)
+        # 0. Filter kata terlarang murni di judul (Python title filter)
         is_forbidden, reason = check_forbidden_title(raw_title)
         if is_forbidden:
             log_events.append(f"         -> {idx+1}. [❌ TITLE FILTER: {reason}] [ID: {v_id}] '{raw_title}' ({yt_link})")
             continue
 
-        # 2. Filter durasi paten: 45 detik s/d 1500 detik (0.75m – 25m)
+        # 1. Filter durasi paten: 45 detik s/d 1500 detik (0.75m – 25m)
         if not (MIN_DURATION_SECONDS <= duration_sec <= MAX_DURATION_SECONDS):
             log_events.append(f"         -> {idx+1}. [❌ DURATION FILTER: {dur_text}] [ID: {v_id}] '{raw_title}' ({yt_link})")
+            continue
+
+        # 2. Filter status embed (Opsi B):
+        # Jika embed disabled, hanya izinkan jika durasi >= 90 detik (highlight/extended resmi klub/broadcaster).
+        # Klip pendek (<90s) yang embed-nya dimatikan tidak berguna di app, langsung skip.
+        if not is_embeddable and duration_sec < 90:
+            log_events.append(f"         -> {idx+1}. [❌ EMBED DISABLED & SHORT CLIP] [ID: {v_id}] '{raw_title}' ({yt_link})")
             continue
 
         # 3. Filter geoblocking ekstrem (whitelist negara tertutup, penalti >= 900)
@@ -890,25 +910,31 @@ def search_channel_for_highlight(channel_handle: str, query: str, home_team: str
             continue
 
         geo_tag = " [🌐 100% Global]" if geo_penalty == 0 else f" [⚠️ {geo_desc}]"
-        log_events.append(f"         -> {idx+1}. [⏱️ {dur_text}]{geo_tag} [ID: {v_id}] '{raw_title}' ({yt_link})")
+        embed_tag = " [🌐 Embed: OK]" if is_embeddable else " [⚠️ Embed: NO (Redirect)]"
+        log_events.append(f"         -> {idx+1}. [⏱️ {dur_text}]{geo_tag}{embed_tag} [ID: {v_id}] '{raw_title}' ({yt_link})")
         raw_candidates.append({
             "id": v_id, 
             "title": raw_title, 
             "duration_sec": duration_sec,
             "region_restriction": reg_info,
-            "geo_penalty": geo_penalty
+            "geo_penalty": geo_penalty,
+            "embeddable": is_embeddable
         })
 
     if not raw_candidates:
         log_events.append(f"      🚫 Semua video tereliminasi oleh filter judul, durasi, atau pembatasan wilayah global.")
-        return None, None
+        return None, None, False, 0, ""
 
     # Rerank kandidat video via Gemini AI (dengan Fallback Otomatis)
     chosen_video_id = ai_pick_best_highlight(home_team, away_team, comp_id, raw_candidates, log_events)
     if chosen_video_id:
-        chosen_reg = next((c.get("region_restriction") for c in raw_candidates if c["id"] == chosen_video_id), None)
-        return chosen_video_id, chosen_reg
-    return None, None
+        matched_cand = next((c for c in raw_candidates if c["id"] == chosen_video_id), None)
+        chosen_reg = matched_cand.get("region_restriction") if matched_cand else None
+        chosen_embed = matched_cand.get("embeddable", True) if matched_cand else True
+        chosen_dur = matched_cand.get("duration_sec", 0) if matched_cand else 0
+        chosen_title = matched_cand.get("title", "") if matched_cand else ""
+        return chosen_video_id, chosen_reg, chosen_embed, chosen_dur, chosen_title
+    return None, None, False, 0, ""
 
 def find_and_link_match_highlight(match, log_events):
     home, away, match_date, comp_id = match["home_team_name"], match["away_team_name"], match["utc_date"], match["competition_id"]
@@ -949,22 +975,71 @@ def find_and_link_match_highlight(match, log_events):
         return None, None
 
     has_network_error = False
+    best_candidate = None  # {id, reg, tier, title, handle, is_embeddable, dur}
+
     for handle, query in target_channels:
         if check_and_reset_quota() >= MAX_QUOTA_PER_DAY:
             log_events.append("   🚨 [LIMIT] Quota YouTube API harian habis! Skip antrean.")
             return "QUOTA_REACHED", None
 
         log_events.append(f"   -> Memeriksa channel: {handle}")
-        video_id, region_info = search_channel_for_highlight(handle, query, home, away, match_date, comp_id, log_events)
+        video_id, region_info, is_emb, dur, title = search_channel_for_highlight(
+            handle, query, home, away, match_date, comp_id, log_events
+        )
         if video_id == "ERROR":
             has_network_error = True
             continue
-        if video_id:
+        if not video_id:
+            continue
+
+        # Klasifikasi Kualitas:
+        # Tier 1 (GOLDEN): Full Highlight (>=90s) & Embeddable (Bisa diputar in-app langsung)
+        # Tier 2 (SILVER): Full Highlight (>=90s) & Non-Embeddable (Resmi tapi harus redirect ke YouTube)
+        # Tier 3 (BRONZE): Short Clip (<90s) & Embeddable
+        is_full = (dur >= 90)
+        if is_emb and is_full:
+            tier = 1
+        elif not is_emb and is_full:
+            tier = 2
+        elif is_emb and not is_full:
+            tier = 3
+        else:
+            tier = 4
+
+        # Jika menemukan Tier 1 (Golden: In-App Playable Full Highlight), langsung pilih dan selesai!
+        if tier == 1:
+            log_events.append(f"   🎯 [TIER 1 MATCH] Ditemukan highlight lengkap & in-app embeddable di {handle}: '{title}'")
             return video_id, region_info
+
+        # Jika menemukan Tier 2 atau Tier 3, simpan sebagai kandidat sementara
+        if tier in [2, 3]:
+            # Tier 2 lebih diutamakan daripada Tier 3 (highlight resmi panjang non-embed > klip 56s)
+            if best_candidate is None or tier < best_candidate["tier"]:
+                best_candidate = {
+                    "id": video_id,
+                    "reg": region_info,
+                    "tier": tier,
+                    "title": title,
+                    "handle": handle,
+                    "is_embeddable": is_emb,
+                    "dur": dur
+                }
+                tier_desc = "Highlight Resmi Non-Embed" if tier == 2 else "Klip Pendek Embeddable"
+                log_events.append(f"   ℹ️ [KANDIDAT TIER {tier} DISIMPAN] Dari {handle}: '{title}' ({tier_desc}). Memeriksa channel lawan untuk mencari opsi embeddable penuh...")
+
+    # Setelah SEMUA target channel (Home & Away) selesai diperiksa:
+    if best_candidate:
+        vid = best_candidate["id"]
+        reg = best_candidate["reg"]
+        tier = best_candidate["tier"]
+        tier_desc = "Highlight Resmi Non-Embed (Redirect ke YouTube)" if tier == 2 else "Klip Pendek Embeddable"
+        log_events.append(f"   ✅ [SELEKSI AKHIR] Terpilih dari {best_candidate['handle']}: '{best_candidate['title']}' (Tier {tier}: {tier_desc})")
+        return vid, reg
 
     if has_network_error:
         return "ERROR", None
     return None, None
+
 
 # ==============================================================================
 # 5. MATCH SYNCING LOGIC
