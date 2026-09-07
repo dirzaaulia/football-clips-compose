@@ -1147,7 +1147,7 @@ def sync_targeted_highlights(log_events=None):
     if log_events is None: log_events = []
     
     res = supabase.table("matches") \
-        .select("id, home_team_name, away_team_name, competition_id, utc_date, last_youtube_check") \
+        .select("id, home_team_name, away_team_name, competition_id, competition_name, utc_date, last_youtube_check") \
         .eq("status", "FINISHED") \
         .is_("highlight_video_id", "null") \
         .order("last_youtube_check", desc=False, nullsfirst=True) \
@@ -1177,13 +1177,16 @@ def sync_targeted_highlights(log_events=None):
     for match in batch_matches:
         home, away = match["home_team_name"], match["away_team_name"]
         comp_id = match.get("competition_id")
+        comp_display = match.get("competition_name") or match.get("competition_id") or "League"
         match_start = safe_parse_iso(match["utc_date"])
         match_age_hours = (now_utc - match_start).total_seconds() / 3600
+        match_date_str = match_start.astimezone(WIB).strftime("%d %b %Y")
+        match_title = f"{home} vs {away} - {comp_display} - {match_date_str}"
         
         # Embargo window untuk kompetisi UEFA (CL & EL): Laga < 2.5 jam belum dirilis oleh media klub
         if comp_id in ["CL", "EL"] and match_age_hours < 2.5:
             skipped_count += 1
-            log_events.append(f"   ⏳ [SKIP EMBARGO] {home} vs {away} ➔ Alasan: Laga baru usai {match_age_hours:.1f} jam lalu (Video resmi klub UEFA belum rilis). Menunggu H+2.5 jam.")
+            log_events.append(f"   ⏳ [SKIP EMBARGO] {match_title} ➔ Alasan: Laga baru usai {match_age_hours:.1f} jam lalu (Video resmi klub UEFA belum rilis). Menunggu H+2.5 jam.")
             continue
 
         last_check = match.get("last_youtube_check")
@@ -1214,20 +1217,20 @@ def sync_targeted_highlights(log_events=None):
         is_force_mode = "--force" in sys.argv or os.environ.get("FORCE_SYNC") == "true"
         if is_force_mode:
             force_execute = True
-            log_events.append(f"   ⚡ [FORCE MODE] Memaksa pencarian untuk {home} vs {away} (Bypass cooldown)")
+            log_events.append(f"   ⚡ [FORCE MODE] Memaksa pencarian untuk {match_title} (Bypass cooldown)")
         elif skip_reason and remaining_quota >= 500:
             if required_cooldown_hours >= hours_until_reset and not (comp_id in ["CL", "EL"] and match_age_hours < 2.5):
                 force_execute = True
-                log_events.append(f"   ⚡ [OPPORTUNISTIC HIT] {home} vs {away}: Cooldown ({required_cooldown_hours:.1f} jam) melewati waktu reset ({hours_until_reset:.1f} jam). Memaksa pencarian!")
+                log_events.append(f"   ⚡ [OPPORTUNISTIC HIT] {match_title}: Cooldown ({required_cooldown_hours:.1f} jam) melewati waktu reset ({hours_until_reset:.1f} jam). Memaksa pencarian!")
 
         if skip_reason and not force_execute:
             skipped_count += 1
-            log_events.append(f"   ⏳ [SKIP] {home} vs {away} ➔ Alasan: {skip_reason}")
+            log_events.append(f"   ⏳ [SKIP] {match_title} ➔ Alasan: {skip_reason}")
             continue
             
         processed_count += 1
         if not force_execute:
-            log_events.append(f"   🎥 [PROSES] Mencari video untuk: {home} vs {away} (Umur Match: {match_age_hours:.1f} jam)")
+            log_events.append(f"   🎥 [PROSES] Mencari video untuk: {match_title} (Umur Match: {match_age_hours:.1f} jam)")
         
         video_id, region_info = find_and_link_match_highlight(match, log_events)
         
@@ -1235,14 +1238,15 @@ def sync_targeted_highlights(log_events=None):
             log_events.append(f"   ⏸️ [LIMIT] Kuota harian habis. Eksekusi dihentikan.")
             break
         elif video_id == "ERROR":
-            log_events.append(f"   ⚠️ [SKIP COOLDOWN] {home} vs {away} mengalami timeout jaringan. Cooldown tidak dicatat agar dicoba lagi pada siklus berikutnya.")
+            log_events.append(f"   ⚠️ [SKIP COOLDOWN] {match_title} mengalami timeout jaringan. Cooldown tidak dicatat agar dicoba lagi pada siklus berikutnya.")
             continue
 
         if video_id:
             geo_text = " [🌐 100% Global]" if not region_info else f" [⚠️ {region_info}]"
-            log_events.append(f"   ✅ [BERHASIL LINK] {home} vs {away} ➔ https://youtu.be/{video_id} (ID: {video_id}){geo_text} disimpan ke Supabase.")
+            log_events.append(f"   ✅ [BERHASIL LINK] {match_title} ➔ https://youtu.be/{video_id} (ID: {video_id}){geo_text} disimpan ke Supabase.")
         else:
-            log_events.append(f"   ❌ [NIHIL] Video resmi belum tersedia.")
+            log_events.append(f"   ❌ [NIHIL] Video resmi belum tersedia untuk {match_title}.")
+
 
         # Simpan ke Supabase dengan aman (mendukung kolom region_restriction jika sudah dibuat)
         try:
