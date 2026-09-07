@@ -1096,7 +1096,8 @@ def sync_targeted_highlights(log_events=None):
     processed_count = 0
     skipped_count = 0
 
-    batch_matches = unlinked_matches[:10]
+    # Scan hingga 30 match per siklus (sangat hemat kuota karena metode playlistItems hanya 1 unit)
+    batch_matches = unlinked_matches[:30]
 
     for match in batch_matches:
         home, away = match["home_team_name"], match["away_team_name"]
