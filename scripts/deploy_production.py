@@ -366,6 +366,22 @@ def main():
         if alpha_resp.status_code in (200, 201):
             print(f"  [OK] Assigned release 3.0.{version_code} to 'alpha' track (superseded legacy v27).")
 
+        # Also assign to 'internal' track
+        internal_url = f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{PACKAGE_NAME}/edits/{edit_id}/tracks/internal"
+        internal_payload = {
+            "track": "internal",
+            "releases": [
+                {
+                    "name": f"3.0.{version_code}",
+                    "versionCodes": [str(version_code)],
+                    "status": "completed"
+                }
+            ]
+        }
+        internal_resp = requests.put(internal_url, headers=headers, json=internal_payload)
+        if internal_resp.status_code in (200, 201):
+            print(f"  [OK] Assigned release 3.0.{version_code} to 'internal' track.")
+
         # 4. Update Multilingual Listings & Promotional Screenshots
         print("\n[4/5] Updating store listings for all languages and screenshots...")
         for item in LISTINGS:
