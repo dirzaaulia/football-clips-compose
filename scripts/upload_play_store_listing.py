@@ -182,8 +182,28 @@ def main():
             else:
                 print(f"  [FAIL] Failed to update listing for '{lang}': {res.status_code} {res.text}")
 
-        # 3. Upload Screenshots
-        print("[3/4] Updating promotional screenshots...")
+        # 3. Upload App Icon
+        icon_path = "app/src/androidMain/ic_launcher-playstore.png"
+        if os.path.exists(icon_path):
+            print("[3/5] Updating official app icon (512x512)...")
+            for lang in ["id", "en-US"]:
+                with open(icon_path, "rb") as icon_file:
+                    icon_headers = {
+                        "Authorization": f"Bearer {token}",
+                        "Content-Type": "image/png"
+                    }
+                    icon_url = (
+                        f"https://androidpublisher.googleapis.com/upload/androidpublisher/v3/applications/"
+                        f"{PACKAGE_NAME}/edits/{edit_id}/listings/{lang}/icon"
+                    )
+                    icon_res = requests.post(icon_url, headers=icon_headers, data=icon_file)
+                    if icon_res.status_code in (200, 201):
+                        print(f"  [OK] Uploaded app icon for '{lang}' successfully")
+                    else:
+                        print(f"  [FAIL] Failed to upload app icon for '{lang}': {icon_res.status_code} {icon_res.text}")
+
+        # 4. Upload Screenshots
+        print("[4/5] Updating promotional screenshots...")
         for lang in ["id", "en-US"]:
             # Check existing and delete
             del_res = requests.delete(
@@ -213,9 +233,9 @@ def main():
                     else:
                         print(f"  [FAIL] Failed to upload screenshot {idx} for '{lang}': {up_res.status_code} {up_res.text}")
 
-        # 4. Commit or Validate Edit
+        # 5. Commit or Validate Edit
         if args.dry_run:
-            print("[4/4] Validating edit (Dry-run mode)...")
+            print("[5/5] Validating edit (Dry-run mode)...")
             val_res = requests.post(
                 f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{PACKAGE_NAME}/edits/{edit_id}:validate",
                 headers=headers
@@ -232,7 +252,7 @@ def main():
             )
             print("  [OK] Draft edit session safely discarded.")
         else:
-            print("[4/4] Committing changes to Google Play Console...")
+            print("[5/5] Committing changes to Google Play Console...")
             commit_res = requests.post(
                 f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{PACKAGE_NAME}/edits/{edit_id}:commit",
                 headers=headers

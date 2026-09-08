@@ -302,8 +302,29 @@ def main():
             else:
                 print(f"  [FAIL] Listing '{lang}' failed: {res.status_code} {res.text}")
 
-        # 3. Upload Screenshots for all languages
-        print("\n[3/4] Uploading promotional screenshots...")
+        # 3. Upload App Icon (512x512)
+        icon_path = "app/src/androidMain/ic_launcher-playstore.png"
+        if os.path.exists(icon_path):
+            print("\n[3/5] Uploading official app icon (512x512)...")
+            for item in LISTINGS:
+                lang = item["lang"]
+                with open(icon_path, "rb") as icon_file:
+                    icon_headers = {
+                        "Authorization": f"Bearer {token}",
+                        "Content-Type": "image/png"
+                    }
+                    icon_url = (
+                        f"https://androidpublisher.googleapis.com/upload/androidpublisher/v3/applications/"
+                        f"{PACKAGE_NAME}/edits/{edit_id}/listings/{lang}/icon"
+                    )
+                    icon_res = requests.post(icon_url, headers=icon_headers, data=icon_file)
+                    if icon_res.status_code in (200, 201):
+                        print(f"  [OK] Uploaded app icon for '{lang}' successfully.")
+                    else:
+                        print(f"  [FAIL] Failed to upload app icon for '{lang}': {icon_res.status_code} {icon_res.text}")
+
+        # 4. Upload Screenshots for all languages
+        print("\n[4/5] Uploading promotional screenshots...")
         for item in LISTINGS:
             lang = item["lang"]
             # Clear old screenshots
@@ -329,8 +350,8 @@ def main():
                         uploaded_count += 1
             print(f"  [OK] Uploaded {uploaded_count} screenshots for '{lang}'.")
 
-        # 4. Update Release Notes on Production Track
-        print("\n[4/4] Updating release notes on Production Track...")
+        # 5. Update Release Notes on Production Track
+        print("\n[5/5] Updating release notes on Production Track...")
         track_url = f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{PACKAGE_NAME}/edits/{edit_id}/tracks/production"
         track_resp = requests.get(track_url, headers=headers)
         if track_resp.status_code == 200:
