@@ -344,6 +344,23 @@
             return { header, matches, footer };
         }
 
+        function copyStoredLog(btn, logKey) {
+            const text = window.matchLogStore ? window.matchLogStore[logKey] : "";
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                const origHtml = btn.innerHTML;
+                btn.innerHTML = `
+                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-emerald-400 font-bold">Log Copied!</span>
+                `;
+                btn.classList.add('border-emerald-700', 'bg-emerald-950');
+                setTimeout(() => {
+                    btn.innerHTML = origHtml;
+                    btn.classList.remove('border-emerald-700', 'bg-emerald-950');
+                }, 2000);
+            }).catch(err => console.error("Copy failed:", err));
+        }
+
         function renderMatchAccordion(m) {
             let badgeStyle = "bg-slate-800 text-slate-400 border-slate-700";
             if (m.statusType === "success") {
@@ -358,6 +375,10 @@
 
             // Auto-open jika match berhasil mendapatkan video highlight
             const defaultOpen = m.statusType === "success" ? "open" : "";
+
+            window.matchLogStore = window.matchLogStore || {};
+            const logKey = "log_" + Math.random().toString(36).substring(2, 9);
+            window.matchLogStore[logKey] = m.events.join('\n');
 
             return `
                 <details ${defaultOpen} class="group match-details bg-slate-900/80 border border-slate-800/90 rounded-lg overflow-hidden transition">
@@ -378,6 +399,13 @@
                         </div>
                     </summary>
                     <div class="px-4 py-3 bg-slate-950/90 border-t border-slate-800/80 mono text-xs space-y-1.5 leading-relaxed">
+                        <div class="flex justify-between items-center pb-2 mb-2 border-b border-slate-800/70 font-sans">
+                            <span class="text-[11px] font-semibold text-slate-400">Detail Telemetry Log:</span>
+                            <button onclick="copyStoredLog(this, '${logKey}')" class="px-2.5 py-1 text-[11px] bg-indigo-950/80 hover:bg-indigo-900 text-indigo-200 rounded border border-indigo-700/70 transition flex items-center gap-1.5 shadow-sm active:scale-95">
+                                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                <span>Copy Log</span>
+                            </button>
+                        </div>
                         ${m.events.map(ev => formatEventLine(ev)).join('')}
                     </div>
                 </details>

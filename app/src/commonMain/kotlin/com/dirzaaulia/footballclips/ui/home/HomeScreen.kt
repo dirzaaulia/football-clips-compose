@@ -194,10 +194,10 @@ fun HomeScreen(
                     TopAppBar(
                         title = {
                             Text(
-                                text = if (isWeb) "FootballClips" else "Highlights",
+                                text = if (isWeb) "Football Highlights & Clips" else "Highlights",
                                 style = if (isWeb) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Black,
-                                letterSpacing = if (isWeb) 2.sp else 0.sp,
+                                letterSpacing = if (isWeb) 1.sp else 0.sp,
                                 modifier = Modifier.clickable {
                                     if (!isWeb && isDebugBuild) {
                                         val now = Clock.System.now().toEpochMilliseconds()

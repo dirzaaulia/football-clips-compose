@@ -14,7 +14,7 @@ KEY_FILE = "fastlane/play-console-key.json"
 RELEASE_NOTES = [
     {
         "language": "id",
-        "text": """🎉 Football Clips hadir dengan pembaruan besar yang makin seru & ngebut!
+        "text": """🎉 Football Highlights & Clips hadir dengan pembaruan besar yang makin seru & ngebut!
 
 ✨ Desain M3 Expressive: Tampilan lebih estetik dengan animasi droplet ganti tema yang super mulus!
 ⚡ Cuplikan & Skor Real-Time: Tonton highlight video resmi & skor langsung liga top dunia lebih instan tanpa lag.
@@ -23,7 +23,7 @@ RELEASE_NOTES = [
     },
     {
         "language": "en-US",
-        "text": """🎉 Football Clips is back with a massive, exciting update!
+        "text": """🎉 Football Highlights & Clips is back with a massive, exciting update!
 
 ✨ Fresh M3 Expressive UI: Sleek modern look with an ultra-smooth droplet theme transition!
 ⚡ Instant Highlights & Scores: Watch official HD match recaps and real-time scores across top leagues with zero lag.

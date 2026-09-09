@@ -12,12 +12,12 @@ if hasattr(sys.stdout, 'reconfigure'):
 PACKAGE_NAME = "com.dirzaaulia.footballclips"
 KEY_FILE = "fastlane/play-console-key.json"
 
-APP_NAME = "Football Clips & Live Score"
+APP_NAME = "Football Highlights & Clips"
 
 SHORT_DESCRIPTION_EN = "Watch football video highlights, track live scores, and fixtures in one app."
 SHORT_DESCRIPTION_ID = "Skor langsung, jadwal, dan cuplikan video sepak bola dari liga-liga top dunia."
 
-FULL_DESCRIPTION_EN = """Welcome to Football Clips & Live Score (FC) – your ultimate companion for football highlights, match clips, live scores, and fixtures!
+FULL_DESCRIPTION_EN = """Welcome to Football Highlights & Clips (FC) – your ultimate companion for football highlights, match clips, live scores, and fixtures!
 
 Catch the best moments from the top football leagues and competitions around the world. Never miss a goal, dramatic comeback, or match-winning play.
 
@@ -33,14 +33,14 @@ Stay updated with match fixtures, kickoff times, live scores, and results across
 Quickly find your favorite teams and filter by competition: Premier League, La Liga, Serie A, Bundesliga, Champions League, and more.
 
 • ☁️ Cross-Device Experience
-Sign in with Google to seamlessly sync your profile and access Football Clips on both Android and Web (fc.dirzaaulia.com).
+Sign in with Google to seamlessly sync your profile and access Football Highlights & Clips on both Android and Web (fc.dirzaaulia.com).
 
 • 🚫 Ad-Free Premium (Optional)
 Enjoy an uninterrupted, pure football experience with an optional lifetime Remove Ads upgrade.
 
 ---
 IMPORTANT DISCLAIMERS & LEGAL:
-1. Football Clips & Live Score does not host, upload, or broadcast copyrighted video files. All video highlights are embedded directly from official verified channels via the official YouTube Player API in full compliance with YouTube Terms of Service.
+1. Football Highlights & Clips does not host, upload, or broadcast copyrighted video files. All video highlights are embedded directly from official verified channels via the official YouTube Player API in full compliance with YouTube Terms of Service.
 2. All team names, logos, trademarks, and league assets belong to their respective copyright owners.
 
 • Privacy Policy: https://fc.dirzaaulia.com/privacy
@@ -48,7 +48,7 @@ IMPORTANT DISCLAIMERS & LEGAL:
 • Support: dirzaaulia@gmail.com
 """
 
-FULL_DESCRIPTION_ID = """Selamat datang di Football Clips & Live Score (FC) – aplikasi lengkap untuk cuplikan video pertandingan sepak bola, skor langsung, dan jadwal pertandingan!
+FULL_DESCRIPTION_ID = """Selamat datang di Football Highlights & Clips (FC) – aplikasi lengkap untuk cuplikan video pertandingan sepak bola, skor langsung, dan jadwal pertandingan!
 
 Saksikan momen-momen terbaik dari liga dan turnamen sepak bola terkemuka di dunia. Jangan lewatkan setiap gol spektakuler, aksi dramatis, dan hasil pertandingan tim favorit Anda.
 
@@ -71,7 +71,7 @@ Nikmati pengalaman menonton sepak bola tanpa jeda dengan opsi pembelian satu kal
 
 ---
 INFORMASI HAK CIPTA & KEPATUHAN:
-1. Football Clips & Live Score tidak menyimpan, mengunggah, atau menyiarkan file video ilegal/bajakan. Semua cuplikan video disematkan langsung dari saluran resmi yang terverifikasi menggunakan YouTube Player API resmi sesuai dengan Ketentuan Layanan YouTube.
+1. Football Highlights & Clips tidak menyimpan, mengunggah, atau menyiarkan file video ilegal/bajakan. Semua cuplikan video disematkan langsung dari saluran resmi yang terverifikasi menggunakan YouTube Player API resmi sesuai dengan Ketentuan Layanan YouTube.
 2. Semua nama tim, logo, merek dagang, dan aset kompetisi adalah milik pemegang hak cipta masing-masing.
 
 • Kebijakan Privasi: https://fc.dirzaaulia.com/privacy

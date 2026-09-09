@@ -199,7 +199,7 @@ private fun PremiumActiveHeader() {
     )
     
     Text(
-        text = "Thank you for supporting Football Clips! You have full access to all features.",
+        text = "Thank you for supporting Football Highlights & Clips! You have full access to all features.",
         style = MaterialTheme.typography.bodyLarge,
         color = Color.White.copy(alpha = 0.7f),
         textAlign = TextAlign.Center,

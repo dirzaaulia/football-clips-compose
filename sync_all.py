@@ -55,13 +55,14 @@ MAX_DURATION_SECONDS = 1500
 # Pola kata terlarang murni untuk filter judul video (bukan parameter deskripsi API)
 FORBIDDEN_TITLE_PATTERNS = [
     (r'#shorts|\bshorts\b', 'Shorts'),
-    (r'\b(press conference|presser|press)\b', 'Press Conference'),
-    (r'\b(interviews?)\b', 'Interview'),
-    (r'\b(training|behind the scenes|inside matchday|inside anfield)\b', 'Training/BTS'),
+    (r'\b(press conference|presser|press|conferência|conferencia|prensa|conferenza|stampa|pressekonferenz|conférence)\b', 'Press Conference'),
+    (r'\b(interviews?|entrevista|entrevistas|declarações|declaraciones|reacciones|réactions|interviste|dopogara)\b', 'Interview'),
+    (r'\b(rescaldo|post-match|post match|pre-match|pre match|previa|dopopartita|debrief|aftermatch)\b', 'Post/Pre-Match Talk'),
+    (r'\b(training|behind the scenes|inside matchday|inside anfield|vlog)\b', 'Training/BTS'),
     (r'\b(fan reaction|reactions?|watchalong)\b', 'Reaction'),
     (r'\b(previews?|pre-match|previa)\b', 'Preview'),
     (r'\b(wsl|women|féminine|feminina)\b', 'Women Match'),
-    (r'\bu[- ]?(?:18|19|21|23)\b', 'Youth Match'),
+    (r'\b(youth|youths|youth league|u15|u16|u17|u18|u19|u20|u21|u22|u23|primavera|juvenil|sub-15|sub-17|sub-19|sub-20|sub-23|cantera|akademie|junioren|juniors?)\b|\bu[- ]?(?:15|16|17|18|19|20|21|22|23)\b', 'Youth Match'),
     (r'\b(tous les buts|all goals|all highlights)\b', 'Compilation/All Goals'),
     (r'\brésumé\s+.*\bjournée\b', 'Weekly Round Review'),
 ]
@@ -583,7 +584,7 @@ def get_geoblock_penalty(region_info: dict | None) -> tuple[int, str]:
     Menghitung skor penalti pembatasan wilayah YouTube:
     - None / Global: penalti 0 (Terbuka 100% di 195 negara).
     - Blacklist (blocked): penalti len(blocked).
-    - Whitelist (allowed): penalti 1000 - len(allowed) (Sangat tertutup).
+    - Whitelist (allowed): penalti 1000 - len(allowed) (Tertutup sebagian/regional).
     """
     if not region_info:
         return 0, "100% Global (Unrestricted)"
@@ -592,6 +593,8 @@ def get_geoblock_penalty(region_info: dict | None) -> tuple[int, str]:
         return len(blocked), f"Global kecuali {len(blocked)} negara (blocked: {blocked})"
     allowed = region_info.get("allowed", [])
     if allowed:
+        if len(allowed) == 0:
+            return 1000, "Blocked completely (0 allowed countries)"
         return 1000 - len(allowed), f"Restricted Whitelist: {len(allowed)} negara (allowed: {allowed})"
     return 0, "100% Global (Unrestricted)"
 
@@ -619,7 +622,7 @@ def fallback_score_video(title: str, duration_sec: int, home_team: str, away_tea
     if geo_penalty == 0:
         score += 3
     elif geo_penalty >= 900:
-        score -= 50
+        score -= 5  # Penalti ringan untuk geoblock whitelist agar video 100% global diprioritaskan jika ada, namun video whitelist (misal @inter) tetap diterima jika tidak ada alternatif global.
 
     # Prioritas Embed (Opsi B):
     # Embeddable mendapat bonus +6. Non-Embeddable mendapat -2.
@@ -629,9 +632,15 @@ def fallback_score_video(title: str, duration_sec: int, home_team: str, away_tea
     else:
         score -= 2
 
-    # Penalti konten sampingan / non-highlight
-    if any(w in t for w in ["tous les buts", "all highlights", "inside", "press", "interview", "training", "previa", "preview", "reaction"]):
-        score -= 30
+    # Penalti konten sampingan / non-highlight / youth / interview
+    if any(w in t for w in [
+        "tous les buts", "all highlights", "inside", "press", "interview", "interviews",
+        "training", "previa", "preview", "reaction", "conferência", "conferencia",
+        "imprensa", "prensa", "stampa", "entrevista", "declarações", "declaraciones",
+        "rescaldo", "dopogara", "pressekonferenz", "youth", "u20", "u19", "u21", "u23",
+        "u18", "u17", "primavera", "juvenil", "cantera", "junioren"
+    ]):
+        score -= 50
     return score
 
 # ==============================================================================
@@ -904,8 +913,8 @@ def search_channel_for_highlight(channel_handle: str, query: str, home_team: str
             log_events.append(f"         -> {idx+1}. [❌ EMBED DISABLED & SHORT CLIP] [ID: {v_id}] '{raw_title}' ({yt_link})")
             continue
 
-        # 3. Filter geoblocking ekstrem (whitelist negara tertutup, penalti >= 900)
-        if geo_penalty >= 900:
+        # 3. Filter geoblocking total (Hanya skip jika video diblokir total / 0 allowed countries)
+        if reg_info and "allowed" in reg_info and len(reg_info.get("allowed", [])) == 0:
             log_events.append(f"         -> {idx+1}. [❌ GEOBLOCK FILTER: {geo_desc}] [ID: {v_id}] '{raw_title}' ({yt_link})")
             continue
 

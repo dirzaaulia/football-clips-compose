@@ -45,6 +45,10 @@ import androidx.compose.ui.zIndex
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.Image
+import footballclips.app.generated.resources.Res
+import footballclips.app.generated.resources.app_icon
+import org.jetbrains.compose.resources.painterResource
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -136,17 +140,18 @@ fun WebMatchesScreen(
                     containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
                     header = {
                         Surface(
-                            modifier = Modifier.padding(vertical = 24.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                            modifier = Modifier.padding(vertical = 20.dp),
+                            color = Color(0xFF1C1B1F),
                             shape = CircleShape,
-                            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                         ) {
                             Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.SportsSoccer,
+                                Image(
+                                    painter = painterResource(Res.drawable.app_icon),
                                     contentDescription = "FootballClips Logo",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(28.dp)
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .clip(CircleShape)
                                 )
                             }
                         }

@@ -13,7 +13,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Coffee
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Info
@@ -30,9 +32,12 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
+import kotlinx.coroutines.delay
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -196,7 +201,7 @@ private fun WasmHeroBanner() {
                     Spacer(Modifier.height(12.dp))
 
                     Text(
-                        text = "FootballClips Info & Resources",
+                        text = "Football Highlights & Clips - Info & Resources",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.onSurface
@@ -257,7 +262,7 @@ private fun SupportDeveloperContent(uriHandler: UriHandler) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = "If FootballClips brings you joy, consider supporting independent development:",
+            text = "If Football Highlights & Clips brings you joy, consider supporting independent development:",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -444,7 +449,7 @@ private fun AccountPurchasesCard(
         )
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = "• Purchases are tied to your store account (Google Play) and linked to your FootballClips account upon login. If your status doesn't update automatically, the Restore button on Android will manually verify your previous transactions.",
+            text = "• Purchases are tied to your store account (Google Play) and linked to your Football Highlights & Clips account upon login. If your status doesn't update automatically, the Restore button on Android will manually verify your previous transactions.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

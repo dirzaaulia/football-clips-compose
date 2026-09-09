@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FootballClips</title>
+    <title>Football Highlights & Clips</title>
+    <meta name="description" content="Watch official football match highlights, live scores, match schedules, and standings for Premier League, UEFA Champions League, La Liga, Serie A, and top leagues.">
     <!-- YouTube IFrame Player API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <!-- AdSense Verification Meta Tag -->
@@ -19,10 +20,58 @@
             padding: 0;
             overflow: hidden;
             background-color: #121212;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
         }
     </style>
 </head>
 <body>
+    <!-- Static Publisher Content for Web Crawlers & Search Engines -->
+    <header class="sr-only">
+        <h1>Football Highlights & Clips</h1>
+        <p>Your premier destination for official football match highlights, live scores, match schedules, and competition standings.</p>
+    </header>
+
+    <div class="sr-only" role="main">
+        <h2>Features & Coverage</h2>
+        <p>Football Highlights & Clips provides fans worldwide with comprehensive football coverage including:</p>
+        <ul>
+            <li>Official match highlights and video recaps from top European leagues</li>
+            <li>Real-time live score updates, match schedules, and fixture details</li>
+            <li>League standings for UEFA Champions League, Premier League, La Liga, Serie A, Bundesliga, Ligue 1, and more</li>
+        </ul>
+        <nav>
+            <a href="privacy.html">Privacy Policy</a> | <a href="tnc.html">Terms of Service</a>
+        </nav>
+    </div>
+
+    <noscript>
+        <div style="padding: 24px; max-width: 800px; margin: 0 auto;">
+            <h1>Football Highlights & Clips</h1>
+            <p>Welcome to Football Highlights & Clips, your source for official football match highlights, live scores, schedules, and standings.</p>
+            <h2>Top Leagues & Competitions Covered</h2>
+            <ul>
+                <li>UEFA Champions League & Europa League</li>
+                <li>English Premier League</li>
+                <li>Spanish La Liga</li>
+                <li>Italian Serie A</li>
+                <li>German Bundesliga</li>
+            </ul>
+            <p><a href="privacy.html" style="color: #4CAF50;">Privacy Policy</a> &bull; <a href="tnc.html" style="color: #4CAF50;">Terms of Service</a></p>
+        </div>
+    </noscript>
+
     <script src="composeApp.js"></script>
 </body>
 </html>

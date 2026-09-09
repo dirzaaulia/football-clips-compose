@@ -36,7 +36,7 @@ Stay updated with match fixtures, kickoff times, live scores, and results across
 Quickly find your favorite teams and filter by competition: Premier League, La Liga, Serie A, Bundesliga, Champions League, and more.
 
 • ☁️ Cross-Device Experience
-Sign in with Google to seamlessly sync your profile and access Football Clips on both Android and Web (fc.dirzaaulia.com).
+Sign in with Google to seamlessly sync your profile and access Football Highlights & Clips on both Android and Web (fc.dirzaaulia.com).
 
 • 🚫 Ad-Free Premium (Optional)
 Enjoy an uninterrupted, pure football experience with an optional lifetime Remove Ads upgrade.
@@ -147,7 +147,7 @@ INFORMAÇÕES LEGAIS E DIREITOS AUTORAIS:
 RELEASE_NOTES = [
     {
         "language": "id",
-        "text": """🎉 Football Clips hadir dengan pembaruan besar yang makin seru & ngebut!
+        "text": """🎉 Football Highlights & Clips hadir dengan pembaruan besar yang makin seru & ngebut!
 
 ✨ Desain M3 Expressive: Tampilan lebih estetik dengan animasi droplet ganti tema yang super mulus!
 ⚡ Cuplikan & Skor Real-Time: Tonton highlight video resmi & skor langsung liga top dunia lebih instan tanpa lag.
@@ -156,7 +156,7 @@ RELEASE_NOTES = [
     },
     {
         "language": "en-US",
-        "text": """🎉 Football Clips is back with a massive, exciting update!
+        "text": """🎉 Football Highlights & Clips is back with a massive, exciting update!
 
 ✨ Fresh M3 Expressive UI: Sleek modern look with an ultra-smooth droplet theme transition!
 ⚡ Instant Highlights & Scores: Watch official HD match recaps and real-time scores across top leagues with zero lag.
@@ -165,7 +165,7 @@ RELEASE_NOTES = [
     },
     {
         "language": "es-419",
-        "text": """🎉 ¡Football Clips llega con una gran actualización más rápida y emocionante!
+        "text": """🎉 ¡Football Highlights & Clips llega con una gran actualización más rápida y emocionante!
 
 ✨ Diseño M3 Expressive: ¡Aspecto elegante con animación fluida de gota para cambiar de tema!
 ⚡ Resúmenes y Marcadores al Instante: Mira los mejores momentos oficiales en HD y sigue marcadores en vivo sin demoras.
@@ -174,7 +174,7 @@ RELEASE_NOTES = [
     },
     {
         "language": "es-ES",
-        "text": """🎉 ¡Football Clips llega con una gran actualización más rápida y emocionante!
+        "text": """🎉 ¡Football Highlights & Clips llega con una gran actualización más rápida y emocionante!
 
 ✨ Diseño M3 Expressive: ¡Aspecto elegante con animación fluida de gota para cambiar de tema!
 ⚡ Resúmenes y Marcadores al Instante: Mira los mejores momentos oficiales en HD y sigue marcadores en vivo sin demoras.
@@ -183,7 +183,7 @@ RELEASE_NOTES = [
     },
     {
         "language": "pt-BR",
-        "text": """🎉 O Football Clips está de volta com uma super atualização mais rápida e moderna!
+        "text": """🎉 O Football Highlights & Clips está de volta com uma super atualização mais rápida e moderna!
 
 ✨ Novo Design M3 Expressive: Visual elegante com transição suave em gota para trocar de tema!
 ⚡ Melhores Momentos e Placar ao Vivo: Assista a lances em HD e acompanhe resultados em tempo real sem lentidão.
