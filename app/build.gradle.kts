@@ -81,8 +81,9 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.revenuecat.sdk)
-            implementation("com.google.firebase:firebase-crashlytics:19.3.0")
-            implementation("com.google.firebase:firebase-analytics:22.1.2")
+            implementation(project.dependencies.platform(libs.firebase.bom))
+            implementation(libs.firebase.crashlytics)
+            implementation(libs.firebase.analytics)
         }
         
         wasmJsMain.dependencies {

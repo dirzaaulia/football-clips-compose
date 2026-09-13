@@ -117,13 +117,6 @@ class ProfilesRepositoryImpl(
         }
     }
 
-    override suspend fun signInWithSupabase() {
-        auth.signInWith(
-            provider = Google,
-            redirectUrl = if (isWasmTarget) null else "drzfc://login-callback"
-        )
-    }
-
     override suspend fun signInWithGoogle() {
         auth.signInWith(
             provider = Google,
