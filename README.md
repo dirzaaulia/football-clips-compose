@@ -159,8 +159,8 @@ graph TD
 Match highlights are continuously indexed, verified, and linked via a standalone Python synchronization worker (`sync_all.py`):
 
 1. **Fixture Extraction**: Fetches match results, kick-off dates, team metadata, and crests from Football-Data.org.
-2. **Multi-Channel Scanning**: Queries official YouTube channels and uploads playlists (Premier League, Sky Sports, DAZN, club channels).
-3. **AI Semantic Reconciliation**: Employs **Gemini 2.5 Flash** with season-aware prompts to match video titles and descriptions with official fixtures, filtering out press conferences, fan reactions, and youth matches.
+2. **Multi-Channel Scanning**: Queries official Team and League YouTube channels and uploads playlists (LaLiga, Ligue1, Bundesliga, SerieA and club channels).
+3. **AI Semantic Reconciliation**: Employs **Gemini 3.6 Flash** with season-aware prompts to match video titles and descriptions with official fixtures, filtering out press conferences, fan reactions, and youth matches.
 4. **Geoblock Whitelist Support**: Special handling for regional rights-holders (Sky Sports UK, TNT Sports, beIN Sports) to provide direct fallback deep-links.
 5. **Real-Time Telemetry Dashboard**: Deployed web telemetry dashboard (`web/index.html`) visualizing sync health, success rates, latency, and match accordions.
 
