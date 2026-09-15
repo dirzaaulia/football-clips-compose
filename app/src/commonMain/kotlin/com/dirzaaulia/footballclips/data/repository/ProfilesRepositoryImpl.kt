@@ -20,66 +20,65 @@ class ProfilesRepositoryImpl(
     private val scope = CoroutineScope(Dispatchers.Default)
     private val refreshTrigger = MutableStateFlow(0)
 
+    override suspend fun refreshProfile() {
+        println("ProfilesRepositoryImpl: refreshProfile() called manually.")
+        refreshTrigger.value++
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     override val profile: Flow<Profile?> = combine(
         auth.sessionStatus,
         refreshTrigger
     ) { status, _ -> status }.flatMapLatest { status ->
         println("ProfilesRepositoryImpl: SessionStatus is $status")
-        when (status) {
-            is SessionStatus.Authenticated -> {
-                val user = status.session.user ?: run {
-                    println("ProfilesRepositoryImpl: status.session.user is null!")
-                    return@flatMapLatest flowOf(null)
-                }
-                val userId = user.id
-                val userEmail = user.email
-                println("ProfilesRepositoryImpl: Authenticated as $userId ($userEmail). Querying Supabase profile...")
+        val currentUser = (status as? SessionStatus.Authenticated)?.session?.user ?: auth.currentUserOrNull()
+        if (currentUser != null) {
+            val userId = currentUser.id
+            val userEmail = currentUser.email
+            println("ProfilesRepositoryImpl: User found $userId ($userEmail). Querying Supabase profile...")
 
-                flow<Profile?> {
-                    try {
-                        val dbProfile = postgrest["profiles"]
-                            .select(columns = Columns.ALL) {
-                                filter {
-                                    eq("id", userId)
-                                }
-                            }
-                            .decodeSingleOrNull<Profile>()
-
-                        if (dbProfile != null) {
-                            println("ProfilesRepositoryImpl: Found dbProfile in Supabase: $dbProfile")
-                            emit(dbProfile)
-                        } else {
-                            println("ProfilesRepositoryImpl: No profile row in Supabase for $userId, creating fallback...")
-                            val fallback = Profile(
-                                id = userId,
-                                isPremium = false,
-                                email = userEmail
-                            )
-                            emit(fallback)
-                            try {
-                                postgrest["profiles"].upsert(fallback)
-                                println("ProfilesRepositoryImpl: Initial fallback profile upserted successfully.")
-                            } catch (e: Exception) {
-                                println("Failed to upsert fallback profile: $e")
+            flow<Profile?> {
+                try {
+                    val dbProfile = postgrest["profiles"]
+                        .select(columns = Columns.ALL) {
+                            filter {
+                                eq("id", userId)
                             }
                         }
-                    } catch (e: Exception) {
-                        println("ProfilesRepositoryImpl query error: $e")
-                        emit(
-                            Profile(
-                                id = userId,
-                                isPremium = false,
-                                email = userEmail
-                            )
+                        .decodeSingleOrNull<Profile>()
+
+                    if (dbProfile != null) {
+                        println("ProfilesRepositoryImpl: Found dbProfile in Supabase: $dbProfile")
+                        emit(dbProfile)
+                    } else {
+                        println("ProfilesRepositoryImpl: No profile row in Supabase for $userId, creating fallback...")
+                        val fallback = Profile(
+                            id = userId,
+                            isPremium = false,
+                            email = userEmail
                         )
+                        emit(fallback)
+                        try {
+                            postgrest["profiles"].upsert(fallback)
+                            println("ProfilesRepositoryImpl: Initial fallback profile upserted successfully.")
+                        } catch (e: Exception) {
+                            println("Failed to upsert fallback profile: $e")
+                        }
                     }
+                } catch (e: Exception) {
+                    println("ProfilesRepositoryImpl query error: $e")
+                    emit(
+                        Profile(
+                            id = userId,
+                            isPremium = false,
+                            email = userEmail
+                        )
+                    )
                 }
             }
-            else -> {
-                println("ProfilesRepositoryImpl: SessionStatus is not authenticated ($status), emitting null profile.")
-                flowOf(null)
-            }
+        } else {
+            println("ProfilesRepositoryImpl: No user logged in, emitting null profile.")
+            flowOf(null)
         }
     }.stateIn(scope, SharingStarted.Eagerly, null)
 

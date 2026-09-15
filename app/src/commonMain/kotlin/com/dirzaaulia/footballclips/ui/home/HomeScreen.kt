@@ -742,9 +742,7 @@ fun HomeScreen(
                     is NativeSignInResult.Success -> {
                         println("Native Google Sign-In Success!")
                         viewModel.setVerifyingAuth(false)
-                        coroutineScope.launch {
-                            snackbarHostState.showSnackbar("Sign in successful!")
-                        }
+                        viewModel.onSignInSuccess()
                     }
                     is NativeSignInResult.Error -> {
                         println("Native Google Sign-In Error: ${result.message}")

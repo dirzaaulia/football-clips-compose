@@ -14,21 +14,23 @@ KEY_FILE = "fastlane/play-console-key.json"
 RELEASE_NOTES = [
     {
         "language": "id",
-        "text": """🎉 Football Highlights & Clips hadir dengan pembaruan besar yang makin seru & ngebut!
-
-✨ Desain M3 Expressive: Tampilan lebih estetik dengan animasi droplet ganti tema yang super mulus!
-⚡ Cuplikan & Skor Real-Time: Tonton highlight video resmi & skor langsung liga top dunia lebih instan tanpa lag.
-🧭 Floating Bar Modern: Jelajah jadwal pertandingan & klub favorit makin mudah dan asyik.
-🛠️ Performa Lebih Gesit: Optimasi sistem & perbaikan bug untuk kenyamanan Anda. Enjoy the game! ⚽🔥"""
+        "text": "• Perbaikan masalah masuk (sign-in) dengan Akun Google untuk kelancaran pendaftaran & akses pembelian Premium.\n• Pengoptimalan ukuran aplikasi (33% lebih kecil & hemat penyimpanan).\n• Peningkatan performa dan stabilitas aplikasi."
     },
     {
         "language": "en-US",
-        "text": """🎉 Football Highlights & Clips is back with a massive, exciting update!
-
-✨ Fresh M3 Expressive UI: Sleek modern look with an ultra-smooth droplet theme transition!
-⚡ Instant Highlights & Scores: Watch official HD match recaps and real-time scores across top leagues with zero lag.
-🧭 Sleek Floating Bar: Effortlessly browse fixtures and your favorite clubs.
-🛠️ Faster & Smoother: Speed boosts and stability fixes for the ultimate matchday experience. Enjoy the game! ⚽🔥"""
+        "text": "• Fixed Google sign-in issue for seamless Premium access and purchases.\n• Optimized app size (33% smaller APK & reduced storage footprint).\n• Performance improvements and stability fixes."
+    },
+    {
+        "language": "es-419",
+        "text": "• Corrección en el inicio de sesión con Google para acceso y compra de versión Premium.\n• Optimización del tamaño de la aplicación (33% más pequeña).\n• Mejoras de rendimiento y estabilidad."
+    },
+    {
+        "language": "es-ES",
+        "text": "• Corrección en el inicio de sesión con Google para acceso y compra de versión Premium.\n• Optimización del tamaño de la aplicación (33% más pequeña).\n• Mejoras de rendimiento y estabilidad."
+    },
+    {
+        "language": "pt-BR",
+        "text": "• Correção no login com Google para acesso e compra de versão Premium.\n• Otimização do tamanho do aplicativo (33% menor).\n• Melhorias de desempenho e estabilidade."
     }
 ]
 

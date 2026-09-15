@@ -147,48 +147,23 @@ INFORMAÇÕES LEGAIS E DIREITOS AUTORAIS:
 RELEASE_NOTES = [
     {
         "language": "id",
-        "text": """🎉 Football Highlights & Clips hadir dengan pembaruan besar yang makin seru & ngebut!
-
-✨ Desain M3 Expressive: Tampilan lebih estetik dengan animasi droplet ganti tema yang super mulus!
-⚡ Cuplikan & Skor Real-Time: Tonton highlight video resmi & skor langsung liga top dunia lebih instan tanpa lag.
-🧭 Floating Bar Modern: Jelajah jadwal pertandingan & klub favorit makin mudah dan asyik.
-🛠️ Performa Lebih Gesit: Optimasi sistem & perbaikan bug untuk kenyamanan Anda. Enjoy the game! ⚽🔥"""
+        "text": "• Perbaikan masalah masuk (sign-in) dengan Akun Google untuk kelancaran pendaftaran & akses pembelian Premium.\n• Pengoptimalan ukuran aplikasi (33% lebih kecil & hemat penyimpanan).\n• Peningkatan performa dan stabilitas aplikasi."
     },
     {
         "language": "en-US",
-        "text": """🎉 Football Highlights & Clips is back with a massive, exciting update!
-
-✨ Fresh M3 Expressive UI: Sleek modern look with an ultra-smooth droplet theme transition!
-⚡ Instant Highlights & Scores: Watch official HD match recaps and real-time scores across top leagues with zero lag.
-🧭 Sleek Floating Bar: Effortlessly browse fixtures and your favorite clubs.
-🛠️ Faster & Smoother: Speed boosts and stability fixes for the ultimate matchday experience. Enjoy the game! ⚽🔥"""
+        "text": "• Fixed Google sign-in issue for seamless Premium access and purchases.\n• Optimized app size (33% smaller APK & reduced storage footprint).\n• Performance improvements and stability fixes."
     },
     {
         "language": "es-419",
-        "text": """🎉 ¡Football Highlights & Clips llega con una gran actualización más rápida y emocionante!
-
-✨ Diseño M3 Expressive: ¡Aspecto elegante con animación fluida de gota para cambiar de tema!
-⚡ Resúmenes y Marcadores al Instante: Mira los mejores momentos oficiales en HD y sigue marcadores en vivo sin demoras.
-🧭 Barra Flotante Moderna: Navega fácilmente por partidos y ligas favoritas.
-🛠️ Rendimiento Mejorado: Corrección de errores y optimización de velocidad. ¡Disfruta del fútbol! ⚽🔥"""
+        "text": "• Corrección en el inicio de sesión con Google para acceso y compra de versión Premium.\n• Optimización del tamaño de la aplicación (33% más pequeña).\n• Mejoras de rendimiento y estabilidad."
     },
     {
         "language": "es-ES",
-        "text": """🎉 ¡Football Highlights & Clips llega con una gran actualización más rápida y emocionante!
-
-✨ Diseño M3 Expressive: ¡Aspecto elegante con animación fluida de gota para cambiar de tema!
-⚡ Resúmenes y Marcadores al Instante: Mira los mejores momentos oficiales en HD y sigue marcadores en vivo sin demoras.
-🧭 Barra Flotante Moderna: Navega fácilmente por partidos y ligas favoritas.
-🛠️ Rendimiento Mejorado: Corrección de errores y optimización de velocidad. ¡Disfruta del fútbol! ⚽🔥"""
+        "text": "• Corrección en el inicio de sesión con Google para acceso y compra de versión Premium.\n• Optimización del tamaño de la aplicación (33% más pequeña).\n• Mejoras de rendimiento y estabilidad."
     },
     {
         "language": "pt-BR",
-        "text": """🎉 O Football Highlights & Clips está de volta com uma super atualização mais rápida e moderna!
-
-✨ Novo Design M3 Expressive: Visual elegante com transição suave em gota para trocar de tema!
-⚡ Melhores Momentos e Placar ao Vivo: Assista a lances em HD e acompanhe resultados em tempo real sem lentidão.
-🧭 Barra Flutuante Moderna: Navegue facilmente pelos jogos e ligas favoritas.
-🛠️ Desempenho Otimizado: Correção de bugs e mais velocidade. Aproveite o futebol! ⚽🔥"""
+        "text": "• Correção no login com Google para acesso e compra de versão Premium.\n• Otimização do tamanho do aplicativo (33% menor).\n• Melhorias de desempenho e estabilidade."
     }
 ]
 
@@ -265,6 +240,7 @@ def get_access_token():
 def main():
     parser = argparse.ArgumentParser(description="Deploy Production AAB and update Store Listing on Google Play Console.")
     parser.add_argument("--dry-run", action="store_true", help="Validate edit without committing changes to Play Store.")
+    parser.add_argument("--update-listings", action="store_true", help="Update store listing descriptions and screenshots (disabled by default for routine patches).")
     args = parser.parse_args()
 
     print("==================================================")
@@ -272,6 +248,7 @@ def main():
     print(f"  Package: {PACKAGE_NAME}")
     print(f"  App Title: {APP_NAME}")
     print(f"  AAB Path: {AAB_PATH}")
+    print(f"  Update Listings: {'YES' if args.update_listings else 'NO (Lightweight patch mode)'}")
     print(f"  Dry Run: {'YES (Will not publish)' if args.dry_run else 'NO (LIVE PRODUCTION PUBLISH)'}")
     print("==================================================")
 
@@ -358,13 +335,31 @@ def main():
                 {
                     "name": f"3.0.{version_code}",
                     "versionCodes": [str(version_code)],
-                    "status": "completed"
+                    "status": "completed",
+                    "releaseNotes": RELEASE_NOTES
                 }
             ]
         }
         alpha_resp = requests.put(alpha_url, headers=headers, json=alpha_payload)
         if alpha_resp.status_code in (200, 201):
-            print(f"  [OK] Assigned release 3.0.{version_code} to 'alpha' track (superseded legacy v27).")
+            print(f"  [OK] Assigned release 3.0.{version_code} to 'alpha' track (Closed Testing).")
+
+        # Also assign to 'beta' track (Closed Testing)
+        beta_url = f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{PACKAGE_NAME}/edits/{edit_id}/tracks/beta"
+        beta_payload = {
+            "track": "beta",
+            "releases": [
+                {
+                    "name": f"3.0.{version_code}",
+                    "versionCodes": [str(version_code)],
+                    "status": "completed",
+                    "releaseNotes": RELEASE_NOTES
+                }
+            ]
+        }
+        beta_resp = requests.put(beta_url, headers=headers, json=beta_payload)
+        if beta_resp.status_code in (200, 201):
+            print(f"  [OK] Assigned release 3.0.{version_code} to 'beta' track (Closed Testing).")
 
         # Also assign to 'internal' track
         internal_url = f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{PACKAGE_NAME}/edits/{edit_id}/tracks/internal"
@@ -374,7 +369,8 @@ def main():
                 {
                     "name": f"3.0.{version_code}",
                     "versionCodes": [str(version_code)],
-                    "status": "completed"
+                    "status": "completed",
+                    "releaseNotes": RELEASE_NOTES
                 }
             ]
         }
@@ -382,49 +378,52 @@ def main():
         if internal_resp.status_code in (200, 201):
             print(f"  [OK] Assigned release 3.0.{version_code} to 'internal' track.")
 
-        # 4. Update Multilingual Listings & Promotional Screenshots
-        print("\n[4/5] Updating store listings for all languages and screenshots...")
-        for item in LISTINGS:
-            lang = item["lang"]
-            payload = {
-                "language": lang,
-                "title": item["title"],
-                "shortDescription": item["short"],
-                "fullDescription": item["full"]
-            }
-            res = requests.put(
-                f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{PACKAGE_NAME}/edits/{edit_id}/listings/{lang}",
-                headers=headers,
-                json=payload
-            )
-            if res.status_code in (200, 201):
-                print(f"  [OK] Updated text listing for '{lang}' successfully.")
-            else:
-                print(f"  [FAIL] Failed to update listing for '{lang}': {res.status_code} {res.text}")
+        # 4. Update Multilingual Listings & Promotional Screenshots (Only if requested)
+        if args.update_listings:
+            print("\n[4/5] Updating store listings for all languages and screenshots...")
+            for item in LISTINGS:
+                lang = item["lang"]
+                payload = {
+                    "language": lang,
+                    "title": item["title"],
+                    "shortDescription": item["short"],
+                    "fullDescription": item["full"]
+                }
+                res = requests.put(
+                    f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{PACKAGE_NAME}/edits/{edit_id}/listings/{lang}",
+                    headers=headers,
+                    json=payload
+                )
+                if res.status_code in (200, 201):
+                    print(f"  [OK] Updated text listing for '{lang}' successfully.")
+                else:
+                    print(f"  [FAIL] Failed to update listing for '{lang}': {res.status_code} {res.text}")
 
-        for item in LISTINGS:
-            lang = item["lang"]
-            requests.delete(
-                f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{PACKAGE_NAME}/edits/{edit_id}/listings/{lang}/phoneScreenshots",
-                headers=headers
-            )
-            uploaded_count = 0
-            for idx, img_path in enumerate(SCREENSHOT_FILES, 1):
-                if not os.path.exists(img_path):
-                    continue
-                with open(img_path, "rb") as img_file:
-                    up_headers = {
-                        "Authorization": f"Bearer {token}",
-                        "Content-Type": "image/png"
-                    }
-                    img_url = (
-                        f"https://androidpublisher.googleapis.com/upload/androidpublisher/v3/applications/"
-                        f"{PACKAGE_NAME}/edits/{edit_id}/listings/{lang}/phoneScreenshots"
-                    )
-                    up_res = requests.post(img_url, headers=up_headers, data=img_file)
-                    if up_res.status_code in (200, 201):
-                        uploaded_count += 1
-            print(f"  [OK] Uploaded {uploaded_count} screenshots for '{lang}'")
+            for item in LISTINGS:
+                lang = item["lang"]
+                requests.delete(
+                    f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{PACKAGE_NAME}/edits/{edit_id}/listings/{lang}/phoneScreenshots",
+                    headers=headers
+                )
+                uploaded_count = 0
+                for idx, img_path in enumerate(SCREENSHOT_FILES, 1):
+                    if not os.path.exists(img_path):
+                        continue
+                    with open(img_path, "rb") as img_file:
+                        up_headers = {
+                            "Authorization": f"Bearer {token}",
+                            "Content-Type": "image/png"
+                        }
+                        img_url = (
+                            f"https://androidpublisher.googleapis.com/upload/androidpublisher/v3/applications/"
+                            f"{PACKAGE_NAME}/edits/{edit_id}/listings/{lang}/phoneScreenshots"
+                        )
+                        up_res = requests.post(img_url, headers=up_headers, data=img_file)
+                        if up_res.status_code in (200, 201):
+                            uploaded_count += 1
+                print(f"  [OK] Uploaded {uploaded_count} screenshots for '{lang}'")
+        else:
+            print("\n[4/5] Skipping store listing & screenshot update (lightweight patch update only).")
 
         # 5. Commit or Validate Edit
         if args.dry_run:

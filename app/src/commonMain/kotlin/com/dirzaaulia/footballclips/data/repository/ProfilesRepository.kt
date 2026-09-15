@@ -8,4 +8,5 @@ interface ProfilesRepository {
     suspend fun updatePremiumStatus(isPremium: Boolean)
     suspend fun signInWithGoogle()
     suspend fun signOut()
+    suspend fun refreshProfile()
 }

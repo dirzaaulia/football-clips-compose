@@ -155,6 +155,13 @@ class HomeViewModel(
         refreshData()
     }
 
+    fun onSignInSuccess() {
+        viewModelScope.launch {
+            println("HomeViewModel: onSignInSuccess() called, refreshing profile.")
+            profilesRepository.refreshProfile()
+        }
+    }
+
     private fun observeProfileForBilling() {
         viewModelScope.launch {
             profilesRepository.profile.collectLatest { profile ->
