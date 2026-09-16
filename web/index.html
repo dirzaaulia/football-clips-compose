@@ -147,7 +147,7 @@
         function renderLogs() {
             const dateVal = document.getElementById('dateFilter').value;
             const levelVal = document.getElementById('levelFilter').value;
-            const searchVal = document.getElementById('searchFilter').value.toLowerCase();
+            const searchVal = document.getElementById('searchFilter').value.trim().toLowerCase();
 
             const filtered = allCycles.filter(c => {
                 if (dateVal && !c.timestamp.startsWith(dateVal)) return false;
@@ -180,20 +180,6 @@
             document.getElementById('metricGoals').innerText = totalGoals;
             document.getElementById('metricErrors').innerText = totalErr;
 
-            const filtered = allCycles.filter(c => {
-                if (dateVal && !c.timestamp.startsWith(dateVal)) return false;
-
-                const cycleText = JSON.stringify(c).toLowerCase();
-                if (searchVal && !cycleText.includes(searchVal)) return false;
-
-                if (levelVal === "GOAL" && !cycleText.includes("skor!") && !cycleText.includes("status]") && !cycleText.includes("full time")) return false;
-                if (levelVal === "HIGHLIGHT" && !cycleText.includes("berhasil link") && !cycleText.includes("dapat]")) return false;
-                if (levelVal === "WARN" && !cycleText.includes("quota") && !cycleText.includes("429") && !cycleText.includes("⚠️")) return false;
-                if (levelVal === "ERROR" && !cycleText.includes("error") && !cycleText.includes("critical")) return false;
-
-                return true;
-            });
-
             const container = document.getElementById('timelineContainer');
             if (filtered.length === 0) {
                 container.innerHTML = '<div class="text-center py-12 text-slate-500 text-sm">Tidak ada log yang cocok dengan filter tanggal / pencarian ini.</div>';
@@ -213,13 +199,13 @@
                     </div>
 
                     <div class="space-y-4">
-                        ${c.steps.map((s, sIdx) => renderStep(s, `c${cIdx}_s${sIdx}`)).join('')}
+                        ${c.steps.map((s, sIdx) => renderStep(s, `c${cIdx}_s${sIdx}`, searchVal)).join('')}
                     </div>
                 </div>
             `).join('');
         }
 
-        function renderStep(s, uniqueId) {
+        function renderStep(s, uniqueId, searchVal = "") {
             const isYouTube = s.title.includes("YouTube");
 
             if (!isYouTube) {
@@ -231,7 +217,7 @@
                             <span class="text-[10px] px-2 py-0.5 rounded ${s.status === 'OK' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/80' : 'bg-amber-950 text-amber-400 border border-amber-800/80'}">${s.status}</span>
                         </div>
                         <div class="mono text-xs space-y-1">
-                            ${s.events.map(ev => formatEventLine(ev)).join('')}
+                            ${s.events.map(ev => formatEventLine(ev, searchVal)).join('')}
                         </div>
                     </div>
                 `;
@@ -252,7 +238,7 @@
 
                     ${parsed.header.length > 0 ? `
                         <div class="mono text-xs text-slate-300 pb-2 mb-2 border-b border-slate-800/70 leading-relaxed">
-                            ${parsed.header.map(h => formatEventLine(h)).join('')}
+                            ${parsed.header.map(h => formatEventLine(h, searchVal)).join('')}
                         </div>
                     ` : ''}
 
@@ -266,11 +252,11 @@
                         </div>
 
                         <div class="space-y-2">
-                            ${parsed.matches.map(m => renderMatchAccordion(m)).join('')}
+                            ${parsed.matches.map(m => renderMatchAccordion(m, searchVal)).join('')}
                         </div>
                     ` : `
                         <div class="mono text-xs space-y-1">
-                            ${s.events.map(ev => formatEventLine(ev)).join('')}
+                            ${s.events.map(ev => formatEventLine(ev, searchVal)).join('')}
                         </div>
                     `}
 
@@ -391,7 +377,7 @@
             }).catch(err => console.error("Copy failed:", err));
         }
 
-        function renderMatchAccordion(m) {
+        function renderMatchAccordion(m, searchVal = "") {
             let badgeStyle = "bg-slate-800 text-slate-400 border-slate-700";
             if (m.statusType === "success") {
                 badgeStyle = "bg-emerald-950 text-emerald-300 border-emerald-800";
@@ -403,8 +389,9 @@
                 badgeStyle = "bg-indigo-950 text-indigo-300 border-indigo-800";
             }
 
-            // Auto-open jika match berhasil mendapatkan video highlight
-            const defaultOpen = m.statusType === "success" ? "open" : "";
+            // Auto-open jika match berhasil ATAU cocok dengan keyword pencarian teks
+            const isSearchMatch = searchVal && JSON.stringify(m).toLowerCase().includes(searchVal);
+            const defaultOpen = (m.statusType === "success" || isSearchMatch) ? "open" : "";
 
             window.matchLogStore = window.matchLogStore || {};
             const logKey = "log_" + Math.random().toString(36).substring(2, 9);
@@ -419,7 +406,7 @@
                                 ${m.badgeText}
                             </span>
                             <span class="text-xs font-semibold text-slate-200 truncate">
-                                ${m.index}. ${escapeHtml(m.title)}
+                                ${m.index}. ${formatEventLine(m.title, searchVal)}
                             </span>
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0">
@@ -436,7 +423,7 @@
                                 <span>Copy Log</span>
                             </button>
                         </div>
-                        ${m.events.map(ev => formatEventLine(ev)).join('')}
+                        ${m.events.map(ev => formatEventLine(ev, searchVal)).join('')}
                     </div>
                 </details>
             `;
@@ -452,7 +439,7 @@
             });
         }
 
-        function formatEventLine(ev) {
+        function formatEventLine(ev, searchVal = "") {
             let color = "text-slate-400";
             if (ev.includes("BERHASIL LINK") || ev.includes("🏆 [DAPAT]")) color = "text-emerald-400 font-semibold";
             else if (ev.includes("⚽ [SKOR!]") || ev.includes("FULL TIME")) color = "text-yellow-300 font-semibold";
@@ -471,7 +458,18 @@
                 '<a href="$1" target="_blank" rel="noopener" class="text-indigo-400 hover:text-indigo-300 underline font-semibold">$1</a>'
             );
 
+            // Highlight keyword pencarian jika ada
+            if (searchVal && searchVal.length >= 2) {
+                const regex = new RegExp(`(${escapeRegExp(searchVal)})`, 'gi');
+                formatted = formatted.replace(regex, '<mark class="bg-amber-500/30 text-amber-200 px-1 py-0.5 rounded font-bold">$1</mark>');
+            }
+
             return `<div class="${color} leading-relaxed">${formatted}</div>`;
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
         }
 
         function escapeHtml(text) {
