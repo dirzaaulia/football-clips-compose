@@ -463,11 +463,19 @@ def save_cycle_log(cycle_data):
             history = []
     
     history.insert(0, cycle_data)
-    history = history[:150]
+    history = history[:1500]
     
     os.makedirs(os.path.dirname(LOG_FILE_PATH), exist_ok=True)
     with open(LOG_FILE_PATH, "w", encoding="utf-8") as f:
         json.dump(history, f, ensure_ascii=False, indent=2)
+
+def is_youtube_shorts_or_vertical(video_id: str) -> bool:
+    try:
+        url = f"https://www.youtube.com/shorts/{video_id}"
+        res = requests.head(url, allow_redirects=False, timeout=2.0)
+        return res.status_code == 200
+    except Exception:
+        return False
 
 # ==============================================================================
 # 2. HELPER FUNCTIONS: QUOTA, ISO & DURATION
@@ -899,6 +907,11 @@ def search_channel_for_highlight(channel_handle: str, query: str, home_team: str
         is_forbidden, reason = check_forbidden_title(raw_title)
         if is_forbidden:
             log_events.append(f"         -> {idx+1}. [❌ TITLE FILTER: {reason}] [ID: {v_id}] '{raw_title}' ({yt_link})")
+            continue
+
+        # 0b. Filter format video vertikal / Shorts (9:16)
+        if is_youtube_shorts_or_vertical(v_id):
+            log_events.append(f"         -> {idx+1}. [❌ VERTICAL / SHORTS FORMAT FILTER] [ID: {v_id}] '{raw_title}' ({yt_link})")
             continue
 
         # 1. Filter durasi paten: 45 detik s/d 1500 detik (0.75m – 25m)
