@@ -1,6 +1,8 @@
 package com.dirzaaulia.footballclips.ui.player
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -116,55 +118,61 @@ actual fun YouTubePlayerView(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(32.dp),
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
                     Surface(
-                        color = Color.Red.copy(alpha = 0.1f),
+                        color = Color.Red.copy(alpha = 0.15f),
                         shape = CircleShape,
-                        modifier = Modifier.size(64.dp)
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 Icons.Default.PlayCircle,
                                 contentDescription = null,
                                 tint = Color.Red,
-                                modifier = Modifier.size(40.dp)
+                                modifier = Modifier.size(32.dp)
                             )
                         }
                     }
                     
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(10.dp))
                     
                     Text(
                         text = "Video Restricted",
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Black,
                         color = Color.White
                     )
                     
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(4.dp))
                     
                     Text(
                         text = "This content provider (e.g., LaLiga) has restricted playback to YouTube only.",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray,
                         textAlign = TextAlign.Center
                     )
                     
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(12.dp))
                     
                     Button(
                         onClick = {
                             window.open("https://www.youtube.com/watch?v=$videoId", "_blank")
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(10.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Watch on YouTube", fontWeight = FontWeight.Bold)
+                        Icon(
+                            Icons.AutoMirrored.Filled.OpenInNew,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text("Watch on YouTube", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
                 }
             }

@@ -16,6 +16,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.material.icons.filled.Close
+import com.dirzaaulia.footballclips.ui.adaptive.LocalIsBigScreen
+import com.dirzaaulia.footballclips.util.isWasmTarget
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeveloperOptionsBottomSheet(
@@ -25,19 +29,71 @@ fun DeveloperOptionsBottomSheet(
     onToggleForceNonPremium: (Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.surface,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.primary) }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+    val isBigScreen = LocalIsBigScreen.current
+    val shouldUseSideSheet = isWasmTarget && isBigScreen
+
+    if (shouldUseSideSheet) {
+        ModalSideSheet(
+            onDismissRequest = onDismiss,
+            sheetWidth = 420.dp
         ) {
+            DeveloperOptionsSheetContent(
+                isSideSheet = true,
+                isDebugPremium = isDebugPremium,
+                onToggleDebugPremium = onToggleDebugPremium,
+                isForceNonPremium = isForceNonPremium,
+                onToggleForceNonPremium = onToggleForceNonPremium,
+                onDismiss = onDismiss
+            )
+        }
+    } else {
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.primary) }
+        ) {
+            DeveloperOptionsSheetContent(
+                isSideSheet = false,
+                isDebugPremium = isDebugPremium,
+                onToggleDebugPremium = onToggleDebugPremium,
+                isForceNonPremium = isForceNonPremium,
+                onToggleForceNonPremium = onToggleForceNonPremium,
+                onDismiss = onDismiss
+            )
+        }
+    }
+}
+
+@Composable
+private fun DeveloperOptionsSheetContent(
+    isSideSheet: Boolean,
+    isDebugPremium: Boolean,
+    onToggleDebugPremium: (Boolean) -> Unit,
+    isForceNonPremium: Boolean,
+    onToggleForceNonPremium: (Boolean) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (!isSideSheet) Modifier.windowInsetsPadding(WindowInsets.navigationBars) else Modifier)
+            .padding(horizontal = 24.dp, vertical = if (isSideSheet) 12.dp else 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (isSideSheet) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, contentDescription = "Close")
+                }
+            }
+        }
             Surface(
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
                 shape = RoundedCornerShape(12.dp),
@@ -214,4 +270,3 @@ fun DeveloperOptionsBottomSheet(
             Spacer(Modifier.height(32.dp))
         }
     }
-}

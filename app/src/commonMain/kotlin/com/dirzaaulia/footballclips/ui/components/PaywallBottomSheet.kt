@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.data.billing.CustomerInfoModel
 import com.dirzaaulia.footballclips.data.model.remote.Profile
+import androidx.compose.material.icons.filled.Close
+import com.dirzaaulia.footballclips.ui.adaptive.LocalIsBigScreen
 import com.dirzaaulia.footballclips.util.isWasmTarget
 
 enum class PaywallState {
@@ -47,6 +49,8 @@ fun PaywallBottomSheet(
     // Platform-specific info extraction
     val displayInfo = extractOfferingInfo(offerings)
     val isWasm = isWasmTarget
+    val isBigScreen = LocalIsBigScreen.current
+    val shouldUseSideSheet = isWasm && isBigScreen
 
     val paywallState = when {
         isPremium -> PaywallState.PREMIUM_ACTIVE
@@ -54,19 +58,89 @@ fun PaywallBottomSheet(
         else -> PaywallState.NON_PREMIUM
     }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = Color(0xFF121212),
-        dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFFD4AF37)) }
+    if (shouldUseSideSheet) {
+        ModalSideSheet(
+            onDismissRequest = onDismiss,
+            sheetWidth = 480.dp,
+            containerColor = Color(0xFF121212)
+        ) {
+            PaywallSheetContent(
+                isSideSheet = true,
+                isWasm = isWasm,
+                paywallState = paywallState,
+                displayInfo = displayInfo,
+                profile = profile,
+                customerInfo = customerInfo,
+                isLoading = isLoading,
+                onSignInClick = onSignInClick,
+                onPurchaseClick = onPurchaseClick,
+                onRestoreClick = onRestoreClick,
+                onDismiss = onDismiss
+            )
+        }
+    } else {
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = Color(0xFF121212),
+            dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFFD4AF37)) }
+        ) {
+            PaywallSheetContent(
+                isSideSheet = false,
+                isWasm = isWasm,
+                paywallState = paywallState,
+                displayInfo = displayInfo,
+                profile = profile,
+                customerInfo = customerInfo,
+                isLoading = isLoading,
+                onSignInClick = onSignInClick,
+                onPurchaseClick = onPurchaseClick,
+                onRestoreClick = onRestoreClick,
+                onDismiss = onDismiss
+            )
+        }
+    }
+}
+
+@Composable
+private fun PaywallSheetContent(
+    isSideSheet: Boolean,
+    isWasm: Boolean,
+    paywallState: PaywallState,
+    displayInfo: OfferingDisplayInfo?,
+    profile: Profile?,
+    customerInfo: CustomerInfoModel?,
+    isLoading: Boolean,
+    onSignInClick: () -> Unit,
+    onPurchaseClick: (Any) -> Unit,
+    onRestoreClick: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (isSideSheet) Modifier.fillMaxHeight() else Modifier.fillMaxHeight(0.9f))
     ) {
+        if (isSideSheet) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.LightGray)
+                }
+            }
+        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.9f)
+                .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(24.dp),
+                .then(if (!isSideSheet) Modifier.windowInsetsPadding(WindowInsets.navigationBars) else Modifier)
+                .padding(horizontal = 24.dp, vertical = if (isSideSheet) 8.dp else 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (isWasm) {

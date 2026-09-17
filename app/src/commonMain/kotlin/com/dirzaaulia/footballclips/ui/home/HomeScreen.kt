@@ -100,6 +100,7 @@ import com.dirzaaulia.footballclips.ui.components.VerticalHighlightCard
 import com.dirzaaulia.footballclips.ui.components.WebHighlightCard
 import com.dirzaaulia.footballclips.ui.score.components.MatchCard
 import com.dirzaaulia.footballclips.util.isDebugBuild
+import com.dirzaaulia.footballclips.util.isWasmTarget
 import io.github.jan.supabase.compose.auth.ComposeAuth
 import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
 import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle
@@ -217,7 +218,7 @@ fun HomeScreen(
                             )
                         },
                         actions = {
-                            if (!isWeb) {
+                            if (!isWasmTarget) {
                                 var lastThemeToggleTime by remember { mutableStateOf(0L) }
                                 val triggerThemeCapture = rememberThemeCapture()
                                 var toggleCenter by remember { mutableStateOf(Offset.Zero) }

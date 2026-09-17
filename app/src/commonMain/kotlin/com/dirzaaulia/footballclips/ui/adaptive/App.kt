@@ -13,6 +13,8 @@ import com.dirzaaulia.footballclips.data.local.PreferenceManager
 import com.dirzaaulia.footballclips.ui.theme.FootballClipsTheme
 import org.koin.compose.koinInject
 
+val LocalIsBigScreen = compositionLocalOf { false }
+
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun App() {
@@ -32,10 +34,12 @@ fun App() {
                 }
                 val isExpanded = windowWidthSizeClass == WindowWidthSizeClass.Expanded
                 
-                if (isExpanded) {
-                    WebMatchesScreen()
-                } else {
-                    MobileMatchesScreen()
+                CompositionLocalProvider(LocalIsBigScreen provides isExpanded) {
+                    if (isExpanded) {
+                        WebMatchesScreen()
+                    } else {
+                        MobileMatchesScreen()
+                    }
                 }
             }
         }

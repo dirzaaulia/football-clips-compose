@@ -27,6 +27,9 @@ import coil3.compose.AsyncImage
 import com.dirzaaulia.footballclips.ui.home.FilterState
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
+import com.dirzaaulia.footballclips.ui.adaptive.LocalIsBigScreen
+import com.dirzaaulia.footballclips.util.isWasmTarget
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun FilterBottomSheet(
@@ -41,36 +44,97 @@ fun FilterBottomSheet(
     onApply: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        dragHandle = { BottomSheetDefaults.DragHandle() },
-        containerColor = MaterialTheme.colorScheme.surface
+    val isBigScreen = LocalIsBigScreen.current
+    val shouldUseSideSheet = isWasmTarget && isBigScreen
+
+    if (shouldUseSideSheet) {
+        ModalSideSheet(
+            onDismissRequest = onDismiss,
+            sheetWidth = 460.dp
+        ) {
+            FilterSheetContent(
+                state = state,
+                isLoadingMore = isLoadingMore,
+                showLoadMore = showLoadMore,
+                isSideSheet = true,
+                onSearchQueryChanged = onSearchQueryChanged,
+                onCountryToggle = onCountryToggle,
+                onLeagueToggle = onLeagueToggle,
+                onReset = onReset,
+                onLoadMore = onLoadMore,
+                onApply = onApply,
+                onDismiss = onDismiss
+            )
+        }
+    } else {
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            dragHandle = { BottomSheetDefaults.DragHandle() },
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            FilterSheetContent(
+                state = state,
+                isLoadingMore = isLoadingMore,
+                showLoadMore = showLoadMore,
+                isSideSheet = false,
+                onSearchQueryChanged = onSearchQueryChanged,
+                onCountryToggle = onCountryToggle,
+                onLeagueToggle = onLeagueToggle,
+                onReset = onReset,
+                onLoadMore = onLoadMore,
+                onApply = onApply,
+                onDismiss = onDismiss
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun FilterSheetContent(
+    state: FilterState,
+    isLoadingMore: Boolean,
+    showLoadMore: Boolean,
+    isSideSheet: Boolean,
+    onSearchQueryChanged: (String) -> Unit,
+    onCountryToggle: (String) -> Unit,
+    onLeagueToggle: (String) -> Unit,
+    onReset: () -> Unit,
+    onLoadMore: () -> Unit,
+    onApply: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (!isSideSheet) Modifier.navigationBarsPadding() else Modifier)
     ) {
-        Column(
+        // Header
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .navigationBarsPadding()
+                .padding(horizontal = 24.dp, vertical = if (isSideSheet) 14.dp else 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Header
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        "Search Highlights",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+            Text(
+                "Search Highlights",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = onReset) {
                     Text("Clear All", color = MaterialTheme.colorScheme.error)
                 }
+                if (isSideSheet) {
+                    Spacer(Modifier.width(4.dp))
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Close")
+                    }
+                }
             }
+        }
 
             // Search Bar
             OutlinedTextField(
@@ -226,7 +290,6 @@ fun FilterBottomSheet(
             }
         }
     }
-}
 
 @Composable
 fun LeagueFilterItem(
