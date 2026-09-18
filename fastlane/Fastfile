@@ -85,7 +85,20 @@ platform :android do
       skip_upload_apk: true,
       skip_upload_metadata: true,
       skip_upload_changelogs: false,
-      skip_upload_images: true,
+      skip_upload_images: false,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Upload Store Listing App Icon and Images to Google Play Console"
+  lane :update_store_listing do
+    upload_to_play_store(
+      json_key_data: ENV['PLAY_CONSOLE_JSON_KEY'],
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: false,
       skip_upload_screenshots: true
     )
   end
