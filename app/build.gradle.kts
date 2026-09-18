@@ -1,4 +1,8 @@
 import java.util.Properties
+import java.io.File
+import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
+import java.util.zip.ZipEntry
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -212,5 +216,39 @@ dependencies {
     debugImplementation(compose.uiTooling)
     debugImplementation(libs.chucker.library)
     releaseImplementation(libs.chucker.library.no.op)
+}
+
+class SanitizeR8Action(
+    private val resDir: File
+) : Action<Task>, java.io.Serializable {
+    override fun execute(task: Task) {
+        val baseJar = File(resDir, "base.jar")
+        if (baseJar.exists()) {
+            val tempJar = File(resDir, "base_sanitized.jar")
+            ZipFile(baseJar).use { zipIn ->
+                ZipOutputStream(tempJar.outputStream().buffered()).use { zipOut ->
+                    val entries = zipIn.entries()
+                    while (entries.hasMoreElements()) {
+                        val entry = entries.nextElement()
+                        if (!entry.name.contains(":") && !entry.name.endsWith(".kotlin_module")) {
+                            val newEntry = ZipEntry(entry.name)
+                            zipOut.putNextEntry(newEntry)
+                            zipIn.getInputStream(entry).use { it.copyTo(zipOut) }
+                            zipOut.closeEntry()
+                        }
+                    }
+                }
+            }
+            if (baseJar.delete()) {
+                tempJar.renameTo(baseJar)
+            }
+        }
+    }
+}
+
+val releaseMergedJavaResDir = layout.buildDirectory.dir("intermediates/merged_java_res/release/minifyReleaseWithR8").get().asFile
+
+tasks.matching { it.name == "minifyReleaseWithR8" }.configureEach {
+    doLast(SanitizeR8Action(releaseMergedJavaResDir))
 }
 
