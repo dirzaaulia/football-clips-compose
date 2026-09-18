@@ -4,4 +4,6 @@ actual class AdMobManager {
     actual fun showInterstitial(onAdDismissed: () -> Unit) {
         onAdDismissed()
     }
+
+    actual fun openAdInspector() {}
 }

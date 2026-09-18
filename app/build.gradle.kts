@@ -23,14 +23,13 @@ kotlin {
     
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "composeApp"
         browser {
             val projectDirPath = project.projectDir.path
             commonWebpackConfig {
                 outputFileName = "composeApp.js"
-                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).copy(
-                    static = (devServer ?: KotlinWebpackConfig.DevServer()).static?.plus(projectDirPath)?.toMutableList()
-                )
+                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+                    static = (static ?: mutableListOf()).apply { add(projectDirPath) }
+                }
                 sourceMaps = false
             }
         }
@@ -133,8 +132,11 @@ android {
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${localProperties.getProperty("GOOGLE_WEB_CLIENT_ID", "")}\"")
         buildConfigField("String", "ADMOB_APP_ID", "\"${localProperties.getProperty("ADMOB_APP_ID", "")}\"")
         buildConfigField("String", "ADMOB_BANNER_ID", "\"${localProperties.getProperty("ADMOB_BANNER_ID", "")}\"")
+        buildConfigField("String", "ADMOB_NATIVE_ID", "\"${localProperties.getProperty("ADMOB_NATIVE_ID", "ca-app-pub-6717632447198427/5222531302")}\"")
         buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"${localProperties.getProperty("ADMOB_INTERSTITIAL_ID", "")}\"")
-        resourceConfigurations += setOf("en", "id", "es", "pt")
+        androidResources {
+            localeFilters += setOf("en", "id", "es", "pt")
+        }
     }
 
     packaging {

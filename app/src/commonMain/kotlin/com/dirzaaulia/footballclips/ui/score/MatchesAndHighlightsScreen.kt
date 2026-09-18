@@ -106,15 +106,19 @@ fun MatchesAndHighlightsScreen(
                         modifier = Modifier.size(48.dp),
                         strokeWidth = 5.dp
                     )
-                    is ScoreState.Error -> Text(state.message, modifier = Modifier.padding(16.dp))
+                    is ScoreState.Error -> {
+                        EmptyState(
+                            title = "Failed to Load Matches",
+                            description = state.message,
+                            onActionClick = { viewModel.getMatches() },
+                            actionText = "Try Again"
+                        )
+                    }
                     is ScoreState.Success -> {
                         if (state.matches.isEmpty()) {
                             EmptyState(
                                 title = "No Matches Scheduled",
-                                description = "Try selecting a different date or competition.",
-                                onActionClick = { 
-                                    viewModel.selectCompetition(null)
-                                }
+                                description = "Try selecting a different date or competition."
                             )
                         } else {
                             if (isWeb) {

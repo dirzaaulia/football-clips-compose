@@ -12,13 +12,19 @@ import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.constants.AdConfiguration
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.coroutines.delay
 import org.w3c.dom.HTMLElement
 
 @JsFun("() => { try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch(e) { console.error(e); } }")
 external fun pushAdSense()
 
 @Composable
-actual fun BannerAdView(onAdLoaded: () -> Unit, onAdFailed: (String) -> Unit, modifier: Modifier) {
+actual fun BannerAdView(
+    onAdLoaded: () -> Unit,
+    onAdFailed: (String) -> Unit,
+    modifier: Modifier,
+    style: NativeAdStyle
+) {
     val hostname = window.location.hostname
     val isProduction = hostname in AdConfiguration.ALLOWED_PRODUCTION_HOSTS
     
@@ -27,7 +33,7 @@ actual fun BannerAdView(onAdLoaded: () -> Unit, onAdFailed: (String) -> Unit, mo
         LaunchedEffect(Unit) { onAdLoaded() }
         AdPlaceholder(
             modifier = modifier,
-            title = "WASM DEBUG AD",
+            title = "WASM DEBUG NATIVE AD (${style.name})",
             message = "AdSense active on ${AdConfiguration.ALLOWED_PRODUCTION_HOSTS.joinToString(", ")}"
         )
     } else {
@@ -119,8 +125,7 @@ private fun AdSenseContainer(onAdLoaded: () -> Unit, onAdFailed: (String) -> Uni
         }
 
         LaunchedEffect(adId) {
-            // Memberikan jeda sedikit agar DOM benar-benar siap
-            kotlinx.coroutines.delay(500)
+            delay(500)
             try {
                 pushAdSense()
                 onAdLoaded()

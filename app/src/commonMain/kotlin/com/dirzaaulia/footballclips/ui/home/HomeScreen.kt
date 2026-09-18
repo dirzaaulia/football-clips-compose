@@ -89,12 +89,14 @@ import com.dirzaaulia.footballclips.ui.theme.rememberThemeCapture
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.BannerAdItem
+import com.dirzaaulia.footballclips.ui.components.NativeAdStyle
 import com.dirzaaulia.footballclips.ui.components.BigLeaguesQuickFilterBar
 import com.dirzaaulia.footballclips.ui.components.DeveloperOptionsBottomSheet
 import com.dirzaaulia.footballclips.ui.components.EmptyState
 import com.dirzaaulia.footballclips.ui.components.ExpressiveLoadingIndicator
 import com.dirzaaulia.footballclips.ui.components.FilterBottomSheet
 import com.dirzaaulia.footballclips.ui.components.HeroCard
+import com.dirzaaulia.footballclips.ui.components.HeroCarousel
 import com.dirzaaulia.footballclips.ui.components.PaywallBottomSheet
 import com.dirzaaulia.footballclips.ui.components.VerticalHighlightCard
 import com.dirzaaulia.footballclips.ui.components.WebHighlightCard
@@ -426,51 +428,19 @@ fun HomeScreen(
                             ) {
                                 if (featuredHighlight != null) {
                                     item(span = { GridItemSpan(maxLineSpan) }) {
-                                        if (isAdsRemoved) {
-                                            HeroCard(
-                                                item = featuredHighlight,
-                                                isCinematic = true,
-                                                onClick = {
-                                                    onVideoClick(featuredHighlight) { isJumping ->
-                                                        viewModel.setPendingInterstitial(true)
-                                                        if (!isJumping) {
-                                                            viewModel.consumePendingInterstitial()
-                                                        }
+                                        HeroCarousel(
+                                            items = items,
+                                            isAdsRemoved = isAdsRemoved,
+                                            isCinematic = true,
+                                            onVideoClick = { selectedItem ->
+                                                onVideoClick(selectedItem) { isJumping ->
+                                                    viewModel.setPendingInterstitial(true)
+                                                    if (!isJumping) {
+                                                        viewModel.consumePendingInterstitial()
                                                     }
                                                 }
-                                            )
-                                        } else {
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(IntrinsicSize.Min),
-                                                horizontalArrangement = Arrangement.spacedBy(24.dp)
-                                            ) {
-                                                Box(modifier = Modifier.weight(0.65f)) {
-                                                    HeroCard(
-                                                        item = featuredHighlight,
-                                                        isCinematic = true,
-                                                        onClick = {
-                                                            onVideoClick(featuredHighlight) { isJumping ->
-                                                                viewModel.setPendingInterstitial(true)
-                                                                if (!isJumping) {
-                                                                    viewModel.consumePendingInterstitial()
-                                                                }
-                                                            }
-                                                        }
-                                                    )
-                                                }
-                                                Box(
-                                                    modifier = Modifier
-                                                        .weight(0.35f)
-                                                        .fillMaxHeight()
-                                                ) {
-                                                    BannerAdItem(
-                                                        modifier = Modifier.fillMaxSize()
-                                                    )
-                                                }
                                             }
-                                        }
+                                        )
                                     }
                                 }
 
@@ -534,7 +504,8 @@ fun HomeScreen(
                                                 BannerAdItem(
                                                     modifier = Modifier
                                                         .fillMaxWidth()
-                                                        .aspectRatio(16 / 9f)
+                                                        .aspectRatio(16 / 9f),
+                                                    style = if (showExternalHighlights) NativeAdStyle.HIGHLIGHT else NativeAdStyle.MATCH
                                                 )
                                             }
                                         }
@@ -594,17 +565,19 @@ fun HomeScreen(
                             ) {
                                 if (featuredHighlight != null) {
                                     item {
-                                        HeroCard(
-                                            item = featuredHighlight,
-                                            onClick = {
-                                                onVideoClick(featuredHighlight) { isJumping ->
+                                        HeroCarousel(
+                                            items = items,
+                                            isAdsRemoved = isAdsRemoved,
+                                            isCinematic = false,
+                                            onVideoClick = { selectedItem ->
+                                                onVideoClick(selectedItem) { isJumping ->
                                                     viewModel.setPendingInterstitial(true)
                                                     if (!isJumping) {
                                                         viewModel.consumePendingInterstitial()
                                                     }
                                                 }
                                             },
-                                            modifier = Modifier.padding(16.dp)
+                                            modifier = Modifier.padding(top = 12.dp, bottom = 4.dp, start = 16.dp, end = 16.dp)
                                         )
                                     }
                                 }
@@ -659,7 +632,9 @@ fun HomeScreen(
                                                 )
                                             }
                                             is HighlightUiItem.BannerAd -> {
-                                                BannerAdItem()
+                                                BannerAdItem(
+                                                    style = if (showExternalHighlights) NativeAdStyle.HIGHLIGHT else NativeAdStyle.MATCH
+                                                )
                                             }
                                         }
                                     }
@@ -725,12 +700,12 @@ fun HomeScreen(
                         }
                     }
                     is HomeState.Error -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = state.message)
-                        }
+                        EmptyState(
+                            title = "Failed to Load Highlights",
+                            description = state.message,
+                            onActionClick = { viewModel.refreshData() },
+                            actionText = "Try Again"
+                        )
                     }
                 }
                 }
@@ -824,6 +799,9 @@ fun HomeScreen(
                 isForceNonPremium = isForceNonPremium,
                 onToggleForceNonPremium = { enabled ->
                     viewModel.setForceNonPremium(enabled)
+                },
+                onOpenAdInspector = {
+                    viewModel.openAdInspector()
                 },
                 onDismiss = { showDevScreen = false }
             )

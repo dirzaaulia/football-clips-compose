@@ -10,44 +10,63 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun BannerAdItem(
-    modifier: Modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+    modifier: Modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+    style: NativeAdStyle = NativeAdStyle.MATCH
 ) {
     var isLoading by remember { mutableStateOf(true) }
+    var isAdFailed by remember { mutableStateOf(false) }
 
-    OutlinedCard(
+    if (isAdFailed) return
+
+    val cardHeight = when (style) {
+        NativeAdStyle.HERO -> 240.dp
+        NativeAdStyle.MATCH -> 210.dp
+        NativeAdStyle.HIGHLIGHT -> 145.dp
+    }
+
+    Card(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 60.dp)
+            .height(cardHeight)
             .animateContentSize(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 60.dp),
+                .height(cardHeight),
             contentAlignment = Alignment.Center
         ) {
             if (isLoading) {
-                CircularProgressIndicator(
-                    strokeCap = StrokeCap.Round,
-                    modifier = Modifier.padding(16.dp)
+                ExpressiveLoadingIndicator(
+                    modifier = Modifier.size(32.dp),
+                    strokeWidth = 3.dp
                 )
             }
 
             BannerAdView(
-                onAdLoaded = { isLoading = false },
-                onAdFailed = { isLoading = false },
+                onAdLoaded = { 
+                    isLoading = false
+                    isAdFailed = false
+                },
+                onAdFailed = { 
+                    isLoading = false
+                    isAdFailed = true
+                },
+                style = style,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(cardHeight)
                     .alpha(if (isLoading) 0f else 1f)
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(18.dp))
             )
         }
     }

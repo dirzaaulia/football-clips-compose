@@ -525,12 +525,9 @@ class HomeViewModel(
         if (isAdsRemoved) return items
 
         val result = mutableListOf<HighlightUiItem>()
-        result.add(items[0])
-        result.add(HighlightUiItem.BannerAd("ad-0"))
-        
-        for (i in 1 until items.size) {
+        for (i in items.indices) {
             result.add(items[i])
-            if (i % 5 == 0 && i < items.size - 1) {
+            if ((i + 1) % 6 == 0 && i < items.size - 1) {
                 result.add(HighlightUiItem.BannerAd("ad-$i"))
             }
         }
@@ -610,6 +607,10 @@ class HomeViewModel(
         } else {
             adMobManager.showInterstitial(onAdDismissed)
         }
+    }
+
+    fun openAdInspector() {
+        adMobManager.openAdInspector()
     }
 
     fun setPendingInterstitial(pending: Boolean) {

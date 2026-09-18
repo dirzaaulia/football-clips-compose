@@ -1,16 +1,21 @@
 package com.dirzaaulia.footballclips.ui.components
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -670,5 +675,121 @@ fun TeamLogo(logo: String) {
                 .background(Color.White.copy(alpha = 0.8f))
                 .padding(2.dp)
         )
+    }
+}
+
+@Composable
+fun HeroCarousel(
+    items: List<HighlightUiItem>,
+    isAdsRemoved: Boolean,
+    onVideoClick: (HighlightUiItem) -> Unit,
+    modifier: Modifier = Modifier,
+    isCinematic: Boolean = false
+) {
+    if (items.isEmpty()) return
+
+    val carouselPages = remember(items, isAdsRemoved) {
+        val featuredItem = items.firstOrNull { it !is HighlightUiItem.BannerAd }
+        if (featuredItem == null) {
+            emptyList()
+        } else if (isAdsRemoved) {
+            listOf(featuredItem)
+        } else {
+            listOf(featuredItem, HighlightUiItem.BannerAd("hero-ad-0"))
+        }
+    }
+
+    if (carouselPages.isEmpty()) return
+
+    val pagerState = rememberPagerState(pageCount = { carouselPages.size })
+
+    LaunchedEffect(pagerState, carouselPages.size) {
+        if (carouselPages.size > 1) {
+            while (true) {
+                delay(5000L)
+                val nextPage = (pagerState.currentPage + 1) % carouselPages.size
+                pagerState.animateScrollToPage(nextPage)
+            }
+        }
+    }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth(),
+            pageSpacing = 16.dp
+        ) { page ->
+            val pageItem = carouselPages[page]
+            when (pageItem) {
+                is HighlightUiItem.BannerAd -> {
+                    HeroAdCard(
+                        isCinematic = isCinematic,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                else -> {
+                    HeroCard(
+                        item = pageItem,
+                        onClick = { _ -> onVideoClick(pageItem) },
+                        isCinematic = isCinematic,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+
+        if (carouselPages.size > 1) {
+            Spacer(Modifier.height(10.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(carouselPages.size) { index ->
+                    val isSelected = pagerState.currentPage == index
+                    val activeColor = Color(0xFFD4AF37)
+                    val inactiveColor = Color.White.copy(alpha = 0.2f)
+
+                    Box(
+                        modifier = Modifier
+                            .height(6.dp)
+                            .width(if (isSelected) 20.dp else 6.dp)
+                            .clip(CircleShape)
+                            .background(if (isSelected) activeColor else inactiveColor)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HeroAdCard(
+    modifier: Modifier = Modifier,
+    isCinematic: Boolean = false
+) {
+    val shape = RoundedCornerShape(24.dp)
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(if (isCinematic) 400.dp else 240.dp),
+        shape = shape,
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),
+        border = BorderStroke(1.dp, Color(0xFFD4AF37).copy(alpha = 0.35f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            BannerAdView(
+                onAdLoaded = {},
+                onAdFailed = {},
+                style = NativeAdStyle.HERO,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(shape)
+            )
+        }
     }
 }

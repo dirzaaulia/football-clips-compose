@@ -4,10 +4,12 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
+import com.dirzaaulia.footballclips.ui.navigation.NavDestination as AppNavDestination
 import com.dirzaaulia.footballclips.ui.navigation.bottomNavItems
 
 @Composable
@@ -42,7 +45,7 @@ fun FloatingPillNavigationBar(
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
         tonalElevation = 8.dp,
         shadowElevation = 12.dp,
-        border = androidx.compose.foundation.BorderStroke(
+        border = BorderStroke(
             0.5.dp, 
             Color.White.copy(alpha = 0.1f)
         )
@@ -58,7 +61,7 @@ fun FloatingPillNavigationBar(
                 PillNavItem(
                     screen = screen,
                     selected = selected,
-                    hasLiveMatch = hasLiveMatch && screen == com.dirzaaulia.footballclips.ui.navigation.NavDestination.Fixtures,
+                    hasLiveMatch = hasLiveMatch && screen == AppNavDestination.Fixtures,
                     onClick = { onNavigate(screen.route) }
                 )
             }
@@ -68,7 +71,7 @@ fun FloatingPillNavigationBar(
 
 @Composable
 private fun PillNavItem(
-    screen: com.dirzaaulia.footballclips.ui.navigation.NavDestination,
+    screen: AppNavDestination,
     selected: Boolean,
     hasLiveMatch: Boolean = false,
     onClick: () -> Unit
@@ -108,29 +111,38 @@ private fun PillNavItem(
                 )
 
                 if (hasLiveMatch) {
-                    Surface(
-                        color = Color(0xFFFF3B30),
-                        shape = RoundedCornerShape(6.dp),
-                        modifier = Modifier.offset(x = 10.dp, y = (-4).dp)
-                    ) {
-                        Text(
-                            text = "LIVE",
-                            color = Color.White,
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight.Black,
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
-                        )
-                    }
+                    Box(
+                        modifier = Modifier
+                            .offset(x = 3.dp, y = (-1).dp)
+                            .size(7.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFFF3B30))
+                    )
                 }
             }
+
             if (selected) {
-                Text(
-                    text = screen.title,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = iconColor,
-                    fontSize = 10.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 2.dp)
+                ) {
+                    if (hasLiveMatch) {
+                        Box(
+                            modifier = Modifier
+                                .size(5.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFF3B30))
+                        )
+                        Spacer(Modifier.width(3.dp))
+                    }
+                    Text(
+                        text = screen.title,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = iconColor,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

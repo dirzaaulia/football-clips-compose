@@ -3,11 +3,15 @@ package com.dirzaaulia.footballclips
 import android.app.Application
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.svg.SvgDecoder
 import com.dirzaaulia.footballclips.di.appModules
+import com.google.android.libraries.ads.mobile.sdk.MobileAds
+import com.google.android.libraries.ads.mobile.sdk.common.RequestConfiguration
+import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
 import com.revenuecat.purchases.LogLevel
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesConfiguration
@@ -41,6 +45,24 @@ class FootballClipsApplication : Application(), SingletonImageLoader.Factory {
         Purchases.configure(
             PurchasesConfiguration.Builder(this, BuildConfig.REVENUECAT_API_KEY).build()
         )
+
+        // Initialize AdMob MobileAds eagerly on Application startup
+        try {
+            val testDeviceIds = listOf("33BE2250B43518CCDA7DE426D04EE231")
+            val requestConfig = RequestConfiguration.Builder()
+                .setTestDeviceIds(testDeviceIds)
+                .build()
+            MobileAds.setRequestConfiguration(requestConfig)
+
+            MobileAds.initialize(
+                this,
+                InitializationConfig.Builder(BuildConfig.ADMOB_APP_ID).build()
+            ) {
+                Log.d("FootballClipsApp", "MobileAds initialized eagerly in Application.onCreate")
+            }
+        } catch (t: Throwable) {
+            Log.e("FootballClipsApp", "MobileAds initialization error in Application: ${t.message}")
+        }
 
         // Initialize Koin DI
         startKoin {
