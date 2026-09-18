@@ -21,6 +21,7 @@ platform :android do
       json_key_data: ENV['PLAY_CONSOLE_JSON_KEY'],
       skip_upload_apk: true,
       skip_upload_metadata: true,
+      skip_upload_changelogs: false,
       skip_upload_images: true,
       skip_upload_screenshots: true
     )
@@ -41,6 +42,7 @@ platform :android do
       json_key_data: ENV['PLAY_CONSOLE_JSON_KEY'],
       skip_upload_apk: true,
       skip_upload_metadata: true,
+      skip_upload_changelogs: false,
       skip_upload_images: true,
       skip_upload_screenshots: true
     )
@@ -61,6 +63,7 @@ platform :android do
       json_key_data: ENV['PLAY_CONSOLE_JSON_KEY'],
       skip_upload_apk: true,
       skip_upload_metadata: true,
+      skip_upload_changelogs: false,
       skip_upload_images: true,
       skip_upload_screenshots: true
     )
@@ -81,6 +84,7 @@ platform :android do
       json_key_data: ENV['PLAY_CONSOLE_JSON_KEY'],
       skip_upload_apk: true,
       skip_upload_metadata: true,
+      skip_upload_changelogs: false,
       skip_upload_images: true,
       skip_upload_screenshots: true
     )

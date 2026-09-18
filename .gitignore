@@ -30,6 +30,7 @@ __pycache__/
 
 # Crash dumps
 hs_err_pid*.log
+replay_pid*.log
 
 youtube_quota_evidence/
 web/youtube_quota_evidence/

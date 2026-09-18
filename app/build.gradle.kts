@@ -142,11 +142,15 @@ android {
     packaging {
         resources {
             excludes += setOf(
-                "/META-INF/{AL2.0,LGPL2.1}",
-                "/META-INF/DEPENDENCIES",
-                "/META-INF/LICENSE*",
-                "/META-INF/NOTICE*",
-                "/META-INF/*.kotlin_module",
+                "META-INF/{AL2.0,LGPL2.1}",
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE*",
+                "META-INF/NOTICE*",
+                "META-INF/*.kotlin_module",
+                "META-INF/**/*.kotlin_module",
+                "META-INF/*:*",
+                "META-INF/**/*:*",
+                "META-INF/io.github.jan-tennert.supabase:supabase-kt.kotlin_module",
                 "**/attach_hotspot_windows.dll"
             )
         }

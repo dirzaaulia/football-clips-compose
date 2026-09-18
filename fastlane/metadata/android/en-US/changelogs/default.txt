@@ -1,0 +1,3 @@
+• Performance improvements and stability enhancements.
+• Optimized ad layouts and display experience for smoother scrolling.
+• Upgraded core libraries and system dependencies for improved compatibility.
