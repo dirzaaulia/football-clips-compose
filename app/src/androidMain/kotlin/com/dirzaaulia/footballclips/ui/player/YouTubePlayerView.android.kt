@@ -37,6 +37,26 @@ actual fun YouTubePlayerView(
     var customView by remember { mutableStateOf<View?>(null) }
     var customViewCallback by remember { mutableStateOf<WebChromeClient.CustomViewCallback?>(null) }
     var hasError by remember { mutableStateOf(false) }
+    var webViewInstance by remember { mutableStateOf<WebView?>(null) }
+
+    // Safely stop, unbind callbacks, and destroy WebView on disposal
+    DisposableEffect(webViewInstance) {
+        onDispose {
+            webViewInstance?.let { wv ->
+                try {
+                    wv.stopLoading()
+                    wv.webViewClient = object : WebViewClient() {}
+                    wv.webChromeClient = null
+                    wv.loadUrl("about:blank")
+                    wv.clearHistory()
+                    wv.removeAllViews()
+                    (wv.parent as? ViewGroup)?.removeView(wv)
+                    wv.destroy()
+                } catch (_: Throwable) {}
+            }
+            webViewInstance = null
+        }
+    }
 
     DisposableEffect(customView) {
         if (customView != null) {
@@ -54,6 +74,7 @@ actual fun YouTubePlayerView(
             AndroidView(
                 factory = { ctx ->
                     WebView(ctx).apply {
+                        webViewInstance = this
                         layoutParams = ViewGroup.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
