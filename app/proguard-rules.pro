@@ -26,20 +26,34 @@
 -keep class kotlinx.datetime.** { *; }
 
 # --- Android WebView, YouTube Player & JavaScript Interop ---
--keep class android.webkit.** { *; }
+# Keep all WebViewClient/WebChromeClient subclasses - including anonymous inner
+# classes generated inside Compose 'factory' lambdas which R8 strips aggressively.
 -keep class * extends android.webkit.WebViewClient { *; }
 -keep class * extends android.webkit.WebChromeClient { *; }
 -keepclassmembers class * extends android.webkit.WebViewClient {
-    public <methods>;
+    public *;
+    protected *;
 }
 -keepclassmembers class * extends android.webkit.WebChromeClient {
-    public <methods>;
+    public *;
+    protected *;
 }
+
+# Keep WebSettings property setters - R8 may inline/remove these in release
+-keepclassmembers class android.webkit.WebSettings {
+    public *;
+}
+
+# Keep JavascriptInterface-annotated methods
 -keepclassmembers class * {
     @android.webkit.JavascriptInterface <methods>;
 }
+
+# Keep the entire player package including generated Compose lambda classes
 -keep class com.dirzaaulia.footballclips.ui.player.** { *; }
 -keepclassmembers class com.dirzaaulia.footballclips.ui.player.** { *; }
+# Keep any anonymous/synthetic classes generated inside the player package
+-keep class com.dirzaaulia.footballclips.ui.player.**$* { *; }
 
 # --- Suppress Warnings for Desktop/JVM Classes ---
 -dontwarn java.lang.management.**
