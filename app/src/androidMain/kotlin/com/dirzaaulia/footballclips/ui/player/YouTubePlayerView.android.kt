@@ -37,26 +37,6 @@ actual fun YouTubePlayerView(
     var customView by remember { mutableStateOf<View?>(null) }
     var customViewCallback by remember { mutableStateOf<WebChromeClient.CustomViewCallback?>(null) }
     var hasError by remember { mutableStateOf(false) }
-    var webViewInstance by remember { mutableStateOf<WebView?>(null) }
-
-    // Safely stop, unbind callbacks, and destroy WebView on disposal
-    DisposableEffect(webViewInstance) {
-        onDispose {
-            webViewInstance?.let { wv ->
-                try {
-                    wv.stopLoading()
-                    wv.webViewClient = object : WebViewClient() {}
-                    wv.webChromeClient = null
-                    wv.loadUrl("about:blank")
-                    wv.clearHistory()
-                    wv.removeAllViews()
-                    (wv.parent as? ViewGroup)?.removeView(wv)
-                    wv.destroy()
-                } catch (_: Throwable) {}
-            }
-            webViewInstance = null
-        }
-    }
 
     DisposableEffect(customView) {
         if (customView != null) {
@@ -68,13 +48,12 @@ actual fun YouTubePlayerView(
             activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
     }
-
     Box(modifier = modifier.background(Color.Black)) {
         if (!hasError) {
             AndroidView(
+                modifier = Modifier.fillMaxSize(),
                 factory = { ctx ->
                     WebView(ctx).apply {
-                        webViewInstance = this
                         layoutParams = ViewGroup.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
@@ -82,6 +61,7 @@ actual fun YouTubePlayerView(
                         
                         webViewClient = object : WebViewClient() {
                             override fun onPageFinished(view: WebView?, url: String?) {
+                                android.util.Log.d("YouTubePlayerView", "onPageFinished: $url")
                                 if (url?.startsWith("fc-error://") == true) {
                                     hasError = true
                                 }
@@ -89,15 +69,30 @@ actual fun YouTubePlayerView(
 
                             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                                 val url = request?.url?.toString()
+                                android.util.Log.d("YouTubePlayerView", "shouldOverrideUrlLoading: $url")
                                 if (url?.startsWith("fc-error://") == true) {
                                     hasError = true
                                     return true
                                 }
                                 return super.shouldOverrideUrlLoading(view, request)
                             }
+
+                            override fun onReceivedError(
+                                view: WebView?,
+                                request: WebResourceRequest?,
+                                error: android.webkit.WebResourceError?
+                            ) {
+                                super.onReceivedError(view, request, error)
+                                android.util.Log.e("YouTubePlayerView", "onReceivedError: ${error?.description} (${error?.errorCode}) url=${request?.url}")
+                            }
                         }
                         
                         webChromeClient = object : WebChromeClient() {
+                            override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage?): Boolean {
+                                android.util.Log.d("YouTubePlayerView", "JS: ${consoleMessage?.message()} (${consoleMessage?.sourceId()}:${consoleMessage?.lineNumber()})")
+                                return super.onConsoleMessage(consoleMessage)
+                            }
+
                             override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
                                 customView = view
                                 customViewCallback = callback
@@ -167,7 +162,18 @@ actual fun YouTubePlayerView(
                         loadDataWithBaseURL("https://dirzaaulia.com", html, "text/html", "UTF-8", null)
                     }
                 },
-                modifier = Modifier.fillMaxSize()
+                onRelease = { wv ->
+                    try {
+                        wv.stopLoading()
+                        wv.webViewClient = object : WebViewClient() {}
+                        wv.webChromeClient = null
+                        wv.loadUrl("about:blank")
+                        wv.clearHistory()
+                        wv.removeAllViews()
+                        (wv.parent as? ViewGroup)?.removeView(wv)
+                        wv.destroy()
+                    } catch (_: Throwable) {}
+                }
             )
         }
 
