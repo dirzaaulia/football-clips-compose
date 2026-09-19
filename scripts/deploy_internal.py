@@ -13,26 +13,49 @@ PACKAGE_NAME = "com.dirzaaulia.footballclips"
 KEY_FILE = "fastlane/play-console-key.json"
 AAB_PATH = "app/build/outputs/bundle/release/app-release.aab"
 
-RELEASE_NOTES = [
+INTERNAL_RELEASE_NOTES = [
     {
         "language": "en-US",
-        "text": "• Internal testing build with latest stability enhancements and bug fixes.\n• RevenueCat billing and subscription flow improvements.\n• AdMob layout adjustments and performance optimizations."
+        "text": "• Internal testing build with latest stability enhancements and bug fixes.\n• Fixed video playback in bottom sheet player.\n• RevenueCat billing and subscription flow improvements.\n• AdMob layout adjustments and performance optimizations."
     },
     {
         "language": "id",
-        "text": "• Versi pengujian internal dengan perbaikan bug dan peningkatan stabilitas.\n• Peningkatan sistem langganan & pembelian RevenueCat.\n• Pengoptimalan tata letak AdMob dan performa aplikasi."
+        "text": "• Versi pengujian internal dengan perbaikan bug dan peningkatan stabilitas.\n• Perbaikan pemutaran video pada bottom sheet player.\n• Peningkatan sistem langganan & pembelian RevenueCat.\n• Pengoptimalan tata letak AdMob dan performa aplikasi."
     },
     {
         "language": "es-419",
-        "text": "• Versión de prueba interna con mejoras de estabilidad y correcciones.\n• Mejoras en el flujo de suscripción y facturación de RevenueCat.\n• Optimizaciones de diseño de AdMob y rendimiento general."
+        "text": "• Versión de prueba interna con mejoras de estabilidad y correcciones.\n• Corrección de reproducción de video en el reproductor.\n• Mejoras en el flujo de suscripción y facturación de RevenueCat.\n• Optimizaciones de diseño de AdMob y rendimiento general."
     },
     {
         "language": "es-ES",
-        "text": "• Versión de prueba interna con mejoras de estabilidad y correcciones.\n• Mejoras en el flujo de suscripción y facturación de RevenueCat.\n• Optimizaciones de diseño de AdMob y rendimiento general."
+        "text": "• Versión de prueba interna con mejoras de estabilidad y correcciones.\n• Corrección de reproducción de video en el reproductor.\n• Mejoras en el flujo de suscripción y facturación de RevenueCat.\n• Optimizaciones de diseño de AdMob y rendimiento general."
     },
     {
         "language": "pt-BR",
-        "text": "• Versão de teste interno com melhorias de estabilidade e correções de bugs.\n• Aprimoramentos no fluxo de faturamento e assinaturas do RevenueCat.\n• Otimizações de layout do AdMob e desempenho do aplicativo."
+        "text": "• Versão de teste interno com melhorias de estabilidade e correções de bugs.\n• Correção na reprodução de vídeo no player inferior.\n• Aprimoramentos no fluxo de faturamento e assinaturas do RevenueCat.\n• Otimizações de layout do AdMob e desempenho do aplicativo."
+    }
+]
+
+PROD_RELEASE_NOTES = [
+    {
+        "language": "en-US",
+        "text": "• Fixed video playback in player bottom sheet.\n• Expanded compatibility and smoother overall experience.\n• Performance improvements and stability enhancements."
+    },
+    {
+        "language": "id",
+        "text": "• Perbaikan pemutaran video pada pemutar video.\n• Peningkatan kompatibilitas untuk pengalaman yang lebih lancar.\n• Peningkatan stabilitas dan performa aplikasi."
+    },
+    {
+        "language": "es-419",
+        "text": "• Se corrigió la reproducción de video en el reproductor.\n• Mayor compatibilidad para una experiencia más fluida.\n• Mejoras de estabilidad y optimización de rendimiento."
+    },
+    {
+        "language": "es-ES",
+        "text": "• Se corrigió la reproducción de video en el reproductor.\n• Mayor compatibilidad para una experiencia más fluida.\n• Mejoras de estabilidad y optimización de rendimiento."
+    },
+    {
+        "language": "pt-BR",
+        "text": "• Correção na reprodução de vídeo no player.\n• Maior compatibilidade para uma experiência mais suave.\n• Melhorias de desempenho e estabilidade geral."
     }
 ]
 
@@ -67,19 +90,20 @@ def get_access_token():
     return resp.json()["access_token"]
 
 def main():
-    parser = argparse.ArgumentParser(description="Deploy Release AAB to Google Play Console Internal Testing track.")
+    parser = argparse.ArgumentParser(description="Deploy Release AAB to Google Play Console tracks.")
     parser.add_argument("--dry-run", action="store_true", help="Validate edit without committing changes to Play Store.")
     parser.add_argument("--aab", default=AAB_PATH, help="Path to release AAB bundle.")
+    parser.add_argument("--tracks", nargs="+", default=["internal"], choices=["internal", "production", "beta", "alpha"], help="Tracks to deploy to (e.g. --tracks internal production)")
     args = parser.parse_args()
 
     aab_path = args.aab
 
     print("==================================================")
-    print("  Google Play Console Internal Test Deployer")
+    print("  Google Play Console Deployer")
     print(f"  Package: {PACKAGE_NAME}")
-    print(f"  Track: internal")
+    print(f"  Tracks: {', '.join(args.tracks)}")
     print(f"  AAB Path: {aab_path}")
-    print(f"  Dry Run: {'YES (Will validate and not publish)' if args.dry_run else 'NO (LIVE INTERNAL DEPLOY)'}")
+    print(f"  Dry Run: {'YES (Will validate and not publish)' if args.dry_run else 'NO (LIVE DEPLOY)'}")
     print("==================================================")
 
     if not os.path.exists(aab_path):
@@ -134,28 +158,30 @@ def main():
         print(f"       Version Code: {version_code}")
         print(f"       SHA256: {sha256}")
 
-        # 3. Assign to Internal Track
-        print(f"\n[3/4] Assigning Version Code {version_code} to 'internal' track...")
-        track_url = (
-            f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/"
-            f"{PACKAGE_NAME}/edits/{edit_id}/tracks/internal"
-        )
-        track_payload = {
-            "track": "internal",
-            "releases": [
-                {
-                    "name": f"3.0.{version_code}",
-                    "versionCodes": [str(version_code)],
-                    "status": "completed",
-                    "releaseNotes": RELEASE_NOTES
-                }
-            ]
-        }
-        track_resp = requests.put(track_url, headers=headers, json=track_payload)
-        if track_resp.status_code not in (200, 201):
-            print(f"  [FAIL] Failed to assign track: {track_resp.status_code} {track_resp.text}")
-            sys.exit(1)
-        print(f"  [OK] Assigned release 3.0.{version_code} to 'internal' track.")
+        # 3. Assign to specified tracks
+        for track_name in args.tracks:
+            notes = PROD_RELEASE_NOTES if track_name == "production" else INTERNAL_RELEASE_NOTES
+            print(f"\n[3/4] Assigning Version Code {version_code} to '{track_name}' track...")
+            track_url = (
+                f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/"
+                f"{PACKAGE_NAME}/edits/{edit_id}/tracks/{track_name}"
+            )
+            track_payload = {
+                "track": track_name,
+                "releases": [
+                    {
+                        "name": f"3.0.{version_code}",
+                        "versionCodes": [str(version_code)],
+                        "status": "completed",
+                        "releaseNotes": notes
+                    }
+                ]
+            }
+            track_resp = requests.put(track_url, headers=headers, json=track_payload)
+            if track_resp.status_code not in (200, 201):
+                print(f"  [FAIL] Failed to assign track '{track_name}': {track_resp.status_code} {track_resp.text}")
+                sys.exit(1)
+            print(f"  [OK] Assigned release 3.0.{version_code} to '{track_name}' track.")
 
         # 4. Commit or Validate Edit
         if args.dry_run:
@@ -165,7 +191,7 @@ def main():
                 headers=headers
             )
             if val_res.status_code == 200:
-                print("  [OK] Internal deployment validation passed successfully! (Dry-run)")
+                print("  [OK] Deployment validation passed successfully! (Dry-run)")
             else:
                 print(f"  [FAIL] Validation returned: {val_res.status_code} {val_res.text}")
             requests.delete(
@@ -174,13 +200,13 @@ def main():
             )
             print("  [OK] Draft edit session discarded cleanly.")
         else:
-            print("\n[4/4] Committing release to Google Play Internal Track...")
+            print(f"\n[4/4] Committing release to Google Play track(s): {', '.join(args.tracks)}...")
             commit_res = requests.post(
                 f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{PACKAGE_NAME}/edits/{edit_id}:commit",
                 headers=headers
             )
             if commit_res.status_code == 200:
-                print(f"  [SUCCESS] Release 3.0.{version_code} successfully deployed to INTERNAL test track!")
+                print(f"  [SUCCESS] Release 3.0.{version_code} successfully deployed to: {', '.join(args.tracks)}!")
             else:
                 print(f"  [FAIL] Failed to commit changes: {commit_res.status_code} {commit_res.text}")
                 sys.exit(1)
