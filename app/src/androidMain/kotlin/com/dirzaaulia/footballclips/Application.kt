@@ -41,10 +41,19 @@ class FootballClipsApplication : Application(), SingletonImageLoader.Factory {
         super.onCreate()
 
         // Initialize RevenueCat before Koin DI resolves BillingManager
-        Purchases.logLevel = if (BuildConfig.DEBUG) LogLevel.DEBUG else LogLevel.WARN
-        Purchases.configure(
-            PurchasesConfiguration.Builder(this, BuildConfig.REVENUECAT_API_KEY).build()
-        )
+        if (BuildConfig.REVENUECAT_API_KEY.isNotBlank()) {
+            try {
+                Purchases.logLevel = if (BuildConfig.DEBUG) LogLevel.DEBUG else LogLevel.WARN
+                Purchases.configure(
+                    PurchasesConfiguration.Builder(this, BuildConfig.REVENUECAT_API_KEY).build()
+                )
+                Log.d("FootballClipsApp", "RevenueCat initialized successfully")
+            } catch (t: Throwable) {
+                Log.e("FootballClipsApp", "RevenueCat initialization failed: ${t.message}")
+            }
+        } else {
+            Log.e("FootballClipsApp", "REVENUECAT_API_KEY is empty! Skipping RevenueCat initialization to prevent crash.")
+        }
 
         // Initialize AdMob MobileAds eagerly on Application startup
         try {

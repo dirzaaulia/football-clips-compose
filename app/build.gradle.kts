@@ -115,6 +115,13 @@ android {
         }
     }
 
+    fun getSecret(key: String, defaultValue: String = ""): String {
+        return localProperties.getProperty(key)
+            ?: providers.gradleProperty(key).orNull
+            ?: providers.environmentVariable(key).orNull
+            ?: defaultValue
+    }
+
     defaultConfig {
         applicationId = "com.dirzaaulia.footballclips"
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -128,16 +135,16 @@ android {
         versionCode = autoVersionCode
         versionName = "3.0.$autoVersionCode"
 
-        manifestPlaceholders["admobAppId"] = localProperties.getProperty("ADMOB_APP_ID") ?: ""
+        manifestPlaceholders["admobAppId"] = getSecret("ADMOB_APP_ID")
 
-        buildConfigField("String", "REVENUECAT_API_KEY", "\"${localProperties.getProperty("REVENUECAT_API_KEY", "")}\"")
-        buildConfigField("String", "SUPABASE_URL", "\"${localProperties.getProperty("SUPABASE_URL", "")}\"")
-        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${localProperties.getProperty("SUPABASE_ANON_KEY", "")}\"")
-        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${localProperties.getProperty("GOOGLE_WEB_CLIENT_ID", "")}\"")
-        buildConfigField("String", "ADMOB_APP_ID", "\"${localProperties.getProperty("ADMOB_APP_ID", "")}\"")
-        buildConfigField("String", "ADMOB_BANNER_ID", "\"${localProperties.getProperty("ADMOB_BANNER_ID", "")}\"")
-        buildConfigField("String", "ADMOB_NATIVE_ID", "\"${localProperties.getProperty("ADMOB_NATIVE_ID", "ca-app-pub-6717632447198427/5222531302")}\"")
-        buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"${localProperties.getProperty("ADMOB_INTERSTITIAL_ID", "")}\"")
+        buildConfigField("String", "REVENUECAT_API_KEY", "\"${getSecret("REVENUECAT_API_KEY")}\"")
+        buildConfigField("String", "SUPABASE_URL", "\"${getSecret("SUPABASE_URL")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${getSecret("SUPABASE_ANON_KEY")}\"")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${getSecret("GOOGLE_WEB_CLIENT_ID")}\"")
+        buildConfigField("String", "ADMOB_APP_ID", "\"${getSecret("ADMOB_APP_ID")}\"")
+        buildConfigField("String", "ADMOB_BANNER_ID", "\"${getSecret("ADMOB_BANNER_ID")}\"")
+        buildConfigField("String", "ADMOB_NATIVE_ID", "\"${getSecret("ADMOB_NATIVE_ID", "ca-app-pub-6717632447198427/5222531302")}\"")
+        buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"${getSecret("ADMOB_INTERSTITIAL_ID")}\"")
         androidResources {
             localeFilters += setOf("en", "id", "es", "pt")
         }
