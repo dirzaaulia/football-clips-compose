@@ -25,8 +25,10 @@
 -keep class io.ktor.** { *; }
 -keep class kotlinx.datetime.** { *; }
 
-# --- Android WebView & JavaScript Interop ---
+# --- Android WebView, YouTube Player & JavaScript Interop ---
 -keep class android.webkit.** { *; }
+-keep class * extends android.webkit.WebViewClient { *; }
+-keep class * extends android.webkit.WebChromeClient { *; }
 -keepclassmembers class * extends android.webkit.WebViewClient {
     public <methods>;
 }
@@ -36,6 +38,8 @@
 -keepclassmembers class * {
     @android.webkit.JavascriptInterface <methods>;
 }
+-keep class com.dirzaaulia.footballclips.ui.player.** { *; }
+-keepclassmembers class com.dirzaaulia.footballclips.ui.player.** { *; }
 
 # --- Suppress Warnings for Desktop/JVM Classes ---
 -dontwarn java.lang.management.**
