@@ -3,6 +3,13 @@
 # --- Keep Annotations, Signatures & Reflection Attributes ---
 -keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod,JavascriptInterface
 
+# --- AndroidX WorkManager & Room Database ---
+-keep class * extends androidx.room.RoomDatabase { *; }
+-keep class androidx.work.impl.** { *; }
+-keepclassmembers class * extends androidx.room.RoomDatabase {
+    public <init>();
+}
+
 # --- Android WebView, YouTube Player & JavaScript Interop ---
 # Keep all WebViewClient/WebChromeClient subclasses and properties
 -keep class android.webkit.** { *; }
