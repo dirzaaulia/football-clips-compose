@@ -246,7 +246,7 @@ fun WebMatchesScreen(
                         route = NavDestination.Player.route,
                         arguments = listOf(navArgument("itemId") { type = NavType.StringType })
                     ) { backStackEntry ->
-                        val itemId = backStackEntry.arguments?.getString("itemId")
+                        val itemId = backStackEntry.savedStateHandle.get<String>("itemId")
                         LaunchedEffect(itemId) {
                             if (itemId != null) {
                                 viewModel.selectVideoById(itemId)

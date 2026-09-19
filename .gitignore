@@ -27,6 +27,7 @@ __pycache__/
 # Kotlin & Firebase cache
 .kotlin/
 .firebase/
+kotlin-js-store/
 
 # Crash dumps
 hs_err_pid*.log
