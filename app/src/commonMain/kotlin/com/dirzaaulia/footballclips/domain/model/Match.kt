@@ -3,9 +3,9 @@ package com.dirzaaulia.footballclips.domain.model
 import com.dirzaaulia.footballclips.data.model.remote.MatchDto
 import com.dirzaaulia.footballclips.util.DateTimeUtils
 import com.dirzaaulia.footballclips.util.normalizeLeagueName
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Instant
 
 data class Match(
     val id: Long,
@@ -42,7 +42,7 @@ data class Match(
 
     val formattedLocalKickoff: String
         get() = localDateTime?.let {
-            val day = it.dayOfMonth.toString().padStart(2, '0')
+            val day = it.day.toString().padStart(2, '0')
             val month = it.month.name.take(3).lowercase().replaceFirstChar { c -> c.uppercase() }
             val hour = it.hour.toString().padStart(2, '0')
             val minute = it.minute.toString().padStart(2, '0')
@@ -51,12 +51,12 @@ data class Match(
 
     val dateOnly: String
         get() = localDateTime?.let {
-            "${it.dayOfMonth} ${it.month.name.take(3)}"
+            "${it.day} ${it.month.name.take(3)}"
         } ?: ""
 
     val dateOnlyISO: String
         get() = localDateTime?.let {
-            "${it.year}-${it.monthNumber.toString().padStart(2, '0')}-${it.dayOfMonth.toString().padStart(2, '0')}"
+            "${it.year}-${(it.month.ordinal + 1).toString().padStart(2, '0')}-${it.day.toString().padStart(2, '0')}"
         } ?: ""
 
     val kickoffTime: String

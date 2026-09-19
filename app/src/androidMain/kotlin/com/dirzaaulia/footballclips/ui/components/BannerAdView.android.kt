@@ -52,7 +52,7 @@ actual fun BannerAdView(
 
     Box(modifier = modifier) {
         activity?.let { act ->
-            var nativeAd by remember { mutableStateOf<NativeAd?>(null) }
+            var adState by remember { mutableStateOf<NativeAd?>(null) }
 
             DisposableEffect(act) {
                 fun attachAdEventCallback(ad: NativeAd, adStyle: NativeAdStyle) {
@@ -89,7 +89,7 @@ actual fun BannerAdView(
                     if (cachedAd != null) {
                         Log.d(TAG, "🟢 SERVED FROM CACHE [$style]: NativeAd '${cachedAd.headline}'")
                         attachAdEventCallback(cachedAd, style)
-                        nativeAd = cachedAd
+                        adState = cachedAd
                         onAdLoaded()
                         NativeAdCache.preloadAd(act.applicationContext, adUnitId)
                         return
@@ -101,22 +101,22 @@ actual fun BannerAdView(
                     val request = NativeAdRequest.Builder(adUnitId, types).build()
                     try {
                         NativeAdLoader.load(request, 5, object : NativeAdLoaderCallback {
-                            override fun onNativeAdLoaded(ad: NativeAd) {
-                                if (nativeAd == null) {
-                                    Log.d(TAG, "🟢 BATCH AD #1 ASSIGNED [$style]: NativeAd '${ad.headline}'")
-                                    attachAdEventCallback(ad, style)
-                                    nativeAd = ad
+                            override fun onNativeAdLoaded(nativeAd: NativeAd) {
+                                if (adState == null) {
+                                    Log.d(TAG, "🟢 BATCH AD #1 ASSIGNED [$style]: NativeAd '${nativeAd.headline}'")
+                                    attachAdEventCallback(nativeAd, style)
+                                    adState = nativeAd
                                     onAdLoaded()
                                 } else {
-                                    Log.d(TAG, "📥 BATCH AD STORED TO CACHE: NativeAd '${ad.headline}'")
-                                    NativeAdCache.putAd(adUnitId, ad)
+                                    Log.d(TAG, "📥 BATCH AD STORED TO CACHE: NativeAd '${nativeAd.headline}'")
+                                    NativeAdCache.putAd(adUnitId, nativeAd)
                                 }
                                 NativeAdCache.preloadAd(act.applicationContext, adUnitId)
                             }
 
                             override fun onAdFailedToLoad(adError: LoadAdError) {
                                 Log.e(TAG, formatAdError(adError, "NATIVE [$style]"))
-                                if (nativeAd == null) {
+                                if (adState == null) {
                                     onAdFailed(adError.message)
                                 }
                             }
@@ -143,11 +143,11 @@ actual fun BannerAdView(
                 }
 
                 onDispose {
-                    nativeAd?.destroy()
+                    adState?.destroy()
                 }
             }
 
-            val currentNativeAd = nativeAd
+            val currentNativeAd = adState
             if (currentNativeAd != null) {
                 AndroidView(
                     factory = { ctx ->

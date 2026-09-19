@@ -203,7 +203,7 @@ fun HomeScreen(
                                 letterSpacing = if (isWeb) 1.sp else 0.sp,
                                 modifier = Modifier.clickable {
                                     if (!isWeb && isDebugBuild) {
-                                        val now = Clock.System.now().toEpochMilliseconds()
+                                        val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
                                         if (now - lastTitleTapTime < 800) {
                                             titleTapCount++
                                         } else {
@@ -227,7 +227,7 @@ fun HomeScreen(
 
                                 IconButton(
                                     onClick = {
-                                        val now = Clock.System.now().toEpochMilliseconds()
+                                        val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
                                         if (now - lastThemeToggleTime >= 750) {
                                             lastThemeToggleTime = now
                                             triggerThemeCapture(toggleCenter)

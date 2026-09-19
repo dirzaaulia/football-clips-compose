@@ -113,9 +113,9 @@ object NativeAdCache {
         val request = NativeAdRequest.Builder(adUnitId, types).build()
         try {
             NativeAdLoader.load(request, needed, object : NativeAdLoaderCallback {
-                override fun onNativeAdLoaded(ad: NativeAd) {
-                    Log.d(TAG_NATIVE, "🟢 PRELOAD SUCCESS: NativeAd '${ad.headline}' pre-fetched into pool")
-                    putAd(adUnitId, ad)
+                override fun onNativeAdLoaded(nativeAd: NativeAd) {
+                    Log.d(TAG_NATIVE, "🟢 PRELOAD SUCCESS: NativeAd '${nativeAd.headline}' pre-fetched into pool")
+                    putAd(adUnitId, nativeAd)
                 }
 
                 override fun onAdFailedToLoad(adError: LoadAdError) {
@@ -242,8 +242,8 @@ actual class AdMobManager(private val context: Context) {
                     onAdDismissed()
                 }
 
-                override fun onAdFailedToShowFullScreenContent(error: FullScreenContentError) {
-                    Log.e(TAG_INTERSTITIAL, "🔴 INTERSTITIAL SHOW FAILED: ${error.message} (Code: ${error.code})")
+                override fun onAdFailedToShowFullScreenContent(fullScreenContentError: FullScreenContentError) {
+                    Log.e(TAG_INTERSTITIAL, "🔴 INTERSTITIAL SHOW FAILED: ${fullScreenContentError.message} (Code: ${fullScreenContentError.code})")
                     interstitialAd = null
                     loadInterstitial()
                     onAdDismissed()

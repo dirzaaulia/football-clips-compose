@@ -1,7 +1,7 @@
 # R8 / ProGuard rules for Football Highlights & Clips
 
 # --- Keep Annotations, Signatures & Reflection Attributes ---
--keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod,JavascriptInterface
 
 # --- Kotlin Serialization ---
 -keepclassmembers class * {
@@ -24,6 +24,18 @@
 -keep class io.github.jan.supabase.** { *; }
 -keep class io.ktor.** { *; }
 -keep class kotlinx.datetime.** { *; }
+
+# --- Android WebView & JavaScript Interop ---
+-keep class android.webkit.** { *; }
+-keepclassmembers class * extends android.webkit.WebViewClient {
+    public <methods>;
+}
+-keepclassmembers class * extends android.webkit.WebChromeClient {
+    public <methods>;
+}
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
 
 # --- Suppress Warnings for Desktop/JVM Classes ---
 -dontwarn java.lang.management.**

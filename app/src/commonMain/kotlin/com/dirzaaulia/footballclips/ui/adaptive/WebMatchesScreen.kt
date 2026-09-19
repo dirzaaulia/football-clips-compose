@@ -406,7 +406,7 @@ private fun MatchTheater(
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color(0xFF0F0F0F).copy(alpha = 0.95f),
                         titleContentColor = Color.White,
                         navigationIconContentColor = Color.White,
@@ -676,18 +676,11 @@ private fun MatchTheater(
 
                             Spacer(Modifier.height(8.dp))
 
-                            TabRow(
+                            PrimaryTabRow(
                                 selectedTabIndex = mainSidebarTab,
                                 containerColor = Color.Transparent,
                                 contentColor = MaterialTheme.colorScheme.primary,
-                                divider = {},
-                                indicator = { tabPositions ->
-                                    TabRowDefaults.SecondaryIndicator(
-                                        modifier = Modifier.tabIndicatorOffset(tabPositions[mainSidebarTab]),
-                                        color = MaterialTheme.colorScheme.primary,
-                                        height = 3.dp
-                                    )
-                                }
+                                divider = {}
                             ) {
                                 mainTabs.forEachIndexed { index, titleText ->
                                     Tab(

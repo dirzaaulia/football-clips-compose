@@ -1,7 +1,6 @@
 package com.dirzaaulia.footballclips.data.model.remote
 
 import com.dirzaaulia.footballclips.util.normalizeLeagueName
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format.MonthNames
@@ -97,10 +96,10 @@ fun HighlightItemResponse.toUiModel(): HighlightUiModel? {
     // Parse ISO date and format it for the UI (e.g., "23 Aug, 15:00")
     val formattedDate = try {
         val dateString = matchDetails.date ?: ""
-        val instant = Instant.parse(dateString)
+        val instant = kotlin.time.Instant.parse(dateString)
         val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
         val dateTimeFormat = LocalDateTime.Format {
-            dayOfMonth()
+            day()
             char(' ')
             monthName(MonthNames.ENGLISH_ABBREVIATED)
             char(',')

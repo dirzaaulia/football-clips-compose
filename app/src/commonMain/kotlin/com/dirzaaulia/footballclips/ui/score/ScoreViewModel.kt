@@ -18,11 +18,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 
 sealed interface ScoreState {
     data object Loading : ScoreState
@@ -171,13 +172,11 @@ class ScoreViewModel(
 
         return (0..14).map { daysOffset ->
             val date = try {
-                now.plus(daysOffset, DateTimeUnit.DAY, timeZone)
-                    .toLocalDateTime(timeZone)
+                (now + daysOffset.days).toLocalDateTime(timeZone)
             } catch (t: Throwable) {
                 // Final fallback to UTC if everything else fails
                 try {
-                    now.plus(daysOffset, DateTimeUnit.DAY, TimeZone.UTC)
-                        .toLocalDateTime(TimeZone.UTC)
+                    (now + daysOffset.days).toLocalDateTime(TimeZone.UTC)
                 } catch (t2: Throwable) {
                     // This should theoretically never happen, but for absolute safety
                     Clock.System.now().toLocalDateTime(TimeZone.UTC)
@@ -192,8 +191,8 @@ class ScoreViewModel(
 
             DateOption(
                 displayDay = dayName,
-                displayDate = "${date.dayOfMonth} ${date.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }}",
-                date = "${date.year}-${date.monthNumber.toString().padStart(2, '0')}-${date.dayOfMonth.toString().padStart(2, '0')}",
+                displayDate = "${date.day} ${date.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }}",
+                date = "${date.year}-${(date.month.ordinal + 1).toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}",
                 isToday = daysOffset == 0
             )
         }
