@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Football Highlights & Clips</title>
+    <meta name="description" content="Get in touch with Football Highlights & Clips and developer Dirza Aulia for technical support, feedback, partnerships, or DMCA inquiries.">
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- AdSense Verification Meta Tag -->
+    <meta name="google-adsense-account" content="ca-pub-6717632447198427">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6717632447198427" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f17;
+            --surface-color: #131b2a;
+            --surface-border: #1e293b;
+            --primary: #38bdf8;
+            --primary-hover: #0284c7;
+            --accent: #10b981;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(16px);
+            background: rgba(11, 15, 23, 0.85);
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .nav-container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary);
+        }
+
+        main {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 5rem;
+        }
+
+        .hero {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .meta-date {
+            color: var(--text-dim);
+            font-size: 0.875rem;
+        }
+
+        h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 2.25rem 0 1rem;
+            letter-spacing: -0.015em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 1.25rem;
+            color: var(--text-muted);
+            font-size: 0.975rem;
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .contact-card {
+            background: var(--surface-color);
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .contact-card h3 {
+            font-size: 1.15rem;
+            color: #fff;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .contact-card p {
+            font-size: 0.925rem;
+            color: var(--text-muted);
+            margin-bottom: 1.25rem;
+        }
+
+        .btn-contact {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-contact:hover {
+            background: var(--primary);
+            color: #0b0f17;
+            text-decoration: none;
+        }
+
+        .info-card {
+            background: var(--surface-color);
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .info-card h3 {
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        a:hover {
+            color: var(--primary-hover);
+        }
+
+        footer {
+            border-top: 1px solid var(--surface-border);
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 1.85rem; }
+            h2 { font-size: 1.2rem; }
+            .nav-container { flex-direction: column; gap: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <span>⚽</span>
+                <span>Football Highlights & Clips</span>
+            </a>
+            <nav class="nav-links">
+                <a href="/">App</a>
+                <a href="/competitions">Competitions</a>
+                <a href="/about">About</a>
+                <a href="/contact" class="active">Contact</a>
+                <a href="/privacy">Privacy Policy</a>
+                <a href="/tnc">Terms</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <span class="badge">Get in Touch</span>
+            <h1>Contact & Support</h1>
+            <p class="meta-date">We're here to assist with inquiries, suggestions, and publisher support</p>
+        </section>
+
+        <section>
+            <p>Whether you have feedback on video matching accuracy, technical bug reports, advertising inquiries, or DMCA compliance questions, our team is accessible through the following communication channels:</p>
+
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <div>
+                        <h3>📬 General & Technical Support</h3>
+                        <p>Questions about the app, reporting broken links, or feedback regarding league standings and matchday scores.</p>
+                    </div>
+                    <a href="mailto:dirzaaulia@gmail.com?subject=Football%20Clips%20Support" class="btn-contact">dirzaaulia@gmail.com</a>
+                </div>
+
+                <div class="contact-card">
+                    <div>
+                        <h3>⚖️ Copyright & DMCA Compliance</h3>
+                        <p>Inquiries regarding YouTube video embeddings, publisher compliance, or rightsholder content notices.</p>
+                    </div>
+                    <a href="mailto:dirzaaulia@gmail.com?subject=Football%20Clips%20DMCA%20Inquiry" class="btn-contact">Submit Notice</a>
+                </div>
+
+                <div class="contact-card">
+                    <div>
+                        <h3>💼 Partnerships & Inquiries</h3>
+                        <p>Business proposals, developer collaborations, or cross-platform publishing opportunities.</p>
+                    </div>
+                    <a href="mailto:dirzaaulia@gmail.com?subject=Football%20Clips%20Partnership" class="btn-contact">Partner With Us</a>
+                </div>
+            </div>
+
+            <h2>Response Time Commitment</h2>
+            <div class="info-card">
+                <h3>Direct Developer Support</h3>
+                <p>All inquiries are handled directly by the lead developer. We strive to review and respond to all email messages within <strong>24 to 48 hours</strong> during regular business days.</p>
+                <p style="margin-top: 0.75rem;">If you are reporting a playback issue or broken video embed, please include the match fixture details (e.g., Team A vs Team B and competition) to help us resolve the issue swiftly.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Football Highlights & Clips. Developed by Dirza Aulia. All rights reserved.</p>
+        <p style="margin-top: 0.5rem;"><a href="/privacy">Privacy Policy</a> &bull; <a href="/tnc">Terms of Service</a> &bull; <a href="/about">About</a></p>
+    </footer>
+</body>
+</html>

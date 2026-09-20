@@ -37,6 +37,18 @@
     ],
     "rewrites": [
       {
+        "source": "/about",
+        "destination": "/about.html"
+      },
+      {
+        "source": "/competitions",
+        "destination": "/competitions.html"
+      },
+      {
+        "source": "/contact",
+        "destination": "/contact.html"
+      },
+      {
         "source": "/privacy",
         "destination": "/privacy.html"
       },

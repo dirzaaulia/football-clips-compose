@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Competitions & Leagues - Football Highlights & Clips</title>
+    <meta name="description" content="Comprehensive guide to European football competitions covered by Football Highlights & Clips: Premier League, Champions League, La Liga, Serie A, and Bundesliga.">
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- AdSense Verification Meta Tag -->
+    <meta name="google-adsense-account" content="ca-pub-6717632447198427">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6717632447198427" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f17;
+            --surface-color: #131b2a;
+            --surface-border: #1e293b;
+            --primary: #38bdf8;
+            --primary-hover: #0284c7;
+            --accent: #10b981;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(16px);
+            background: rgba(11, 15, 23, 0.85);
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .nav-container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary);
+        }
+
+        main {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 5rem;
+        }
+
+        .hero {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .meta-date {
+            color: var(--text-dim);
+            font-size: 0.875rem;
+        }
+
+        h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 2.5rem 0 1rem;
+            letter-spacing: -0.015em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 1.25rem;
+            color: var(--text-muted);
+            font-size: 0.975rem;
+        }
+
+        .comp-card {
+            background: var(--surface-color);
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin: 1.5rem 0;
+        }
+
+        .comp-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .comp-icon {
+            font-size: 1.75rem;
+        }
+
+        .comp-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .comp-tag {
+            margin-left: auto;
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent);
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .comp-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .detail-item {
+            font-size: 0.875rem;
+        }
+
+        .detail-label {
+            color: var(--text-dim);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-val {
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        a:hover {
+            color: var(--primary-hover);
+        }
+
+        footer {
+            border-top: 1px solid var(--surface-border);
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 1.85rem; }
+            h2 { font-size: 1.2rem; }
+            .nav-container { flex-direction: column; gap: 0.75rem; }
+            .comp-header { flex-wrap: wrap; }
+            .comp-tag { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <span>⚽</span>
+                <span>Football Highlights & Clips</span>
+            </a>
+            <nav class="nav-links">
+                <a href="/">App</a>
+                <a href="/competitions" class="active">Competitions</a>
+                <a href="/about">About</a>
+                <a href="/contact">Contact</a>
+                <a href="/privacy">Privacy Policy</a>
+                <a href="/tnc">Terms</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <span class="badge">Comprehensive Coverage</span>
+            <h1>European Football Competitions & Leagues</h1>
+            <p class="meta-date">Season 2026/2027 Coverage • Official Highlights, Fixtures & Schedules</p>
+        </section>
+
+        <section>
+            <p>Football Highlights & Clips monitors European club competitions to bring fans timely matchday recaps, full-time scores, and fixture schedules. Below is an overview of each competition currently supported within our platform:</p>
+
+            <!-- 1. Premier League -->
+            <div class="comp-card">
+                <div class="comp-header">
+                    <span class="comp-icon">🏴󠁧󠁢󠁥󠁮󠁧󠁿</span>
+                    <span class="comp-title">English Premier League (EPL)</span>
+                    <span class="comp-tag">Active Coverage</span>
+                </div>
+                <p>The English Premier League is the most-watched domestic football competition globally. Featuring 20 clubs competing across 38 matchday rounds from August to May, the league is renowned for its intense competition, tactical variety, and high-tempo action.</p>
+                <div class="comp-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Participating Clubs</div>
+                        <div class="detail-val">20 Teams (Arsenal, Man City, Liverpool, Chelsea, etc.)</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Matchday Window</div>
+                        <div class="detail-val">Saturdays, Sundays, and Monday Evenings</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Highlight Sources</div>
+                        <div class="detail-val">Official League Broadcasters & Verified Club Media</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. UEFA Champions League -->
+            <div class="comp-card">
+                <div class="comp-header">
+                    <span class="comp-icon">🏆</span>
+                    <span class="comp-title">UEFA Champions League (UCL)</span>
+                    <span class="comp-tag">Active Coverage</span>
+                </div>
+                <p>The pinnacle of European club football. Operating under the modern 36-team single League Phase format, each team battles across 8 fixtures against varying European powerhouses to qualify directly for the Round of 16 or navigate the knockout play-offs.</p>
+                <div class="comp-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Participating Clubs</div>
+                        <div class="detail-val">36 Elite European Clubs</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Matchday Window</div>
+                        <div class="detail-val">Tuesday & Wednesday Evenings</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Highlight Sources</div>
+                        <div class="detail-val">UEFA Broadcasters & Official Club YouTube Channels</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Spanish LaLiga -->
+            <div class="comp-card">
+                <div class="comp-header">
+                    <span class="comp-icon">🇪🇸</span>
+                    <span class="comp-title">Spanish LaLiga (Primera División)</span>
+                    <span class="comp-tag">Active Coverage</span>
+                </div>
+                <p>Home to some of the world's most storied clubs and legendary rivalries, including El Clásico between Real Madrid and FC Barcelona. LaLiga emphasizes technical mastery, tactical discipline, and fluid attacking football across 38 matchdays.</p>
+                <div class="comp-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Participating Clubs</div>
+                        <div class="detail-val">20 Teams (Real Madrid, Barcelona, Atlético Madrid, etc.)</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Matchday Window</div>
+                        <div class="detail-val">Fridays through Mondays</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Highlight Sources</div>
+                        <div class="detail-val">@LaLiga Official Channel & Verified Clubs</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Italian Serie A -->
+            <div class="comp-card">
+                <div class="comp-header">
+                    <span class="comp-icon">🇮🇹</span>
+                    <span class="comp-title">Italian Serie A</span>
+                    <span class="comp-tag">Active Coverage</span>
+                </div>
+                <p>Historic Italian top-flight championship featuring tactical brilliance and powerhouse contenders such as Inter Milan, Juventus, AC Milan, Napoli, and AS Roma. Matches are played across iconic venues with highlights published immediately post-whistle.</p>
+                <div class="comp-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Participating Clubs</div>
+                        <div class="detail-val">20 Teams (Inter, Juventus, Milan, Atalanta, Napoli)</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Matchday Window</div>
+                        <div class="detail-val">Saturdays, Sundays, and Midweek Rounds</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Highlight Sources</div>
+                        <div class="detail-val">@seriea Official YouTube Channel</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. German Bundesliga -->
+            <div class="comp-card">
+                <div class="comp-header">
+                    <span class="comp-icon">🇩🇪</span>
+                    <span class="comp-title">German Bundesliga</span>
+                    <span class="comp-tag">Active Coverage</span>
+                </div>
+                <p>Renowned for boasting the highest average goals per game in Europe and breathtaking stadium atmospheres. Featuring heavyweights Bayern Munich, Borussia Dortmund, Bayer Leverkusen, and RB Leipzig competing over a 34-game championship race.</p>
+                <div class="comp-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Participating Clubs</div>
+                        <div class="detail-val">18 Teams (Bayern, Dortmund, Leverkusen, Leipzig)</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Matchday Window</div>
+                        <div class="detail-val">Friday Nights, Saturdays (15:30 CET), and Sundays</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Highlight Sources</div>
+                        <div class="detail-val">@bundesliga Official YouTube Channel</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. UEFA Europa League -->
+            <div class="comp-card">
+                <div class="comp-header">
+                    <span class="comp-icon">🌟</span>
+                    <span class="comp-title">UEFA Europa League (UEL)</span>
+                    <span class="comp-tag">Active Coverage</span>
+                </div>
+                <p>Europe's secondary continental tournament offering high-stakes knockout drama, dramatic late goals, and a direct ticket to the UEFA Champions League for the tournament champions. Matches take place concurrently on Thursday evenings.</p>
+                <div class="comp-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Participating Clubs</div>
+                        <div class="detail-val">36 Clubs across Europe</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Matchday Window</div>
+                        <div class="detail-val">Thursday Evenings</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Highlight Sources</div>
+                        <div class="detail-val">Official Participating Club YouTube Channels</div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>How Highlights Are Curated</h2>
+            <p>Our automated synchronization engine continuously checks verified YouTube partner channels and club media accounts within 2 to 48 hours following the final whistle. Video candidates are screened to ensure they provide authentic match action, extended recaps, and proper widescreen formatting before becoming available to watch.</p>
+            <p>Ready to start watching? <a href="/">Return to the Match Highlights Hub</a> to browse current matchday fixtures.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Football Highlights & Clips. Developed by Dirza Aulia. All rights reserved.</p>
+        <p style="margin-top: 0.5rem;"><a href="/privacy">Privacy Policy</a> &bull; <a href="/tnc">Terms of Service</a> &bull; <a href="/about">About</a> &bull; <a href="/contact">Contact</a></p>
+    </footer>
+</body>
+</html>

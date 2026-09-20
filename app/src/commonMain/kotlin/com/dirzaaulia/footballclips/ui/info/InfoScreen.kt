@@ -512,19 +512,44 @@ private fun PrivacyPolicyCard(
     val uriHandler = LocalUriHandler.current
 
     CollapsibleInfoCard(
-        title = "Privacy Policy & Terms",
+        title = "Legal & Platform Info",
         icon = Icons.Default.PrivacyTip,
         initialExpanded = initialExpanded,
         modifier = modifier
     ) {
         Text(
-            text = "Football Highlights & Clips uses official YouTube API Services and player embeds. By accessing or using this service, you agree to be bound by the YouTube Terms of Service and Google Privacy Policy. Review our full legal documentation below:",
+            text = "Football Highlights & Clips uses official YouTube API Services and player embeds. By accessing or using this service, you agree to be bound by the YouTube Terms of Service and Google Privacy Policy. Review our full documentation below:",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
 
         Spacer(Modifier.height(14.dp))
 
+        // Row 1: About & Competitions Guide
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ExpressiveSupportCard(
+                title = "About Platform",
+                subtitle = "fc.dirzaaulia.com/about",
+                icon = Icons.Default.Info,
+                onClick = { uriHandler.openUri("https://fc.dirzaaulia.com/about") },
+                modifier = Modifier.weight(1f)
+            )
+
+            ExpressiveSupportCard(
+                title = "Competitions Guide",
+                subtitle = "fc.dirzaaulia.com/competitions",
+                icon = Icons.Default.Language,
+                onClick = { uriHandler.openUri("https://fc.dirzaaulia.com/competitions") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // Row 2: Privacy Policy & Terms
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -545,6 +570,17 @@ private fun PrivacyPolicyCard(
                 modifier = Modifier.weight(1f)
             )
         }
+
+        Spacer(Modifier.height(8.dp))
+
+        // Row 3: Contact & Support
+        ExpressiveSupportCard(
+            title = "Contact & DMCA Support",
+            subtitle = "fc.dirzaaulia.com/contact",
+            icon = Icons.Default.AccountCircle,
+            onClick = { uriHandler.openUri("https://fc.dirzaaulia.com/contact") },
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Football Highlights & Clips</title>
+    <meta name="description" content="Learn about Football Highlights & Clips, our mission, verified football highlight aggregation, and development background by Dirza Aulia.">
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- AdSense Verification Meta Tag -->
+    <meta name="google-adsense-account" content="ca-pub-6717632447198427">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6717632447198427" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f17;
+            --surface-color: #131b2a;
+            --surface-border: #1e293b;
+            --primary: #38bdf8;
+            --primary-hover: #0284c7;
+            --accent: #10b981;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(16px);
+            background: rgba(11, 15, 23, 0.85);
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .nav-container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary);
+        }
+
+        main {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 5rem;
+        }
+
+        .hero {
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--surface-border);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .meta-date {
+            color: var(--text-dim);
+            font-size: 0.875rem;
+        }
+
+        h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 2.25rem 0 1rem;
+            letter-spacing: -0.015em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 1.25rem;
+            color: var(--text-muted);
+            font-size: 0.975rem;
+        }
+
+        ul {
+            margin: 0 0 1.5rem 1.5rem;
+            color: var(--text-muted);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            font-size: 0.975rem;
+        }
+
+        li strong {
+            color: var(--text-main);
+        }
+
+        .info-card {
+            background: var(--surface-color);
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .info-card h3 {
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .card-feature {
+            background: var(--surface-color);
+            border: 1px solid var(--surface-border);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        .card-feature h4 {
+            font-size: 1rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .card-feature p {
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        a:hover {
+            color: var(--primary-hover);
+        }
+
+        footer {
+            border-top: 1px solid var(--surface-border);
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 1.85rem; }
+            h2 { font-size: 1.2rem; }
+            .nav-container { flex-direction: column; gap: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <span>⚽</span>
+                <span>Football Highlights & Clips</span>
+            </a>
+            <nav class="nav-links">
+                <a href="/">App</a>
+                <a href="/competitions">Competitions</a>
+                <a href="/about" class="active">About</a>
+                <a href="/contact">Contact</a>
+                <a href="/privacy">Privacy Policy</a>
+                <a href="/tnc">Terms</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <span class="badge">Publisher & Platform Overview</span>
+            <h1>About Football Highlights & Clips</h1>
+            <p class="meta-date">Published by Dirza Aulia • Updated for the 2026/2027 European Football Season</p>
+        </section>
+
+        <section>
+            <h2>Our Mission</h2>
+            <p><strong>Football Highlights & Clips</strong> (FC) was built with a single objective: to give football enthusiasts around the world a fast, clean, and reliable hub to watch official match highlights, track full-time scores, and review matchday fixtures without clickbait, fake simulator videos, or invasive spam.</p>
+
+            <p>Every matchday weekend, millions of football fans search across video platforms to catch up on European league matches. Unfortunately, the internet is flooded with misleading video game simulations (PES, eFootball, EA Sports FC), fan reaction vlogs, and deceptive reuploads. Football Highlights & Clips solves this by applying strict automated verification and channel whitelisting to curate only legitimate, high-definition match recaps directly from verified leagues and official club media.</p>
+
+            <h2>Platform Architecture & Technology</h2>
+            <p>Football Highlights & Clips is developed using cutting-edge multiplatform technologies to ensure instantaneous performance across mobile devices and modern desktop web browsers:</p>
+            
+            <div class="grid-cards">
+                <div class="card-feature">
+                    <h4>🚀 Kotlin Multiplatform & WASM</h4>
+                    <p>Built with Jetpack Compose and Compose Multiplatform for WebAssembly (WASM), delivering fluid 60fps native-grade rendering in the browser.</p>
+                </div>
+                <div class="card-feature">
+                    <h4>📺 YouTube API Compliance</h4>
+                    <p>All video content is embedded through the official YouTube IFrame Player API, guaranteeing full respect for copyright holders and content creators.</p>
+                </div>
+                <div class="card-feature">
+                    <h4>⚡ Real-Time Data Pipeline</h4>
+                    <p>Integrated with licensed football data feeds and Supabase to deliver fast score updates, schedule notices, and official standings.</p>
+                </div>
+                <div class="card-feature">
+                    <h4>🤖 Multi-Layer Verification</h4>
+                    <p>Every candidate video is filtered through duration boundaries, audio-visual aspect ratios, and AI verification to eliminate misleading clips.</p>
+                </div>
+            </div>
+
+            <h2>Commitment to Copyright & Legitimate Broadcasters</h2>
+            <div class="info-card">
+                <h3>Strict Adherence to YouTube Developer Policies</h3>
+                <p>Football Highlights & Clips does <strong>not</strong> host, rip, stream, or re-encode copyrighted audiovisual material on its servers. All highlights are delivered via standard embed players from official rightsholders including official league channels (such as Premier League, LaLiga, Serie A, and Bundesliga broadcasters) and verified club media channels (Real Madrid, Arsenal, Barcelona, Bayern Munich, etc.).</p>
+                <p style="margin-top: 0.75rem;">Content creators and official broadcasters retain 100% of their video views, analytics, and YouTube monetized ad revenues from embeds displayed within our platform.</p>
+            </div>
+
+            <h2>About the Developer</h2>
+            <p>Football Highlights & Clips is engineered and maintained by <strong>Dirza Aulia</strong>, an experienced multiplatform software engineer dedicated to building high-performance mobile and web applications. For questions, partnerships, or technical inquiries, visit our <a href="/contact">Contact Page</a>.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Football Highlights & Clips. Developed by Dirza Aulia. All rights reserved.</p>
+        <p style="margin-top: 0.5rem;"><a href="/privacy">Privacy Policy</a> &bull; <a href="/tnc">Terms of Service</a> &bull; <a href="/contact">Contact</a></p>
+    </footer>
+</body>
+</html>
