@@ -652,7 +652,7 @@ def fallback_score_video(title: str, duration_sec: int, home_team: str, away_tea
     return score
 
 # ==============================================================================
-# 3. AI RERANKER WITH SMART FALLBACK (GEMINI 3.6 FLASH)
+# 3. AI RERANKER WITH SMART FALLBACK (GEMINI 3.7 FLASH)
 # ==============================================================================
 def ai_pick_best_highlight(home_team: str, away_team: str, competition: str, video_candidates: list, log_events: list) -> str | None:
     if not video_candidates:
@@ -695,15 +695,25 @@ Balas HANYA format JSON valid berikut:
 {{"chosen_id": "VIDEO_ID_YANG_LOLOS_ATAU_NULL", "reason": "Alasan singkat"}}
 """
     try:
-        # Gunakan gemini-3.6-flash resmi yang aktif
-        response = ai_client.models.generate_content(
-            model='gemini-3.6-flash',
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type='application/json',
-                temperature=0.1
-            )
-        )
+        # Gunakan model Gemini Flash terbaru yang aktif (3.7 Flash) dengan fallback ke 3.6 Flash jika 503
+        response = None
+        for candidate_model in ['gemini-3.7-flash', 'gemini-3.6-flash']:
+            try:
+                response = ai_client.models.generate_content(
+                    model=candidate_model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type='application/json',
+                        temperature=0.1
+                    )
+                )
+                if response and response.text:
+                    break
+            except Exception as model_err:
+                if candidate_model != 'gemini-3.6-flash':
+                    continue
+                raise model_err
+
         res_json = json.loads(response.text)
         chosen_id = res_json.get("chosen_id")
         reason = res_json.get("reason", "")
