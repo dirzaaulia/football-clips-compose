@@ -8,6 +8,10 @@ object AdConfiguration {
     val ALLOWED_PRODUCTION_HOSTS = listOf(
         "fc.dirzaaulia.com",
         "dirzaaulia.com",
+        "footballclips.web.app",
+        "footballclips.firebaseapp.com",
+        "highlightdata.web.app",
+        "highlightdata.firebaseapp.com",
         "football-clips-51f56.web.app",
         "football-clips-51f56.firebaseapp.com"
     )

@@ -15,6 +15,7 @@
 local.properties
 .artifacts/
 fastlane/play-console-key.json
+play-console-key.json
 play-key.json
 *service-account*.json
 *.keystore

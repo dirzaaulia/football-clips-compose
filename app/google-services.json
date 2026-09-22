@@ -1,26 +1,44 @@
 {
   "project_info": {
-    "project_number": "581482290296",
-    "project_id": "football-clips-51f56",
-    "storage_bucket": "football-clips-51f56.firebasestorage.app"
+    "project_number": "519310318914",
+    "project_id": "highlightdata",
+    "storage_bucket": "highlightdata.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:581482290296:android:80dbd728603430e70f218d",
+        "mobilesdk_app_id": "1:519310318914:android:41479b472147905f3bfcdb",
         "android_client_info": {
           "package_name": "com.dirzaaulia.footballclips"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "519310318914-cqnbh356rbcdq9bg8jgvl5h6v48hodp6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dirzaaulia.footballclips",
+            "certificate_hash": "d1ad57313b9906f80ed2a7eb2702a20197fde957"
+          }
+        },
+        {
+          "client_id": "519310318914-pushb78f44ug1a28m2oggunpck5annl8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyAd947ztyQ9uOQtsqXLCbM2HJ8mJwT3sf0"
+          "current_key": "AIzaSyB7k46xwTWTPwB8fbLiNiCmdL15a3Rc8mg"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "519310318914-pushb78f44ug1a28m2oggunpck5annl8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

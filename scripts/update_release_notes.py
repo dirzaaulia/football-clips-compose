@@ -9,7 +9,7 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8')
 
 PACKAGE_NAME = "com.dirzaaulia.footballclips"
-KEY_FILE = "fastlane/play-console-key.json"
+KEY_FILE = "play-console-key.json" if os.path.exists("play-console-key.json") else ("fastlane/play-console-key.json" if os.path.exists("fastlane/play-console-key.json") else "play-key.json")
 
 RELEASE_NOTES = [
     {

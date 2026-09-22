@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "footballclips",
     "public": "app/build/dist/wasmJs/productionExecutable",
     "cleanUrls": true,
     "ignore": [
