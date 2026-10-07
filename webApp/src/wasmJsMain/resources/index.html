@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Highlights & Clips - Official Match Highlights, Live Scores & Schedules</title>
+    <meta name="description" content="Watch verified official football match highlights, decisive goals, live scores, fixtures, and standings for Premier League, UEFA Champions League, La Liga, Serie A, and Bundesliga.">
+    <meta name="keywords" content="football highlights, soccer clips, live scores, match recaps, Premier League highlights, Champions League highlights, La Liga goals, Serie A, Bundesliga, Ligue 1">
+    <link rel="canonical" href="https://fc.dirzaaulia.com/">
+
+    <!-- Favicon & Touch Icons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- YouTube IFrame Player API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <style>
+        :root {
+            --bg-color: #050508;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+        }
+
+        #app-viewport {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+        }
+
+        #app-viewport canvas {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+        }
+
+        /* Minimal Splash matching Android Theme.App.Starting & avd_splash_ball */
+        #app-splash {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-color);
+            z-index: 9999;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .splash-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            animation: ball-rotate 1.2s linear infinite;
+            will-change: transform, opacity;
+        }
+
+        @keyframes ball-rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #app-splash.splash-exit {
+            opacity: 0;
+            transform: translateY(-60px);
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #app-splash.splash-exit .splash-logo {
+            transform: scale(2.2);
+            opacity: 0;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app-viewport">
+        <!-- Minimal Splash Screen matching Android Theme.App.Starting -->
+        <div id="app-splash">
+            <img src="favicon.png" alt="Football Highlights & Clips" class="splash-logo">
+        </div>
+    </div>
+
+    <noscript>
+        <div style="padding: 24px; max-width: 800px; margin: 0 auto; color: #fff;">
+            <h1>Football Highlights & Clips</h1>
+            <p>Welcome to Football Highlights & Clips, your source for official football match highlights, live scores, schedules, and standings.</p>
+            <p><a href="/privacy" style="color: #38bdf8;">Privacy Policy</a> &bull; <a href="/tnc" style="color: #38bdf8;">Terms of Service</a></p>
+        </div>
+    </noscript>
+
+    <!-- Smoothly transition from splash to WASM canvas matching Android exit animation -->
+    <script>
+        const appViewport = document.getElementById('app-viewport');
+        if (appViewport) {
+            const splashObserver = new MutationObserver((mutations) => {
+                for (const m of mutations) {
+                    for (const node of m.addedNodes) {
+                        if (node.tagName === 'CANVAS') {
+                            const splash = document.getElementById('app-splash');
+                            if (splash) {
+                                splash.classList.add('splash-exit');
+                                setTimeout(() => splash.remove(), 600);
+                            }
+                            splashObserver.disconnect();
+                            return;
+                        }
+                    }
+                }
+            });
+            splashObserver.observe(appViewport, { childList: true });
+        }
+    </script>
+
+    <!-- Compose Multiplatform WebAssembly Bundle -->
+    <script src="composeApp.js"></script>
+</body>
+</html>

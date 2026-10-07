@@ -1,0 +1,29 @@
+package com.dirzaaulia.footballclips.data.constants
+
+object AdConfiguration {
+    // Google AdSense (WASM)
+    const val ADSENSE_CLIENT_ID = "ca-pub-6717632447198427"
+    const val ADSENSE_BANNER_SLOT_ID = "5616816386"
+
+    /**
+     * Safety switch for Google AdSense site review.
+     * Keep FALSE during AdSense site review so ads are not served over an unapproved canvas.
+     * Switch to TRUE once the domain is fully approved in Google AdSense Dashboard.
+     */
+    const val ADSENSE_ENABLED = false
+
+    val ALLOWED_PRODUCTION_HOSTS = listOf(
+        "fc.dirzaaulia.com",
+        "dirzaaulia.com",
+        "footballclips.web.app",
+        "footballclips.firebaseapp.com",
+        "highlightdata.web.app",
+        "highlightdata.firebaseapp.com",
+        "football-clips-51f56.web.app",
+        "football-clips-51f56.firebaseapp.com"
+    )
+
+    // RevenueCat Paddle Sandbox (WASM)
+    // URL format: https://pay.rev.cat/[ENTITLEMENT_ID]/[APP_USER_ID]
+    const val SANDBOX_REMOVE_ADS_PURCHASE_URL = "https://pay.rev.cat/ppwchgbfqppzavxg/testuser"
+}

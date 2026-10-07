@@ -1,0 +1,14 @@
+[Unit]
+Description=FootballClips Web Telemetry HTTP Server
+After=network.target
+
+[Service]
+Type=simple
+User=dirzaaulia11
+WorkingDirectory=/home/dirzaaulia11/web
+ExecStart=/usr/bin/python3 -m http.server 8080
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

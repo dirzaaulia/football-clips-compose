@@ -1,7 +1,7 @@
 {
   "hosting": {
     "site": "footballclips",
-    "public": "app/build/dist/wasmJs/productionExecutable",
+    "public": "webApp/build/dist/wasmJs/productionExecutable",
     "cleanUrls": true,
     "ignore": [
       "firebase.json",
@@ -37,18 +37,6 @@
       }
     ],
     "rewrites": [
-      {
-        "source": "/about",
-        "destination": "/about.html"
-      },
-      {
-        "source": "/competitions",
-        "destination": "/competitions.html"
-      },
-      {
-        "source": "/contact",
-        "destination": "/contact.html"
-      },
       {
         "source": "/privacy",
         "destination": "/privacy.html"

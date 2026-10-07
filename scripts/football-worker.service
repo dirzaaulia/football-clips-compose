@@ -1,0 +1,16 @@
+[Unit]
+Description=FootballClips Modern Async Worker v2.0
+After=network.target
+
+[Service]
+Type=simple
+User=dirzaaulia11
+WorkingDirectory=/home/dirzaaulia11/worker
+ExecStart=/home/dirzaaulia11/.local/bin/uv run main.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/dirzaaulia11/sync_log.txt
+StandardError=append:/home/dirzaaulia11/sync_log.txt
+
+[Install]
+WantedBy=multi-user.target

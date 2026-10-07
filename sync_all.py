@@ -16,6 +16,24 @@ from googleapiclient.discovery import build
 from google import genai
 from google.genai import types
 
+def load_env_file():
+    for env_path in [".env", "worker/.env", "../.env"]:
+        if os.path.exists(env_path):
+            try:
+                with open(env_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            k = k.strip()
+                            v = v.strip().strip('"').strip("'")
+                            if k and k not in os.environ:
+                                os.environ[k] = v
+            except Exception:
+                pass
+
+load_env_file()
+
 # ==============================================================================
 # 1. KONFIGURASI & CLIENT INITIALIZATION
 # ==============================================================================
@@ -24,6 +42,8 @@ SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 FOOTBALL_DATA_API_KEY = os.environ.get("FOOTBALL_DATA_API_KEY")
 YOUTUBE_API_KEY = os.environ.get("YOUTUBE_API_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+RETENTION_DAYS = int(os.environ.get("RETENTION_DAYS", "30"))
+UPCOMING_DAYS = int(os.environ.get("UPCOMING_DAYS", "30"))
 
 if not all([SUPABASE_URL, SUPABASE_KEY, FOOTBALL_DATA_API_KEY, YOUTUBE_API_KEY]):
     raise ValueError("Pastikan SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, FOOTBALL_DATA_API_KEY, dan YOUTUBE_API_KEY sudah diset.")
@@ -1076,53 +1096,78 @@ def find_and_link_match_highlight(match, log_events):
 # ==============================================================================
 # 5. MATCH SYNCING LOGIC
 # ==============================================================================
-def sync_matches_from_football_data(is_full_sync=False, log_events=None):
+def sync_matches_from_football_data(is_full_sync=False, log_events=None, past_days=None, future_days=None):
     if log_events is None: log_events = []
     now_utc = datetime.now(timezone.utc)
     
-    mode_text = "FULL SYNC (H-2 s/d H+7)" if is_full_sync else "LIVE SYNC (H-1 s/d H+1)"
+    if past_days is None:
+        past_days = RETENTION_DAYS if is_full_sync else 1
+    if future_days is None:
+        future_days = UPCOMING_DAYS if is_full_sync else 1
+
+    mode_text = f"FULL SYNC (H-{past_days} s/d H+{future_days})" if is_full_sync else f"LIVE SYNC (H-{past_days} s/d H+{future_days})"
     log_events.append(f"📡 Mode Sinkronisasi: {mode_text}")
 
-    if is_full_sync:
-        date_chunks = [(now_utc - timedelta(days=2), now_utc + timedelta(days=7))]
-    else:
-        date_chunks = [(now_utc - timedelta(days=1), now_utc + timedelta(days=1))]
+    start_boundary = now_utc - timedelta(days=past_days)
+    end_boundary = now_utc + timedelta(days=future_days)
+    
+    date_chunks = []
+    curr = start_boundary
+    while curr <= end_boundary:
+        chunk_end = min(curr + timedelta(days=9), end_boundary)
+        date_chunks.append((curr, chunk_end))
+        curr = chunk_end + timedelta(days=1)
 
     url = "https://api.football-data.org/v4/matches"
     headers = {"X-Auth-Token": FOOTBALL_DATA_API_KEY}
     payload_batch, api_match_ids = [], []
 
-    for start_date, end_date in date_chunks:
-        params = {"competitions": ",".join(TARGET_COMPETITIONS), "dateFrom": start_date.strftime("%Y-%m-%d"), "dateTo": end_date.strftime("%Y-%m-%d")}
-        response = requests.get(url, headers=headers, params=params)
-        
-        if response.status_code == 200:
-            matches_data = response.json().get("matches", [])
-            log_events.append(f"📥 Menerima {len(matches_data)} data mentah dari API Football-Data (Range: {start_date.strftime('%Y-%m-%d')} s/d {end_date.strftime('%Y-%m-%d')})")
-            
-            for m in matches_data:
-                comp_name = m.get("competition", {}).get("name", "Unknown")
-                if comp_name == "Primera Division": comp_name = "LaLiga"
-                    
-                match_start = safe_parse_iso(m["utcDate"])
-                elapsed_minutes = (now_utc - match_start).total_seconds() / 60
-                
-                api_status = m["status"]
-                if api_status in ["IN_PLAY", "PAUSED"] and elapsed_minutes > 140:
-                    api_status = "FINISHED"
+    for idx, (chunk_start, chunk_end) in enumerate(date_chunks):
+        if idx > 0:
+            # Respect rate limit (max 10 requests per minute on free tier)
+            time.sleep(6.5)
 
-                payload = {
-                    "id": m["id"], "competition_id": m.get("competition", {}).get("code", "OTHER"), "competition_name": comp_name,
-                    "utc_date": m["utcDate"], "status": api_status, "matchday": m.get("matchday"),
-                    "home_team_id": m.get("homeTeam", {}).get("id"), "home_team_name": m.get("homeTeam", {}).get("name", ""), "home_team_crest": m.get("homeTeam", {}).get("crest"),
-                    "away_team_id": m.get("awayTeam", {}).get("id"), "away_team_name": m.get("awayTeam", {}).get("name", ""), "away_team_crest": m.get("awayTeam", {}).get("crest"),
-                    "home_score": m.get("score", {}).get("fullTime", {}).get("home"), "away_score": m.get("score", {}).get("fullTime", {}).get("away"),
-                    "updated_at": now_utc.isoformat()
-                }
-                payload_batch.append(payload)
-                api_match_ids.append(m["id"])
-        else:
-            log_events.append(f"🚨 Gagal mengambil data API Football-Data. Status code: {response.status_code}")
+        params = {
+            "competitions": ",".join(TARGET_COMPETITIONS),
+            "dateFrom": chunk_start.strftime("%Y-%m-%d"),
+            "dateTo": chunk_end.strftime("%Y-%m-%d")
+        }
+        try:
+            response = requests.get(url, headers=headers, params=params)
+            if response.status_code == 429:
+                log_events.append("⏳ [RATE LIMIT 429] Terkena rate limit Football-Data, menunggu 60 detik...")
+                time.sleep(60)
+                response = requests.get(url, headers=headers, params=params)
+
+            if response.status_code == 200:
+                matches_data = response.json().get("matches", [])
+                log_events.append(f"📥 Menerima {len(matches_data)} data mentah dari API Football-Data (Range: {chunk_start.strftime('%Y-%m-%d')} s/d {chunk_end.strftime('%Y-%m-%d')})")
+                
+                for m in matches_data:
+                    comp_name = m.get("competition", {}).get("name", "Unknown")
+                    if comp_name == "Primera Division": comp_name = "LaLiga"
+                        
+                    match_start = safe_parse_iso(m["utcDate"])
+                    elapsed_minutes = (now_utc - match_start).total_seconds() / 60
+                    
+                    api_status = m["status"]
+                    if api_status in ["IN_PLAY", "PAUSED"] and elapsed_minutes > 140:
+                        api_status = "FINISHED"
+
+                    payload = {
+                        "id": m["id"], "competition_id": m.get("competition", {}).get("code", "OTHER"), "competition_name": comp_name,
+                        "utc_date": m["utcDate"], "status": api_status, "matchday": m.get("matchday"),
+                        "home_team_id": m.get("homeTeam", {}).get("id"), "home_team_name": m.get("homeTeam", {}).get("name", ""), "home_team_crest": m.get("homeTeam", {}).get("crest"),
+                        "away_team_id": m.get("awayTeam", {}).get("id"), "away_team_name": m.get("awayTeam", {}).get("name", ""), "away_team_crest": m.get("awayTeam", {}).get("crest"),
+                        "home_score": m.get("score", {}).get("fullTime", {}).get("home"), "away_score": m.get("score", {}).get("fullTime", {}).get("away"),
+                        "updated_at": now_utc.isoformat()
+                    }
+                    payload_batch.append(payload)
+                    api_match_ids.append(m["id"])
+            else:
+                log_events.append(f"🚨 Gagal mengambil data API Football-Data ({chunk_start.strftime('%Y-%m-%d')} s/d {chunk_end.strftime('%Y-%m-%d')}). Status code: {response.status_code}")
+        except Exception as e:
+            log_events.append(f"🚨 Exception saat mengambil data Football-Data: {e}")
 
     unique_payloads = list({p['id']: p for p in payload_batch}.values())
     
@@ -1168,14 +1213,15 @@ def sync_matches_from_football_data(is_full_sync=False, log_events=None):
                     log_events.append(f"✨ [NEW MATCH] Ditemukan jadwal baru: {h_team} vs {a_team}")
             
             if not changes_found: log_events.append("⚪ Tidak ada perubahan skor atau status.")
-            supabase.table("matches").upsert(unique_payloads, on_conflict="id").execute()
+            for i in range(0, len(unique_payloads), 50):
+                supabase.table("matches").upsert(unique_payloads[i:i+50], on_conflict="id").execute()
             log_events.append(f"✅ Berhasil sinkronisasi {len(unique_payloads)} jadwal ke Supabase.")
         except Exception as e: log_events.append(f"🚨 [ERROR DATABASE] {e}")
 
 # ==============================================================================
 # 6. GLOBAL SCAN SMART YOUTUBE ENGINE & OPPORTUNISTIC BURNER
 # ==============================================================================
-def sync_targeted_highlights(log_events=None):
+def sync_targeted_highlights(log_events=None, max_matches=None):
     if log_events is None: log_events = []
     
     res = supabase.table("matches") \
@@ -1198,13 +1244,15 @@ def sync_targeted_highlights(log_events=None):
     current_quota = check_and_reset_quota()
     remaining_quota = MAX_QUOTA_PER_DAY - current_quota
     
-    log_events.append(f"🔍 YouTube Engine: Memindai {len(unlinked_matches)} antrean match (Sisa Quota: {remaining_quota}, Reset PT dalam: {hours_until_reset:.1f} jam):")
+    is_force_mode = "--force" in sys.argv or "--backfill" in sys.argv or os.environ.get("FORCE_SYNC") == "true"
+    limit = max_matches if max_matches is not None else (100 if is_force_mode else 30)
+
+    log_events.append(f"🔍 YouTube Engine: Memindai {min(limit, len(unlinked_matches))} dari {len(unlinked_matches)} antrean match (Sisa Quota: {remaining_quota}, Reset PT dalam: {hours_until_reset:.1f} jam):")
 
     processed_count = 0
     skipped_count = 0
 
-    # Scan hingga 30 match per siklus (sangat hemat kuota karena metode playlistItems hanya 1 unit)
-    batch_matches = unlinked_matches[:30]
+    batch_matches = unlinked_matches[:limit]
 
     for match in batch_matches:
         home, away = match["home_team_name"], match["away_team_name"]
@@ -1246,7 +1294,7 @@ def sync_targeted_highlights(log_events=None):
 
         # SMART GLOBAL CHECK / FORCE MODE
         force_execute = False
-        is_force_mode = "--force" in sys.argv or os.environ.get("FORCE_SYNC") == "true"
+        is_force_mode = "--force" in sys.argv or "--backfill" in sys.argv or os.environ.get("FORCE_SYNC") == "true"
         if is_force_mode:
             force_execute = True
             log_events.append(f"   ⚡ [FORCE MODE] Memaksa pencarian untuk {match_title} (Bypass cooldown)")
@@ -1298,15 +1346,16 @@ def sync_targeted_highlights(log_events=None):
 
     log_events.append(f"📊 Ringkasan YouTube: {processed_count} diproses, {skipped_count} dilewati.")
 
-def cleanup_old_data(log_events=None):
+def cleanup_old_data(log_events=None, retention_days=None):
     if log_events is None: log_events = []
-    cutoff_date = (datetime.now(timezone.utc) - timedelta(days=15)).isoformat()
+    days = retention_days if retention_days is not None else RETENTION_DAYS
+    cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     try: 
         res = supabase.table("matches").delete().lt("utc_date", cutoff_date).execute()
         if res.data: 
-            log_events.append(f"🧹 Menghapus {len(res.data)} pertandingan kadaluarsa (>15 hari).")
+            log_events.append(f"🧹 Menghapus {len(res.data)} pertandingan kadaluarsa (>{days} hari).")
         else: 
-            log_events.append("⚪ Database bersih (Tidak ada data >15 hari).")
+            log_events.append(f"⚪ Database bersih (Tidak ada data >{days} hari).")
     except Exception as e: 
         log_events.append(f"🚨 [ERROR CLEANUP] {e}")
 
@@ -1344,8 +1393,27 @@ def get_dynamic_sleep_info():
 # MAIN WORKER LOOP
 # ==============================================================================
 if __name__ == "__main__":
+    is_once = "--once" in sys.argv
+    is_force = "--force" in sys.argv or "--backfill" in sys.argv
+
+    custom_days = None
+    for arg in sys.argv:
+        if arg.startswith("--days="):
+            try:
+                custom_days = int(arg.split("=")[1])
+            except ValueError:
+                pass
+
+    past_days = custom_days or RETENTION_DAYS
+    future_days = custom_days or UPCOMING_DAYS
+
     print("\n" + "="*60)
-    print("    ⚽ FOOTBALL CLIPS SMART WORKER 4.2 (PRECISION & RESILIENT AI) ⚽")
+    print("    ⚽ FOOTBALL CLIPS SMART WORKER 4.3 (PRECISION & RESILIENT AI) ⚽")
+    print(f"    📅 RETENTION: {past_days} Hari | UPCOMING FIXTURES: {future_days} Hari")
+    if is_once:
+        print("    📌 MODE: ONE-TIME RUN (--once)")
+    if is_force:
+        print("    ⚡ MODE: FORCE / BACKFILL (Cooldown bypass active)")
     print("="*60)
     
     last_full_sync_time = None
@@ -1357,14 +1425,14 @@ if __name__ == "__main__":
         
         try:
             now_utc = datetime.now(timezone.utc)
-            if last_full_sync_time is None or (now_utc - last_full_sync_time).total_seconds() >= 43200:
+            if is_force or last_full_sync_time is None or (now_utc - last_full_sync_time).total_seconds() >= 43200:
                 is_full, last_full_sync_time = True, now_utc
-                sync_matches_from_football_data(True, step1_events)
+                sync_matches_from_football_data(True, step1_events, past_days=past_days, future_days=future_days)
             else:
                 sync_matches_from_football_data(False, step1_events)
 
             sync_targeted_highlights(step2_events)
-            cleanup_old_data(step3_events)
+            cleanup_old_data(step3_events, retention_days=past_days)
 
         except Exception as e:
             step3_events.append(f"🚨 [CRITICAL ERROR] {e}")
@@ -1374,7 +1442,7 @@ if __name__ == "__main__":
         cycle_record = {
             "timestamp": cycle_start_wib.strftime("%Y-%m-%d %H:%M:%S WIB"),
             "mode": "FULL SYNC" if is_full else "LIVE SYNC",
-            "next_sleep": f"{sleep_seconds // 60} Menit ({sleep_desc})",
+            "next_sleep": "SELESAI (--once)" if is_once else f"{sleep_seconds // 60} Menit ({sleep_desc})",
             "steps": [
                 {"title": "1. Football Data", "status": "OK", "events": step1_events},
                 {"title": "2. YouTube & AI Engine", "status": "WARN" if any("🚨" in x for x in step2_events) else "OK", "events": step2_events},
@@ -1382,5 +1450,10 @@ if __name__ == "__main__":
             ]
         }
         save_cycle_log(cycle_record)
+
+        if is_once:
+            print("\n✅ One-time sync selesai.")
+            break
+
         print(f"🚀 Siklus selesai. Tidur {sleep_seconds} detik ({sleep_desc})...")
         time.sleep(sleep_seconds)
