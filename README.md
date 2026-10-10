@@ -87,11 +87,11 @@ Here are the official high-resolution marketing banners featured on the Google P
 ## 🏛️ System Architecture
 
 <div align="center">
-  <a href="docs/assets/architecture.svg" target="_blank">
+  <a href="docs/assets/architecture.svg">
     <img src="docs/assets/architecture.svg" alt="Football Clips System Architecture" width="100%" />
   </a>
   <p align="center">
-    <sub>🔍 <b>High-Resolution Vector Diagram</b>: Click the diagram to open full screen with smooth native browser zoom (pinch-to-zoom &amp; pan).</sub>
+    <sub>🔍 <b>High-Resolution Vector Diagram</b>: Click diagram to open in full screen (or <a href="docs/assets/architecture.svg?raw=true">view raw vector</a> for infinite native zoom &amp; pan).</sub>
   </p>
 </div>
 

@@ -1,3 +1,4 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 820" width="100%" height="100%">
   <defs>
     <!-- Background Gradient -->
@@ -91,8 +92,8 @@
   <g transform="translate(48, 40)">
     <rect x="0" y="0" width="36" height="36" rx="8" fill="url(#accentCyan)" />
     <text x="18" y="24" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="900">FC</text>
-    <text x="48" y="22" class="title">Football Clips &bull; System Architecture &amp; Data Pipeline</text>
-    <text x="48" y="40" class="subtitle">Multi-Platform Client Tier (Android, Next.js, Kotlin/Wasm) &bull; Supabase Backend &bull; Autonomous AI Worker v2.0</text>
+    <text x="48" y="22" class="title">Football Clips &#8226; System Architecture &amp; Data Pipeline</text>
+    <text x="48" y="40" class="subtitle">Multi-Platform Client Tier (Android, Next.js, Kotlin/Wasm) &#8226; Supabase Backend &#8226; Autonomous AI Worker v2.0</text>
   </g>
 
   <!-- ==================== TIER 1: CLIENT TIER (TOP) ==================== -->
@@ -107,12 +108,12 @@
       <rect x="16" y="16" width="32" height="32" rx="6" fill="#0284c7" fill-opacity="0.2" />
       <path d="M 24 36 L 40 36 M 32 24 L 32 40" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" />
       <text x="58" y="28" class="card-title">Android Application</text>
-      <text x="58" y="44" class="card-subtitle">CMP 1.12 &bull; Jetpack Compose &bull; SDK 37</text>
+      <text x="58" y="44" class="card-subtitle">CMP 1.12 &#8226; Jetpack Compose &#8226; SDK 37</text>
       
-      <text x="16" y="78" class="card-text">&bull; Material 3 Expressive UI &amp; Edge-to-Edge</text>
-      <text x="16" y="96" class="card-text">&bull; FCM Service (Heads-up Alerts &amp; Channels)</text>
-      <text x="16" y="114" class="card-text">&bull; Google Play Billing (RevenueCat) &amp; AdMob NextGen</text>
-      <text x="16" y="132" class="card-text">&bull; YouTube IFrame Player &amp; DataStore Cache</text>
+      <text x="16" y="78" class="card-text">&#8226; Material 3 Expressive UI &amp; Edge-to-Edge</text>
+      <text x="16" y="96" class="card-text">&#8226; FCM Service (Heads-up Alerts &amp; Channels)</text>
+      <text x="16" y="114" class="card-text">&#8226; Google Play Billing (RevenueCat) &amp; AdMob NextGen</text>
+      <text x="16" y="132" class="card-text">&#8226; YouTube IFrame Player &amp; DataStore Cache</text>
     </g>
 
     <!-- Card 2: Next.js Web App -->
@@ -121,12 +122,12 @@
       <rect x="16" y="16" width="32" height="32" rx="6" fill="#10b981" fill-opacity="0.2" />
       <circle cx="32" cy="32" r="8" fill="none" stroke="#34d399" stroke-width="2.5" />
       <text x="58" y="28" class="card-title">Web Portal &amp; SEO Engine</text>
-      <text x="58" y="44" class="card-subtitle">Next.js 16 &bull; React 19 &bull; Tailwind &bull; SSG/ISR</text>
+      <text x="58" y="44" class="card-subtitle">Next.js 16 &#8226; React 19 &#8226; Tailwind &#8226; SSG/ISR</text>
       
-      <text x="16" y="78" class="card-text">&bull; Domain: fc.dirzaaulia.com (Firebase Hosting)</text>
-      <text x="16" y="96" class="card-text">&bull; Web Push Service Worker (FCM Background)</text>
-      <text x="16" y="114" class="card-text">&bull; Google AdSense Integrated &amp; SEO Articles</text>
-      <text x="16" y="132" class="card-text">&bull; Contextual "My Clubs" Notification Opt-In</text>
+      <text x="16" y="78" class="card-text">&#8226; Domain: fc.dirzaaulia.com (Firebase Hosting)</text>
+      <text x="16" y="96" class="card-text">&#8226; Web Push Service Worker (FCM Background)</text>
+      <text x="16" y="114" class="card-text">&#8226; Google AdSense Integrated &amp; SEO Articles</text>
+      <text x="16" y="132" class="card-text">&#8226; Contextual "My Clubs" Notification Opt-In</text>
     </g>
 
     <!-- Card 3: Kotlin/Wasm Telemetry -->
@@ -135,12 +136,12 @@
       <rect x="16" y="16" width="32" height="32" rx="6" fill="#8b5cf6" fill-opacity="0.2" />
       <rect x="24" y="24" width="16" height="16" rx="3" fill="none" stroke="#a78bfa" stroke-width="2.5" />
       <text x="58" y="28" class="card-title">Telemetry &amp; Observability</text>
-      <text x="58" y="44" class="card-subtitle">Kotlin/Wasm &bull; Compose Web &bull; Side Sheet</text>
+      <text x="58" y="44" class="card-subtitle">Kotlin/Wasm &#8226; Compose Web &#8226; Side Sheet</text>
       
-      <text x="16" y="78" class="card-text">&bull; Routes: /telemetry &amp; footballclips-telemetry.web.app</text>
-      <text x="16" y="96" class="card-text">&bull; Live Sync Cycle Telemetry &amp; Error Inspectors</text>
-      <text x="16" y="114" class="card-text">&bull; Quota Tracking (YouTube API &amp; Football-Data)</text>
-      <text x="16" y="132" class="card-text">&bull; Modern Stitch UI &amp; Detailed Accordion Logs</text>
+      <text x="16" y="78" class="card-text">&#8226; Routes: /telemetry &amp; footballclips-telemetry.web.app</text>
+      <text x="16" y="96" class="card-text">&#8226; Live Sync Cycle Telemetry &amp; Error Inspectors</text>
+      <text x="16" y="114" class="card-text">&#8226; Quota Tracking (YouTube API &amp; Football-Data)</text>
+      <text x="16" y="132" class="card-text">&#8226; Modern Stitch UI &amp; Detailed Accordion Logs</text>
     </g>
   </g>
 
@@ -154,24 +155,24 @@
     <g transform="translate(24, 40)" filter="url(#shadow)">
       <rect x="0" y="0" width="460" height="92" rx="10" fill="url(#cardGrad)" stroke="#10b981" stroke-width="1.5" />
       <text x="20" y="28" class="card-title">Supabase Cloud (PostgreSQL 15 &amp; Auth)</text>
-      <text x="20" y="50" class="card-text">&bull; Tables: matches, highlights, supported_clubs, profiles</text>
-      <text x="20" y="70" class="card-text">&bull; Telemetry Tables: worker_cycles, worker_events</text>
+      <text x="20" y="50" class="card-text">&#8226; Tables: matches, highlights, supported_clubs, profiles</text>
+      <text x="20" y="70" class="card-text">&#8226; Telemetry Tables: worker_cycles, worker_events</text>
     </g>
 
     <!-- FCM Topics Card -->
     <g transform="translate(512, 40)" filter="url(#shadow)">
       <rect x="0" y="0" width="370" height="92" rx="10" fill="url(#cardGrad)" stroke="#f59e0b" stroke-width="1.5" />
       <text x="20" y="28" class="card-title">Firebase Cloud Messaging (FCM)</text>
-      <text x="20" y="50" class="card-text">&bull; Zero-Cost Topic Architecture: club_{club_id}</text>
-      <text x="20" y="70" class="card-text">&bull; Real-time Fanout: Goals, Kickoffs, Full-Time, Recaps</text>
+      <text x="20" y="50" class="card-text">&#8226; Zero-Cost Topic Architecture: club_{club_id}</text>
+      <text x="20" y="70" class="card-text">&#8226; Real-time Fanout: Goals, Kickoffs, Full-Time, Recaps</text>
     </g>
 
     <!-- Firebase Hosting Card -->
     <g transform="translate(910, 40)" filter="url(#shadow)">
       <rect x="0" y="0" width="250" height="92" rx="10" fill="url(#cardGrad)" stroke="#f97316" stroke-width="1.5" />
       <text x="20" y="28" class="card-title">Firebase Hosting</text>
-      <text x="20" y="50" class="card-text">&bull; footballclips (Next.js)</text>
-      <text x="20" y="70" class="card-text">&bull; footballclips-telemetry (WASM)</text>
+      <text x="20" y="50" class="card-text">&#8226; footballclips (Next.js)</text>
+      <text x="20" y="70" class="card-text">&#8226; footballclips-telemetry (WASM)</text>
     </g>
   </g>
 
@@ -185,13 +186,13 @@
     <g transform="translate(24, 40)" filter="url(#shadow)">
       <rect x="0" y="0" width="460" height="170" rx="12" fill="url(#cardGrad)" stroke="#a855f7" stroke-width="1.5" />
       <text x="20" y="30" class="card-title">Python Worker Engine v2.0 (Async)</text>
-      <text x="20" y="48" class="card-subtitle">GCP VM: free-football-worker &bull; systemd &bull; uv package manager</text>
+      <text x="20" y="48" class="card-subtitle">GCP VM: free-football-worker &#8226; systemd &#8226; uv package manager</text>
       
-      <text x="20" y="78" class="card-text">&bull; match_service: Fixtures &amp; live score tracking without regressions</text>
-      <text x="20" y="98" class="card-text">&bull; highlight_service: YouTube multi-channel scan &amp; duration filters</text>
-      <text x="20" y="118" class="card-text">&bull; notification_service: In-memory deduplicated FCM topic dispatcher</text>
-      <text x="20" y="138" class="card-text">&bull; maintenance_service: 30-day automated rolling database cleanup</text>
-      <text x="20" y="158" class="card-text">&bull; telemetry_service: Real-time structured cycle health logging</text>
+      <text x="20" y="78" class="card-text">&#8226; match_service: Fixtures &amp; live score tracking without regressions</text>
+      <text x="20" y="98" class="card-text">&#8226; highlight_service: YouTube multi-channel scan &amp; duration filters</text>
+      <text x="20" y="118" class="card-text">&#8226; notification_service: In-memory deduplicated FCM topic dispatcher</text>
+      <text x="20" y="138" class="card-text">&#8226; maintenance_service: 30-day automated rolling database cleanup</text>
+      <text x="20" y="158" class="card-text">&#8226; telemetry_service: Real-time structured cycle health logging</text>
     </g>
 
     <!-- External Sources & AI Cards -->
@@ -213,13 +214,13 @@
     <g transform="translate(850, 40)" filter="url(#shadow)">
       <rect x="0" y="0" width="310" height="170" rx="12" fill="url(#cardGrad)" stroke="#6366f1" stroke-width="1.5" />
       <text x="20" y="30" class="card-title">Google Gemini AI Engine</text>
-      <text x="20" y="48" class="card-subtitle">gemini-3.8-flash / 3.7-flash &bull; Structured JSON Output</text>
+      <text x="20" y="48" class="card-subtitle">gemini-3.8-flash / 3.7-flash &#8226; Structured JSON Output</text>
 
-      <text x="20" y="80" class="card-text">&bull; Semantic Match Title Reconciliation</text>
-      <text x="20" y="100" class="card-text">&bull; Post-Match Interview &amp; Podcast Filter</text>
-      <text x="20" y="120" class="card-text">&bull; Retro / Archive Video Rejection</text>
-      <text x="20" y="140" class="card-text">&bull; High-Confidence Verified Linking</text>
-      <text x="20" y="160" class="card-text">&bull; Rule-based fallback if quota exhausted</text>
+      <text x="20" y="80" class="card-text">&#8226; Semantic Match Title Reconciliation</text>
+      <text x="20" y="100" class="card-text">&#8226; Post-Match Interview &amp; Podcast Filter</text>
+      <text x="20" y="120" class="card-text">&#8226; Retro / Archive Video Rejection</text>
+      <text x="20" y="140" class="card-text">&#8226; High-Confidence Verified Linking</text>
+      <text x="20" y="160" class="card-text">&#8226; Rule-based fallback if quota exhausted</text>
     </g>
   </g>
 
