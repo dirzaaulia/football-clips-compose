@@ -2,16 +2,28 @@ package com.dirzaaulia.footballclips.data.billing
 
 import android.content.Context
 import com.dirzaaulia.footballclips.util.ActivityHolder
-import com.revenuecat.purchases.*
+import com.revenuecat.purchases.CustomerInfo
+import com.revenuecat.purchases.Offerings
+import com.revenuecat.purchases.Package
+import com.revenuecat.purchases.PurchaseParams
+import com.revenuecat.purchases.Purchases
+import com.revenuecat.purchases.PurchasesConfiguration
+import com.revenuecat.purchases.PurchasesError
 import com.revenuecat.purchases.interfaces.LogInCallback
 import com.revenuecat.purchases.interfaces.PurchaseCallback
 import com.revenuecat.purchases.interfaces.ReceiveCustomerInfoCallback
 import com.revenuecat.purchases.interfaces.ReceiveOfferingsCallback
+import com.revenuecat.purchases.interfaces.SyncPurchasesCallback
 import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
 import com.revenuecat.purchases.models.StoreTransaction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class AndroidBillingManager(
@@ -58,11 +70,13 @@ class AndroidBillingManager(
 
     override fun identify(userId: String) {
         if (!Purchases.isConfigured) return
+        if (Purchases.sharedInstance.appUserID == userId && !Purchases.sharedInstance.isAnonymous) return
         _isLoading.value = true
         Purchases.sharedInstance.logIn(userId, object : LogInCallback {
             override fun onReceived(customerInfo: CustomerInfo, created: Boolean) {
                 updatePremiumStatus(customerInfo)
                 _isLoading.value = false
+                syncPurchases()
             }
 
             override fun onError(error: PurchasesError) {
@@ -88,12 +102,14 @@ class AndroidBillingManager(
     }
 
     private fun updatePremiumStatus(customerInfo: CustomerInfo) {
-        val isActive = customerInfo.entitlements["remove_ads"]?.isActive == true
+        val isActive = customerInfo.entitlements["remove_ads"]?.isActive == true ||
+            customerInfo.entitlements.active.isNotEmpty()
         _isPremium.value = isActive
         _customerInfo.value = CustomerInfoModel(
             platform = "Google Play Store",
-            userId = customerInfo.originalAppUserId,
-            isActive = isActive
+            userId = Purchases.sharedInstance.appUserID,
+            isActive = isActive,
+            isAnonymous = Purchases.sharedInstance.isAnonymous
         )
     }
 
@@ -176,6 +192,23 @@ class AndroidBillingManager(
                 sendError("Restore failed: ${error.message}")
                 _isLoading.value = false
                 onComplete?.invoke(false)
+            }
+        })
+    }
+
+    override fun syncPurchases(onComplete: ((Boolean) -> Unit)?) {
+        if (!Purchases.isConfigured) {
+            onComplete?.invoke(false)
+            return
+        }
+        Purchases.sharedInstance.syncPurchases(object : SyncPurchasesCallback {
+            override fun onSuccess(customerInfo: CustomerInfo) {
+                updatePremiumStatus(customerInfo)
+                onComplete?.invoke(_isPremium.value)
+            }
+
+            override fun onError(error: PurchasesError) {
+                onComplete?.invoke(_isPremium.value)
             }
         })
     }

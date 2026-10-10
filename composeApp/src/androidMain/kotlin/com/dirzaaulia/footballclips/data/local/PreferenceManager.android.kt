@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import com.google.firebase.messaging.FirebaseMessaging
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
 
@@ -118,7 +119,16 @@ actual class PreferenceManager(private val context: Context) {
 
     actual suspend fun toggleFavoriteClub(clubId: String) {
         val current = _inMemoryFavoriteClubs.value ?: context.dataStore.data.first()[favoriteClubsKey] ?: emptySet()
-        val updated = if (current.contains(clubId)) current - clubId else current + clubId
+        val isAdding = !current.contains(clubId)
+        val updated = if (isAdding) current + clubId else current - clubId
         setFavoriteClubs(updated)
+        try {
+            if (isAdding) {
+                FirebaseMessaging.getInstance().subscribeToTopic("club_$clubId")
+            } else {
+                FirebaseMessaging.getInstance().unsubscribeFromTopic("club_$clubId")
+            }
+        } catch (_: Exception) {
+        }
     }
 }

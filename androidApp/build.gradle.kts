@@ -45,7 +45,7 @@ play {
     val playKeyPath = localProperties.getProperty("PLAY_SERVICE_ACCOUNT")
         ?: System.getenv("PLAY_SERVICE_ACCOUNT")
         ?: "play-console-key.json"
-    val playKeyFile = file(playKeyPath)
+    val playKeyFile = rootProject.file(playKeyPath)
     if (playKeyFile.exists()) {
         serviceAccountCredentials.set(playKeyFile)
     }
@@ -56,10 +56,15 @@ play {
 tasks.register("incrementBuildNumber") {
     description = "Increments the build number in version.properties"
     group = "versioning"
+    val propsFile = versionPropsFile
     doLast {
-        val current = versionProps.getProperty("VERSION_BUILD", "1").toInt()
-        versionProps.setProperty("VERSION_BUILD", (current + 1).toString())
-        versionPropsFile.outputStream().use { versionProps.store(it, "Auto-incremented by build runner") }
+        val props = Properties()
+        if (propsFile.exists()) {
+            propsFile.inputStream().use { props.load(it) }
+        }
+        val current = props.getProperty("VERSION_BUILD", "1").toInt()
+        props.setProperty("VERSION_BUILD", (current + 1).toString())
+        propsFile.outputStream().use { props.store(it, "Auto-incremented by build runner") }
     }
 }
 
@@ -183,6 +188,7 @@ dependencies {
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)
+    implementation(libs.androidx.work.runtime)
     implementation(libs.admob.nextgen)
     implementation(libs.coil.core)
     implementation(libs.coil.svg)
@@ -193,6 +199,7 @@ dependencies {
     implementation(project.dependencies.platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.messaging)
 
     debugImplementation(libs.chucker.library)
     releaseImplementation(libs.chucker.library.no.op)

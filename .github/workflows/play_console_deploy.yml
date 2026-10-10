@@ -71,13 +71,13 @@ jobs:
           ADMOB_NATIVE_ID: ${{ secrets.ADMOB_NATIVE_ID }}
           ADMOB_INTERSTITIAL_ID: ${{ secrets.ADMOB_INTERSTITIAL_ID }}
         run: |
-          ./gradlew :app:bundleRelease --stacktrace
+          ./gradlew :androidApp:bundleRelease --stacktrace
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/build/outputs/bundle/release/app-release.aab
+          path: androidApp/build/outputs/bundle/release/androidApp-release.aab
           retention-days: 14
 
       - name: Publish to Google Play
@@ -85,8 +85,8 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_CONSOLE_JSON_KEY || secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.dirzaaulia.footballclips
-          releaseFiles: app/build/outputs/bundle/release/app-release.aab
-          mappingFile: app/build/outputs/mapping/release/mapping.txt
+          releaseFiles: androidApp/build/outputs/bundle/release/androidApp-release.aab
+          mappingFile: androidApp/build/outputs/mapping/release/mapping.txt
           track: ${{ inputs.track || 'internal' }}
           status: ${{ inputs.status || 'completed' }}
 

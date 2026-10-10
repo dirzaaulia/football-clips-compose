@@ -11,8 +11,6 @@ import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback
 import com.google.android.libraries.ads.mobile.sdk.common.AdRequest
 import com.google.android.libraries.ads.mobile.sdk.common.FullScreenContentError
 import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError
-import com.google.android.libraries.ads.mobile.sdk.common.RequestConfiguration
-import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
 import com.google.android.libraries.ads.mobile.sdk.interstitial.InterstitialAd
 import com.google.android.libraries.ads.mobile.sdk.interstitial.InterstitialAdEventCallback
 import java.util.concurrent.TimeUnit
@@ -24,65 +22,34 @@ actual class AdMobManager(private val context: Context) {
     private var interstitialAd: InterstitialAd? = null
     private var lastInterstitialTime: Long = 0
     private val interstitialCooldown = TimeUnit.MINUTES.toMillis(3)
-    private var isInitialized = false
 
     init {
-        initializeAndLoad()
-    }
-
-    private fun initializeAndLoad() {
-        if (isInitialized) {
+        AdMobInitializer.initialize(context) {
             loadInterstitial()
             preloadNativeAd()
-            return
-        }
-
-        try {
-            val testDeviceIds = listOf("33BE2250B43518CCDA7DE426D04EE231")
-            val requestConfig = RequestConfiguration.Builder()
-                .setTestDeviceIds(testDeviceIds)
-                .build()
-            MobileAds.setRequestConfiguration(requestConfig)
-
-            val admobAppId = getBuildConfigString("ADMOB_APP_ID", "ca-app-pub-6717632447198427~3285794491")
-            Log.d(TAG_INTERSTITIAL, "🚀 INITIALIZING ADMOB SDK (App ID: $admobAppId)")
-            MobileAds.initialize(
-                context.applicationContext,
-                InitializationConfig.Builder(admobAppId).build()
-            ) {
-                isInitialized = true
-                Log.d(TAG_INTERSTITIAL, "✅ ADMOB SDK INITIALIZED SUCCESSFULLY")
-                loadInterstitial()
-                preloadNativeAd()
-            }
-        } catch (t: Throwable) {
-            Log.e(TAG_INTERSTITIAL, "💥 ADMOB INITIALIZATION EXCEPTION: ${t.message}", t)
         }
     }
 
     private fun loadInterstitial() {
-        if (!isInitialized) {
-            initializeAndLoad()
-            return
+        AdMobInitializer.runWhenInitialized(context) {
+            val interstitialId = getBuildConfigString("ADMOB_INTERSTITIAL_ID", "ca-app-pub-6717632447198427/9984137502")
+            Log.d(TAG_INTERSTITIAL, "🔄 LOADING INTERSTITIAL AD (Unit ID: $interstitialId)")
+            val adRequest = AdRequest.Builder(interstitialId).build()
+            InterstitialAd.load(
+                adRequest,
+                object : AdLoadCallback<InterstitialAd> {
+                    override fun onAdLoaded(ad: InterstitialAd) {
+                        interstitialAd = ad
+                        Log.d(TAG_INTERSTITIAL, "🟢 INTERSTITIAL LOADED SUCCESSFULLY")
+                    }
+
+                    override fun onAdFailedToLoad(adError: LoadAdError) {
+                        interstitialAd = null
+                        Log.e(TAG_INTERSTITIAL, formatAdError(adError, "INTERSTITIAL"))
+                    }
+                }
+            )
         }
-
-        val interstitialId = getBuildConfigString("ADMOB_INTERSTITIAL_ID", "ca-app-pub-6717632447198427/9984137502")
-        Log.d(TAG_INTERSTITIAL, "🔄 LOADING INTERSTITIAL AD (Unit ID: $interstitialId)")
-        val adRequest = AdRequest.Builder(interstitialId).build()
-        InterstitialAd.load(
-            adRequest,
-            object : AdLoadCallback<InterstitialAd> {
-                override fun onAdLoaded(ad: InterstitialAd) {
-                    interstitialAd = ad
-                    Log.d(TAG_INTERSTITIAL, "🟢 INTERSTITIAL LOADED SUCCESSFULLY")
-                }
-
-                override fun onAdFailedToLoad(adError: LoadAdError) {
-                    interstitialAd = null
-                    Log.e(TAG_INTERSTITIAL, formatAdError(adError, "INTERSTITIAL"))
-                }
-            }
-        )
     }
 
     private fun preloadNativeAd() {
@@ -141,17 +108,19 @@ actual class AdMobManager(private val context: Context) {
     }
 
     actual fun openAdInspector() {
-        try {
-            Log.d(TAG_INTERSTITIAL, "🔍 OPENING AD INSPECTOR")
-            MobileAds.openAdInspector { adInspectorError ->
-                if (adInspectorError != null) {
-                    Log.e(TAG_INTERSTITIAL, "🔴 AD INSPECTOR ERROR: ${adInspectorError.message} (Code: ${adInspectorError.code})")
-                } else {
-                    Log.d(TAG_INTERSTITIAL, "🟢 AD INSPECTOR CLOSED")
+        AdMobInitializer.runWhenInitialized(context) {
+            try {
+                Log.d(TAG_INTERSTITIAL, "🔍 OPENING AD INSPECTOR")
+                MobileAds.openAdInspector { adInspectorError ->
+                    if (adInspectorError != null) {
+                        Log.e(TAG_INTERSTITIAL, "🔴 AD INSPECTOR ERROR: ${adInspectorError.message} (Code: ${adInspectorError.code})")
+                    } else {
+                        Log.d(TAG_INTERSTITIAL, "🟢 AD INSPECTOR CLOSED")
+                    }
                 }
+            } catch (t: Throwable) {
+                Log.e(TAG_INTERSTITIAL, "💥 AD INSPECTOR EXCEPTION: ${t.message}", t)
             }
-        } catch (t: Throwable) {
-            Log.e(TAG_INTERSTITIAL, "💥 AD INSPECTOR EXCEPTION: ${t.message}", t)
         }
     }
 }

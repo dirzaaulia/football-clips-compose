@@ -49,7 +49,7 @@ IMPORTANT DISCLAIMERS & LEGAL:
 
 • Privacy Policy: https://fc.dirzaaulia.com/privacy
 • Terms of Service: https://fc.dirzaaulia.com/tnc
-• Support: dirzaaulia@gmail.com
+• Support: dirzaaulia11@gmail.com
 """
 
 FULL_DESC_ID = """Selamat datang di Football Highlights & Clips (FC) – aplikasi lengkap untuk cuplikan video pertandingan sepak bola, skor langsung, dan jadwal pertandingan!
@@ -80,7 +80,7 @@ INFORMASI HAK CIPTA & KEPATUHAN:
 
 • Kebijakan Privasi: https://fc.dirzaaulia.com/privacy
 • Syarat & Ketentuan: https://fc.dirzaaulia.com/tnc
-• Kontak & Bantuan: dirzaaulia@gmail.com
+• Kontak & Bantuan: dirzaaulia11@gmail.com
 """
 
 FULL_DESC_ES = """¡Bienvenido a Football Highlights & Clips (FC) – tu aplicación definitiva para ver resúmenes de fútbol, videos de goles, marcadores en vivo y calendarios de partidos!
@@ -111,7 +111,7 @@ INFORMACIÓN LEGAL Y AVISO DE DERECHOS DE AUTOR:
 
 • Política de Privacidad: https://fc.dirzaaulia.com/privacy
 • Términos de Servicio: https://fc.dirzaaulia.com/tnc
-• Soporte y Contacto: dirzaaulia@gmail.com
+• Soporte y Contacto: dirzaaulia11@gmail.com
 """
 
 FULL_DESC_PT = """Bem-vindo ao Football Highlights & Clips (FC) – seu aplicativo definitivo para assistir aos melhores momentos do futebol, vídeos de lances, placar ao vivo e calendário de jogos!
@@ -142,7 +142,7 @@ INFORMAÇÕES LEGAIS E DIREITOS AUTORAIS:
 
 • Política de Privacidade: https://fc.dirzaaulia.com/privacy
 • Termos de Serviço: https://fc.dirzaaulia.com/tnc
-• Suporte e Contato: dirzaaulia@gmail.com
+• Suporte e Contato: dirzaaulia11@gmail.com
 """
 
 RELEASE_NOTES = [

@@ -4,14 +4,13 @@ import android.app.Application
 import android.app.Activity
 import android.os.Bundle
 import android.util.Log
+import androidx.work.Configuration
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.svg.SvgDecoder
 import com.dirzaaulia.footballclips.di.appModules
-import com.google.android.libraries.ads.mobile.sdk.MobileAds
-import com.google.android.libraries.ads.mobile.sdk.common.RequestConfiguration
-import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
+import com.dirzaaulia.footballclips.data.admob.AdMobInitializer
 import com.revenuecat.purchases.LogLevel
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesConfiguration
@@ -19,7 +18,12 @@ import java.lang.ref.WeakReference
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
-class FootballClipsApplication : Application(), SingletonImageLoader.Factory {
+class FootballClipsApplication : Application(), SingletonImageLoader.Factory, Configuration.Provider {
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setMinimumLoggingLevel(if (BuildConfig.DEBUG) Log.DEBUG else Log.ERROR)
+            .build()
 
     companion object {
         private var currentActivity: WeakReference<Activity>? = null
@@ -40,6 +44,16 @@ class FootballClipsApplication : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
 
+        // Safeguard check to clean up empty or corrupted WorkDatabase files
+        try {
+            val workDb = getDatabasePath("androidx.work.workdb")
+            if ((workDb.exists()) && (workDb.length() == 0L)) {
+                deleteDatabase("androidx.work.workdb")
+            }
+        } catch (t: Throwable) {
+            Log.w("FootballClipsApp", "Safeguard check for WorkDatabase failed: ${t.message}")
+        }
+
         // Initialize RevenueCat before Koin DI resolves BillingManager
         if (BuildConfig.REVENUECAT_API_KEY.isNotBlank()) {
             try {
@@ -57,18 +71,7 @@ class FootballClipsApplication : Application(), SingletonImageLoader.Factory {
 
         // Initialize AdMob MobileAds eagerly on Application startup
         try {
-            val testDeviceIds = listOf("33BE2250B43518CCDA7DE426D04EE231")
-            val requestConfig = RequestConfiguration.Builder()
-                .setTestDeviceIds(testDeviceIds)
-                .build()
-            MobileAds.setRequestConfiguration(requestConfig)
-
-            MobileAds.initialize(
-                this,
-                InitializationConfig.Builder(BuildConfig.ADMOB_APP_ID).build()
-            ) {
-                Log.d("FootballClipsApp", "MobileAds initialized eagerly in Application.onCreate")
-            }
+            AdMobInitializer.initialize(this)
         } catch (t: Throwable) {
             Log.e("FootballClipsApp", "MobileAds initialization error in Application: ${t.message}")
         }

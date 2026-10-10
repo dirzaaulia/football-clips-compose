@@ -1,5 +1,4 @@
 import java.util.Properties
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -35,11 +34,6 @@ kotlin {
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
         androidResources.enable = true
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
     }
 
     sourceSets {
@@ -86,14 +80,9 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.revenuecat.sdk)
+            implementation(project.dependencies.platform(libs.firebase.bom))
+            implementation(libs.firebase.messaging)
             compileOnly(libs.chucker.library)
-        }
-
-        wasmJsMain.dependencies {
-            implementation(libs.ktor.client.js)
-            implementation(npm("@js-joda/core", "3.2.0"))
-            implementation(npm("@js-joda/timezone", "2.3.0"))
-            implementation(npm("@js-joda/locale", "3.1.1"))
         }
     }
 }

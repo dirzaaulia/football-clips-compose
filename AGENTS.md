@@ -25,7 +25,7 @@
 ## Project-Specific Guidelines (FootballClips)
 - **Target SDK**: Compile & Target SDK 37 (AGP 9.4.0, Kotlin 2.4.20).
 - **Gradle Configuration**: `android.newDsl=false` is required in `gradle.properties` when pairing Kotlin Multiplatform plugin with `com.android.application` in AGP 9.
-- **Secret Management**: Always use the `getSecret(key)` helper in `app/build.gradle.kts` to fallback gracefully between `local.properties`, Gradle properties (`-PKEY=...`), and Environment Variables (`ENV['KEY']`).
+- **Secret Management**: Always use the `getSecret(key)` helper in `androidApp/build.gradle.kts` to fallback gracefully between `local.properties`, Gradle properties (`-PKEY=...`), and Environment Variables (`ENV['KEY']`).
 - **RevenueCat Billing**: Ensure `BuildConfig.REVENUECAT_API_KEY` is checked for `isNotBlank()` before invoking `Purchases.configure(...)` in `Application.kt`.
 - **AdMob Next-Gen Native Ads**:
   - Use `com.google.android.libraries.ads.mobile.sdk.nativead.NativeAdView`.

@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Football Highlights & Clips - Official Match Highlights, Live Scores & Schedules</title>
-    <meta name="description" content="Watch verified official football match highlights, decisive goals, live scores, fixtures, and standings for Premier League, UEFA Champions League, La Liga, Serie A, and Bundesliga.">
-    <meta name="keywords" content="football highlights, soccer clips, live scores, match recaps, Premier League highlights, Champions League highlights, La Liga goals, Serie A, Bundesliga, Ligue 1">
-    <link rel="canonical" href="https://fc.dirzaaulia.com/">
+    <title>⚽ Football Clips - Worker Telemetry Dashboard</title>
+    <meta name="description" content="Real-time worker telemetry dashboard for Football Clips sync pipeline, YouTube API monitoring, and match events.">
 
     <!-- Favicon & Touch Icons -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -16,6 +14,24 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        (function() {
+            var path = window.location.pathname;
+            var isTelemetry = path.indexOf('/telemetry') === 0;
+            if (isTelemetry && !path.endsWith('/') && path.indexOf('.') === -1) {
+                window.location.replace('/telemetry/' + window.location.search + window.location.hash);
+                return;
+            }
+            var baseHref = isTelemetry ? '/telemetry/' : './';
+            var base = document.querySelector('base');
+            if (!base) {
+                base = document.createElement('base');
+                base.href = baseHref;
+                document.head.insertBefore(base, document.head.firstChild);
+            }
+        })();
+    </script>
     
     <!-- YouTube IFrame Player API -->
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -118,27 +134,38 @@
     <!-- Smoothly transition from splash to WASM canvas matching Android exit animation -->
     <script>
         const appViewport = document.getElementById('app-viewport');
+        function dismissSplash() {
+            const splash = document.getElementById('app-splash');
+            if (splash && !splash.classList.contains('splash-exit')) {
+                splash.classList.add('splash-exit');
+                setTimeout(() => { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 600);
+            }
+        }
         if (appViewport) {
             const splashObserver = new MutationObserver((mutations) => {
                 for (const m of mutations) {
                     for (const node of m.addedNodes) {
-                        if (node.tagName === 'CANVAS') {
-                            const splash = document.getElementById('app-splash');
-                            if (splash) {
-                                splash.classList.add('splash-exit');
-                                setTimeout(() => splash.remove(), 600);
-                            }
+                        if (node.nodeName === 'CANVAS' || (node.querySelector && node.querySelector('canvas'))) {
+                            dismissSplash();
                             splashObserver.disconnect();
                             return;
                         }
                     }
                 }
             });
-            splashObserver.observe(appViewport, { childList: true });
+            splashObserver.observe(appViewport, { childList: true, subtree: true });
+            setTimeout(dismissSplash, 2500);
         }
     </script>
 
     <!-- Compose Multiplatform WebAssembly Bundle -->
-    <script src="composeApp.js"></script>
+    <script>
+        (function() {
+            var isTelemetry = window.location.pathname.indexOf('/telemetry') === 0;
+            var script = document.createElement('script');
+            script.src = (isTelemetry ? '/telemetry/' : '') + 'composeApp.js';
+            document.body.appendChild(script);
+        })();
+    </script>
 </body>
 </html>

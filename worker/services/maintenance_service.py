@@ -3,8 +3,8 @@ from datetime import UTC, datetime, timedelta
 from loguru import logger
 from worker.clients.supabase_client import supabase_client
 
-
 from worker.config.settings import settings
+from worker.utils.telemetry_logger import append_event
 
 
 class MaintenanceService:
@@ -24,16 +24,16 @@ class MaintenanceService:
             )
             deleted_count = len(res.data) if res.data else 0
             if deleted_count > 0:
-                msg = f"🧹 Menghapus {deleted_count} pertandingan kadaluarsa (>{retention} hari)."
+                msg = f"Cleaned up {deleted_count} stale matches older than {retention} days."
             else:
-                msg = f"⚪ Database bersih (Tidak ada data >{retention} hari)."
+                msg = f"Database clean. No stale records older than {retention} days found."
 
-            log_events.append(msg)
+            append_event(log_events, msg, "INFO", "MAINTENANCE", "CLEANUP_DONE")
             logger.info(msg)
             return deleted_count
         except Exception as e:
-            err = f"🚨 [ERROR CLEANUP] {e}"
-            log_events.append(err)
+            err = f"Cleanup database error: {e}"
+            append_event(log_events, err, "ERROR", "MAINTENANCE", "CLEANUP_ERROR")
             logger.error(err)
             return 0
 

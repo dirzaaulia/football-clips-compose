@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sandbox_test_mode">SANDBOX TEST MODE</string>
+    <string name="restore_purchase">Restore Purchase</string>
+    <string name="restore_purchase_hint">Already bought Premium on Google Play? Tap \'Restore Purchase\' to sync your lifetime access to this account.</string>
+    <string name="checking_access">Checking Access...</string>
+    <string name="verifying_entitlement_hint">Verifying and restoring your Premium entitlement. Please wait...</string>
+    <string name="premium_active">Premium Active</string>
+    <string name="premium_active_description">Thank you for supporting Football Highlights &amp; Clips! You have full access to all features.</string>
+    <string name="subscription_summary">Subscription Summary</string>
+    <string name="platform">Platform</string>
+    <string name="linked_id">Linked ID</string>
+    <string name="status">Status</string>
+    <string name="active_lifetime">Active / Lifetime</string>
+    <string name="expired">Expired</string>
+    <string name="close">Close</string>
+</resources>

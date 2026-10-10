@@ -1,0 +1,19 @@
+# Settings for Firebase App Hosting
+runConfig:
+  minInstances: 0
+  maxInstances: 2
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  - variable: NEXT_PUBLIC_SUPABASE_URL
+    value: "https://eiomktvavndorazreyba.supabase.co"
+  - variable: NEXT_PUBLIC_SUPABASE_ANON_KEY
+    value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpb21rdHZhdm5kb3JhenJleWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1OTQ4ODcsImV4cCI6MjEwMzE3MDg4N30.GhP7TJXMeAEpG8F-9pB_SLNwaXLjIrOJ2LAiPC1kCk4"
+  - variable: GEMINI_API_KEY
+    secret: geminiApiKey
+  - variable: NEXT_PUBLIC_ADSENSE_CLIENT_ID
+    value: "ca-pub-6717632447198427"
+  - variable: NEXT_PUBLIC_SITE_URL
+    value: "https://fc.dirzaaulia.com"

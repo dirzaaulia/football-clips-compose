@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from loguru import logger
 from worker.clients.supabase_client import supabase_client
 from worker.config.settings import settings
+from worker.utils.telemetry_logger import append_event
 
 
 class ClubService:
@@ -58,12 +59,12 @@ class ClubService:
             try:
                 payloads = list(clubs_map.values())
                 supabase_client.table("supported_clubs").upsert(payloads, on_conflict="id").execute()
-                log_events.append(f"⭐ [SUPPORTED CLUBS] Auto-sync {len(payloads)} klub 5 liga besar ke Supabase.")
+                append_event(log_events, f"[SUPPORTED_CLUBS] Auto-synced {len(payloads)} top 5 European league clubs to Supabase.", "INFO", "MATCH_SYNC", "SUPPORTED_CLUBS")
                 logger.info(f"Auto-synced {len(payloads)} supported clubs to Supabase.")
                 return len(payloads)
             except Exception as e:
-                log_events.append(f"⚠️ [SUPPORTED CLUBS] Gagal auto-sync: {e}")
-                logger.warning(f"Gagal auto-sync supported clubs: {e}")
+                append_event(log_events, f"[SUPPORTED_CLUBS] Auto-sync clubs warning: {e}", "WARN", "MATCH_SYNC", "SUPPORTED_CLUBS_ERROR")
+                logger.warning(f"Failed to auto-sync supported clubs: {e}")
         return 0
 
 club_service = ClubService()

@@ -45,7 +45,7 @@ IMPORTANT DISCLAIMERS & LEGAL:
 
 • Privacy Policy: https://fc.dirzaaulia.com/privacy
 • Terms of Service: https://fc.dirzaaulia.com/tnc
-• Support: dirzaaulia@gmail.com
+• Support: dirzaaulia11@gmail.com
 """
 
 FULL_DESCRIPTION_ID = """Selamat datang di Football Highlights & Clips (FC) – aplikasi lengkap untuk cuplikan video pertandingan sepak bola, skor langsung, dan jadwal pertandingan!
@@ -76,7 +76,7 @@ INFORMASI HAK CIPTA & KEPATUHAN:
 
 • Kebijakan Privasi: https://fc.dirzaaulia.com/privacy
 • Syarat & Ketentuan: https://fc.dirzaaulia.com/tnc
-• Kontak & Bantuan: dirzaaulia@gmail.com
+• Kontak & Bantuan: dirzaaulia11@gmail.com
 """
 
 SCREENSHOT_FILES = [

@@ -1,6 +1,15 @@
 package com.dirzaaulia.footballclips.di
 
-import com.dirzaaulia.footballclips.data.repository.*
+import com.dirzaaulia.footballclips.data.repository.ClubRepository
+import com.dirzaaulia.footballclips.data.repository.ClubRepositoryImpl
+import com.dirzaaulia.footballclips.data.repository.HighlightRepository
+import com.dirzaaulia.footballclips.data.repository.HighlightRepositoryImpl
+import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
+import com.dirzaaulia.footballclips.data.repository.ProfilesRepositoryImpl
+import com.dirzaaulia.footballclips.data.repository.ScoreRepository
+import com.dirzaaulia.footballclips.data.repository.ScoreRepositoryImpl
+import com.dirzaaulia.footballclips.data.repository.StandingRepository
+import com.dirzaaulia.footballclips.data.repository.StandingRepositoryImpl
 import com.dirzaaulia.footballclips.ui.home.HomeViewModel
 import com.dirzaaulia.footballclips.ui.score.ScoreViewModel
 import com.dirzaaulia.footballclips.data.constants.SupabaseConstants

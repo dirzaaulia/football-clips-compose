@@ -18,7 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.dirzaaulia.footballclips.data.constants.BigLeaguesConstants
-import com.dirzaaulia.footballclips.ui.components.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable

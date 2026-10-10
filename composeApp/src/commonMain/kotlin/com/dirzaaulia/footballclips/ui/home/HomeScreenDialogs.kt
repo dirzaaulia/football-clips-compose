@@ -3,9 +3,9 @@ package com.dirzaaulia.footballclips.ui.home
 import androidx.compose.runtime.Composable
 import com.dirzaaulia.footballclips.data.billing.CustomerInfoModel
 import com.dirzaaulia.footballclips.data.model.remote.Profile
-import com.dirzaaulia.footballclips.ui.components.DeveloperOptionsBottomSheet
-import com.dirzaaulia.footballclips.ui.components.FilterBottomSheet
-import com.dirzaaulia.footballclips.ui.components.PaywallBottomSheet
+import com.dirzaaulia.footballclips.ui.components.developer.DeveloperOptionsBottomSheet
+import com.dirzaaulia.footballclips.ui.components.filter.FilterBottomSheet
+import com.dirzaaulia.footballclips.ui.components.paywall.PaywallBottomSheet
 
 @Composable
 internal fun HomeScreenDialogs(
@@ -37,7 +37,7 @@ internal fun HomeScreenDialogs(
             isLoading = isBillingLoading,
             onSignInClick = onSignIn,
             onPurchaseClick = { rcPackage -> viewModel.purchasePackage(rcPackage) },
-            onRestoreClick = { viewModel.restorePurchases() },
+            onSignOutClick = { viewModel.signOut() },
             onDismiss = onDismissPaywall
         )
     }

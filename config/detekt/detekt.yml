@@ -1,0 +1,36 @@
+complexity:
+  LargeClass:
+    active: true
+    threshold: 250           # Hard ceiling: files > 250 lines fail detekt!
+  LongMethod:
+    active: true
+    threshold: 40            # Functions / composables > 40 lines fail!
+  ComplexMethod:
+    active: true
+    threshold: 15
+  LongParameterList:
+    active: true
+    functionThreshold: 6
+    constructorThreshold: 7
+    ignoreDefaultParameters: true
+
+naming:
+  FunctionNaming:
+    active: true
+    ignoreAnnotated: ['Composable']  # Allows PascalCase for @Composable fun MyScreen()
+
+style:
+  WildcardImport:
+    active: true             # Bans import foo.*
+  UnusedImports:
+    active: true             # Strips dead imports
+
+Compose:
+  ReusedModifierInstance:
+    active: true
+  UnnecessaryEventHandlerParameter:
+    active: true
+  ModifierMissing:
+    active: true
+  ComposableParamOrder:
+    active: true

@@ -20,10 +20,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import com.dirzaaulia.footballclips.data.constants.SupportedClubsConstants
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.uniqueId
-import com.dirzaaulia.footballclips.ui.components.BannerAdItem
-import com.dirzaaulia.footballclips.ui.components.EmptyState
-import com.dirzaaulia.footballclips.ui.components.ExpressiveLoadingIndicator
-import com.dirzaaulia.footballclips.ui.components.MyClubsBottomSheet
+import com.dirzaaulia.footballclips.data.notification.rememberNotificationPermissionState
+import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
+import com.dirzaaulia.footballclips.ui.components.common.EmptyState
+import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.notification.NotificationPermissionBottomSheet
+import com.dirzaaulia.footballclips.ui.components.common.MyClubsBottomSheet
 import com.dirzaaulia.footballclips.ui.score.components.FixturesLandscapeContent
 import com.dirzaaulia.footballclips.ui.score.components.MatchCard
 import com.dirzaaulia.footballclips.ui.score.components.MatchesTopBar
@@ -51,6 +53,8 @@ fun MatchesAndHighlightsScreen(
     val isFiltersExpanded by viewModel.isFiltersExpanded.collectAsState()
     val isMyClubsSheetVisible by viewModel.showMyClubsSheet.collectAsState()
     var showMyClubsSheet by remember { mutableStateOf(false) }
+    val permissionState = rememberNotificationPermissionState()
+    var showNotificationRationale by remember { mutableStateOf(false) }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val isLandscape = maxHeight < 500.dp
@@ -211,7 +215,13 @@ fun MatchesAndHighlightsScreen(
         if (showMyClubsSheet || isMyClubsSheetVisible) {
             MyClubsBottomSheet(
                 selectedClubIds = favoriteClubs,
-                onToggleClub = { viewModel.toggleFavoriteClub(it) },
+                onToggleClub = { clubId ->
+                    val isAdding = !favoriteClubs.contains(clubId)
+                    viewModel.toggleFavoriteClub(clubId)
+                    if (isAdding && !permissionState.hasPermission) {
+                        showNotificationRationale = true
+                    }
+                },
                 onDismissRequest = {
                     showMyClubsSheet = false
                     viewModel.setMyClubsSheetVisible(false)
@@ -219,5 +229,21 @@ fun MatchesAndHighlightsScreen(
                 clubs = supportedClubs
             )
         }
+
+        NotificationPermissionBottomSheet(
+            isVisible = showNotificationRationale,
+            isPermanentlyDenied = permissionState.isPermanentlyDenied,
+            onConfirm = {
+                showNotificationRationale = false
+                permissionState.launchPermissionRequest()
+            },
+            onDismiss = {
+                showNotificationRationale = false
+            },
+            onOpenSettings = {
+                showNotificationRationale = false
+                permissionState.openSettings()
+            }
+        )
     }
 }

@@ -55,10 +55,13 @@ internal fun HomeScreenTopBar(
                     isDarkMode = isDarkMode,
                     isPremium = isPremium,
                     isSpoilerFreeMode = isSpoilerFreeMode,
+                    favoriteClubsCount = favoriteClubsCount,
                     isScrolled = isScrolled,
                     onDarkModeToggle = onDarkModeToggle,
                     onToggleSpoilerFree = onToggleSpoilerFree,
-                    onShowPaywall = onShowPaywall
+                    onShowMyClubs = onShowMyClubs,
+                    onShowPaywall = onShowPaywall,
+                    onShowFilter = onShowFilter
                 )
             }
         },

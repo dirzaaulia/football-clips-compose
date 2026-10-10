@@ -1,33 +1,71 @@
 package com.dirzaaulia.footballclips.ui.adaptive
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
-import androidx.navigation.compose.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.uniqueId
-import com.dirzaaulia.footballclips.ui.components.FilterBottomSheet
-import com.dirzaaulia.footballclips.ui.components.MyClubsBottomSheet
+import com.dirzaaulia.footballclips.ui.components.filter.FilterBottomSheet
+import com.dirzaaulia.footballclips.ui.components.common.MyClubsBottomSheet
 import com.dirzaaulia.footballclips.ui.home.HomeScreen
 import com.dirzaaulia.footballclips.ui.home.HomeState
 import com.dirzaaulia.footballclips.ui.home.HomeViewModel
+import com.dirzaaulia.footballclips.ui.home.applyFilters
+import com.dirzaaulia.footballclips.ui.home.loadMore
+import com.dirzaaulia.footballclips.ui.home.onSearchQueryChanged
+import com.dirzaaulia.footballclips.ui.home.resetFilters
+import com.dirzaaulia.footballclips.ui.home.selectVideoById
+import com.dirzaaulia.footballclips.ui.home.toggleCountry
+import com.dirzaaulia.footballclips.ui.home.toggleLeague
+import com.dirzaaulia.footballclips.ui.score.getStandings
+import com.dirzaaulia.footballclips.ui.score.selectCompetition
 import com.dirzaaulia.footballclips.ui.info.InfoScreen
 import com.dirzaaulia.footballclips.ui.navigation.NavDestination
 import com.dirzaaulia.footballclips.ui.score.MatchesAndHighlightsScreen
@@ -170,74 +208,27 @@ fun WebMatchesScreen(
 
                     composable(
                         route = NavDestination.Player.route,
-                        arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+                        arguments = listOf(navArgument("itemId") { type = NavType.StringType }),
                     ) { backStackEntry ->
-                        val itemId = backStackEntry.savedStateHandle.get<String>("itemId")
-                        LaunchedEffect(itemId) {
-                            if (itemId != null) {
-                                viewModel.selectVideoById(itemId)
-                            }
-                        }
-
-                        val selectedItem by viewModel.selectedItem.collectAsState()
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .zIndex(100f)
-                                .background(Color.Black)
-                        ) {
-                            MatchTheater(
-                                item = selectedItem,
-                                onClose = {
-                                    navController.navigate(NavDestination.Home.route) {
-                                        popUpTo(navController.graph.findStartDestination().route ?: NavDestination.Home.route) {
-                                            inclusive = false
-                                        }
-                                        launchSingleTop = true
-                                    }
-                                },
-                                onItemClick = { clickedItem ->
-                                    navController.navigate("player/${clickedItem.uniqueId}") { launchSingleTop = true }
-                                },
-                                viewModel = viewModel
-                            )
-                        }
+                        WebPlayerRoute(
+                            backStackEntry = backStackEntry,
+                            viewModel = viewModel,
+                            navController = navController,
+                        )
                     }
                 }
             }
         }
     }
 
-    if (showFilterSheet) {
-        FilterBottomSheet(
-            state = filterState,
-            isLoadingMore = (uiState as? HomeState.Success)?.isLoadingMore == true,
-            showLoadMore = showExternalHighlights,
-            onSearchQueryChanged = viewModel::onSearchQueryChanged,
-            onCountryToggle = viewModel::toggleCountry,
-            onLeagueToggle = viewModel::toggleLeague,
-            onReset = viewModel::resetFilters,
-            onLoadMore = viewModel::loadMore,
-            onApply = {
-                viewModel.applyFilters()
-                showFilterSheet = false
-            },
-            onDismiss = { showFilterSheet = false }
-        )
-    }
-
-    if (isMyClubsSheetVisible) {
-        val supportedClubs by scoreViewModel.supportedClubs.collectAsState()
-        val favoriteClubs by scoreViewModel.favoriteClubs.collectAsState()
-        MyClubsBottomSheet(
-            selectedClubIds = favoriteClubs,
-            onToggleClub = { scoreViewModel.toggleFavoriteClub(it) },
-            onDismissRequest = {
-                viewModel.setMyClubsSheetVisible(false)
-                scoreViewModel.setMyClubsSheetVisible(false)
-            },
-            clubs = supportedClubs
-        )
-    }
+    WebMatchesSheets(
+        showFilterSheet = showFilterSheet,
+        isMyClubsSheetVisible = isMyClubsSheetVisible,
+        filterState = filterState,
+        uiState = uiState,
+        showExternalHighlights = showExternalHighlights,
+        viewModel = viewModel,
+        scoreViewModel = scoreViewModel,
+        onDismissFilterSheet = { showFilterSheet = false },
+    )
 }

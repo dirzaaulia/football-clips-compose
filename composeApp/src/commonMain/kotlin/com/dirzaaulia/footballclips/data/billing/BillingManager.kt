@@ -12,6 +12,7 @@ interface BillingManager {
     val messageEvent: SharedFlow<String>
 
     fun identify(userId: String)
+    fun syncPurchases(onComplete: ((isPremium: Boolean) -> Unit)? = null)
     fun purchasePackage(packageToPurchase: Any, onComplete: ((isPremium: Boolean) -> Unit)? = null)
     fun restorePurchases(onComplete: ((isPremium: Boolean) -> Unit)? = null)
     fun logOut()
@@ -20,5 +21,6 @@ interface BillingManager {
 data class CustomerInfoModel(
     val platform: String,
     val userId: String,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val isAnonymous: Boolean = false
 )

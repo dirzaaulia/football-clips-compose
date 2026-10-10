@@ -1,54 +1,82 @@
 {
-  "hosting": {
-    "site": "footballclips",
-    "public": "webApp/build/dist/wasmJs/productionExecutable",
-    "cleanUrls": true,
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "headers": [
-      {
-        "source": "/app-ads.txt",
-        "headers": [
-          {
-            "key": "Content-Type",
-            "value": "text/plain; charset=utf-8"
-          },
-          {
-            "key": "Access-Control-Allow-Origin",
-            "value": "*"
-          }
-        ]
-      },
-      {
-        "source": "/ads.txt",
-        "headers": [
-          {
-            "key": "Content-Type",
-            "value": "text/plain; charset=utf-8"
-          },
-          {
-            "key": "Access-Control-Allow-Origin",
-            "value": "*"
-          }
-        ]
-      }
-    ],
-    "rewrites": [
-      {
-        "source": "/privacy",
-        "destination": "/privacy.html"
-      },
-      {
-        "source": "/tnc",
-        "destination": "/tnc.html"
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  }
+  "hosting": [
+    {
+      "site": "footballclips",
+      "public": "web/out",
+      "cleanUrls": true,
+      "headers": [
+        {
+          "source": "/ads.txt",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/plain; charset=utf-8"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
+          ]
+        },
+        {
+          "source": "/app-ads.txt",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "text/plain; charset=utf-8"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
+          ]
+        },
+        {
+          "source": "/**/*.wasm",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/wasm"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "/telemetry",
+          "destination": "/telemetry/index.html"
+        },
+        {
+          "source": "/telemetry/**",
+          "destination": "/telemetry/index.html"
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    {
+      "site": "footballclips-telemetry",
+      "public": "webApp/build/dist/wasmJs/productionExecutable",
+      "cleanUrls": true,
+      "headers": [
+        {
+          "source": "/**/*.wasm",
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "application/wasm"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
 }

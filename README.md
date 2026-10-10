@@ -1,17 +1,18 @@
-# ⚽ Football Clips (Compose Multiplatform)
+# ⚽ Football Clips (Compose Multiplatform & Next.js Web Platform)
 
 <div align="center">
 
-<img src="app/src/androidMain/ic_launcher-playstore.png" width="128" height="128" alt="Football Clips Icon" style="border-radius: 28px;" />
+<img src="androidApp/src/main/ic_launcher-playstore.png" width="128" height="128" alt="Football Clips Icon" style="border-radius: 28px;" />
 
-### Watch Official Match Highlights & Follow Real-Time World Football Scores
+### Watch Official Match Highlights, Follow Real-Time Scores & Receive Live Club Alerts
 
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
-[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.7.0-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://www.jetbrains.com/lp/compose-multiplatform/)
-[![Target Android SDK](https://img.shields.io/badge/Android%20Target-SDK%2036-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com)
-[![WebAssembly](https://img.shields.io/badge/Web-Kotlin%2FWasm-654FF0?style=for-the-badge&logo=webassembly&logoColor=white)](https://fc.dirzaaulia.com)
-[![Supabase](https://img.shields.io/badge/Backend-Supabase%203.0-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
-[![Google Play](https://img.shields.io/badge/Google%20Play-Internal%20%2F%20Production-34A853?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.dirzaaulia.footballclips)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.4.21-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.12.1-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://www.jetbrains.com/lp/compose-multiplatform/)
+[![Target Android SDK](https://img.shields.io/badge/Android%20Target-SDK%2037%20(AGP%209.4)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com)
+[![Next.js](https://img.shields.io/badge/Web%20Portal-Next.js%2016%20%2F%20React%2019-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://fc.dirzaaulia.com)
+[![Kotlin/Wasm](https://img.shields.io/badge/Telemetry-Kotlin%2FWasm-654FF0?style=for-the-badge&logo=webassembly&logoColor=white)](https://fc.dirzaaulia.com/telemetry)
+[![Supabase](https://img.shields.io/badge/Backend-Supabase%203.8-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+[![Google Play](https://img.shields.io/badge/Google%20Play-Production%20%2F%20Internal-34A853?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.dirzaaulia.footballclips)
 
 </div>
 
@@ -60,109 +61,104 @@ Here are the official high-resolution marketing banners featured on the Google P
 
 ## ✨ Key Features
 
-- 🎥 **HD Official Match Highlights**: Curated, decisive goals, and extended match highlights from official club channels and authorized broadcast partners.
-- ⚡ **Live Scores & Real-Time Fixtures**: Live scoreboards with interactive status indicators (`LIVE`, `FINISHED`, `SCHEDULED`), team crests, and kickoff schedules.
-- 🧭 **Quick League & Date Filtering**: Single-tap competition quick-filter pills (Premier League, La Liga, UEFA Champions League, Serie A, Bundesliga, Ligue 1, etc.) and custom date selector bar.
+- 🎥 **HD Official Match Highlights**: Curated, decisive goals, and extended match highlights from official club channels and authorized broadcast partners without clickbait.
+- ⚡ **Live Scores & Real-Time Match Events**: Live scoreboards with interactive status indicators (`LIVE`, `FINISHED`, `SCHEDULED`), team crests, and kickoff schedules.
+- 🔔 **Real-Time Club Push Notifications ($0.00 Cost Architecture)**:
+  - Broadcasts across 5 critical match phases: **Highlight Available**, **Going to Play (Countdown)**, **In Play (Kickoff)**, **Score Updated (Live Goals)**, and **Finish Match (Full Time)**.
+  - Delivered via **Firebase Cloud Messaging (FCM) Topics** (`club_{club_id}`) with zero database polling overhead or per-user token storage.
+- ⭐ **My Clubs Pinning & Contextual Permission Flow**:
+  - Save favorite clubs to personalize fixtures, scoreboards, and alert subscriptions.
+  - Adheres strictly to modern permission guidelines: **Zero cold-start permission popups**. Contextual soft-ask rationale sheets are presented naturally when a user stars a club.
 - 🎨 **Material 3 Expressive Design**: 
-  - Dynamic edge-to-edge layout on Android (Target SDK 36).
+  - Dynamic edge-to-edge layout on Android (Target SDK 37, AGP 9.4).
   - Signature Droplet circular-reveal dark/light theme switching animation.
   - Floating pill navigation bar with dynamic badge indicators.
-- 🌐 **Responsive Multiplatform UI**: 
-  - **Android**: Native app with hardware acceleration and inline/fullscreen YouTube playback.
-  - **Web (Kotlin/Wasm)**: High-performance desktop and mobile web dashboard compiled directly to WebAssembly (`fc.dirzaaulia.com`).
+- 🌐 **Modern Multi-Platform Architecture**: 
+  - **Android Native App**: Jetpack Compose & Compose Multiplatform, hardware-accelerated inline and fullscreen YouTube player, heads-up FCM notifications.
+  - **Web Portal ([fc.dirzaaulia.com](https://fc.dirzaaulia.com))**: Built with **Next.js 16 (React 19 & Turbopack)** with Static Site Generation (SSG), Incremental Static Regeneration (ISR), Web Push service worker, and Google AdSense integration.
+  - **Telemetry Dashboard ([fc.dirzaaulia.com/telemetry](https://fc.dirzaaulia.com/telemetry))**: High-performance **Kotlin/Wasm** observability dashboard with interactive side sheets, live sync cycle tracking, and quota monitoring.
 - 💎 **Universal Account & In-App Purchase Sync**:
   - Google Native Sign-In via Supabase Auth.
-  - Google Play In-App Billing (RevenueCat SDK) for Android.
-  - Web checkout integration (Paddle).
+  - Google Play In-App Billing (RevenueCat SDK 10.26) for Android.
   - Cross-device entitlement synchronization stored securely in Supabase PostgreSQL (`profiles` table).
 
 ---
 
 ## 🏛️ System Architecture
 
-The application adopts **Clean Architecture** combined with **MVI / MVVM** reactive patterns:
+<div align="center">
+  <a href="docs/assets/architecture.svg" target="_blank">
+    <img src="docs/assets/architecture.svg" alt="Football Clips System Architecture" width="100%" />
+  </a>
+  <p align="center">
+    <sub>🔍 <b>High-Resolution Vector Diagram</b>: Click the diagram to open full screen with smooth native browser zoom (pinch-to-zoom &amp; pan).</sub>
+  </p>
+</div>
 
-```mermaid
-graph TD
-    subgraph UI_Layer ["Presentation Layer (Compose Multiplatform)"]
-        UI_Screens["Adaptive Screens (MobileMatchesScreen / WebMatchesScreen)"]
-        UI_Components["M3 Components (HighlightCards, MatchCard, FloatingBar)"]
-        UI_Theme["Theme System (Droplet Transition, Dynamic Color)"]
-        VM["ViewModels (HomeViewModel, ScoreViewModel)"]
-    end
+### Architectural Tiers Breakdown
 
-    subgraph Domain_Layer ["Domain Layer"]
-        DomainModels["Domain Models (Match, HighlightUiItem)"]
-        Formatters["Date, URL & Timezone Utilities"]
-    end
-
-    subgraph Data_Layer ["Data & Infrastructure Layer"]
-        Repo["Repositories (ScoreRepository, HighlightRepository, ProfilesRepository)"]
-        KtorClient["Ktor 3 HTTP Client (OkHttp on Android / Fetch on Wasm)"]
-        SupabaseClient["Supabase 3.0 (Auth, Postgrest Database)"]
-        BillingMgr["Billing Manager (RevenueCat Android / Paddle Wasm)"]
-        AdsMgr["Ads Manager (Google Mobile Ads NextGen / AdSense)"]
-        LocalPrefs["Local Preferences (Android DataStore / Wasm LocalStorage)"]
-    end
-
-    subgraph Background_Sync ["Autonomous AI Sync Engine (Python / Cloud)"]
-        SyncWorker["sync_all.py Background Daemon"]
-        FootballData["Football-Data.org API"]
-        YouTubeAPI["YouTube Data API v3"]
-        GeminiAI["Gemini 2.5 Flash Semantic Reconciliation"]
-        TelemetryDash["Web Telemetry Dashboard (web/index.html)"]
-    end
-
-    UI_Screens --> VM
-    VM --> Repo
-    Repo --> DomainModels
-    Repo --> KtorClient
-    Repo --> SupabaseClient
-    VM --> BillingMgr
-    VM --> AdsMgr
-    VM --> LocalPrefs
-
-    SyncWorker --> FootballData
-    SyncWorker --> YouTubeAPI
-    SyncWorker --> GeminiAI
-    SyncWorker --> SupabaseClient
-    SyncWorker --> TelemetryDash
-```
+| Layer / Tier | Technology Stack | Responsibilities & Capabilities |
+| :--- | :--- | :--- |
+| **Presentation: Android** | Compose Multiplatform 1.12.1<br/>Jetpack Compose, SDK 37 | Material 3 Expressive UI, Hardware-accelerated YouTube player, FCM messaging service (`FootballClipsFirebaseMessagingService`), RevenueCat Google Play billing, NextGen AdMob. |
+| **Presentation: Web Portal** | Next.js 16, React 19, TypeScript<br/>Tailwind CSS, Turbopack | Primary public web portal (`fc.dirzaaulia.com`), SSG/ISR static export, Web Push background Service Worker (`firebase-messaging-sw.js`), Google AdSense ads, contextual notification modal. |
+| **Presentation: Telemetry** | Kotlin/Wasm (WebAssembly)<br/>Compose Web Multiplatform | Real-time observability dashboard (`/telemetry` & `footballclips-telemetry.web.app`), side-sheet event inspector, sync latency graphs, API quota tracking. |
+| **Cloud Backend & Database** | Supabase Cloud (PostgreSQL 15)<br/>Supabase Auth & Postgrest | Normalized tables (`matches`, `highlights`, `supported_clubs`, `profiles`), worker telemetry logs (`worker_cycles`, `worker_events`), Google OAuth authentication. |
+| **Push Notification Network** | Firebase Cloud Messaging (FCM)<br/>Topic Architecture: `club_{id}` | Global edge fanout delivering goal alerts, match schedules, and highlight releases to millions of Android devices and Web browsers at **\$0 infrastructure cost**. |
+| **Autonomous AI Worker v2.0** | Python 3.13, Asyncio, `uv`<br/>GCP Compute Engine (VM) | Standalone systemd daemon (`football-worker.service` on `free-football-worker`). Ingests Football-Data.org APIs, scans YouTube channels, executes Gemini 3.8 / 3.7 Flash semantic AI verification, and dispatches FCM topic notifications. |
 
 ---
 
 ## 🛠️ Modern Tech Stack
 
-| Category | Technology | Description |
-|---|---|---|
-| **Language** | **Kotlin 2.0.21** | Kotlin Multiplatform with modern compiler features |
-| **UI Framework** | **Compose Multiplatform 1.7.0** | Declarative UI for Android & Web (WASM) |
-| **Design System** | **Material 3 Expressive** | Edge-to-edge, dynamic color schemes, custom animations |
-| **Target Platform** | **Android 16 / SDK 36** | Min SDK 29, compile & target SDK 36 |
-| **Web Target** | **Kotlin/Wasm (WebAssembly)** | Browser client served via Firebase Hosting |
-| **Architecture** | **Clean Architecture + MVVM** | Reactive flows (`StateFlow`, `SharedFlow`, Coroutines 1.9.0) |
-| **Dependency Injection** | **Koin 4.0.0** | `koin-core`, `koin-compose`, `koin-compose-viewmodel` |
-| **Networking** | **Ktor 3.0.1** | `ktor-client-core`, `ktor-client-okhttp`, `ktor-client-js` |
-| **JSON Serialization** | **kotlinx.serialization 1.7.3** | High-performance JSON parser |
-| **Image Loading** | **Coil 3.0.0-rc01** | `coil-compose`, `coil-network-ktor3`, `coil-svg` |
-| **Backend & Auth** | **Supabase 3.0.0** | `supabase-kt` Postgrest, Auth, Google Native Sign-In |
-| **In-App Billing** | **RevenueCat 10.19.1** | Google Play Store In-App Purchases (`remove_ads`) |
-| **Advertising** | **Google Mobile Ads NextGen 1.4.0** | Adaptive banners & interstitial ads (`ads-mobile-sdk`) |
-| **Web Ads** | **Google AdSense** | Non-intrusive responsive web display ads |
-| **Date & Time** | **kotlinx-datetime 0.6.1** | Timezone-safe date computations + `@js-joda` on Wasm |
-| **CI / CD** | **Fastlane & GitHub Actions** | Automated keystore decryption & Play Console publishing |
+| Category | Technology | Version | Description |
+| :--- | :--- | :--- | :--- |
+| **Language** | **Kotlin** | `2.4.21` | Modern compiler with K2 engine & multiplatform targets |
+| **Build System** | **Android Gradle Plugin (AGP)** | `9.4.0` | Latest Gradle configuration with Target SDK 37 |
+| **UI Framework (Mobile/Wasm)** | **Compose Multiplatform** | `1.12.1` | Declarative UI for Android Native and WebAssembly |
+| **Web Portal Engine** | **Next.js (App Router)** | `16.4.0` | React 19, Turbopack, Tailwind CSS, Static Export (SSG/ISR) |
+| **Target Platform (Android)** | **Android 16 / SDK 37** | SDK 37 | Min SDK 24, compile & target SDK 37 |
+| **Dependency Injection** | **Koin** | `4.2.2` | `koin-core`, `koin-compose`, `koin-compose-viewmodel` |
+| **Networking** | **Ktor Client** | `3.6.0` | HTTP client with OkHttp engine on Android and Fetch on Wasm |
+| **Image Loading** | **Coil** | `3.6.3` | `coil-compose`, `coil-network-ktor3`, `coil-svg` |
+| **Backend & Database** | **Supabase Kotlin** | `3.8.0` | Postgrest REST API, GoTrue Auth, Realtime |
+| **Push Notifications** | **Firebase Messaging (FCM)** | `35.0.0` / `7.7.0` | Android FCM SDK, Web Push Worker, Python `firebase-admin` |
+| **In-App Billing** | **RevenueCat Purchases** | `10.26.0` | Google Play Store lifetime non-consumable billing |
+| **Mobile Ads** | **Google Mobile Ads NextGen** | `1.5.0` | Policy-compliant native ads & adaptive banner views |
+| **Web Ads** | **Google AdSense** | Cloud | Responsive display ads adhering to Google publisher policies |
+| **Worker Engine** | **Python (Asyncio & uv)** | `3.13` | Autonomous background sync engine on GCP Compute Engine |
+| **AI Semantic Re-ranker** | **Google Gemini AI** | `gemini-3.8-flash` / `3.7-flash` | Structured JSON semantic video matching & noise filtering |
+| **Hosting & CDN** | **Firebase Hosting** | Multi-Site | Hosting targets for Next.js web portal and Wasm telemetry |
 
 ---
 
-## 🤖 Autonomous Background Sync Engine
+## 🤖 Autonomous Background AI Worker Engine (v2.0)
 
-Match highlights are continuously indexed, verified, and linked via a standalone Python synchronization worker (`sync_all.py`):
+Match fixtures, live scores, and verified video highlights are autonomously synchronized via the Python worker engine (`worker/main.py`) running as a continuous systemd service on GCP Compute Engine:
 
-1. **Fixture Extraction**: Fetches match results, kick-off dates, team metadata, and crests from Football-Data.org.
-2. **Multi-Channel Scanning**: Queries official Team and League YouTube channels and uploads playlists (LaLiga, Ligue1, Bundesliga, SerieA and club channels).
-3. **AI Semantic Reconciliation**: Employs **Gemini 3.6 Flash** with season-aware prompts to match video titles and descriptions with official fixtures, filtering out press conferences, fan reactions, and youth matches.
-4. **Geoblock Whitelist Support**: Special handling for regional rights-holders (Sky Sports UK, TNT Sports, beIN Sports) to provide direct fallback deep-links.
-5. **Real-Time Telemetry Dashboard**: Deployed web telemetry dashboard (`web/index.html`) visualizing sync health, success rates, latency, and match accordions.
+```
+[Football-Data.org API] ──> [match_service.py] ──> (Live Scores & Fixtures) ──> [Supabase DB]
+                                   │
+                                   └──> [notification_service.py] ──> (FCM Topics: club_{id})
+                                                                              │
+[YouTube Data API v3]   ──> [highlight_service.py]                            ▼
+                                   │                                  [Android & Web Push]
+                                   └──> [Gemini 3.8 Flash AI] ──> (Verified Video Recaps)
+```
+
+1. **Fixture & Score Extraction (`match_service.py`)**:
+   - Queries Tier-1 competitions from Football-Data.org using adaptive rate-limiting (guarded against 429 errors).
+   - Prevents status and score regression on delayed upstream updates.
+2. **Multi-Channel YouTube Discovery (`highlight_service.py`)**:
+   - Scans official club playlists and authorized league broadcast partners.
+   - Evaluates video duration, title year matching, and anti-retro keyword filters.
+3. **AI Semantic Reconciliation (`gemini_client.py`)**:
+   - Employs **Gemini 3.8 Flash** (with automatic fallback to `gemini-3.7-flash`, `3.6-flash`, etc.) with season-aware structured prompts to filter out press conferences, podcasts, fan reactions, and archive matches.
+   - Seamless rule-based fallback if AI quota is exhausted.
+4. **Real-Time Notification Dispatcher (`notification_service.py`)**:
+   - Formats channel-specific payloads for goals, kickoff reminders, and highlight releases.
+   - Utilizes an in-memory 24-hour event deduplicator preventing duplicate alerts.
+5. **Automated Maintenance (`maintenance_service.py`)**:
+   - Continuously purges matches, highlights, and telemetry events older than 30 days.
 
 ---
 
@@ -170,38 +166,33 @@ Match highlights are continuously indexed, verified, and linked via a standalone
 
 ```
 FootballClips/
-├── .github/workflows/          # GitHub Actions CI/CD workflows
-│   └── play_console_deploy.yml # Automated Play Store deployment pipeline
-├── app/
-│   ├── src/
-│   │   ├── androidMain/        # Android-specific implementations & resources
-│   │   │   ├── kotlin/         # Activities, Billing, AdMob, Theme extensions
-│   │   │   └── res/            # Launchers, vector drawables, AVD splash screen
-│   │   ├── commonMain/         # Shared Compose Multiplatform codebase
-│   │   │   ├── kotlin/.../
-│   │   │   │   ├── data/       # Repositories, models, network DTOs, billing
-│   │   │   │   ├── di/         # Koin DI modules
-│   │   │   │   ├── domain/     # Clean domain entities (Match, Highlight)
-│   │   │   │   ├── ui/         # Screens (Home, Fixtures, Info, Adaptive Web)
-│   │   │   │   └── util/       # Timezone, URL proxy, and platform utilities
-│   │   │   └── composeResources/ # Shared assets and vector resources
-│   │   └── wasmJsMain/         # Kotlin/Wasm Web implementation
-│   │       ├── kotlin/         # Wasm Billing (Paddle), DOM video player
-│   │       └── resources/      # index.html, privacy policy, terms of service
-│   └── build.gradle.kts        # App build configuration & signing
-├── fastlane/                   # Fastlane automation scripts & metadata
-│   ├── Appfile
-│   └── Fastfile
-├── screenshots/
-│   ├── raw/                    # Raw capture screenshots
-│   └── store_listing/          # Play Store marketing banners (01 - 04)
+├── .github/workflows/          # GitHub Actions CI/CD deployment pipelines
+├── androidApp/                 # Android Native application module
+│   ├── src/main/kotlin/        # Application class, MainActivity, and FCM Service
+│   └── build.gradle.kts        # Android App build & signing configuration
+├── composeApp/                 # Shared Kotlin Multiplatform codebase
+│   ├── src/commonMain/         # Shared Compose Multiplatform UI, ViewModels, & Repositories
+│   └── src/androidMain/        # Android-specific KMP implementations & Koin modules
+├── web/                        # Next.js 16 Web Portal (Primary Public Website)
+│   ├── src/app/                # App Router (pages: /, /fixtures, /standings, /match/[id])
+│   ├── src/components/         # React 19 UI components & My Clubs notification modal
+│   ├── src/lib/firebase/       # Firebase Messaging client initialization
+│   ├── public/                 # Web Push service worker (firebase-messaging-sw.js)
+│   └── package.json            # Next.js dependencies & scripts
+├── webApp/                     # Kotlin/Wasm Telemetry & Observability Dashboard
+│   ├── src/wasmJsMain/kotlin/  # Telemetry dashboard, Side Sheets, & sync health inspectors
+│   └── build.gradle.kts        # Wasm browser distribution build config
+├── worker/                     # Python Autonomous AI Worker Engine v2.0
+│   ├── clients/                # Supabase, Football-Data, YouTube, and Gemini AI clients
+│   ├── services/               # Match, Highlight, Notification, Club, & Maintenance services
+│   ├── tests/                  # Pytest unit tests for notification deduplication & payload logic
+│   └── main.py                 # Async worker loop & signal handlers
+├── docs/                       # Architectural documentation & high-resolution vector assets
+│   └── assets/architecture.svg # Standalone vector architecture diagram
 ├── scripts/                    # Deployment & ASO management utilities
-│   ├── deploy_production.py
-│   ├── generate_store_screenshots.py
-│   ├── update_release_notes.py
-│   └── update_store_listings.py
-├── sync_all.py                 # Autonomous Gemini AI & YouTube sync engine
-├── web/                        # Telemetry dashboard (index.html, logs.json)
+│   ├── deploy_web.py           # Unified Next.js & Wasm build/deploy script for Firebase Hosting
+│   ├── deploy_production.py    # Production deployment utility
+│   └── football-worker.service # Systemd service definition for GCP VM
 └── gradle/libs.versions.toml   # Centralized version catalog
 ```
 
@@ -212,52 +203,83 @@ FootballClips/
 ### Prerequisites
 
 - **JDK 17** or **JDK 21** (Temurin recommended)
-- **Android Studio Ladybug (2024.2+)** or newer with Kotlin Multiplatform plugin
-- **Android SDK 36** build-tools installed
-- **Node.js** (for Kotlin/Wasm compilation)
+- **Android Studio Ladybug (2024.2+)** with Kotlin Multiplatform plugin
+- **Android SDK 37** build-tools installed
+- **Node.js 20+** (for Next.js web application)
+- **Python 3.12+** and [`uv`](https://docs.astral.sh/uv/) package manager
 
-### Build & Run Android App
+### 1. Build & Run Android App
 
 ```bash
 # Build debug APK
-./gradlew :app:assembleDebug
+./gradlew :androidApp:assembleDebug
+
+# Verify file line budgets (< 250 lines per file)
+./gradlew checkLineBudget
 
 # Install and run on connected Android device/emulator
-./gradlew :app:installDebug
+./gradlew :androidApp:installDebug
 ```
 
-### Build & Run Web App (Kotlin/Wasm)
+### 2. Run Next.js Web Application
+
+```bash
+cd web
+
+# Install dependencies
+npm install
+
+# Start local development server with Turbopack
+npm run dev
+
+# Build production static export (SSG/ISR)
+npm run build
+```
+
+The web application will be accessible at `http://localhost:3000`.
+
+### 3. Build & Run Telemetry Dashboard (Kotlin/Wasm)
 
 ```bash
 # Run local development server
-./gradlew :app:wasmJsBrowserDevelopmentRun
+./gradlew :webApp:wasmJsBrowserDevelopmentRun
 
-# Build production executable for Firebase Hosting
-./gradlew :app:wasmJsBrowserDistribution
+# Build production distribution for deployment
+./gradlew :webApp:wasmJsBrowserDistribution
 ```
 
-### Run Background Match Sync
+### 4. Run Background AI Worker Engine
 
 ```bash
-# Run single sync cycle
-python sync_all.py --once
+cd worker
 
-# Run continuous background daemon
-python sync_all.py
+# Install dependencies via uv
+uv sync
+
+# Run test suite
+uv run pytest
+
+# Start worker engine
+uv run python main.py
+```
+
+### 5. Deploy Web & Telemetry to Firebase Hosting
+
+Run the unified deployment script to compile Next.js, bundle the Wasm telemetry dashboard, and deploy both to Firebase Hosting:
+
+```bash
+python scripts/deploy_web.py
 ```
 
 ---
 
-## 🚢 Deployment & CI/CD
+## 🚢 CI/CD & Deployment
 
-Automated deployment is managed via GitHub Actions and Fastlane:
-
-- **Internal Track**: Fastlane `android internal`
-- **Alpha Track**: Fastlane `android alpha`
-- **Beta Track**: Fastlane `android beta`
-- **Production Track**: Fastlane `android production`
-
-Trigger manual release deployment directly from GitHub Actions (`workflow_dispatch`) with automatic keystore decoding and Play Console API publishing.
+- **Android Tracks (Play Store)**: Automated publishing via Fastlane and GitHub Actions to **Internal**, **Alpha**, **Beta**, and **Production** tracks with automated keystore management.
+- **Web & Telemetry (Firebase Hosting)**: Multi-site hosting targets:
+  - **Main Web Portal**: [https://fc.dirzaaulia.com](https://fc.dirzaaulia.com) (Fallback: `https://footballclips.web.app`)
+  - **Telemetry Dashboard**: [https://fc.dirzaaulia.com/telemetry](https://fc.dirzaaulia.com/telemetry) (Standalone: `https://footballclips-telemetry.web.app`)
+- **Worker Daemon (GCP Compute Engine)**: Managed via `systemd` (`football-worker.service`) on VM `free-football-worker` with automatic restart and rolling log retention.
 
 ---
 

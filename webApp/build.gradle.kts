@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -25,16 +26,18 @@ kotlin {
 
     sourceSets {
         wasmJsMain.dependencies {
-            implementation(project(":composeApp"))
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
-            implementation(libs.koin.core)
+            implementation(libs.material.icons.extended)
+            implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.js)
-            implementation(npm("@js-joda/core", "3.2.0"))
-            implementation(npm("@js-joda/timezone", "2.3.0"))
-            implementation(npm("@js-joda/locale", "3.1.1"))
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.datetime)
         }
     }
 }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -11,23 +12,67 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.util.isWasmTarget
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeScreenTopBarMobileActions(
     isDarkMode: Boolean,
     isPremium: Boolean,
     isSpoilerFreeMode: Boolean,
+    favoriteClubsCount: Int,
     isScrolled: Boolean,
     onDarkModeToggle: (Boolean) -> Unit,
     onToggleSpoilerFree: () -> Unit,
-    onShowPaywall: () -> Unit
+    onShowMyClubs: () -> Unit,
+    onShowPaywall: () -> Unit,
+    onShowFilter: () -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.padding(end = 4.dp)
     ) {
+        // Filter Button
+        IconButton(
+            onClick = onShowFilter,
+            modifier = Modifier.size(38.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.FilterList,
+                contentDescription = "Filter Highlights",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        // My Clubs Button
+        IconButton(
+            onClick = onShowMyClubs,
+            modifier = Modifier.size(38.dp)
+        ) {
+            BadgedBox(
+                badge = {
+                    if (favoriteClubsCount > 0) {
+                        Badge(
+                            containerColor = Color(0xFFFFB300),
+                            contentColor = Color.Black
+                        ) {
+                            Text(favoriteClubsCount.toString(), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            ) {
+                Icon(
+                    imageVector = if (favoriteClubsCount > 0) Icons.Default.Star else Icons.Outlined.StarBorder,
+                    contentDescription = "My Clubs",
+                    tint = if (favoriteClubsCount > 0) Color(0xFFFFB300) else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+
         // Spoiler Free Mode Button
         IconButton(
             onClick = onToggleSpoilerFree,

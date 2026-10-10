@@ -5,6 +5,8 @@ from worker.clients.football_data_client import football_data_client
 from worker.clients.supabase_client import supabase_client
 from worker.config.settings import settings
 from worker.services.club_service import club_service
+from worker.services.notification_service import notification_service
+from worker.utils.telemetry_logger import append_event
 
 
 class MatchService:
@@ -34,7 +36,7 @@ class MatchService:
             else "LIVE SYNC (H-1 s/d H+7)"
         )
         logger.info(f"📡 Mode Sinkronisasi: {mode_text}")
-        log_events.append(f"📡 Mode Sinkronisasi: {mode_text}")
+        append_event(log_events, f"📡 Mode Sinkronisasi: {mode_text}", "INFO", "MATCH_SYNC", "MODE")
 
         if is_full_sync:
             date_from = (now_utc - timedelta(days=settings.retention_days)).strftime("%Y-%m-%d")
@@ -50,12 +52,12 @@ class MatchService:
         )
 
         if not matches_raw:
-            log_events.append("⚪ Football-Data: Tidak ada data pertandingan yang diterima.")
+            append_event(log_events, "⚪ Football-Data: Tidak ada data pertandingan yang diterima.", "WARN", "MATCH_SYNC", "EMPTY_API")
             return []
 
         msg_fetch = f"📥 Menerima {len(matches_raw)} pertandingan dari API Football-Data ({date_from} s/d {date_to})"
         logger.info(msg_fetch)
-        log_events.append(msg_fetch)
+        append_event(log_events, msg_fetch, "INFO", "MATCH_SYNC", "API_FETCH")
 
         # 1. Auto-sync supported clubs dari 5 liga besar (Zero Maintenance across seasons)
         club_service.sync_clubs_from_matches(matches_raw, log_events)
@@ -120,7 +122,7 @@ class MatchService:
                         is_regression = True
 
                     if is_regression:
-                        log_events.append(f"🛡️ [BLOCKED REGRESSION] {h_team} vs {a_team} tetap {old['status']}")
+                        append_event(log_events, f"[REGRESSION_BLOCKED] {h_team} vs {a_team} status retained as {old['status']}", "WARN", "MATCH_SYNC", "REGRESSION")
                         p["status"] = old["status"]
                         if p.get("home_score") is None:
                             p["home_score"] = old.get("home_score")
@@ -128,32 +130,40 @@ class MatchService:
                             p["away_score"] = old.get("away_score")
                     elif old["status"] != p["status"]:
                         if p["status"] in ["FINISHED", "AWARDED"]:
-                            log_events.append(f"🏁 [FULL TIME] {h_team} {p.get('home_score') or 0} - {p.get('away_score') or 0} {a_team}")
+                            append_event(log_events, f"[FULL TIME] {h_team} {p.get('home_score') or 0} - {p.get('away_score') or 0} {a_team}", "INFO", "MATCH_SYNC", "FULL_TIME")
+                            notification_service.notify_match_event(p, "fulltime", log_events)
+                        elif p["status"] == "IN_PLAY":
+                            append_event(log_events, f"[KICKOFF] {h_team} vs {a_team} underway!", "INFO", "MATCH_SYNC", "KICKOFF")
+                            notification_service.notify_match_event(p, "kickoff", log_events)
                         else:
-                            log_events.append(f"🔄 [STATUS] {h_team} vs {a_team} | {old['status']} ➔ {p['status']}")
+                            append_event(log_events, f"[STATUS_CHANGE] {h_team} vs {a_team} | {old['status']} -> {p['status']}", "INFO", "MATCH_SYNC", "STATUS_CHANGE")
                         changes_found = True
 
                     if p["status"] in ["IN_PLAY", "PAUSED", "FINISHED"]:
                         h_score_old, a_score_old = old.get("home_score") or 0, old.get("away_score") or 0
                         h_score_new, a_score_new = p.get("home_score") or 0, p.get("away_score") or 0
                         if h_score_old != h_score_new or a_score_old != a_score_new:
-                            log_events.append(f"⚽ [SKOR!] {h_team} {h_score_new} - {a_score_new} {a_team}")
+                            append_event(log_events, f"[GOAL] {h_team} {h_score_new} - {a_score_new} {a_team}", "SUCCESS", "MATCH_SYNC", "GOAL_SCORE")
+                            if p["status"] in ["IN_PLAY", "PAUSED"]:
+                                notification_service.notify_match_event(p, "score", log_events)
                             changes_found = True
                 else:
                     changes_found = True
-                    log_events.append(f"✨ [NEW MATCH] Ditemukan jadwal baru: {h_team} vs {a_team}")
+                    append_event(log_events, f"[NEW FIXTURE] Discovered new fixture: {h_team} vs {a_team}", "INFO", "MATCH_SYNC", "NEW_MATCH")
 
             if not changes_found:
-                log_events.append("⚪ Tidak ada perubahan skor atau status.")
+                append_event(log_events, "No fixture score or status changes detected.", "INFO", "MATCH_SYNC", "NO_CHANGE")
+
+            notification_service.check_upcoming_fixtures(unique_payloads, log_events)
 
             supabase_client.table("matches").upsert(unique_payloads, on_conflict="id").execute()
-            msg_upsert = f"✅ Berhasil sinkronisasi {len(unique_payloads)} jadwal ke Supabase."
+            msg_upsert = f"Successfully synced {len(unique_payloads)} fixtures to Supabase database."
             logger.info(msg_upsert)
-            log_events.append(msg_upsert)
+            append_event(log_events, msg_upsert, "SUCCESS", "MATCH_SYNC", "DB_UPSERT")
             return unique_payloads
         except Exception as e:
-            log_events.append(f"🚨 [ERROR DATABASE] {e}")
-            logger.error(f"Database error saat upsert matches: {e}")
+            append_event(log_events, f"Database error during fixture upsert: {e}", "ERROR", "MATCH_SYNC", "ERROR")
+            logger.error(f"Database error during match upsert: {e}")
             return []
 
 match_service = MatchService()

@@ -7,6 +7,8 @@ from worker.clients.supabase_client import supabase_client
 from worker.clients.youtube_client import youtube_client
 from worker.config.constants import CUSTOM_KEYWORD_ALIASES, EUROPEAN_CLUB_HANDLES, FORBIDDEN_TITLE_PATTERNS
 from worker.config.settings import settings
+from worker.services.notification_service import notification_service
+from worker.utils.telemetry_logger import append_event
 
 
 class HighlightService:
@@ -125,20 +127,20 @@ class HighlightService:
 
         if len(selected_pool) == 1:
             best = selected_pool[0]
-            log_events.append(f"   🏆 [DAPAT] '{best['title']}' ({best['channel']})")
+            append_event(log_events, f"[MATCHED] '{best['title']}' ({best['channel']}) - https://youtu.be/{best['id']}", "SUCCESS", "YOUTUBE", "LINKED")
             return best["id"], best["region"]
 
-        # Evaluasi AI Gemini jika ada multiple candidates
+        # Evaluate with Gemini AI when multiple candidates exist
         comp_display = match.get("competition_name") or match.get("competition_id") or "League"
         best_idx = gemini_client.rerank_highlights(home, away, comp_display, selected_pool)
         if best_idx is not None and 0 <= best_idx < len(selected_pool):
             best = selected_pool[best_idx]
-            log_events.append(f"   🏆 [DAPAT - AI RANKED] '{best['title']}' ({best['channel']})")
+            append_event(log_events, f"[MATCHED - AI RANKED] '{best['title']}' ({best['channel']}) - https://youtu.be/{best['id']}", "SUCCESS", "AI_GEMINI", "LINKED")
             return best["id"], best["region"]
 
-        # Fallback default: ambil pertama
+        # Default fallback: pick first candidate
         best = selected_pool[0]
-        log_events.append(f"   🏆 [DAPAT] '{best['title']}' ({best['channel']})")
+        append_event(log_events, f"[MATCHED] '{best['title']}' ({best['channel']}) - https://youtu.be/{best['id']}", "SUCCESS", "YOUTUBE", "LINKED")
         return best["id"], best["region"]
 
     def sync_unlinked_highlights(
@@ -161,27 +163,42 @@ class HighlightService:
 
         unlinked = res.data or []
         if not unlinked:
-            log_events.append("⚪ YouTube: Semua laga FINISHED sudah memiliki video highlight.")
+            append_event(log_events, "All FINISHED fixtures already have linked official highlights.", "INFO", "YOUTUBE", "ALL_LINKED")
             return 0
 
         linked_count = 0
         now_iso = datetime.now(UTC).isoformat()
 
         for match in unlinked:
+            home = match.get("home_team_name", "Home")
+            away = match.get("away_team_name", "Away")
+            append_event(log_events, f"[SEARCH] Querying official highlights for: {home} vs {away}", "INFO", "YOUTUBE", "SEARCH_START")
             vid, reg = self.search_highlight_for_match(match, log_events)
             if vid:
-                supabase_client.table("matches").update({
+                update_data = {
                     "highlight_video_id": vid,
-                    "youtube_region_info": reg,
                     "last_youtube_check": now_iso
-                }).eq("id", match["id"]).execute()
+                }
+                if reg is not None:
+                    update_data["youtube_region_info"] = reg
+
+                try:
+                    supabase_client.table("matches").update(update_data).eq("id", match["id"]).execute()
+                except Exception as e:
+                    if "youtube_region_info" in str(e) and "youtube_region_info" in update_data:
+                        del update_data["youtube_region_info"]
+                        supabase_client.table("matches").update(update_data).eq("id", match["id"]).execute()
+                    else:
+                        raise e
                 linked_count += 1
+                notification_service.notify_highlight_ready(match, vid, "Official Highlights", log_events)
             else:
+                append_event(log_events, f"[NOT_FOUND] No official broadcast highlight found for: {home} vs {away}", "WARN", "YOUTUBE", "NOT_FOUND")
                 supabase_client.table("matches").update({
                     "last_youtube_check": now_iso
                 }).eq("id", match["id"]).execute()
 
-        log_events.append(f"✅ Selesai pemindaian highlight. Berhasil menautkan {linked_count} video baru.")
+        append_event(log_events, f"Highlight scanning complete. Successfully linked {linked_count} new video highlights.", "SUCCESS", "YOUTUBE", "SUMMARY")
         return linked_count
 
 highlight_service = HighlightService()

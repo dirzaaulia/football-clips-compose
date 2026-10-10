@@ -51,35 +51,4 @@ class TelemetryService:
         except Exception as e:
             logger.warning(f"Telemetry Supabase error: {e}")
 
-        # 2. Local web server (logs.json) compatibility
-        try:
-            log_paths = [
-                Path("/home/dirzaaulia11/web/logs.json"),
-                Path(__file__).resolve().parent.parent.parent / "web" / "logs.json",
-            ]
-            for target_path in log_paths:
-                if target_path.parent.exists():
-                    existing_logs = []
-                    if target_path.exists():
-                        try:
-                            with open(target_path, encoding="utf-8") as f:
-                                existing_logs = json.load(f)
-                        except Exception:
-                            existing_logs = []
-
-                    cycle_record = {
-                        "timestamp": now_wib.strftime("%Y-%m-%d %H:%M:%S WIB"),
-                        "mode": mode,
-                        "next_sleep": next_sleep_str,
-                        "steps": steps_log
-                    }
-                    existing_logs.insert(0, cycle_record)
-                    # Keep maximum 50 cycles
-                    existing_logs = existing_logs[:50]
-                    with open(target_path, "w", encoding="utf-8") as f:
-                        json.dump(existing_logs, f, indent=2, ensure_ascii=False)
-                    break
-        except Exception as e:
-            logger.warning(f"Telemetry web/logs.json error: {e}")
-
 telemetry_service = TelemetryService()

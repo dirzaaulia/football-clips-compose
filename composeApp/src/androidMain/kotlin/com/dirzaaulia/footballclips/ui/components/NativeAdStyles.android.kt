@@ -1,4 +1,4 @@
-package com.dirzaaulia.footballclips.ui.components
+package com.dirzaaulia.footballclips.ui.components.ad
 
 import android.content.Context
 import android.graphics.Color as AndroidColor

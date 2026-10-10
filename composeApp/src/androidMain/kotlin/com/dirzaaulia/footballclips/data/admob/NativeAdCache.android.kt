@@ -79,33 +79,73 @@ object NativeAdCache {
     }
 
     fun preloadAd(context: Context, adUnitId: String) {
-        val queue = cache.getOrPut(adUnitId) { ConcurrentLinkedQueue() }
-        val needed = MAX_CACHE_SIZE - queue.size
-        if (needed <= 0) {
-            Log.d(TAG_NATIVE, "ℹ️ PRELOAD SKIPPED: Cache pool already full (${queue.size}/$MAX_CACHE_SIZE)")
+        AdMobInitializer.runWhenInitialized(context) {
+            val queue = cache.getOrPut(adUnitId) { ConcurrentLinkedQueue() }
+            val needed = MAX_CACHE_SIZE - queue.size
+            if (needed <= 0) {
+                Log.d(TAG_NATIVE, "ℹ️ PRELOAD SKIPPED: Cache pool already full (${queue.size}/$MAX_CACHE_SIZE)")
+                return@runWhenInitialized
+            }
+
+            Log.d(TAG_NATIVE, "🔄 PRELOADING ADS: Requesting $needed native ads for $adUnitId (Current pool: ${queue.size}/$MAX_CACHE_SIZE)")
+            val types = listOf(NativeAd.NativeAdType.NATIVE)
+            val request = NativeAdRequest.Builder(adUnitId, types).build()
+            try {
+                NativeAdLoader.load(request, needed, object : NativeAdLoaderCallback {
+                    override fun onNativeAdLoaded(nativeAd: NativeAd) {
+                        Log.d(TAG_NATIVE, "🟢 PRELOAD SUCCESS: NativeAd '${nativeAd.headline}' pre-fetched into pool")
+                        putAd(adUnitId, nativeAd)
+                    }
+
+                    override fun onAdFailedToLoad(adError: LoadAdError) {
+                        Log.e(TAG_NATIVE, formatAdError(adError, "NATIVE PRELOAD"))
+                    }
+
+                    override fun onAdLoadingCompleted() {
+                        Log.d(TAG_NATIVE, "✅ PRELOAD BATCH COMPLETED: Pool size is now ${cache[adUnitId]?.size ?: 0}/$MAX_CACHE_SIZE")
+                    }
+                })
+            } catch (t: Throwable) {
+                Log.e(TAG_NATIVE, "💥 PRELOAD EXCEPTION: ${t.message}", t)
+            }
+        }
+    }
+
+    fun fetchOrLoadAd(
+        context: Context,
+        adUnitId: String,
+        onAdLoaded: (NativeAd) -> Unit,
+        onAdFailed: (String) -> Unit
+    ) {
+        val cachedAd = getAd(adUnitId)
+        if (cachedAd != null) {
+            Log.d(TAG_NATIVE, "⚡ FETCH HIT: Serving preloaded NativeAd '${cachedAd.headline}' for $adUnitId")
+            onAdLoaded(cachedAd)
+            preloadAd(context, adUnitId)
             return
         }
 
-        Log.d(TAG_NATIVE, "🔄 PRELOADING ADS: Requesting $needed native ads for $adUnitId (Current pool: ${queue.size}/$MAX_CACHE_SIZE)")
-        val types = listOf(NativeAd.NativeAdType.NATIVE)
-        val request = NativeAdRequest.Builder(adUnitId, types).build()
-        try {
-            NativeAdLoader.load(request, needed, object : NativeAdLoaderCallback {
-                override fun onNativeAdLoaded(nativeAd: NativeAd) {
-                    Log.d(TAG_NATIVE, "🟢 PRELOAD SUCCESS: NativeAd '${nativeAd.headline}' pre-fetched into pool")
-                    putAd(adUnitId, nativeAd)
-                }
+        AdMobInitializer.runWhenInitialized(context) {
+            Log.d(TAG_NATIVE, "📡 FETCH MISS: Requesting native ad directly for $adUnitId")
+            val types = listOf(NativeAd.NativeAdType.NATIVE)
+            val request = NativeAdRequest.Builder(adUnitId, types).build()
+            try {
+                NativeAdLoader.load(request, 1, object : NativeAdLoaderCallback {
+                    override fun onNativeAdLoaded(nativeAd: NativeAd) {
+                        Log.d(TAG_NATIVE, "🟢 DIRECT NATIVE LOAD SUCCESS: NativeAd '${nativeAd.headline}' loaded")
+                        onAdLoaded(nativeAd)
+                        preloadAd(context, adUnitId)
+                    }
 
-                override fun onAdFailedToLoad(adError: LoadAdError) {
-                    Log.e(TAG_NATIVE, formatAdError(adError, "NATIVE PRELOAD"))
-                }
-
-                override fun onAdLoadingCompleted() {
-                    Log.d(TAG_NATIVE, "✅ PRELOAD BATCH COMPLETED: Pool size is now ${cache[adUnitId]?.size ?: 0}/$MAX_CACHE_SIZE")
-                }
-            })
-        } catch (t: Throwable) {
-            Log.e(TAG_NATIVE, "💥 PRELOAD EXCEPTION: ${t.message}", t)
+                    override fun onAdFailedToLoad(adError: LoadAdError) {
+                        Log.e(TAG_NATIVE, formatAdError(adError, "DIRECT NATIVE LOAD"))
+                        onAdFailed(adError.message)
+                    }
+                })
+            } catch (t: Throwable) {
+                Log.e(TAG_NATIVE, "💥 DIRECT NATIVE LOAD EXCEPTION: ${t.message}", t)
+                onAdFailed(t.message ?: "Native ad load exception")
+            }
         }
     }
 

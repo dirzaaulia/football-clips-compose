@@ -11,7 +11,7 @@ if hasattr(sys.stdout, 'reconfigure'):
 
 PACKAGE_NAME = "com.dirzaaulia.footballclips"
 KEY_FILE = "play-console-key.json" if os.path.exists("play-console-key.json") else ("fastlane/play-console-key.json" if os.path.exists("fastlane/play-console-key.json") else "play-key.json")
-AAB_PATH = "app/build/outputs/bundle/release/app-release.aab"
+AAB_PATH = "androidApp/build/outputs/bundle/release/androidApp-release.aab"
 
 INTERNAL_RELEASE_NOTES = [
     {
@@ -107,7 +107,7 @@ def main():
     print("==================================================")
 
     if not os.path.exists(aab_path):
-        print(f"Error: Release AAB bundle '{aab_path}' does not exist. Please run `./gradlew.bat :app:bundleRelease` first.")
+        print(f"Error: Release AAB bundle '{aab_path}' does not exist. Please run `./gradlew.bat :androidApp:bundleRelease` first.")
         sys.exit(1)
 
     aab_size_mb = os.path.getsize(aab_path) / (1024 * 1024)

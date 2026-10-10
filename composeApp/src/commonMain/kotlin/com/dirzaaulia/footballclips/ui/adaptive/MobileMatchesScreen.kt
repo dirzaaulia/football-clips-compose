@@ -1,19 +1,49 @@
 package com.dirzaaulia.footballclips.ui.adaptive
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.*
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
-import com.dirzaaulia.footballclips.ui.components.FloatingPillNavigationBar
-import com.dirzaaulia.footballclips.ui.components.VideoPlayerSheet
+import com.dirzaaulia.footballclips.ui.components.common.FloatingPillNavigationBar
+import com.dirzaaulia.footballclips.ui.components.player.VideoPlayerSheet
 import com.dirzaaulia.footballclips.ui.home.HomeScreen
 import com.dirzaaulia.footballclips.ui.home.HomeScreenFloatingActions
 import com.dirzaaulia.footballclips.ui.home.HomeState
@@ -25,6 +55,8 @@ import com.dirzaaulia.footballclips.ui.score.ScoreState
 import com.dirzaaulia.footballclips.ui.score.ScoreViewModel
 import com.dirzaaulia.footballclips.ui.score.StandingsScreen
 import com.dirzaaulia.footballclips.ui.score.components.FixturesFloatingActions
+import com.dirzaaulia.footballclips.ui.score.getStandings
+import com.dirzaaulia.footballclips.ui.score.selectCompetition
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -123,14 +155,9 @@ fun MobileMatchesScreen() {
                         val isHomeScrolled by homeViewModel.showScrollToTop.collectAsState()
                         val isFixturesScrolled by scoreViewModel.showScrollToTop.collectAsState()
 
-                        val homeFavoriteClubs by homeViewModel.favoriteClubs.collectAsState()
-
-                        val scoreFavoriteClubs by scoreViewModel.favoriteClubs.collectAsState()
-                        val isFiltersExpanded by scoreViewModel.isFiltersExpanded.collectAsState()
-
                         val isHomeRoute = currentDestination?.route == NavDestination.Home.route
                         val isFixturesRoute = currentDestination?.route == NavDestination.Fixtures.route
-                        val showFloatingActions = (isHomeRoute && isHomeScrolled) || isFixturesRoute
+                        val showFloatingActions = (isHomeRoute && isHomeScrolled) || (isFixturesRoute && isFixturesScrolled)
 
                         Row(
                             modifier = Modifier
@@ -163,20 +190,11 @@ fun MobileMatchesScreen() {
                                 Row(modifier = Modifier.padding(start = 8.dp)) {
                                     if (isHomeRoute) {
                                         HomeScreenFloatingActions(
-                                            favoriteClubsCount = homeFavoriteClubs.size,
-                                            showScrollToTop = isHomeScrolled,
-                                            onScrollToTop = { homeViewModel.triggerScrollToTop() },
-                                            onShowFilter = { homeViewModel.setFilterSheetVisible(true) },
-                                            onShowMyClubs = { homeViewModel.setMyClubsSheetVisible(true) }
+                                            onScrollToTop = { homeViewModel.triggerScrollToTop() }
                                         )
                                     } else if (isFixturesRoute) {
                                         FixturesFloatingActions(
-                                            isFiltersExpanded = isFiltersExpanded,
-                                            favoriteClubsCount = scoreFavoriteClubs.size,
-                                            showScrollToTop = isFixturesScrolled,
-                                            onToggleFilter = { scoreViewModel.toggleFiltersExpanded() },
-                                            onScrollToTop = { scoreViewModel.triggerScrollToTop() },
-                                            onShowMyClubs = { scoreViewModel.setMyClubsSheetVisible(true) }
+                                            onScrollToTop = { scoreViewModel.triggerScrollToTop() }
                                         )
                                     }
                                 }
@@ -222,28 +240,5 @@ fun MobileMatchesScreen() {
                 )
             }
         }
-    }
-}
-
-private class MobileVideoPlayerState {
-    var selectedItem by mutableStateOf<HighlightUiItem?>(null)
-    var selectedVideoHtml by mutableStateOf<String?>(null)
-    var showVideoPlayer by mutableStateOf(false)
-    var onDismissVideo by mutableStateOf<((Boolean) -> Unit)?>(null)
-
-    fun onVideoClick(item: HighlightUiItem, onDismiss: (Boolean) -> Unit) {
-        selectedItem = item
-        selectedVideoHtml = when (item) {
-            is HighlightUiItem.SupabaseMatch -> item.match.highlightVideoId
-            is HighlightUiItem.Highlight -> item.highlight.embedHtml
-            else -> null
-        }
-        onDismissVideo = onDismiss
-        showVideoPlayer = selectedVideoHtml != null
-    }
-
-    fun onDismiss(isExternal: Boolean) {
-        showVideoPlayer = false
-        onDismissVideo?.invoke(isExternal)
     }
 }

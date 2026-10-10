@@ -4,6 +4,7 @@ from loguru import logger
 from worker.clients.football_data_client import football_data_client
 from worker.clients.supabase_client import supabase_client
 from worker.config.settings import settings
+from worker.utils.telemetry_logger import append_event
 
 
 class StandingsService:
@@ -22,7 +23,7 @@ class StandingsService:
             log_events = []
 
         now_utc = datetime.now(UTC)
-        log_events.append("📊 [STANDINGS] Memulai sinkronisasi klasemen liga...")
+        append_event(log_events, "📊 [STANDINGS] Memulai sinkronisasi klasemen liga...", "INFO", "STANDINGS", "START")
         logger.info("[StandingsService] Memulai sinkronisasi klasemen...")
 
         all_standings_rows = []
@@ -31,7 +32,7 @@ class StandingsService:
             try:
                 data = await football_data_client.get_standings(comp_code)
                 if not data:
-                    log_events.append(f"⚠️ [STANDINGS] Tidak ada data klasemen untuk {comp_code}")
+                    append_event(log_events, f"⚠️ [STANDINGS] Tidak ada data klasemen untuk {comp_code}", "WARN", "STANDINGS", "EMPTY_COMP")
                     continue
 
                 comp_info = data.get("competition", {})
@@ -46,7 +47,7 @@ class StandingsService:
 
                 standings_groups = data.get("standings", [])
                 if not standings_groups:
-                    log_events.append(f"⚪ [STANDINGS] Grup klasemen kosong untuk {comp_code}")
+                    append_event(log_events, f"⚪ [STANDINGS] Grup klasemen kosong untuk {comp_code}", "INFO", "STANDINGS", "EMPTY_GROUPS")
                     continue
 
                 # Filter TOTAL table (or take all if tournament group stages like UCL)
@@ -86,14 +87,14 @@ class StandingsService:
                         all_standings_rows.append(payload)
                         comp_rows_count += 1
 
-                log_events.append(f"✅ [STANDINGS] {comp_name} ({comp_code}): {comp_rows_count} klub diproses.")
+                append_event(log_events, f"[STANDINGS] {comp_name} ({comp_code}): {comp_rows_count} clubs processed.", "INFO", "STANDINGS", "COMP_DONE")
             except Exception as e:
-                err_msg = f"🚨 [STANDINGS] Gagal memproses {comp_code}: {e}"
-                log_events.append(err_msg)
+                err_msg = f"[STANDINGS] Failed to process {comp_code}: {e}"
+                append_event(log_events, err_msg, "ERROR", "STANDINGS", "ERROR")
                 logger.error(err_msg)
 
         if not all_standings_rows:
-            log_events.append("⚪ [STANDINGS] Tidak ada baris klasemen yang siap di-upsert.")
+            append_event(log_events, "[STANDINGS] No standings rows available for upsert.", "INFO", "STANDINGS", "NO_ROWS")
             return []
 
         # Deduplicate by row id
@@ -103,13 +104,13 @@ class StandingsService:
             # Batch upsert with on_conflict="id" ensures fixed database footprint (<30 KB)
             supabase_client.table("standings").upsert(unique_standings, on_conflict="id").execute()
             self.last_sync_timestamp = now_utc.timestamp()
-            msg = f"🏆 [STANDINGS] Sukses upsert {len(unique_standings)} baris klasemen ke Supabase."
-            log_events.append(msg)
+            msg = f"[STANDINGS] Successfully upserted {len(unique_standings)} standings rows to Supabase."
+            append_event(log_events, msg, "SUCCESS", "STANDINGS", "DB_UPSERT")
             logger.info(msg)
             return unique_standings
         except Exception as e:
-            err_msg = f"🚨 [STANDINGS] Database error saat upsert standings: {e}"
-            log_events.append(err_msg)
+            err_msg = f"[STANDINGS] Database error during standings upsert: {e}"
+            append_event(log_events, err_msg, "ERROR", "STANDINGS", "DB_ERROR")
             logger.error(err_msg)
             return []
 

@@ -18,8 +18,8 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.SubcomposeAsyncImage
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.domain.model.Match
-import com.dirzaaulia.footballclips.ui.components.BannerAdItem
-import com.dirzaaulia.footballclips.ui.components.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
+import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable

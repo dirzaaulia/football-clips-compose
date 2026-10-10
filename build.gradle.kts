@@ -31,21 +31,22 @@ abstract class CheckLineBudgetTask : DefaultTask() {
         val violations = mutableListOf<String>()
         kotlinFiles.files.forEach { file ->
             val lineCount = file.readLines().size
-            if (lineCount > 250) {
-                violations.add("${file.name}: $lineCount lines (> 250)")
+            val maxAllowed = if (file.name.endsWith("ViewModel.kt")) 150 else 250
+            if (lineCount > maxAllowed) {
+                violations.add("${file.name}: $lineCount lines (> $maxAllowed)")
             }
         }
         if (violations.isNotEmpty()) {
-            throw GradleException("Line budget violations (> 250 lines):\n" + violations.joinToString("\n"))
+            throw GradleException("Line budget violations:\n" + violations.joinToString("\n"))
         } else {
-            println("All Kotlin files respect the 250-line budget!")
+            println("All Kotlin files and ViewModels respect line budgets!")
         }
     }
 }
 
 tasks.register<CheckLineBudgetTask>("checkLineBudget") {
     group = "verification"
-    description = "Checks that all Kotlin source files stay within the 250-line budget."
+    description = "Checks that all Kotlin source files stay within 250 lines (and ViewModels within 150 lines)."
     kotlinFiles.from(
         fileTree(rootDir) {
             include("**/*.kt")

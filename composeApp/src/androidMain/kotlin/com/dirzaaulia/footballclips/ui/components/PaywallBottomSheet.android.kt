@@ -1,4 +1,4 @@
-package com.dirzaaulia.footballclips.ui.components
+package com.dirzaaulia.footballclips.ui.components.paywall
 
 import androidx.compose.runtime.Composable
 import com.revenuecat.purchases.Offerings

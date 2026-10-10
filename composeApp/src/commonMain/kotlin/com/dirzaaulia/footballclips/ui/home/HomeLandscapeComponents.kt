@@ -19,9 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.uniqueId
-import com.dirzaaulia.footballclips.ui.components.BannerAdItem
-import com.dirzaaulia.footballclips.ui.components.NativeAdStyle
-import com.dirzaaulia.footballclips.ui.components.VerticalHighlightCard
+import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
+import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
+import com.dirzaaulia.footballclips.ui.components.card.VerticalHighlightCard
 import com.dirzaaulia.footballclips.ui.score.components.MatchCard
 
 @Composable

@@ -13,8 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
-import com.dirzaaulia.footballclips.ui.components.EmptyState
-import com.dirzaaulia.footballclips.ui.components.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.common.EmptyState
+import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 
 @Composable
 internal fun HomeScreenBody(

@@ -12,9 +12,23 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -114,50 +128,7 @@ actual fun YouTubePlayerView(
                             userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
                         }
                         
-                        val html = """
-                            <!DOCTYPE html>
-                            <html>
-                            <head>
-                                <meta charset="utf-8">
-                                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-                                <style>
-                                    html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
-                                    iframe { width: 100%; height: 100%; border: none; }
-                                </style>
-                            </head>
-                            <body>
-                                <div id="player"></div>
-                                <script>
-                                    var tag = document.createElement('script');
-                                    tag.src = "https://www.youtube.com/iframe_api";
-                                    var firstScriptTag = document.getElementsByTagName('script')[0];
-                                    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-                                    var player;
-                                    function onYouTubeIframeAPIReady() {
-                                        player = new YT.Player('player', {
-                                            height: '100%',
-                                            width: '100%',
-                                            videoId: '$videoId',
-                                            playerVars: {
-                                                'autoplay': 1,
-                                                'playsinline': 1,
-                                                'rel': 0,
-                                                'modestbranding': 1,
-                                                'fs': 1,
-                                                'origin': 'https://dirzaaulia.com',
-                                                'enablejsapi': 1
-                                            },
-                                            events: {
-                                                'onReady': function(event) { event.target.playVideo(); },
-                                                'onError': function(event) { window.location.href = "fc-error://playback"; }
-                                            }
-                                        });
-                                    }
-                                </script>
-                            </body>
-                            </html>
-                        """.trimIndent()
+                        val html = buildYouTubeHtml(videoId)
                         
                         loadDataWithBaseURL("https://dirzaaulia.com", html, "text/html", "UTF-8", null)
                     }

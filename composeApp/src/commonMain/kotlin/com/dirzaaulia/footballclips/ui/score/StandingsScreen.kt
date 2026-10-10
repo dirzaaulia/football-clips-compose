@@ -9,9 +9,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.dirzaaulia.footballclips.ui.components.BigLeaguesQuickFilterBar
-import com.dirzaaulia.footballclips.ui.components.EmptyState
-import com.dirzaaulia.footballclips.ui.components.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.common.EmptyState
+import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.filter.BigLeaguesQuickFilterBar
 import com.dirzaaulia.footballclips.ui.score.components.StandingRow
 import com.dirzaaulia.footballclips.ui.score.components.StandingsLegend
 import com.dirzaaulia.footballclips.ui.score.components.StandingsTableHeader

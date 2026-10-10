@@ -14,7 +14,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
-import com.dirzaaulia.footballclips.ui.components.*
+import com.dirzaaulia.footballclips.ui.components.common.MyClubsBottomSheet
+import com.dirzaaulia.footballclips.ui.components.player.SpoilerEducationDialog
 import io.github.jan.supabase.compose.auth.ComposeAuth
 import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
 import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle

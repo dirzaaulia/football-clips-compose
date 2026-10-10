@@ -1,0 +1,251 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 820" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0e17" />
+      <stop offset="50%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#070a12" />
+    </linearGradient>
+
+    <!-- Card Gradients -->
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95" />
+    </linearGradient>
+
+    <linearGradient id="accentCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+
+    <linearGradient id="accentPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+
+    <linearGradient id="accentGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+
+    <linearGradient id="accentAmber" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+
+    <linearGradient id="accentRed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444" />
+      <stop offset="100%" stop-color="#b91c1c" />
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.5" />
+    </filter>
+    <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="glowGreen" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <!-- Markers -->
+    <marker id="arrowCyan" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#06b6d4" />
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#10b981" />
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#8b5cf6" />
+    </marker>
+    <marker id="arrowAmber" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 8 5 L 0 9 z" fill="#f59e0b" />
+    </marker>
+  </defs>
+
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .title { font-weight: 800; font-size: 26px; fill: #ffffff; letter-spacing: -0.5px; }
+    .subtitle { font-weight: 400; font-size: 14px; fill: #94a3b8; }
+    .section-header { font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 1.2px; }
+    .card-title { font-weight: 700; font-size: 16px; fill: #f8fafc; }
+    .card-subtitle { font-weight: 600; font-size: 11px; fill: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+    .card-text { font-weight: 400; font-size: 12px; fill: #cbd5e1; }
+    .tag { font-weight: 600; font-size: 10px; fill: #ffffff; }
+    .flow-label { font-weight: 600; font-size: 11px; fill: #94a3b8; }
+  </style>
+
+  <!-- Canvas Background -->
+  <rect width="1280" height="820" fill="url(#bgGrad)" />
+
+  <!-- Grid overlay for tech look -->
+  <g opacity="0.04" stroke="#ffffff" stroke-width="1">
+    <path d="M 0 100 H 1280 M 0 200 H 1280 M 0 300 H 1280 M 0 400 H 1280 M 0 500 H 1280 M 0 600 H 1280 M 0 700 H 1280" />
+    <path d="M 100 0 V 820 M 200 0 V 820 M 300 0 V 820 M 400 0 V 820 M 500 0 V 820 M 600 0 V 820 M 700 0 V 820 M 800 0 V 820 M 900 0 V 820 M 1000 0 V 820 M 1100 0 V 820 M 1200 0 V 820" />
+  </g>
+
+  <!-- Header Banner -->
+  <g transform="translate(48, 40)">
+    <rect x="0" y="0" width="36" height="36" rx="8" fill="url(#accentCyan)" />
+    <text x="18" y="24" text-anchor="middle" font-size="18" fill="#ffffff" font-weight="900">FC</text>
+    <text x="48" y="22" class="title">Football Clips &bull; System Architecture &amp; Data Pipeline</text>
+    <text x="48" y="40" class="subtitle">Multi-Platform Client Tier (Android, Next.js, Kotlin/Wasm) &bull; Supabase Backend &bull; Autonomous AI Worker v2.0</text>
+  </g>
+
+  <!-- ==================== TIER 1: CLIENT TIER (TOP) ==================== -->
+  <g transform="translate(48, 110)">
+    <!-- Group Container -->
+    <rect x="0" y="0" width="1184" height="210" rx="16" fill="#0f172a" fill-opacity="0.6" stroke="#334155" stroke-width="1.5" />
+    <text x="24" y="26" class="section-header" fill="#38bdf8">Presentation &amp; Client Application Tier</text>
+
+    <!-- Card 1: Android Native -->
+    <g transform="translate(24, 40)" filter="url(#shadow)">
+      <rect x="0" y="0" width="360" height="150" rx="12" fill="url(#cardGrad)" stroke="#0284c7" stroke-width="1.5" />
+      <rect x="16" y="16" width="32" height="32" rx="6" fill="#0284c7" fill-opacity="0.2" />
+      <path d="M 24 36 L 40 36 M 32 24 L 32 40" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" />
+      <text x="58" y="28" class="card-title">Android Application</text>
+      <text x="58" y="44" class="card-subtitle">CMP 1.12 &bull; Jetpack Compose &bull; SDK 37</text>
+      
+      <text x="16" y="78" class="card-text">&bull; Material 3 Expressive UI &amp; Edge-to-Edge</text>
+      <text x="16" y="96" class="card-text">&bull; FCM Service (Heads-up Alerts &amp; Channels)</text>
+      <text x="16" y="114" class="card-text">&bull; Google Play Billing (RevenueCat) &amp; AdMob NextGen</text>
+      <text x="16" y="132" class="card-text">&bull; YouTube IFrame Player &amp; DataStore Cache</text>
+    </g>
+
+    <!-- Card 2: Next.js Web App -->
+    <g transform="translate(412, 40)" filter="url(#shadow)">
+      <rect x="0" y="0" width="360" height="150" rx="12" fill="url(#cardGrad)" stroke="#10b981" stroke-width="1.5" />
+      <rect x="16" y="16" width="32" height="32" rx="6" fill="#10b981" fill-opacity="0.2" />
+      <circle cx="32" cy="32" r="8" fill="none" stroke="#34d399" stroke-width="2.5" />
+      <text x="58" y="28" class="card-title">Web Portal &amp; SEO Engine</text>
+      <text x="58" y="44" class="card-subtitle">Next.js 16 &bull; React 19 &bull; Tailwind &bull; SSG/ISR</text>
+      
+      <text x="16" y="78" class="card-text">&bull; Domain: fc.dirzaaulia.com (Firebase Hosting)</text>
+      <text x="16" y="96" class="card-text">&bull; Web Push Service Worker (FCM Background)</text>
+      <text x="16" y="114" class="card-text">&bull; Google AdSense Integrated &amp; SEO Articles</text>
+      <text x="16" y="132" class="card-text">&bull; Contextual "My Clubs" Notification Opt-In</text>
+    </g>
+
+    <!-- Card 3: Kotlin/Wasm Telemetry -->
+    <g transform="translate(800, 40)" filter="url(#shadow)">
+      <rect x="0" y="0" width="360" height="150" rx="12" fill="url(#cardGrad)" stroke="#8b5cf6" stroke-width="1.5" />
+      <rect x="16" y="16" width="32" height="32" rx="6" fill="#8b5cf6" fill-opacity="0.2" />
+      <rect x="24" y="24" width="16" height="16" rx="3" fill="none" stroke="#a78bfa" stroke-width="2.5" />
+      <text x="58" y="28" class="card-title">Telemetry &amp; Observability</text>
+      <text x="58" y="44" class="card-subtitle">Kotlin/Wasm &bull; Compose Web &bull; Side Sheet</text>
+      
+      <text x="16" y="78" class="card-text">&bull; Routes: /telemetry &amp; footballclips-telemetry.web.app</text>
+      <text x="16" y="96" class="card-text">&bull; Live Sync Cycle Telemetry &amp; Error Inspectors</text>
+      <text x="16" y="114" class="card-text">&bull; Quota Tracking (YouTube API &amp; Football-Data)</text>
+      <text x="16" y="132" class="card-text">&bull; Modern Stitch UI &amp; Detailed Accordion Logs</text>
+    </g>
+  </g>
+
+  <!-- ==================== TIER 2: MIDDLEWARE / CLOUD SERVICES ==================== -->
+  <g transform="translate(48, 350)">
+    <!-- Group Container -->
+    <rect x="0" y="0" width="1184" height="150" rx="16" fill="#0f172a" fill-opacity="0.6" stroke="#334155" stroke-width="1.5" />
+    <text x="24" y="26" class="section-header" fill="#34d399">Cloud Infrastructure &amp; Backend Tier</text>
+
+    <!-- Supabase Card -->
+    <g transform="translate(24, 40)" filter="url(#shadow)">
+      <rect x="0" y="0" width="460" height="92" rx="10" fill="url(#cardGrad)" stroke="#10b981" stroke-width="1.5" />
+      <text x="20" y="28" class="card-title">Supabase Cloud (PostgreSQL 15 &amp; Auth)</text>
+      <text x="20" y="50" class="card-text">&bull; Tables: matches, highlights, supported_clubs, profiles</text>
+      <text x="20" y="70" class="card-text">&bull; Telemetry Tables: worker_cycles, worker_events</text>
+    </g>
+
+    <!-- FCM Topics Card -->
+    <g transform="translate(512, 40)" filter="url(#shadow)">
+      <rect x="0" y="0" width="370" height="92" rx="10" fill="url(#cardGrad)" stroke="#f59e0b" stroke-width="1.5" />
+      <text x="20" y="28" class="card-title">Firebase Cloud Messaging (FCM)</text>
+      <text x="20" y="50" class="card-text">&bull; Zero-Cost Topic Architecture: club_{club_id}</text>
+      <text x="20" y="70" class="card-text">&bull; Real-time Fanout: Goals, Kickoffs, Full-Time, Recaps</text>
+    </g>
+
+    <!-- Firebase Hosting Card -->
+    <g transform="translate(910, 40)" filter="url(#shadow)">
+      <rect x="0" y="0" width="250" height="92" rx="10" fill="url(#cardGrad)" stroke="#f97316" stroke-width="1.5" />
+      <text x="20" y="28" class="card-title">Firebase Hosting</text>
+      <text x="20" y="50" class="card-text">&bull; footballclips (Next.js)</text>
+      <text x="20" y="70" class="card-text">&bull; footballclips-telemetry (WASM)</text>
+    </g>
+  </g>
+
+  <!-- ==================== TIER 3: WORKER & AI (BOTTOM) ==================== -->
+  <g transform="translate(48, 530)">
+    <!-- Group Container -->
+    <rect x="0" y="0" width="1184" height="230" rx="16" fill="#0f172a" fill-opacity="0.6" stroke="#334155" stroke-width="1.5" />
+    <text x="24" y="26" class="section-header" fill="#a855f7">Autonomous AI Worker &amp; Data Pipeline (GCP Compute Engine)</text>
+
+    <!-- Main Worker Card -->
+    <g transform="translate(24, 40)" filter="url(#shadow)">
+      <rect x="0" y="0" width="460" height="170" rx="12" fill="url(#cardGrad)" stroke="#a855f7" stroke-width="1.5" />
+      <text x="20" y="30" class="card-title">Python Worker Engine v2.0 (Async)</text>
+      <text x="20" y="48" class="card-subtitle">GCP VM: free-football-worker &bull; systemd &bull; uv package manager</text>
+      
+      <text x="20" y="78" class="card-text">&bull; match_service: Fixtures &amp; live score tracking without regressions</text>
+      <text x="20" y="98" class="card-text">&bull; highlight_service: YouTube multi-channel scan &amp; duration filters</text>
+      <text x="20" y="118" class="card-text">&bull; notification_service: In-memory deduplicated FCM topic dispatcher</text>
+      <text x="20" y="138" class="card-text">&bull; maintenance_service: 30-day automated rolling database cleanup</text>
+      <text x="20" y="158" class="card-text">&bull; telemetry_service: Real-time structured cycle health logging</text>
+    </g>
+
+    <!-- External Sources & AI Cards -->
+    <g transform="translate(512, 40)" filter="url(#shadow)">
+      <!-- Football-Data -->
+      <rect x="0" y="0" width="310" height="78" rx="10" fill="url(#cardGrad)" stroke="#06b6d4" stroke-width="1.2" />
+      <text x="16" y="26" class="card-title" font-size="14">Football-Data.org API</text>
+      <text x="16" y="46" class="card-text">Tier-1 Fixtures, Results, Standings</text>
+      <text x="16" y="64" class="card-text">Adaptive 10 req/min dynamic throttling</text>
+
+      <!-- YouTube Data API -->
+      <rect x="0" y="92" width="310" height="78" rx="10" fill="url(#cardGrad)" stroke="#ef4444" stroke-width="1.2" />
+      <text x="16" y="118" class="card-title" font-size="14">YouTube Data API v3</text>
+      <text x="16" y="138" class="card-text">Playlist RSS &amp; Quota-Managed Search</text>
+      <text x="16" y="156" class="card-text">Daily quota persistence guard (10k units)</text>
+    </g>
+
+    <!-- Gemini AI Card -->
+    <g transform="translate(850, 40)" filter="url(#shadow)">
+      <rect x="0" y="0" width="310" height="170" rx="12" fill="url(#cardGrad)" stroke="#6366f1" stroke-width="1.5" />
+      <text x="20" y="30" class="card-title">Google Gemini AI Engine</text>
+      <text x="20" y="48" class="card-subtitle">gemini-3.8-flash / 3.7-flash &bull; Structured JSON Output</text>
+
+      <text x="20" y="80" class="card-text">&bull; Semantic Match Title Reconciliation</text>
+      <text x="20" y="100" class="card-text">&bull; Post-Match Interview &amp; Podcast Filter</text>
+      <text x="20" y="120" class="card-text">&bull; Retro / Archive Video Rejection</text>
+      <text x="20" y="140" class="card-text">&bull; High-Confidence Verified Linking</text>
+      <text x="20" y="160" class="card-text">&bull; Rule-based fallback if quota exhausted</text>
+    </g>
+  </g>
+
+  <!-- ==================== FLOW CONNECTORS & ARROWS ==================== -->
+  <!-- Worker to Supabase -->
+  <path d="M 278 570 L 278 485" stroke="#10b981" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#arrowGreen)" />
+  <rect x="220" y="515" width="116" height="20" rx="4" fill="#0f172a" stroke="#10b981" stroke-width="1" />
+  <text x="278" y="529" text-anchor="middle" class="flow-label" fill="#34d399">Syncs Data &amp; Logs</text>
+
+  <!-- Worker to FCM -->
+  <path d="M 400 570 C 400 515, 680 540, 680 485" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arrowAmber)" />
+  <rect x="495" y="505" width="130" height="20" rx="4" fill="#0f172a" stroke="#f59e0b" stroke-width="1" />
+  <text x="560" y="519" text-anchor="middle" class="flow-label" fill="#fbbf24">Dispatches Events</text>
+
+  <!-- Supabase to Clients -->
+  <path d="M 220 390 L 220 305" stroke="#06b6d4" stroke-width="2.5" marker-end="url(#arrowCyan)" />
+  <path d="M 350 390 C 350 345, 592 345, 592 305" stroke="#06b6d4" stroke-width="2.5" marker-end="url(#arrowCyan)" />
+  <path d="M 430 390 C 430 330, 980 345, 980 305" stroke="#8b5cf6" stroke-width="2.5" marker-end="url(#arrowPurple)" />
+
+  <!-- FCM to Clients (Android & Web) -->
+  <path d="M 680 390 C 680 340, 310 345, 310 305" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrowAmber)" />
+  <path d="M 720 390 C 720 340, 650 345, 650 305" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrowAmber)" />
+
+  <!-- External to Worker -->
+  <path d="M 512 609 L 484 609" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrowCyan)" />
+  <path d="M 512 701 L 484 701" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowCyan)" />
+  <path d="M 850 655 L 484 655" stroke="#6366f1" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrowPurple)" />
+
+</svg>
