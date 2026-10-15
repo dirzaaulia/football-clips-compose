@@ -51,6 +51,10 @@
           "destination": "/telemetry/index.html"
         },
         {
+          "source": "/match/**",
+          "destination": "/match/index.html"
+        },
+        {
           "source": "**",
           "destination": "/index.html"
         }

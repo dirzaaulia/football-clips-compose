@@ -76,6 +76,17 @@ class ScoreViewModel(
     private val _isMyClubsFilterActive = MutableStateFlow(false)
     val isMyClubsFilterActive: StateFlow<Boolean> = _isMyClubsFilterActive.asStateFlow()
 
+    private val _isLiveOnlyFilterActive = MutableStateFlow(false)
+    val isLiveOnlyFilterActive: StateFlow<Boolean> = _isLiveOnlyFilterActive.asStateFlow()
+
+    val liveMatchCount: StateFlow<Int> = uiState.map { state ->
+        if (state is ScoreState.Success) {
+            state.matches.count { item ->
+                (item as? HighlightUiItem.SupabaseMatch)?.match?.isLive == true
+            }
+        } else 0
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
     private val _showScrollToTop = MutableStateFlow(false)
     val showScrollToTop: StateFlow<Boolean> = _showScrollToTop.asStateFlow()
     fun setScrollToTopVisible(v: Boolean) { _showScrollToTop.value = v }
@@ -92,6 +103,11 @@ class ScoreViewModel(
 
     fun toggleMyClubsFilter() {
         _isMyClubsFilterActive.value = !_isMyClubsFilterActive.value
+        getMatches()
+    }
+
+    fun toggleLiveOnlyFilter() {
+        _isLiveOnlyFilterActive.value = !_isLiveOnlyFilterActive.value
         getMatches()
     }
 

@@ -20,8 +20,13 @@ data class Match(
     val awayTeamCrest: String?,
     val homeScore: Int?,
     val awayScore: Int?,
-    val highlightVideoId: String?
+    val highlightVideoId: String?,
+    val roundName: String? = null,
+    val displayClock: String? = null
 ) {
+    val displayRound: String
+        get() = roundName ?: matchday?.let { "Matchweek $it" } ?: competitionName
+
     val leagueEmblemUrl: String
         get() = "https://crests.football-data.org/${competitionId.uppercase()}.png"
 
@@ -99,6 +104,8 @@ fun MatchDto.toMatch(): Match {
         awayTeamCrest = awayTeamCrest,
         homeScore = homeScore,
         awayScore = awayScore,
-        highlightVideoId = highlightVideoId
+        highlightVideoId = highlightVideoId,
+        roundName = roundName,
+        displayClock = displayClock
     )
 }

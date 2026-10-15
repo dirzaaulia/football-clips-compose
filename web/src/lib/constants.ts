@@ -113,8 +113,15 @@ export function isLeagueMatch(target?: string | null, candidate?: string | null)
   const c = candidate.toLowerCase().trim();
   if (t === c) return true;
 
+  const normT = normalizeLeagueName(t).toLowerCase();
+  const normC = normalizeLeagueName(c).toLowerCase();
+  if (normT === normC) return true;
+
   const plRegex = /\b(pl|epl|premier league)\b/i;
   if (plRegex.test(t) && plRegex.test(c)) return true;
+
+  const laligaRegex = /\b(la liga|laliga|primera division|primera división|pd)\b/i;
+  if (laligaRegex.test(t) && laligaRegex.test(c)) return true;
 
   return t.includes(c) || c.includes(t);
 }

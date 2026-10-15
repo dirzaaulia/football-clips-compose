@@ -2,6 +2,8 @@ from datetime import UTC, datetime
 from typing import Any
 
 from loguru import logger
+from worker.services.audience_service import audience_service
+from worker.services.notification_logger import notification_logger
 from worker.utils.telemetry_logger import append_event
 
 try:
@@ -78,7 +80,11 @@ class NotificationService:
                             badge="/icons/badge-72.png"
                         ),
                         fcm_options=messaging.WebpushFCMOptions(
-                            link=data_payload.get("url", "/")
+                            link=(
+                                data_payload.get("url")
+                                if str(data_payload.get("url", "")).startswith("https://")
+                                else f"https://fc.dirzaaulia.com{data_payload.get('url', '/')}"
+                            )
                         )
                     )
                 )
@@ -145,14 +151,29 @@ class NotificationService:
         sent = self._send_to_club_topics([h_id, a_id], title, body, data_payload, channel_id)
         self._sent_keys.add(dedup_key)
 
-        if sent > 0 and log_events is not None:
-            append_event(
-                log_events,
-                f"[NOTIFY - {event_type.upper()}] {title} (topics: club_{h_id}, club_{a_id})",
-                "SUCCESS",
-                "FCM_NOTIFY",
-                "DISPATCHED"
-            )
+        if sent > 0:
+            try:
+                aud = audience_service.get_audience_for_clubs([h_id, a_id])
+                notification_logger.log_notification(
+                    event_type=event_type,
+                    match=match,
+                    title=title,
+                    body=body,
+                    club_ids=[h_id, a_id],
+                    audience=aud,
+                    channel_id=channel_id,
+                )
+            except Exception as e:
+                logger.debug(f"[NotificationService] Failed to log telemetry: {e}")
+
+            if log_events is not None:
+                append_event(
+                    log_events,
+                    f"[NOTIFY - {event_type.upper()}] {title} (topics: club_{h_id}, club_{a_id})",
+                    "SUCCESS",
+                    "FCM_NOTIFY",
+                    "DISPATCHED"
+                )
         return sent > 0
 
     def notify_highlight_ready(
@@ -184,14 +205,29 @@ class NotificationService:
         sent = self._send_to_club_topics([h_id, a_id], title, body, data_payload, "channel_highlights")
         self._sent_keys.add(dedup_key)
 
-        if sent > 0 and log_events is not None:
-            append_event(
-                log_events,
-                f"[NOTIFY - HIGHLIGHT] {title} (topics: club_{h_id}, club_{a_id})",
-                "SUCCESS",
-                "FCM_NOTIFY",
-                "DISPATCHED"
-            )
+        if sent > 0:
+            try:
+                aud = audience_service.get_audience_for_clubs([h_id, a_id])
+                notification_logger.log_notification(
+                    event_type="highlight",
+                    match=match,
+                    title=title,
+                    body=body,
+                    club_ids=[h_id, a_id],
+                    audience=aud,
+                    channel_id="channel_highlights",
+                )
+            except Exception as e:
+                logger.debug(f"[NotificationService] Failed to log highlight telemetry: {e}")
+
+            if log_events is not None:
+                append_event(
+                    log_events,
+                    f"[NOTIFY - HIGHLIGHT] {title} (topics: club_{h_id}, club_{a_id})",
+                    "SUCCESS",
+                    "FCM_NOTIFY",
+                    "DISPATCHED"
+                )
         return sent > 0
 
     def check_upcoming_fixtures(

@@ -50,6 +50,8 @@ fun MatchesAndHighlightsScreen(
     val favoriteClubs by viewModel.favoriteClubs.collectAsState()
     val supportedClubs by viewModel.supportedClubs.collectAsState()
     val isMyClubsActive by viewModel.isMyClubsFilterActive.collectAsState()
+    val isLiveOnlyActive by viewModel.isLiveOnlyFilterActive.collectAsState()
+    val liveMatchCount by viewModel.liveMatchCount.collectAsState()
     val isFiltersExpanded by viewModel.isFiltersExpanded.collectAsState()
     val isMyClubsSheetVisible by viewModel.showMyClubsSheet.collectAsState()
     var showMyClubsSheet by remember { mutableStateOf(false) }
@@ -104,6 +106,9 @@ fun MatchesAndHighlightsScreen(
                         isMyClubsActive = isMyClubsActive,
                         onToggleMyClubs = { viewModel.toggleMyClubsFilter() },
                         onOpenMyClubsSheet = { showMyClubsSheet = true },
+                        isLiveOnlyActive = isLiveOnlyActive,
+                        onToggleLiveOnly = { viewModel.toggleLiveOnlyFilter() },
+                        liveMatchCount = liveMatchCount,
                         dates = viewModel.availableDates,
                         selectedDate = selectedDate,
                         onDateSelected = viewModel::selectDate,

@@ -35,6 +35,14 @@ def main():
     print("\n📦 Building Next.js Web application...")
     run_command("npm run build", cwd=web_dir)
 
+    # 1.5 Ensure /match/index.html fallback exists for Firebase SPA routing
+    out_match_dir = os.path.join(web_dir, "out", "match")
+    if os.path.exists(out_match_dir):
+        match_htmls = [f for f in os.listdir(out_match_dir) if f.endswith(".html") and f != "index.html"]
+        if match_htmls:
+            shutil.copyfile(os.path.join(out_match_dir, match_htmls[0]), os.path.join(out_match_dir, "index.html"))
+            print(f"📄 Created Match Centre fallback shell at {os.path.join(out_match_dir, 'index.html')}")
+
     # 2. Copy WASM telemetry build into Next.js static export for /telemetry route
     if os.path.exists(wasm_dir):
         print(f"\n📋 Syncing WASM Telemetry assets to {out_telemetry_dir}...")

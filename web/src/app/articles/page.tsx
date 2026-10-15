@@ -5,6 +5,22 @@ import { Sparkles, ArrowRight, Trophy, ExternalLink, Newspaper } from 'lucide-re
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
 import { supabase, MatchRecord } from '@/lib/supabase';
 import { getVerifiedFootballNews, FeedArticle } from '@/lib/articles';
+import { generateAlgorithmicTacticalRecap } from '@/lib/match-analysis';
+
+function buildMatchUrl(match: MatchRecord): string {
+  const home = match.home_team_name || match.home_team;
+  const away = match.away_team_name || match.away_team;
+  const params = new URLSearchParams();
+  if (home) params.set('home', home);
+  if (away) params.set('away', away);
+  if (match.competition_name) params.set('comp', match.competition_name);
+  if (match.highlight_video_id) params.set('vid', match.highlight_video_id);
+  if (match.utc_date) params.set('date', match.utc_date);
+  if (match.home_team_crest) params.set('homeCrest', match.home_team_crest);
+  if (match.away_team_crest) params.set('awayCrest', match.away_team_crest);
+  return `/match/${match.id}?${params.toString()}`;
+}
+
 export default async function ArticlesPage() {
   // 1. Fetch real European matches for tactical debriefs
   const { data: rawMatches } = await supabase
@@ -63,14 +79,14 @@ export default async function ArticlesPage() {
               const awayName = match.away_team_name || match.away_team;
               const analysis =
                 match.recap_analysis ||
-                `Tactical breakdown for ${homeName} vs ${awayName} in the ${match.competition_name}. Final score: ${match.home_score ?? 0} - ${match.away_score ?? 0}. Discover key pressing duels, goal moments, and full highlights in the theater.`;
+                generateAlgorithmicTacticalRecap(match);
 
               const excerpt = analysis.slice(0, 160).replace(/[*#]/g, '') + '...';
 
               return (
                 <Link
                   key={match.id}
-                  href={`/match/${match.id}`}
+                  href={buildMatchUrl(match)}
                   className="group bg-[#1E2227] hover:bg-[#23282F] border border-[#334155] hover:border-[#7098F8]/60 rounded-2xl p-5 transition-all flex flex-col justify-between cursor-pointer"
                 >
                   <div>
@@ -88,7 +104,7 @@ export default async function ArticlesPage() {
                         </div>
                       )}
                       <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-[#7098F8] transition-colors line-clamp-1">
-                        {homeName} {match.home_score ?? 0} - {match.away_score ?? 0} {awayName}
+                        {homeName} {match.home_score != null ? match.home_score : ''} {match.home_score != null && match.away_score != null ? '-' : 'vs'} {match.away_score != null ? match.away_score : ''} {awayName}
                       </h3>
                       {match.away_team_crest && (
                         <div className="relative w-5 h-5 shrink-0">

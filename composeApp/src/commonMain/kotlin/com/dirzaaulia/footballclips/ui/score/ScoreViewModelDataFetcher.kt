@@ -41,7 +41,8 @@ fun ScoreViewModel.getMatches() {
         _uiState.value = ScoreState.Loading
         try {
             val selectedDateStr = selectedDate.value
-            val (startDate, endDate) = if (selectedDateStr != null) {
+            val isLiveOnly = isLiveOnlyFilterActive.value
+            val (startDate, endDate) = if (selectedDateStr != null && !isLiveOnly) {
                 val date = LocalDate.parse(selectedDateStr)
                 date.plus(-1, DateTimeUnit.DAY).toString() to date.plus(1, DateTimeUnit.DAY).toString()
             } else null to null
@@ -65,10 +66,14 @@ fun ScoreViewModel.getMatches() {
                     val matches = result.data
                         .map { it.toMatch() }
                         .filter { match ->
-                            val isSelectedDate = match.dateOnlyISO == selDate
-                            val isLiveNow = match.isLive
-                            val dateMatches = isSelectedDate || (isLiveNow && selDate == todayDate)
-                            if (!dateMatches) return@filter false
+                            if (isLiveOnly) {
+                                if (!match.isLive) return@filter false
+                            } else {
+                                val isSelectedDate = match.dateOnlyISO == selDate
+                                val isLiveNow = match.isLive
+                                val dateMatches = isSelectedDate || (isLiveNow && selDate == todayDate)
+                                if (!dateMatches) return@filter false
+                            }
                             if (isMyClubsOnly) {
                                 SupportedClubsConstants.isMatchForFavoriteClubs(match, favIds, clubs)
                             } else {

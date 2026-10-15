@@ -2,6 +2,7 @@ package com.dirzaaulia.footballclips.data.local
 
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
@@ -11,10 +12,17 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import com.google.firebase.messaging.FirebaseMessaging
+import com.dirzaaulia.footballclips.data.telemetry.DeviceTelemetrySync
+import io.github.jan.supabase.auth.Auth
+import java.util.UUID
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
 
-actual class PreferenceManager(private val context: Context) {
+actual class PreferenceManager(
+    private val context: Context,
+    private val deviceTelemetrySync: DeviceTelemetrySync? = null,
+    private val auth: Auth? = null
+) {
 
     private val adsRemovedKey = booleanPreferencesKey("is_ads_removed")
     private val darkModeKey = booleanPreferencesKey("is_dark_mode")
@@ -23,6 +31,8 @@ actual class PreferenceManager(private val context: Context) {
     private val spoilerFreeModeKey = booleanPreferencesKey("is_spoiler_free_mode")
     private val spoilerFreeConfiguredKey = booleanPreferencesKey("is_spoiler_free_configured")
     private val favoriteClubsKey = stringSetPreferencesKey("favorite_clubs")
+    private val deviceIdKey = stringPreferencesKey("telemetry_device_id")
+    private val anonUserIdKey = stringPreferencesKey("telemetry_anon_user_id")
 
     private val _inMemoryDarkMode = MutableStateFlow<Boolean?>(null)
     private val _inMemorySpoilerFree = MutableStateFlow<Boolean?>(null)
@@ -128,6 +138,36 @@ actual class PreferenceManager(private val context: Context) {
             } else {
                 FirebaseMessaging.getInstance().unsubscribeFromTopic("club_$clubId")
             }
+        } catch (_: Exception) {
+        }
+        syncTelemetry(updated)
+    }
+
+    private suspend fun syncTelemetry(clubs: Set<String>) {
+        if (deviceTelemetrySync == null) return
+        try {
+            val prefs = context.dataStore.data.first()
+            var devId = prefs[deviceIdKey]
+            if (devId.isNullOrBlank()) {
+                devId = UUID.randomUUID().toString()
+                context.dataStore.edit { it[deviceIdKey] = devId }
+            }
+            val userId = auth?.currentUserOrNull()?.id ?: run {
+                var anonId = prefs[anonUserIdKey]
+                if (anonId.isNullOrBlank()) {
+                    anonId = "anon_" + UUID.randomUUID().toString().take(8)
+                    context.dataStore.edit { it[anonUserIdKey] = anonId }
+                }
+                anonId
+            }
+            val clubIds = clubs.mapNotNull { it.toIntOrNull() }
+            val devName = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}"
+            deviceTelemetrySync.syncDevice(
+                deviceId = devId,
+                userId = userId,
+                clubs = clubIds,
+                deviceName = devName
+            )
         } catch (_: Exception) {
         }
     }

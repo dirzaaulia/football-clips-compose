@@ -88,6 +88,20 @@ export async function getMatchById(id: string): Promise<MatchRecord | null> {
   return (data as unknown as MatchRecord) || null;
 }
 
+export async function getLiveMatches(): Promise<MatchRecord[]> {
+  const { data, error } = await supabase
+    .from('matches')
+    .select('*')
+    .in('status', ['IN_PLAY', 'PAUSED', 'LIVE'])
+    .order('utc_date', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching live matches:', error);
+    return [];
+  }
+  return (data as unknown as MatchRecord[]) || [];
+}
+
 export async function getFixturesByDate(dateStr: string): Promise<MatchRecord[]> {
   const startUtc = `${dateStr}T00:00:00Z`;
   const endUtc = `${dateStr}T23:59:59Z`;

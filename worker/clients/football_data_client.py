@@ -42,7 +42,7 @@ class FootballDataClient:
                 "dateFrom": curr_start.strftime("%Y-%m-%d"),
                 "dateTo": curr_end.strftime("%Y-%m-%d")
             }
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:
                 try:
                     response = await client.get(url, headers=self.headers, params=params)
                     if response.status_code == 200:
@@ -50,12 +50,13 @@ class FootballDataClient:
                         matches = data.get("matches", [])
                         all_matches.extend(matches)
                     elif response.status_code == 429:
-                        logger.warning("[FootballData] 🚨 429 Rate Limit encountered! Sleeping 60s...")
+                        logger.warning("[FootballData] [RATE LIMIT] 429 Rate Limit encountered! Sleeping 60s...")
                         await asyncio.sleep(60.0)
                     else:
-                        logger.error(f"[FootballData] Gagal fetch matches ({params['dateFrom']} - {params['dateTo']}): HTTP {response.status_code} - {response.text[:100]}")
+                        logger.error(f"[FootballData] Failed to fetch matches ({params['dateFrom']} - {params['dateTo']}): HTTP {response.status_code} - {response.text[:100]}")
                 except Exception as e:
-                    logger.error(f"[FootballData] Exception saat get_matches: {e}")
+                    err_desc = str(e) or type(e).__name__
+                    logger.error(f"[FootballData] Exception during get_matches: {err_desc}")
             curr_start = curr_end + timedelta(days=1)
 
         # Deduplicate matches by id
@@ -70,7 +71,7 @@ class FootballDataClient:
                 if response.status_code == 200:
                     return response.json().get("teams", [])
                 else:
-                    logger.warning(f"[FootballData] Gagal fetch teams for {competition_code}: {response.status_code}")
+                    logger.warning(f"[FootballData] Failed to fetch teams for {competition_code}: {response.status_code}")
                     return []
             except Exception as e:
                 logger.error(f"[FootballData] Exception get_competition_teams: {e}")
@@ -85,11 +86,11 @@ class FootballDataClient:
                 if response.status_code == 200:
                     return response.json()
                 elif response.status_code == 429:
-                    logger.warning(f"[FootballData] 🚨 429 Rate Limit on standings {competition_code}! Sleeping 60s...")
+                    logger.warning(f"[FootballData] [RATE LIMIT] 429 Rate Limit on standings {competition_code}! Sleeping 60s...")
                     await asyncio.sleep(60.0)
                     return {}
                 else:
-                    logger.warning(f"[FootballData] Gagal fetch standings for {competition_code}: {response.status_code}")
+                    logger.warning(f"[FootballData] Failed to fetch standings for {competition_code}: {response.status_code}")
                     return {}
             except Exception as e:
                 logger.error(f"[FootballData] Exception get_standings: {e}")

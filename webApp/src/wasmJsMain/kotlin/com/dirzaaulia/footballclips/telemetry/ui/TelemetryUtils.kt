@@ -41,25 +41,29 @@ object TelemetryUtils {
 
     fun getSubsystemBadgeColor(subsystem: String): Color {
         return when (subsystem.uppercase()) {
-            "MATCH_SYNC" -> StitchPrimary
-            "YOUTUBE" -> StitchError
-            "AI_GEMINI" -> StitchSecondary
-            "STANDINGS" -> StitchTertiary
-            "MAINTENANCE" -> StitchTextSecondary
+            "MATCH_SYNC" -> StitchSecondary
+            "YOUTUBE" -> StitchPurple
+            "AI_GEMINI" -> StitchPurple
+            "STANDINGS" -> StitchGold
+            "MAINTENANCE" -> StitchTeal
+            "NOTIFICATIONS" -> Color(0xFFFB7185)
             else -> StitchTextPrimary
         }
     }
 
     fun getEventLineColor(text: String): Color {
         return when {
-            text.contains("SUCCESS") || text.contains("BERHASIL") || text.contains("DAPAT") -> StitchSuccess
-            text.contains("SCORE") || text.contains("SKOR") || text.contains("FULL TIME") -> StitchWarning
-            text.contains("STATUS") || text.contains("NEW_MATCH") -> StitchTertiary
-            text.contains("429") || text.contains("Quota") || text.contains("Error") || text.contains("ERR") -> StitchError
-            text.contains("WARN") || text.contains("Limit") -> StitchWarning
-            text.contains("AI") || text.contains("GEMINI") -> StitchSecondary
-            text.contains("FETCH") || text.contains("Meminta") -> StitchPrimary
-            else -> StitchTextSecondary
+            text.contains("CLEANUP") || text.contains("PURGE") || text.contains("RETENTION") || text.contains("MAINTENANCE") -> StitchTeal
+            text.contains("LIVE SCORE") || text.contains("GOAL") -> StitchSuccess
+            text.contains("FULL TIME") || text.contains("KICKOFF") -> StitchWarning
+            text.contains("NEW FIXTURE") || text.contains("INSERTED") || text.contains("NEW_MATCH") || text.contains("MATCH_SYNC") -> StitchSecondary
+            text.contains("YOUTUBE") || text.contains("PROCESS") || text.contains("SEARCH") || text.contains("CANDIDATES") || text.contains("CHANNEL") -> StitchPurple
+            text.contains("AI") || text.contains("GEMINI") -> StitchPurple
+            text.contains("STANDINGS") -> StitchGold
+            text.contains("429") || text.contains("Quota") || text.contains("Error") || text.contains("ERR") || text.contains("CRITICAL") -> StitchError
+            text.contains("WARN") || text.contains("NOT FOUND") || text.contains("SKIP") || text.contains("STANDBY") -> StitchWarning
+            text.contains("SUCCESS") || text.contains("LINKED") || text.contains("SELECTED") -> StitchSuccess
+            else -> StitchTextPrimary
         }
     }
 
@@ -67,6 +71,7 @@ object TelemetryUtils {
         return when (statusType) {
             "success" -> Pair(StitchSuccess.copy(alpha = 0.15f), StitchSuccess)
             "fail" -> Pair(StitchWarning.copy(alpha = 0.15f), StitchWarning)
+            "error", "quota" -> Pair(StitchError.copy(alpha = 0.15f), StitchError)
             "force", "opp" -> Pair(StitchPrimary.copy(alpha = 0.15f), StitchPrimary)
             "skip" -> Pair(StitchSurfaceContainerHigh, StitchTextSecondary)
             else -> Pair(StitchSecondary.copy(alpha = 0.15f), StitchSecondary)

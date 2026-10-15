@@ -34,3 +34,11 @@ replay_pid*.log
 youtube_quota_evidence/
 web/youtube_quota_evidence/
 screenshots/
+scratch/
+channel_cache.json
+youtube_quota.json
+.env
+*.env
+worker/.env
+worker/archives/
+worker/.venv/

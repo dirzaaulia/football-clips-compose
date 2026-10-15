@@ -58,3 +58,51 @@ def test_highlight_notification():
     sent_dup = service.notify_highlight_ready(sample_match, "vid_abc123", "Highlights Video")
     assert sent_dup is False
     service._send_to_club_topics.assert_not_called()
+
+
+def test_audience_aggregation_and_logging():
+    from worker.services.audience_service import AudienceService
+    from worker.services.notification_logger import NotificationLogger
+
+    # Test audience aggregation
+    aud_service = AudienceService()
+    aud_service._cached_data = {
+        "clubs": {
+            "57": {
+                "club_id": 57,
+                "total_devices": 3,
+                "distinct_users": 2,
+                "platform_breakdown": {"android": 2, "web": 1},
+                "distribution": {
+                    "single_device_users": 1,
+                    "multi_device_users": 1,
+                    "max_devices_for_single_user": 2,
+                },
+            }
+        }
+    }
+    aud_service._last_fetch = 9999999999.0
+
+    aud = aud_service.get_audience_for_clubs([57])
+    assert aud["distinct_users"] == 2
+    assert aud["total_devices"] == 3
+    assert aud["device_to_user_ratio"] == 1.5
+    assert aud["platform_breakdown"]["android"] == 2
+    assert aud["distribution"]["multi_device_users"] == 1
+
+    # Test logger without storage upload
+    logger = NotificationLogger()
+    logger._storage_client = None  # in-memory only
+    entry = logger.log_notification(
+        event_type="score",
+        match={"id": 100, "home_team": "Arsenal", "away_team": "Chelsea"},
+        title="GOAL! Arsenal 1 - 0 Chelsea",
+        body="Live score update.",
+        club_ids=[57, 61],
+        audience=aud,
+    )
+    assert entry["event_type"] == "score"
+    assert entry["audience"]["distinct_users"] == 2
+    assert entry["audience"]["total_devices"] == 3
+    assert len(logger._recent_notifications) == 1
+

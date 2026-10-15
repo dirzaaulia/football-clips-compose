@@ -35,8 +35,8 @@ fun TelemetryMetricsView(
             KpiMetricCard(
                 title = "TOTAL CYCLES",
                 subTitle = "Loop Iterations",
-                value = "${metrics.totalCycles.coerceAtLeast(17)}",
-                deltaText = "+1 (2m ago)",
+                value = "${metrics.totalCycles}",
+                deltaText = "Persisted Cycles",
                 deltaColor = StitchSuccess,
                 icon = Icons.Default.Autorenew,
                 iconTint = StitchPrimary,
@@ -44,9 +44,9 @@ fun TelemetryMetricsView(
             )
             KpiMetricCard(
                 title = "HARVESTED HIGHLIGHTS",
-                subTitle = "100% Extraction Rate",
-                value = "${metrics.totalHighlights.coerceAtLeast(17)}",
-                deltaText = "${metrics.totalCandidates.coerceAtLeast(358)} Candidates",
+                subTitle = "Linked to Matches",
+                value = "${metrics.totalHighlights}",
+                deltaText = "${metrics.totalCandidates} Candidates Evaluated",
                 deltaColor = StitchTextSecondary,
                 icon = Icons.Default.PlayCircle,
                 iconTint = StitchPrimary,
@@ -56,7 +56,7 @@ fun TelemetryMetricsView(
                 title = "GOAL & SCORE TRIGGERS",
                 subTitle = "Live Match Triggers",
                 value = "${metrics.totalGoals}",
-                deltaText = "Standby Off-Pitch",
+                deltaText = if (metrics.totalGoals > 0) "Live Match Active" else "Off-Pitch Standby",
                 deltaColor = StitchTextSecondary,
                 icon = Icons.Default.SportsSoccer,
                 iconTint = StitchWarning,
@@ -64,7 +64,7 @@ fun TelemetryMetricsView(
             )
             KpiMetricCard(
                 title = "HEALTH & EXCEPTIONS",
-                subTitle = "Health: 100% Nominal",
+                subTitle = if (metrics.totalErrors == 0) "Health: 100% Nominal" else "${metrics.totalErrors} Alert(s)",
                 value = "${metrics.totalErrors}",
                 deltaText = if (metrics.totalErrors == 0) "Zero Exceptions" else "${metrics.totalErrors} Errors",
                 deltaColor = if (metrics.totalErrors == 0) StitchSuccess else StitchError,
@@ -75,7 +75,7 @@ fun TelemetryMetricsView(
             )
         }
 
-        // Row 2: 3 Operational Metric Cards
+        // Row 2: 2 Operational Metric Cards (Interval & Quota)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -91,32 +91,35 @@ fun TelemetryMetricsView(
             )
 
             // YouTube Quota Card
+            val quotaRatio = if (metrics.apiQuotaTotal > 0) (metrics.apiQuotaUsed.toFloat() / metrics.apiQuotaTotal.toFloat()).coerceIn(0f, 1f) else 0f
+            val quotaPercent = (quotaRatio * 100).toInt()
+
             Box(
                 modifier = Modifier
-                    .weight(1.2f)
+                    .weight(1f)
                     .clip(RoundedCornerShape(6.dp))
                     .background(StitchSurface)
                     .border(1.dp, StitchBorder, RoundedCornerShape(6.dp))
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Icon(Icons.Default.Token, null, tint = StitchWarning, modifier = Modifier.size(16.dp))
-                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Icon(Icons.Default.Token, null, tint = StitchWarning, modifier = Modifier.size(18.dp))
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("YOUTUBE DATA API QUOTA", fontSize = 8.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
-                            Text("14.2% used", fontSize = 8.sp, color = StitchWarning, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                            Text("YOUTUBE DATA API QUOTA", fontSize = 10.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                            Text("$quotaPercent% used", fontSize = 10.sp, color = StitchWarning, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
                         }
-                        Text("${metrics.apiQuotaUsed} / ${metrics.apiQuotaTotal} units", fontSize = 10.sp, color = StitchTextPrimary, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold)
+                        Text("${metrics.apiQuotaUsed} / ${metrics.apiQuotaTotal} units", fontSize = 12.sp, color = StitchTextPrimary, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold)
                         LinearProgressIndicator(
-                            progress = { 0.142f },
+                            progress = { quotaRatio },
                             modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
                             color = StitchWarning,
                             trackColor = StitchBorder
@@ -124,16 +127,6 @@ fun TelemetryMetricsView(
                     }
                 }
             }
-
-            // Sync Coverage Card
-            OperationalCard(
-                icon = Icons.Default.Layers,
-                title = "SYNC COVERAGE (TOP 5 LEAGUES)",
-                value = "${metrics.mappedClubs} / ${metrics.totalClubs} Clubs Mapped",
-                badgeText = "100% OK",
-                badgeColor = StitchSuccess,
-                modifier = Modifier.weight(1f)
-            )
         }
     }
 }
@@ -155,7 +148,7 @@ private fun KpiMetricCard(
             .clip(RoundedCornerShape(6.dp))
             .background(StitchSurface)
             .border(1.dp, StitchBorder, RoundedCornerShape(6.dp))
-            .padding(12.dp)
+            .padding(14.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(
@@ -164,22 +157,22 @@ private fun KpiMetricCard(
                 verticalAlignment = Alignment.Top
             ) {
                 Column {
-                    Text(title, fontSize = 9.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
-                    Text(subTitle, fontSize = 8.sp, color = StitchTextSecondary)
+                    Text(title, fontSize = 12.5.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                    Text(subTitle, fontSize = 11.5.sp, color = StitchTextSecondary)
                 }
-                Icon(icon, null, tint = iconTint, modifier = Modifier.size(16.dp))
+                Icon(icon, null, tint = iconTint, modifier = Modifier.size(20.dp))
             }
             Row(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(value, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
-                Text(deltaText, fontSize = 9.sp, color = deltaColor, fontFamily = FontFamily.Monospace, modifier = Modifier.padding(bottom = 3.dp))
+                Text(value, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
+                Text(deltaText, fontSize = 12.sp, color = deltaColor, fontFamily = FontFamily.Monospace, modifier = Modifier.padding(bottom = 3.dp))
             }
             if (hasHealthBar) {
                 LinearProgressIndicator(
                     progress = { 1f },
-                    modifier = Modifier.fillMaxWidth().height(3.dp).clip(RoundedCornerShape(2.dp)),
+                    modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
                     color = StitchSuccess,
                     trackColor = StitchBorder
                 )
@@ -202,34 +195,32 @@ private fun OperationalCard(
             .clip(RoundedCornerShape(6.dp))
             .background(StitchSurface)
             .border(1.dp, StitchBorder, RoundedCornerShape(6.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 14.dp, vertical = 10.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Icon(icon, null, tint = badgeColor, modifier = Modifier.size(16.dp))
+            Icon(icon, null, tint = badgeColor, modifier = Modifier.size(20.dp))
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                // Top row: Title and Badge (so badge never gets squeezed!)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(title, fontSize = 8.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                    Text(title, fontSize = 12.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(3.dp))
                             .background(badgeColor.copy(alpha = 0.12f))
                             .border(1.dp, badgeColor.copy(alpha = 0.35f), RoundedCornerShape(3.dp))
-                            .padding(horizontal = 5.dp, vertical = 1.dp)
+                            .padding(horizontal = 7.dp, vertical = 3.dp)
                     ) {
-                        Text(badgeText, fontSize = 8.sp, color = badgeColor, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        Text(badgeText, fontSize = 11.5.sp, color = badgeColor, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                     }
                 }
-                // Second row: Value gets full width
-                Text(value, fontSize = 10.sp, color = StitchTextPrimary, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                Text(value, fontSize = 13.5.sp, color = StitchTextPrimary, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.SemiBold, maxLines = 1)
             }
         }
     }

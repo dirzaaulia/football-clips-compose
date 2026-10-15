@@ -1,18 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { getFixturesByDate, MatchRecord } from '@/lib/supabase';
+import React, { useState, useEffect, useMemo } from 'react';
+import { getFixturesByDate, getLiveMatches, MatchRecord } from '@/lib/supabase';
 import { BIG_LEAGUES, isLeagueMatch } from '@/lib/constants';
 import { isMatchForFavoriteClubs } from '@/lib/clubs';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import { useDragScroll } from '@/hooks/useDragScroll';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, CheckCircle2, Clock, Star } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, CheckCircle2, Clock, Star, Radio } from 'lucide-react';
 import Image from 'next/image';
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
 import FixtureItemCard from '@/components/fixtures/FixtureItemCard';
+import LiveMatchSection from '@/components/live/LiveMatchSection';
 import MyClubsModal from '@/components/clubs/MyClubsModal';
 
-type FixtureTab = 'ALL' | 'RESULTS' | 'UPCOMING';
+type FixtureTab = 'ALL' | 'LIVE' | 'RESULTS' | 'UPCOMING';
 
 export default function FixturesPage() {
   const [selectedDate, setSelectedDate] = useState('2026-10-08');
@@ -21,6 +22,7 @@ export default function FixturesPage() {
   const [isMyClubsActive, setIsMyClubsActive] = useState(false);
   const [isMyClubsModalOpen, setIsMyClubsModalOpen] = useState(false);
   const [fixtures, setFixtures] = useState<MatchRecord[]>([]);
+  const [liveMatches, setLiveMatches] = useState<MatchRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
@@ -40,18 +42,26 @@ export default function FixturesPage() {
     let isCancelled = false;
 
     async function load() {
-      setIsLoading(true);
-      const data = await getFixturesByDate(selectedDate);
+      const [fixData, liveData] = await Promise.all([
+        getFixturesByDate(selectedDate),
+        getLiveMatches(),
+      ]);
       if (!isCancelled) {
-        setFixtures(data);
+        setFixtures(fixData);
+        setLiveMatches(liveData);
         setIsLoading(false);
       }
     }
 
+    setIsLoading(true);
     load();
+
+    // Auto-refresh every 30s to keep live scores and match statuses semi-live
+    const interval = setInterval(load, 30_000);
 
     return () => {
       isCancelled = true;
+      clearInterval(interval);
     };
   }, [selectedDate]);
 
@@ -71,20 +81,49 @@ export default function FixturesPage() {
   const bigLeague = BIG_LEAGUES.find((b) => b.competitionId === selectedComp);
 
   // Filter based on activeTab (status), competition (league), and My Clubs
-  const filteredFixtures = fixtures.filter((m) => {
-    const isFinished = m.status === 'FINISHED';
-    if (activeTab === 'RESULTS' && !isFinished) return false;
-    if (activeTab === 'UPCOMING' && isFinished) return false;
+  const allCandidateMatches = useMemo(() => {
+    if (activeTab === 'LIVE') return liveMatches;
 
-    if (isMyClubsActive && favoriteClubs.size > 0) {
-      if (!isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs)) return false;
-    } else if (selectedComp !== 'ALL' && bigLeague) {
-      const matchComp = m.competition_id === selectedComp || isLeagueMatch(bigLeague.name, m.competition_name);
-      if (!matchComp) return false;
+    const seen = new Set<string>();
+    const list: MatchRecord[] = [];
+
+    // In ALL tab, pin currently live matches to the top
+    if (activeTab === 'ALL') {
+      liveMatches.forEach((m) => {
+        seen.add(m.id);
+        list.push(m);
+      });
     }
 
-    return true;
-  });
+    fixtures.forEach((m) => {
+      if (!seen.has(m.id)) {
+        seen.add(m.id);
+        list.push(m);
+      }
+    });
+
+    return list;
+  }, [activeTab, liveMatches, fixtures]);
+
+  const filteredFixtures = useMemo(() => {
+    return allCandidateMatches.filter((m) => {
+      const isFinished = m.status === 'FINISHED';
+      const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE';
+
+      if (activeTab === 'LIVE' && !isLive) return false;
+      if (activeTab === 'RESULTS' && !isFinished) return false;
+      if (activeTab === 'UPCOMING' && (isFinished || isLive)) return false;
+
+      if (isMyClubsActive && favoriteClubs.size > 0) {
+        if (!isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs)) return false;
+      } else if (selectedComp !== 'ALL' && bigLeague) {
+        const matchComp = m.competition_id === selectedComp || isLeagueMatch(bigLeague.name, m.competition_name);
+        if (!matchComp) return false;
+      }
+
+      return true;
+    });
+  }, [allCandidateMatches, activeTab, isMyClubsActive, favoriteClubs, selectedComp, bigLeague]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
@@ -105,7 +144,20 @@ export default function FixturesPage() {
                 : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
             }`}
           >
-            All ({fixtures.length})
+            All ({allCandidateMatches.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('LIVE')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'LIVE'
+                ? 'bg-gradient-to-r from-red-700 to-red-500 text-white border border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.35)]'
+                : liveMatches.length > 0
+                ? 'text-red-400 hover:text-white hover:bg-[#1E2227] border border-red-500/30'
+                : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${liveMatches.length > 0 ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`} />
+            <span>Live {liveMatches.length > 0 ? `(${liveMatches.length})` : ''}</span>
           </button>
           <button
             onClick={() => setActiveTab('RESULTS')}
@@ -207,6 +259,11 @@ export default function FixturesPage() {
           );
         })}
       </div>
+
+      {/* Pinned Live Match Section when in ALL mode */}
+      {activeTab === 'ALL' && liveMatches.length > 0 && (
+        <LiveMatchSection liveMatches={liveMatches} className="mb-6" />
+      )}
 
       {/* Fixtures List */}
       {isLoading ? (

@@ -2,7 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { getMatchById, getRelatedMatches, getRecentHighlights, MatchRecord } from '@/lib/supabase';
+import { getMatchById, getRelatedMatches, getRecentHighlights, MatchRecord, supabase } from '@/lib/supabase';
 import { generateMatchRecap } from '@/lib/gemini';
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
 import MatchCentreHeader from '@/components/match/MatchCentreHeader';
@@ -55,8 +55,12 @@ async function resolveMatch(
 
 export async function generateStaticParams() {
   try {
-    const matches = await getRecentHighlights(20, 0);
-    return matches.map((m) => ({ id: String(m.id) }));
+    const { data } = await supabase
+      .from('matches')
+      .select('id')
+      .order('utc_date', { ascending: false })
+      .limit(300);
+    return (data || []).map((m) => ({ id: String(m.id) }));
   } catch {
     return [];
   }
@@ -67,8 +71,20 @@ export async function generateMetadata({ params, searchParams }: MatchPageProps)
   const match = await resolveMatch(id, searchParams);
   if (!match) return { title: 'Match Not Found' };
 
-  const title = `${match.home_team} vs ${match.away_team} Match Centre & Tactical Analysis`;
-  const description = `Watch highlights and read full tactical breakdown for ${match.home_team} vs ${match.away_team} in the ${match.competition_name}. Final score: ${match.home_score ?? 0} - ${match.away_score ?? 0}.`;
+  const homeName = match.home_team_name || match.home_team || 'Home Team';
+  const awayName = match.away_team_name || match.away_team || 'Away Team';
+  const compName = match.competition_name || 'Official Highlights';
+  const isFinished = match.status === 'FINISHED';
+  const isLive = match.status === 'IN_PLAY' || match.status === 'PAUSED' || match.status === 'LIVE';
+
+  const scoreInfo = isFinished
+    ? `Final score: ${match.home_score ?? 0} - ${match.away_score ?? 0}.`
+    : isLive
+    ? `Live score: ${match.home_score ?? 0} - ${match.away_score ?? 0}.`
+    : `Scheduled kickoff.`;
+
+  const title = `${homeName} vs ${awayName} Match Centre & Tactical Analysis`;
+  const description = `Watch highlights and read full tactical breakdown for ${homeName} vs ${awayName} in the ${compName}. ${scoreInfo}`;
 
   return {
     title,
@@ -171,11 +187,29 @@ export default async function MatchDetailPage({ params, searchParams }: MatchPag
                 <span className="text-base sm:text-xl font-black text-white leading-tight">{homeName}</span>
               </div>
 
-              <div className="px-5 py-2.5 bg-[#101418] border border-[#7098F8]/40 rounded-2xl text-center shadow-inner shrink-0">
+              <div className={`px-5 py-2.5 rounded-2xl text-center shadow-inner shrink-0 ${
+                match.status === 'IN_PLAY' || match.status === 'PAUSED'
+                  ? 'bg-[#101418] border border-red-500/50 shadow-[0_0_12px_rgba(239,68,68,0.25)]'
+                  : 'bg-[#101418] border border-[#7098F8]/40'
+              }`}>
                 <span className="text-xl sm:text-2xl font-black text-white">
-                  {match.home_score ?? 0} - {match.away_score ?? 0}
+                  {match.home_score != null && match.away_score != null
+                    ? `${match.home_score} - ${match.away_score}`
+                    : 'vs'}
                 </span>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[#4FC3F7] mt-0.5">Full Time</div>
+                <div className={`text-[10px] font-bold uppercase tracking-wider mt-0.5 ${
+                  match.status === 'IN_PLAY' || match.status === 'PAUSED'
+                    ? 'text-red-400 animate-pulse'
+                    : 'text-[#4FC3F7]'
+                }`}>
+                  {match.status === 'PAUSED'
+                    ? 'Half Time'
+                    : match.status === 'IN_PLAY' || match.status === 'LIVE'
+                    ? 'Live In-Play'
+                    : match.status === 'FINISHED'
+                    ? 'Full Time'
+                    : 'Scheduled'}
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-3 flex-1 min-w-0 text-right">

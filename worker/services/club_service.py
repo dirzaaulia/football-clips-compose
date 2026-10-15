@@ -12,8 +12,8 @@ class ClubService:
     @staticmethod
     def sync_clubs_from_matches(matches_data: list[dict], log_events: list | None = None) -> int:
         """
-        Mengekstrak seluruh tim dari 5 liga besar yang ada di jadwal pertandingan
-        dan melakukan auto-upsert ke tabel supported_clubs di Supabase.
+        Extract all clubs from the top 5 European leagues present in match fixtures
+        and auto-upsert to the supported_clubs table in Supabase.
         """
         if log_events is None:
             log_events = []
@@ -22,16 +22,21 @@ class ClubService:
         clubs_map = {}
 
         for m in matches_data:
-            comp_code = m.get("competition", {}).get("code")
+            comp_code = m.get("competition", {}).get("code") or m.get("competition_id")
             if comp_code in settings.big_five_competitions:
-                comp_name = m.get("competition", {}).get("name", "Unknown")
+                comp_name = m.get("competition", {}).get("name") or m.get("competition_name", "Unknown")
                 if comp_name == "Primera Division":
                     comp_name = "LaLiga"
 
-                for side in ["homeTeam", "awayTeam"]:
-                    team = m.get(side, {})
-                    tid = team.get("id")
-                    tname = team.get("name")
+                teams_to_process = []
+                if "homeTeam" in m and "awayTeam" in m:
+                    teams_to_process.append((m["homeTeam"].get("id"), m["homeTeam"].get("name"), m["homeTeam"].get("crest")))
+                    teams_to_process.append((m["awayTeam"].get("id"), m["awayTeam"].get("name"), m["awayTeam"].get("crest")))
+                elif "home_team_name" in m and "away_team_name" in m:
+                    teams_to_process.append((m.get("home_team_id"), m.get("home_team_name"), m.get("home_team_crest")))
+                    teams_to_process.append((m.get("away_team_id"), m.get("away_team_name"), m.get("away_team_crest")))
+
+                for tid, tname, crest in teams_to_process:
                     if tid and tname:
                         slug = re.sub(r'[^a-z0-9]+', '_', tname.lower()).strip('_')
                         short_name = (
@@ -41,7 +46,7 @@ class ClubService:
                             .replace(" 1909", "")
                             .replace(" 1913", "")[:15]
                         )
-                        crest = team.get("crest") or f"https://crests.football-data.org/{tid}.png"
+                        crest_url = crest or f"https://crests.football-data.org/{tid}.png"
 
                         clubs_map[slug] = {
                             "id": slug,
@@ -50,7 +55,7 @@ class ClubService:
                             "short_name": short_name,
                             "competition_code": comp_code,
                             "competition_name": comp_name,
-                            "crest_url": crest,
+                            "crest_url": crest_url,
                             "is_active": True,
                             "updated_at": now_utc
                         }

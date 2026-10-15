@@ -49,7 +49,7 @@ fun TelemetryHighlightsCard(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(Icons.Default.CheckCircle, null, tint = StitchSuccess, modifier = Modifier.size(15.dp))
                 Text(
-                    text = "Active Discovered Highlights",
+                    text = "Discovered Highlights",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = StitchTextPrimary,
@@ -63,20 +63,39 @@ fun TelemetryHighlightsCard(
                     .border(1.dp, StitchSuccess.copy(alpha = 0.35f), RoundedCornerShape(3.dp))
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
-                Text("${highlights.size.coerceAtLeast(17)} Clipped", fontSize = 8.sp, color = StitchSuccess, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                Text("${highlights.size} Clipped", fontSize = 8.sp, color = StitchSuccess, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
             }
         }
 
         Text(
-            text = "Inspection cards of newly harvested high-definition broadcast clips ready for instant embedding:",
+            text = "Direct highlight clips discovered from official club YouTube channels during sync cycles:",
             fontSize = 9.sp,
             color = StitchTextMuted
         )
 
-        // Highlight Cards List
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            highlights.take(3).forEach { item ->
-                HighlightItemCard(item = item, onPreview = { onPreview(item) })
+        // Highlight Cards List or Empty State
+        if (highlights.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(StitchSurfaceContainer)
+                    .border(1.dp, StitchBorder, RoundedCornerShape(6.dp))
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No newly linked highlights in recent cycles",
+                    fontSize = 9.sp,
+                    color = StitchTextMuted,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                highlights.take(3).forEach { item ->
+                    HighlightItemCard(item = item, onPreview = { onPreview(item) })
+                }
             }
         }
 
@@ -86,7 +105,8 @@ fun TelemetryHighlightsCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("+14 more clips synced", fontSize = 8.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
+            val footerText = if (highlights.size > 3) "+${highlights.size - 3} more clips in recent cycles" else "${highlights.size} clips in current window"
+            Text(footerText, fontSize = 8.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
             Row(
                 modifier = Modifier.clickable {
                     TelemetryUtils.openUrlInNewTab("https://supabase.com/dashboard/project/hpmrtsckmgtxeypuyfws/editor")
@@ -94,7 +114,7 @@ fun TelemetryHighlightsCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text("View All in Supabase", fontSize = 8.sp, color = StitchPrimary, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                Text("View in Supabase", fontSize = 8.sp, color = StitchPrimary, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, null, tint = StitchPrimary, modifier = Modifier.size(10.dp))
             }
         }
@@ -116,7 +136,7 @@ private fun HighlightItemCard(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Thumbnail Box with Duration Badge
+        // Thumbnail Box
         Box(
             modifier = Modifier
                 .width(80.dp)
@@ -127,16 +147,6 @@ private fun HighlightItemCard(
             contentAlignment = Alignment.Center
         ) {
             Icon(Icons.Default.PlayArrow, null, tint = StitchPrimary.copy(alpha = 0.8f), modifier = Modifier.size(20.dp))
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(3.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(Color.Black.copy(alpha = 0.75f))
-                    .padding(horizontal = 3.dp, vertical = 1.dp)
-            ) {
-                Text(item.duration, fontSize = 7.sp, color = Color.White, fontFamily = FontFamily.Monospace)
-            }
         }
 
         // Details
@@ -150,7 +160,7 @@ private fun HighlightItemCard(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "${item.league} \u2022 ${item.quality}",
+                text = "${item.league} \u2022 YouTube Verified",
                 fontSize = 8.sp,
                 color = StitchTextSecondary,
                 fontFamily = FontFamily.Monospace
@@ -160,33 +170,23 @@ private fun HighlightItemCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Embed Ready Badge
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(2.dp))
                         .background(StitchSuccess.copy(alpha = 0.12f))
                         .padding(horizontal = 4.dp, vertical = 1.dp)
                 ) {
-                    Text("Ready for Embed", fontSize = 7.sp, color = StitchSuccess, fontWeight = FontWeight.Bold)
+                    Text("Synced to DB", fontSize = 7.sp, color = StitchSuccess, fontWeight = FontWeight.Bold)
                 }
 
-                // Synced Badge
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(StitchSecondary.copy(alpha = 0.12f))
-                        .padding(horizontal = 4.dp, vertical = 1.dp)
-                ) {
-                    Text("Synced", fontSize = 7.sp, color = StitchSecondary, fontWeight = FontWeight.Bold)
-                }
+                Text(
+                    text = "Channel: ${item.channel}",
+                    fontSize = 7.sp,
+                    color = StitchPrimary,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
-
-            Text(
-                text = "Channel: ${item.channel}",
-                fontSize = 7.sp,
-                color = StitchTextMuted,
-                fontFamily = FontFamily.Monospace
-            )
         }
 
         // Preview Button

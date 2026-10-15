@@ -1,10 +1,11 @@
 import json
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import httpx
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from loguru import logger
 from worker.config.constants import PERMANENT_CHANNEL_IDS
 from worker.config.settings import settings
@@ -38,6 +39,33 @@ class YouTubeClient:
     def get_remaining_quota(self) -> int:
         hits = self._check_and_reset_quota()
         return max(0, settings.max_quota_per_day - hits)
+
+    @property
+    def estimated_quota_remaining(self) -> int:
+        return self.get_remaining_quota()
+
+    def get_quota_status(self) -> dict:
+        now_pt = datetime.now(settings.pacific_tz)
+        today_pt = now_pt.strftime("%Y-%m-%d")
+        midnight_pt = (now_pt + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        hours_until_reset = max(0.0, (midnight_pt - now_pt).total_seconds() / 3600.0)
+        hits = self._check_and_reset_quota()
+        remaining = max(0, settings.max_quota_per_day - hits)
+        return {
+            "hits_today": hits,
+            "limit": settings.max_quota_per_day,
+            "remaining": remaining,
+            "pt_date": today_pt,
+            "hours_until_reset": round(hours_until_reset, 1),
+            "is_exhausted": remaining <= 0,
+        }
+
+    def mark_quota_exhausted(self):
+        now_pt = datetime.now(settings.pacific_tz)
+        today_pt = now_pt.strftime("%Y-%m-%d")
+        with open(self.QUOTA_FILE, "w") as f:
+            json.dump({"pt_date": today_pt, "hits": settings.max_quota_per_day, "exhausted_by_error": True}, f)
+        logger.warning(f"[YouTube Quota] Daily quota locked as exhausted for {today_pt}.")
 
     def _check_and_reset_quota(self) -> int:
         now_pt = datetime.now(settings.pacific_tz)
@@ -99,6 +127,8 @@ class YouTubeClient:
             self.increment_quota(1)
             return res.get("items", [])
         except Exception as e:
+            if "quotaExceeded" in str(e) or "rateLimitExceeded" in str(e):
+                self.mark_quota_exhausted()
             logger.debug(f"Playlist scan error for {uploads_playlist_id}: {e}")
             return []
 
@@ -118,6 +148,8 @@ class YouTubeClient:
             self.increment_quota(100)
             return res.get("items", [])
         except Exception as e:
+            if "quotaExceeded" in str(e) or "rateLimitExceeded" in str(e):
+                self.mark_quota_exhausted()
             logger.error(f"Search API error for '{query}': {e}")
             return []
 
@@ -137,6 +169,8 @@ class YouTubeClient:
                 embeddables[vid] = item.get("status", {}).get("embeddable", True)
             return durations, regions, embeddables
         except Exception as e:
+            if "quotaExceeded" in str(e) or "rateLimitExceeded" in str(e):
+                self.mark_quota_exhausted()
             logger.error(f"Gagal get_video_details: {e}")
             return {}, {}, {}
 
@@ -149,5 +183,24 @@ class YouTubeClient:
         m = int(match.group(2) or 0)
         s = int(match.group(3) or 0)
         return h * 3600 + m * 60 + s
+
+    @staticmethod
+    def is_youtube_short(video_id: str) -> bool:
+        """
+        Detects if a YouTube video is a vertical Short by sending a lightweight HEAD request
+        to https://www.youtube.com/shorts/{video_id}.
+        YouTube Shorts return HTTP 200 without redirecting.
+        Standard 16:9 horizontal videos redirect with HTTP 303 to /watch?v={video_id}.
+        """
+        if not video_id:
+            return False
+        try:
+            url = f"https://www.youtube.com/shorts/{video_id}"
+            with httpx.Client(timeout=3.5) as client:
+                res = client.head(url, follow_redirects=False)
+                return res.status_code == 200
+        except Exception as e:
+            logger.debug(f"Shorts check failed for {video_id}: {e}")
+            return False
 
 youtube_client = YouTubeClient()

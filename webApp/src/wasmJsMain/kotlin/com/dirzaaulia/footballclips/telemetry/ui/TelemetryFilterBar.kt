@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.telemetry.model.TelemetryFilterLevel
@@ -40,39 +41,57 @@ fun TelemetryFilterBar(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Search Input Box
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = onSearchChange,
-            modifier = Modifier.fillMaxWidth().height(42.dp),
-            placeholder = {
-                Text(
-                    text = "Search text / club name / competition / log level / tag (e.g., Man City, Arsenal, Barcelona, INFO, MATCHED)...",
-                    fontSize = 11.sp,
-                    color = StitchTextMuted,
-                    fontFamily = FontFamily.Monospace
-                )
-            },
-            leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = "Search", tint = StitchTextMuted, modifier = Modifier.size(15.dp))
-            },
-            trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { onSearchChange("") }) {
-                        Icon(Icons.Default.Close, contentDescription = "Clear", tint = StitchTextMuted, modifier = Modifier.size(13.dp))
-                    }
-                }
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(4.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = StitchPrimary,
-                unfocusedBorderColor = StitchBorder,
-                focusedContainerColor = StitchTerminalBg,
-                unfocusedContainerColor = StitchTerminalBg,
-                focusedTextColor = StitchTextPrimary,
-                unfocusedTextColor = StitchTextPrimary
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(46.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(StitchTerminalBg)
+                .border(1.dp, StitchBorder, RoundedCornerShape(4.dp))
+                .padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = "Search",
+                tint = StitchPrimary,
+                modifier = Modifier.size(18.dp)
             )
-        )
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                if (searchQuery.isEmpty()) {
+                    Text(
+                        text = "Search text / club name / competition / log level (e.g., Arsenal, INFO, MATCHED)...",
+                        style = TelemetryTypography.bodyMedium.copy(color = StitchTextSecondary),
+                        maxLines = 1
+                    )
+                }
+                androidx.compose.foundation.text.BasicTextField(
+                    value = searchQuery,
+                    onValueChange = onSearchChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    textStyle = TelemetryTypography.bodyMedium.copy(color = StitchTextPrimary),
+                    cursorBrush = androidx.compose.ui.graphics.SolidColor(StitchPrimary)
+                )
+            }
+            if (searchQuery.isNotEmpty()) {
+                IconButton(
+                    onClick = { onSearchChange("") },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "Clear",
+                        tint = StitchTextSecondary,
+                        modifier = Modifier.size(15.dp)
+                    )
+                }
+            }
+        }
 
         // Filter Pills Row
         Row(
@@ -137,8 +156,8 @@ fun TelemetryFilterBar(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Icon(Icons.Default.CalendarToday, null, tint = StitchTextMuted, modifier = Modifier.size(10.dp))
-                    Text(selectedDate ?: "Today (10 Oct 2026)", fontSize = 9.sp, color = StitchTextSecondary, fontFamily = FontFamily.Monospace)
+                    Icon(Icons.Default.CalendarToday, null, tint = StitchTextSecondary, modifier = Modifier.size(12.dp))
+                    Text(selectedDate ?: "Today (10 Oct 2026)", fontSize = 11.sp, color = StitchTextSecondary, fontFamily = FontFamily.Monospace)
                 }
 
                 Row(
@@ -151,12 +170,12 @@ fun TelemetryFilterBar(
                             onLevelSelected(TelemetryFilterLevel.ALL)
                             onDateSelected(null)
                         }
-                        .padding(horizontal = 7.dp, vertical = 4.dp),
+                        .padding(horizontal = 8.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Icon(Icons.Default.Close, null, tint = StitchTextMuted, modifier = Modifier.size(10.dp))
-                    Text("Reset Filters", fontSize = 9.sp, color = StitchTextSecondary, fontFamily = FontFamily.Monospace)
+                    Icon(Icons.Default.Close, null, tint = StitchTextSecondary, modifier = Modifier.size(12.dp))
+                    Text("Reset Filters", fontSize = 11.sp, color = StitchTextSecondary, fontFamily = FontFamily.Monospace)
                 }
             }
         }
@@ -180,11 +199,17 @@ private fun FilterPill(
             .background(bg)
             .border(1.dp, border, RoundedCornerShape(4.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 7.dp, vertical = 4.dp),
+            .padding(horizontal = 8.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp)
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(dotColor))
-        Text(text = label, fontSize = 9.sp, color = textColor, fontFamily = FontFamily.Monospace)
+        Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(dotColor))
+        Text(
+            text = label,
+            style = TelemetryTypography.labelMedium.copy(
+                color = textColor,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+            )
+        )
     }
 }

@@ -27,6 +27,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
@@ -155,6 +157,35 @@ fun FixturesLandscapeContent(
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                         contentPadding = PaddingValues(bottom = 8.dp)
                     ) {
+                        item {
+                            val isLiveOnly by viewModel.isLiveOnlyFilterActive.collectAsState()
+                            val liveCount by viewModel.liveMatchCount.collectAsState()
+                            FilterChip(
+                                selected = isLiveOnly,
+                                onClick = { viewModel.toggleLiveOnlyFilter() },
+                                leadingIcon = {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .background(
+                                                if (isLiveOnly || liveCount > 0) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                CircleShape
+                                            )
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        text = if (liveCount > 0) "Live ($liveCount)" else "Live",
+                                        fontWeight = if (isLiveOnly) FontWeight.Bold else FontWeight.Medium,
+                                        fontSize = 11.sp,
+                                        color = if (isLiveOnly) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface
+                                    )
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
                         item {
                             FilterChip(
                                 selected = isMyClubsActive,

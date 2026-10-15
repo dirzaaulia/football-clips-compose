@@ -30,6 +30,9 @@ fun TelemetryScreen(
     var selectedSection by remember { mutableStateOf(TelemetryNavSection.STREAM) }
     var selectedInspectorItem by remember { mutableStateOf<LogStreamItem?>(null) }
     var selectedCycleItem by remember { mutableStateOf<CycleHistoryItem?>(null) }
+    var selectedNotificationItem by remember { mutableStateOf<NotificationLogItem?>(null) }
+    var notificationsPayload by remember { mutableStateOf(NotificationTelemetryPayload()) }
+    var audienceState by remember { mutableStateOf(AudienceStatePayload()) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedLevel by remember { mutableStateOf(TelemetryFilterLevel.ALL) }
     var selectedDate by remember { mutableStateOf<String?>(null) }
@@ -38,7 +41,7 @@ fun TelemetryScreen(
         coroutineScope.launch {
             isLoading = true
             errorMessage = null
-            val result = repository.getRecentCycles(50)
+            val result = repository.getRecentCycles(500)
             result.onSuccess { cycles ->
                 rawCycles = cycles
                 val cycleIds = cycles.map { it.id }
@@ -57,8 +60,10 @@ fun TelemetryScreen(
                     isInitialLoad = false
                 }
             }.onFailure { err ->
-                errorMessage = err.message ?: "Failed to load telemetry from Supabase."
+                errorMessage = err.message ?: "Failed to load telemetry from GCS."
             }
+            repository.getNotificationsTelemetry().onSuccess { notificationsPayload = it }
+            repository.getAudienceState().onSuccess { audienceState = it }
             isLoading = false
         }
     }
@@ -112,9 +117,9 @@ fun TelemetryScreen(
     val latestCycleTimestamp = remember(rawCycles) {
         rawCycles.firstOrNull()?.timestamp ?: "10 Oct 2026, 00:35:51 WIB"
     }
+    val highlightMatches = remember(allRawEvents) { TelemetryParser.extractHighlightMatches(allRawEvents) }
 
-    TelemetryTheme {
-        Box(modifier = modifier.fillMaxSize().background(StitchBg)) {
+    Box(modifier = modifier.fillMaxSize().background(StitchBg)) {
             Row(modifier = Modifier.fillMaxSize()) {
                 // Left Navigation Sidebar
                 TelemetrySidebar(
@@ -131,8 +136,6 @@ fun TelemetryScreen(
                         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        item { TelemetryHeader(isLoading = isLoading, onRefresh = loadData) }
-
                         when (selectedSection) {
                             TelemetryNavSection.STREAM -> {
                                 item { TelemetryMetricsView(metrics = metrics) }
@@ -149,40 +152,24 @@ fun TelemetryScreen(
                                     )
                                 }
                                 item {
-                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                        TelemetryTerminalStream(
-                                            logs = filteredStream,
-                                            onInspect = { selectedInspectorItem = it },
-                                            modifier = Modifier.weight(1.8f)
-                                        )
-                                        TelemetryHighlightsCard(
-                                            highlights = discoveredHighlights,
-                                            onPreview = { highlight -> TelemetryUtils.openUrlInNewTab(highlight.videoUrl) },
-                                            modifier = Modifier.weight(1.1f)
-                                        )
-                                    }
-                                }
-                                item {
-                                    TelemetryHistoryTable(
-                                        history = cycleHistory,
-                                        onInspect = { selectedCycleItem = it }
-                                    )
-                                }
-                            }
-                            TelemetryNavSection.CYCLES -> {
-                                item {
-                                    TelemetryCyclesView(
+                                    TelemetryTerminalStream(
                                         cycles = cycleHistory,
-                                        onInspectCycle = { selectedCycleItem = it }
+                                        logs = filteredStream,
+                                        searchQuery = searchQuery,
+                                        onClearSearch = { searchQuery = "" },
+                                        onInspectCycle = { selectedCycleItem = it },
+                                        onInspectLog = { selectedInspectorItem = it },
+                                        modifier = Modifier.fillMaxWidth()
                                     )
                                 }
                             }
-                            TelemetryNavSection.PIPELINES -> {
-                                item { TeleStagesMonitor(metrics = metrics, cycleTimestamp = latestCycleTimestamp) }
+                            TelemetryNavSection.NOTIFICATIONS -> {
                                 item {
-                                    TelemetryHighlightsCard(
-                                        highlights = discoveredHighlights,
-                                        onPreview = { highlight -> TelemetryUtils.openUrlInNewTab(highlight.videoUrl) }
+                                    TelemetryNotificationsView(
+                                        payload = notificationsPayload,
+                                        audienceState = audienceState,
+                                        onInspectNotification = { selectedNotificationItem = it },
+                                        onRefresh = loadData
                                     )
                                 }
                             }
@@ -207,15 +194,19 @@ fun TelemetryScreen(
                 }
             }
 
-            // Material 3 Side Sheet
             TelemetryInspectorDrawer(
                 logItem = selectedInspectorItem,
                 cycleItem = selectedCycleItem,
+                notificationItem = selectedNotificationItem,
+                cycleEvents = remember(selectedCycleItem, allRawEvents) {
+                    val cid = selectedCycleItem?.id
+                    if (cid != null) allRawEvents.filter { it.cycleId == cid } else emptyList()
+                },
                 onDismiss = {
                     selectedInspectorItem = null
                     selectedCycleItem = null
+                    selectedNotificationItem = null
                 }
             )
         }
-    }
 }

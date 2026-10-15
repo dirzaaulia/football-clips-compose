@@ -37,6 +37,28 @@ data class WorkerEvent(
     val isError: Boolean = false,
 )
 
+@Serializable
+data class SupabaseMatchRecord(
+    val id: Long,
+    @SerialName("home_team_name")
+    val homeTeamName: String,
+    @SerialName("away_team_name")
+    val awayTeamName: String,
+    @SerialName("competition_name")
+    val competitionName: String = "European Football",
+    @SerialName("utc_date")
+    val utcDate: String,
+    val status: String,
+    @SerialName("home_score")
+    val homeScore: Int? = null,
+    @SerialName("away_score")
+    val awayScore: Int? = null,
+    @SerialName("highlight_video_id")
+    val highlightVideoId: String? = null,
+    @SerialName("updated_at")
+    val updatedAt: String? = null
+)
+
 enum class TelemetryFilterLevel(val label: String) {
     ALL("Semua Status & Logs"),
     HIGHLIGHT("Highlight / Extract"),
@@ -53,9 +75,8 @@ enum class TelemetryViewMode(val label: String) {
 
 enum class TelemetryNavSection(val label: String) {
     STREAM("Telemetry Stream"),
-    CYCLES("Sync Cycles"),
-    PIPELINES("Clip Pipelines"),
-    THREADS("Worker Threads"),
+    NOTIFICATIONS("Club Alerts"),
+    THREADS("Worker Services"),
     ALERTS("Failure Alerts"),
     CONFIG("Configuration")
 }
@@ -75,6 +96,10 @@ data class LogStreamItem(
     val isGoal: Boolean = false,
     val isError: Boolean = false,
     val extractedUrl: String? = null,
+    val league: String? = null,
+    val matchDate: String? = null,
+    val fixture: String? = null,
+    val stageCategory: String = "GENERAL"
 )
 
 data class DiscoveredHighlight(
@@ -140,3 +165,29 @@ data class CycleHistoryItem(
     val dbStatus: String,
     val exceptions: Int,
 )
+
+@Serializable
+data class TelemetryQuotaInfo(
+    @SerialName("hits_today")
+    val hitsToday: Int = 0,
+    val limit: Int = 10000,
+    val remaining: Int = 10000,
+    @SerialName("pt_date")
+    val ptDate: String = "",
+    @SerialName("hours_until_reset")
+    val hoursUntilReset: Double = 0.0,
+    @SerialName("is_exhausted")
+    val isExhausted: Boolean = false,
+)
+
+@Serializable
+data class TelemetryStreamPayload(
+    @SerialName("updated_at")
+    val updatedAt: String = "",
+    @SerialName("cycle_count")
+    val cycleCount: Int = 0,
+    val quota: TelemetryQuotaInfo? = null,
+    val cycles: List<WorkerCycle> = emptyList(),
+    val events: List<WorkerEvent> = emptyList(),
+)
+

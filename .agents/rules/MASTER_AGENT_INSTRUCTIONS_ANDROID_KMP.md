@@ -1134,3 +1134,33 @@ commonMain/composeResources/
     ├── strings-es.xml              # Spanish localization
     └── strings-de.xml              # German localization
 ```
+
+---
+
+## 6. Worker, Telemetry & Observability Standards
+
+1. **Language Discipline**:
+   - Strictly English across all worker logs, event texts, step titles, subsystem actions, and telemetry UI.
+   - Non-English words (e.g. Indonesian or informal phrases) are forbidden in production telemetry logging.
+2. **Fixture Synchronization Logging**:
+   - Do NOT perform raw mass-dumps or dump hundreds of database rows into telemetry.
+   - Log explicit, discrete match operations so operators can pinpoint every change:
+     - `[NEW FIXTURE]`: New upcoming fixtures or newly scheduled matches with kickoff time.
+     - `[LIVE SCORE]`: Live score changes with live score details.
+     - `[KICKOFF]`: Kickoff transitions when a match moves into `IN_PLAY`.
+     - `[FULL TIME]`: Final whistle events with full time score.
+     - `[STATUS UPDATE]`: Explicit match status updates.
+     - `[REGRESSION BLOCKED]`: Protection against status or score regression.
+3. **Highlight Pipeline Tracing**:
+   - Maintain the standard 5-step trace:
+     - Step 1 `[PROCESS]`: Search initiation with query and official club channels.
+     - Step 2 `[CANDIDATES]`: Video candidate discovery per channel.
+     - Step 3 `[AI GEMINI]`: Gemini AI evaluation and reranking.
+     - Step 4 `[FALLBACK SELECT]`: Regex fallback if AI reaches quota limit or timeout.
+     - Step 5 `[LINKED]` or `[NOT FOUND]`: Final YouTube video ID linked and saved to Supabase, or marked as unavailable.
+4. **Dynamic Interval & YouTube Quota Tiering**:
+   - Live matches: 1 minute (60s) tick for semi-live score and status updates.
+   - Kickoff within 45 minutes: 30 minutes.
+   - Standard idle / off-peak: 2 hours.
+   - YouTube Highlight Scraping: Runs only after match status is `FINISHED` under 4-tier quota guardrails (Tier 1: 30m, Tier 2: 2h, Tier 3: 6h, Tier 4: 24h).
+

@@ -24,12 +24,14 @@ class GeminiClient:
     """
 
     MODELS_TO_TRY = [
+        "gemini-3.5-flash",
         "gemini-3.8-flash",
         "gemini-3.7-flash",
         "gemini-3.6-flash",
-        "gemini-3.5-flash",
-        "gemini-3.5-flash-lite",
         "gemini-3.1-flash-lite",
+        "gemini-3.5-flash-lite",
+        "gemini-flash-latest",
+        "gemini-flash-lite-latest",
     ]
 
     def __init__(self):
@@ -68,9 +70,15 @@ Candidate video highlight list:
 
         prompt += """
 Task:
-Select the SINGLE best candidate number (1-based index) that represents the official match highlight package.
-Ignore press conferences, shorts, tactical analyses, fan reactions, and match watchalongs.
-If none are valid, set best_index to null.
+Select the SINGLE best candidate number (1-based index) that is the genuine official match highlight or recap video of THIS specific match.
+STRICT REJECTION CRITERIA:
+- Reject full matches, full match replays, 90-minute recordings, or full games (we ONLY want highlights or extended highlights).
+- Reject any training session, practice goal, warm-up, or prep video (e.g. "Prep", "trains ahead").
+- Reject any press conference, interview, press briefing, or player quote (e.g. "point presse", "PK", "parole di", "conférence", "mister").
+- Reject any quiz, badge game, behind-the-scenes, food/chef video, or social challenge.
+- Reject any retro, historic match, or compilation from previous years (e.g. "CR7 hat-trick 2021", "gol da ricordare", "bangers against").
+- Reject any match not between these two teams.
+If NO candidate is a genuine match highlight of this fixture, set best_index to null. Never compromise or pick a non-highlight.
 """
 
         for model_name in self.MODELS_TO_TRY:

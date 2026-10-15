@@ -5,7 +5,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -35,6 +37,9 @@ internal fun MatchesTopBarFilters(
     favoriteClubsCount: Int,
     onOpenMyClubsSheet: () -> Unit,
     onToggleMyClubs: () -> Unit,
+    isLiveOnlyActive: Boolean = false,
+    onToggleLiveOnly: () -> Unit = {},
+    liveMatchCount: Int = 0,
     selectedCompetitionId: String?,
     onLeagueSelected: (Int?, String?) -> Unit,
 ) {
@@ -60,6 +65,30 @@ internal fun MatchesTopBarFilters(
                             dates = dates,
                             selectedDate = selectedDate,
                             onDateSelected = onDateSelected,
+                        )
+
+                        FilterChip(
+                            selected = isLiveOnlyActive,
+                            onClick = onToggleLiveOnly,
+                            leadingIcon = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .background(
+                                            if (isLiveOnlyActive || liveMatchCount > 0) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            CircleShape
+                                        )
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = if (liveMatchCount > 0) "Live ($liveMatchCount)" else "Live",
+                                    fontWeight = if (isLiveOnlyActive) FontWeight.Bold else FontWeight.Medium,
+                                    fontSize = 12.sp,
+                                    color = if (isLiveOnlyActive) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface
+                                )
+                            },
+                            shape = RoundedCornerShape(20.dp),
                         )
 
                         FilterChip(
@@ -114,32 +143,61 @@ internal fun MatchesTopBarFilters(
                         onDateSelected = onDateSelected,
                     )
 
-                    FilterChip(
-                        selected = isMyClubsActive,
-                        onClick = {
-                            if (favoriteClubsCount == 0) {
-                                onOpenMyClubsSheet()
-                            } else {
-                                onToggleMyClubs()
-                            }
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = if (isMyClubsActive || favoriteClubsCount > 0) Color(0xFFFFB300) else MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = if (favoriteClubsCount > 0) "My Clubs ($favoriteClubsCount)" else "My Clubs",
-                                fontWeight = if (isMyClubsActive) FontWeight.Bold else FontWeight.Medium,
-                                fontSize = 12.sp,
-                            )
-                        },
-                        shape = RoundedCornerShape(20.dp),
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        FilterChip(
+                            selected = isLiveOnlyActive,
+                            onClick = onToggleLiveOnly,
+                            leadingIcon = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .background(
+                                            if (isLiveOnlyActive || liveMatchCount > 0) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            CircleShape
+                                        )
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = if (liveMatchCount > 0) "Live ($liveMatchCount)" else "Live",
+                                    fontWeight = if (isLiveOnlyActive) FontWeight.Bold else FontWeight.Medium,
+                                    fontSize = 12.sp,
+                                    color = if (isLiveOnlyActive) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface
+                                )
+                            },
+                            shape = RoundedCornerShape(20.dp),
+                        )
+
+                        FilterChip(
+                            selected = isMyClubsActive,
+                            onClick = {
+                                if (favoriteClubsCount == 0) {
+                                    onOpenMyClubsSheet()
+                                } else {
+                                    onToggleMyClubs()
+                                }
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = if (isMyClubsActive || favoriteClubsCount > 0) Color(0xFFFFB300) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = if (favoriteClubsCount > 0) "My Clubs ($favoriteClubsCount)" else "My Clubs",
+                                    fontWeight = if (isMyClubsActive) FontWeight.Bold else FontWeight.Medium,
+                                    fontSize = 12.sp,
+                                )
+                            },
+                            shape = RoundedCornerShape(20.dp),
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))

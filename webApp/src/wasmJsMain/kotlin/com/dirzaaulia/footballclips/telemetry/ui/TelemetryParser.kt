@@ -27,15 +27,12 @@ object TelemetryParser {
                 val action = if (subAction.contains(":")) subAction.substringAfter(":") else subAction.ifBlank { "RUN" }
                 val rawMsg = match.groupValues[4]
                 val msg = stripEmojis(rawMsg)
-                val thread = if (raw.contains(Regex("\\[TH-\\d\\]"))) {
-                    Regex("\\[(TH-\\d)\\]").find(raw)?.groupValues?.get(1) ?: "TH-${ev.id % 5}"
-                } else "TH-${ev.id % 5}"
                 LogStreamItem(
                     id = ev.id,
                     cycleId = ev.cycleId,
                     cycleTimestamp = cycleTs,
                     timestamp = ts,
-                    threadId = thread,
+                    threadId = "",
                     level = level,
                     subsystem = subsystem,
                     action = action,
@@ -48,9 +45,9 @@ object TelemetryParser {
                 )
             } else {
                 val level = when {
-                    ev.isError || raw.contains("🚨") || raw.contains("Error") -> "ERROR"
-                    ev.isHighlight || raw.contains("🏆") || raw.contains("BERHASIL LINK") -> "SUCCESS"
-                    raw.contains("⚠️") || raw.contains("429") || raw.contains("Quota") -> "WARN"
+                    ev.isError || raw.contains("Error") || raw.contains("CRITICAL") -> "ERROR"
+                    ev.isHighlight || raw.contains("LINKED") || raw.contains("SELECTED") -> "SUCCESS"
+                    raw.contains("WARN") || raw.contains("429") || raw.contains("Quota") -> "WARN"
                     else -> "INFO"
                 }
                 val subsystem = inferSubsystem(ev.stepTitle)
@@ -61,7 +58,7 @@ object TelemetryParser {
                     cycleId = ev.cycleId,
                     cycleTimestamp = cycleTs,
                     timestamp = time,
-                    threadId = "TH-${ev.id % 5}",
+                    threadId = "",
                     level = level,
                     subsystem = subsystem,
                     action = action,
@@ -73,14 +70,14 @@ object TelemetryParser {
                     extractedUrl = TelemetryUtils.extractYouTubeUrl(raw)
                 )
             }
-        }.sortedByDescending { it.id }
+        }.sortedBy { it.id }
     }
 
     private fun inferSubsystem(stepTitle: String): String {
         return when {
-            stepTitle.contains("Step 1", true) || stepTitle.contains("Jadwal", true) -> "MATCH_SYNC"
+            stepTitle.contains("Step 1", true) || stepTitle.contains("Schedule", true) || stepTitle.contains("Team", true) -> "MATCH_SYNC"
             stepTitle.contains("Step 2", true) || stepTitle.contains("Highlight", true) -> "YOUTUBE"
-            stepTitle.contains("Step 3", true) || stepTitle.contains("Klasemen", true) -> "STANDINGS"
+            stepTitle.contains("Step 3", true) || stepTitle.contains("Standings", true) -> "STANDINGS"
             stepTitle.contains("Step 4", true) || stepTitle.contains("Maintenance", true) -> "MAINTENANCE"
             else -> "WORKER"
         }
@@ -88,15 +85,19 @@ object TelemetryParser {
 
     private fun inferAction(text: String): String {
         return when {
-            text.contains("🏆") || text.contains("BERHASIL") -> "LINKED"
-            text.contains("❌ [NIHIL]") -> "NIHIL"
-            text.contains("⚽") -> "SCORE"
-            text.contains("🔄") -> "STATUS"
-            text.contains("✨") -> "NEW_MATCH"
-            text.contains("⭐") -> "CLUBS"
-            text.contains("🤖") || text.contains("AI") -> "AI_RERANK"
-            text.contains("🧹") -> "CLEANUP"
-            text.contains("📥") || text.contains("Meminta") -> "FETCH"
+            text.contains("LINKED") || text.contains("SELECTED") -> "LINKED"
+            text.contains("NOT FOUND") -> "NOT_FOUND"
+            text.contains("LIVE SCORE") || text.contains("GOAL") -> "LIVE_SCORE"
+            text.contains("KICKOFF") -> "KICKOFF"
+            text.contains("FULL TIME") -> "FULL_TIME"
+            text.contains("STATUS") -> "STATUS"
+            text.contains("NEW FIXTURE") || text.contains("NEW_MATCH") -> "NEW_FIXTURE"
+            text.contains("CLUBS") -> "CLUBS"
+            text.contains("AI") || text.contains("GEMINI") -> "AI_EVAL"
+            text.contains("CLEANUP") || text.contains("PURGE") || text.contains("RETENTION") -> "CLEANUP"
+            text.contains("FETCH") || text.contains("Ingested") -> "FETCH"
+            text.contains("SEARCH") || text.contains("PROCESS") -> "SEARCH"
+            text.contains("SKIP") -> "SKIP"
             else -> "EVENT"
         }
     }
@@ -126,33 +127,38 @@ object TelemetryParser {
         var currentMatchEvents = mutableListOf<WorkerEvent>()
         var currentTitle = ""
         var currentStatusType = "process"
-        var currentBadgeText = "DIPROSES"
+        var currentBadgeText = "IN PROGRESS"
         var matchIndex = 1
 
         fun flushCurrentMatch() {
             if (currentMatchEvents.isNotEmpty()) {
                 val hasSuccess = currentMatchEvents.any {
-                    it.eventText.contains("BERHASIL LINK") || it.eventText.contains("🏆 [DAPAT]")
+                    it.eventText.contains("LINKED") || it.eventText.contains("BERHASIL LINK") ||
+                    it.eventText.contains("🏆 [DAPAT") || it.eventText.contains("🏆 [SELECTED") ||
+                    it.eventText.contains("[AI MATCH]")
                 }
-                val hasFail = currentMatchEvents.any { it.eventText.contains("❌ [NIHIL]") }
-                val statusType = when {
-                    hasSuccess -> "success"
-                    hasFail -> "fail"
-                    else -> currentStatusType
+                val hasFail = currentMatchEvents.any { it.eventText.contains("NOT FOUND") || it.eventText.contains("NIHIL") }
+                val hasError = currentMatchEvents.any {
+                    it.stepStatus == "ERROR" || it.isError || it.eventText.contains("[ERROR]") ||
+                    it.eventText.contains("Exception") || it.eventText.contains("429") ||
+                    it.eventText.contains("Quota") || it.eventText.contains("QUOTA LIMIT")
                 }
-                val badgeText = when {
-                    hasSuccess -> "BERHASIL LINK"
-                    hasFail -> "NIHIL"
-                    else -> currentBadgeText
+                val isSkipped = currentMatchEvents.any { it.eventText.contains("[SKIP]") || it.eventText.contains("[DILEWATI]") }
+                val (statusType, badgeText) = when {
+                    hasError -> Pair("error", if (currentMatchEvents.any { it.eventText.contains("429") || it.eventText.contains("Quota") }) "QUOTA LIMIT" else "ERROR")
+                    hasSuccess -> Pair("success", "LINKED")
+                    hasFail -> Pair("fail", "NOT FOUND")
+                    isSkipped -> Pair("skip", "SKIPPED")
+                    else -> Pair(currentStatusType, currentBadgeText)
                 }
                 matches.add(
                     ParsedMatch(
                         index = matchIndex++,
-                        title = currentTitle.ifBlank { "Pertandingan #${matchIndex - 1}" },
+                        title = currentTitle.ifBlank { "Match #${matchIndex - 1}" },
                         statusType = statusType,
                         badgeText = badgeText,
                         events = currentMatchEvents.toList(),
-                        isExpanded = hasSuccess
+                        isExpanded = hasSuccess || hasError
                     )
                 )
                 currentMatchEvents = mutableListOf()
@@ -161,12 +167,14 @@ object TelemetryParser {
 
         for (ev in events) {
             val text = ev.eventText.trim()
-            val isFooter = text.contains("📊 Ringkasan YouTube") || text.contains("✅ Selesai pemindaian")
-            val isMatchStart = text.contains("[PROSES]") ||
-                text.contains("[FORCE MODE]") ||
-                text.contains("[OPPORTUNISTIC HIT]") ||
-                text.contains("[SKIP]") ||
-                text.contains("🏆 [DAPAT")
+            val isFooter = text.contains("Ringkasan YouTube") || text.contains("Highlight scanning complete")
+            val isMatchStart = text.contains("[PROCESS]") ||
+                text.contains("[PROSES]") ||
+                text.contains("[SEARCH]") ||
+                text.contains("Searching official highlights") ||
+                text.contains("Searching highlight video") ||
+                text.contains("Querying official highlights") ||
+                text.contains("[FORCE MODE]")
 
             if (isFooter) {
                 flushCurrentMatch()
@@ -174,20 +182,8 @@ object TelemetryParser {
             } else if (isMatchStart) {
                 flushCurrentMatch()
                 currentTitle = cleanMatchTitle(text)
-                currentStatusType = when {
-                    text.contains("[SKIP]") -> "skip"
-                    text.contains("[FORCE MODE]") -> "force"
-                    text.contains("[OPPORTUNISTIC HIT]") -> "opp"
-                    text.contains("🏆 [DAPAT") -> "success"
-                    else -> "process"
-                }
-                currentBadgeText = when (currentStatusType) {
-                    "skip" -> "DILEWATI"
-                    "force" -> "FORCE SYNC"
-                    "opp" -> "OPPORTUNISTIC"
-                    "success" -> "BERHASIL LINK"
-                    else -> "DIPROSES"
-                }
+                currentStatusType = if (text.contains("[FORCE MODE]")) "force" else "process"
+                currentBadgeText = if (text.contains("[FORCE MODE]")) "FORCE SYNC" else "IN PROGRESS"
                 currentMatchEvents.add(ev)
             } else if (currentMatchEvents.isNotEmpty()) {
                 currentMatchEvents.add(ev)
@@ -208,17 +204,25 @@ object TelemetryParser {
         )
     }
 
+    fun extractHighlightMatches(events: List<WorkerEvent>): List<ParsedMatch> {
+        val ytEvents = events.filter {
+            it.stepTitle.contains("Highlight", ignoreCase = true) || it.stepTitle.contains("Step 2", ignoreCase = true)
+        }
+        if (ytEvents.isEmpty()) return emptyList()
+        return parseYouTubeStep("Highlight Scraper", ytEvents).matches
+    }
+
     private fun cleanMatchTitle(raw: String): String {
-        var t = raw.replace(Regex("^\\[[^\\]]+\\]\\s*"), "") // strip leading bracket tags
-        val matchKeywords = listOf("[PROSES]", "[FORCE MODE]", "[OPPORTUNISTIC HIT]", "[SKIP]", "🏆 [DAPAT - AI RANKED]", "🏆 [DAPAT]")
+        var t = raw.replace(Regex("^\\[[^\\]]+\\]\\s*"), "")
+        val matchKeywords = listOf("[PROCESS]", "[SEARCH]", "[FORCE MODE]", "[AI MATCH]", "[SELECTED]", "[LINKED]")
         for (kw in matchKeywords) {
             if (t.contains(kw)) {
                 t = t.substringAfter(kw).trim()
                 break
             }
         }
-        t = t.replace(Regex("^Mencari video untuk:\\s*", RegexOption.IGNORE_CASE), "")
-        t = t.replace(Regex("^Mencari highlight untuk:\\s*", RegexOption.IGNORE_CASE), "")
+        t = t.replace(Regex("^Searching (official )?highlights?( video)? for:\\s*", RegexOption.IGNORE_CASE), "")
+        t = t.replace(Regex("^Querying official highlights for:\\s*", RegexOption.IGNORE_CASE), "")
         return stripEmojis(t)
     }
 }

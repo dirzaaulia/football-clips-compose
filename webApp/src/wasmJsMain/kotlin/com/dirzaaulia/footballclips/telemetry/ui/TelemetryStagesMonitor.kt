@@ -46,10 +46,7 @@ fun TeleStagesMonitor(
                 Icon(Icons.Default.AccountTree, null, tint = StitchSuccess, modifier = Modifier.size(16.dp))
                 Text(
                     text = "Active Pipeline Stages Monitor",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = StitchTextPrimary,
-                    fontFamily = FontFamily.Monospace
+                    style = TelemetryTypography.titleSmall.copy(color = StitchTextPrimary)
                 )
                 Box(
                     modifier = Modifier
@@ -58,14 +55,17 @@ fun TeleStagesMonitor(
                         .border(1.dp, StitchSecondary.copy(alpha = 0.4f), RoundedCornerShape(3.dp))
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
-                    Text("RUN #${metrics.cycleNumber} ACTIVE", fontSize = 8.sp, color = StitchSecondary, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                    Text(
+                        text = "CYCLE #${metrics.cycleNumber} ACTIVE",
+                        style = TelemetryTypography.labelSmall.copy(color = StitchSecondary)
+                    )
                 }
             }
 
             // Overall Progress
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("OVERALL PROGRESS:", fontSize = 8.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
-                Text("100% Complete", fontSize = 8.sp, color = StitchSuccess, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                Text("OVERALL PROGRESS:", style = TelemetryTypography.labelSmall.copy(color = StitchTextMuted))
+                Text("100% Complete", style = TelemetryTypography.labelSmall.copy(color = StitchSuccess))
                 LinearProgressIndicator(
                     progress = { 1f },
                     modifier = Modifier.width(60.dp).height(3.dp).clip(RoundedCornerShape(2.dp)),
@@ -77,9 +77,7 @@ fun TeleStagesMonitor(
 
         Text(
             text = "Cycle Started: $cycleTimestamp",
-            fontSize = 9.sp,
-            color = StitchTextMuted,
-            fontFamily = FontFamily.Monospace
+            style = TelemetryTypography.labelSmall.copy(color = StitchTextMuted)
         )
 
         // 3 Pipeline Stage Cards
@@ -90,16 +88,16 @@ fun TeleStagesMonitor(
             // Stage 1
             StageCard(
                 stepNum = "1",
-                title = "Schedule & Team Sync",
+                title = "Match & Live Score Sync",
                 badgeText = "SUCCESS",
                 badgeColor = StitchSuccess,
                 lines = listOf(
                     "Source:" to "Football-Data.org API",
-                    "Matches Ingested:" to "${metrics.totalCandidates.coerceAtLeast(358)} matches",
-                    "Window:" to "H-30 s/d H+30 (60 Days)",
-                    "Clubs Verified:" to "${metrics.mappedClubs} / ${metrics.totalClubs} clubs mapped"
+                    "Matches Processed:" to "${metrics.totalCandidates} fixtures",
+                    "Window:" to "H-30 to H+30 Days",
+                    "Clubs Verified:" to "${metrics.mappedClubs} / ${metrics.totalClubs} mapped"
                 ),
-                bottomMeta = "Duration: 1.42s",
+                bottomMeta = "Scheduler: Active",
                 bottomTag = "Ingested",
                 bottomTagColor = StitchSuccess,
                 modifier = Modifier.weight(1f)
@@ -112,13 +110,13 @@ fun TeleStagesMonitor(
                 badgeText = "DISCOVERED",
                 badgeColor = StitchSecondary,
                 lines = listOf(
-                    "Broadcaster Channels:" to "LaLiga, Sky, DAZN, Bein",
-                    "Candidates Evaluated:" to "42 URLs parsed",
-                    "Highlights Matched:" to "${metrics.totalHighlights.coerceAtLeast(17)} verified videos",
-                    "Mean Match Score:" to "0.98 Conf"
+                    "Target Channels:" to "Official Club Handles (@Arsenal, etc.)",
+                    "Candidates Evaluated:" to "${metrics.totalCandidates} clips",
+                    "Highlights Linked:" to "${metrics.totalHighlights} verified videos",
+                    "Reranker Engine:" to "Gemini 2.5 Flash AI"
                 ),
                 bottomMeta = "Quota: ${metrics.apiQuotaUsed} units",
-                bottomTag = "${metrics.totalHighlights.coerceAtLeast(17)} Video Matches",
+                bottomTag = "${metrics.totalHighlights} Matches Linked",
                 bottomTagColor = StitchPrimary,
                 modifier = Modifier.weight(1f)
             )
@@ -126,17 +124,17 @@ fun TeleStagesMonitor(
             // Stage 3
             StageCard(
                 stepNum = "3",
-                title = "Supabase Upsert & Cache Purge",
-                badgeText = "LIVE & SYNCED",
+                title = "Supabase DB & Maintenance",
+                badgeText = "PERSISTED",
                 badgeColor = StitchSuccess,
                 lines = listOf(
-                    "Database Target:" to "matches_archive",
-                    "Rows Upserted:" to "${metrics.totalHighlights.coerceAtLeast(17)} records",
-                    "Edge Purge:" to "Cloudflare Worker Webhook",
-                    "Cache Staleness:" to "0 sec (Instant)"
+                    "Database Target:" to "matches (Supabase)",
+                    "Rows Linked:" to "${metrics.totalHighlights} records",
+                    "Retention Engine:" to "30-Day Purge Window",
+                    "Telemetry Stream:" to "worker_cycles & events"
                 ),
-                bottomMeta = "Latency: 18ms",
-                bottomTag = "Realtime Active",
+                bottomMeta = "Storage: PostgreSQL",
+                bottomTag = "Persisted OK",
                 bottomTagColor = StitchSuccess,
                 modifier = Modifier.weight(1f)
             )
@@ -171,21 +169,31 @@ private fun StageCard(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Box(
-                    modifier = Modifier.size(16.dp).clip(RoundedCornerShape(3.dp)).background(StitchBorder),
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(StitchBorder),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(stepNum, fontSize = 9.sp, color = StitchTextPrimary, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                    Text(
+                        text = stepNum,
+                        style = TelemetryTypography.labelSmall.copy(color = StitchTextPrimary)
+                    )
                 }
-                Text(title, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, maxLines = 1)
+                Text(
+                    text = title,
+                    style = TelemetryTypography.labelMedium.copy(color = StitchTextPrimary),
+                    maxLines = 1
+                )
             }
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(3.dp))
                     .background(badgeColor.copy(alpha = 0.12f))
                     .border(1.dp, badgeColor.copy(alpha = 0.35f), RoundedCornerShape(3.dp))
-                    .padding(horizontal = 4.dp, vertical = 1.dp)
+                    .padding(horizontal = 5.dp, vertical = 2.dp)
             ) {
-                Text(badgeText, fontSize = 7.sp, color = badgeColor, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                Text(badgeText, style = TelemetryTypography.labelSmall.copy(color = badgeColor))
             }
         }
 
@@ -196,8 +204,13 @@ private fun StageCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(label, fontSize = 8.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
-                    Text(value, fontSize = 8.sp, color = if (value.contains("clubs") || value.contains("verified")) StitchSuccess else StitchTextPrimary, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium)
+                    Text(label, style = TelemetryTypography.labelSmall.copy(color = StitchTextMuted))
+                    Text(
+                        text = value,
+                        style = TelemetryTypography.labelSmall.copy(
+                            color = if (value.contains("clubs") || value.contains("verified")) StitchSuccess else StitchTextPrimary
+                        )
+                    )
                 }
             }
         }
@@ -208,10 +221,10 @@ private fun StageCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(bottomMeta, fontSize = 8.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
+            Text(bottomMeta, style = TelemetryTypography.labelSmall.copy(color = StitchTextMuted))
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                 Icon(Icons.Default.CheckCircle, null, tint = bottomTagColor, modifier = Modifier.size(9.dp))
-                Text(bottomTag, fontSize = 8.sp, color = bottomTagColor, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                Text(bottomTag, style = TelemetryTypography.labelSmall.copy(color = bottomTagColor))
             }
         }
     }

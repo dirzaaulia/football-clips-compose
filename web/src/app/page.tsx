@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useTransition, useRef, useCallback } from 'react';
-import { MatchRecord } from '@/lib/supabase';
+import { MatchRecord, getLiveMatches } from '@/lib/supabase';
 import { fetchMergedHighlightsPage, extractFilterOptions } from '@/lib/middleware-highlights';
-import { BIG_LEAGUES } from '@/lib/constants';
+import { BIG_LEAGUES, isLeagueMatch } from '@/lib/constants';
 import { isMatchForFavoriteClubs } from '@/lib/clubs';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import { useDragScroll } from '@/hooks/useDragScroll';
 import HeroCarousel from '@/components/hero/HeroCarousel';
+import LiveMatchSection from '@/components/live/LiveMatchSection';
 import HighlightCard from '@/components/feed/HighlightCard';
 import VideoPlayerSideSheet from '@/components/player/VideoPlayerSideSheet';
 import NativeInFeedAdCard from '@/components/ads/NativeInFeedAdCard';
@@ -20,6 +21,7 @@ import Image from 'next/image';
 
 export default function HomePage() {
   const [matches, setMatches] = useState<MatchRecord[]>([]);
+  const [liveMatches, setLiveMatches] = useState<MatchRecord[]>([]);
   const [selectedComp, setSelectedComp] = useState('ALL');
   const [isMyClubsActive, setIsMyClubsActive] = useState(false);
   const [isMyClubsModalOpen, setIsMyClubsModalOpen] = useState(false);
@@ -48,6 +50,28 @@ export default function HomePage() {
       }
     }, 0);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Fetch live matches and set 30s interval for real-time score updates
+  useEffect(() => {
+    let isCancelled = false;
+    async function fetchLive() {
+      try {
+        const live = await getLiveMatches();
+        if (!isCancelled) {
+          setLiveMatches(live);
+        }
+      } catch (err) {
+        console.error('Failed to fetch live matches:', err);
+      }
+    }
+
+    fetchLive();
+    const interval = setInterval(fetchLive, 30_000);
+    return () => {
+      isCancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   // Reset and load initial page when competition changes
@@ -111,6 +135,20 @@ export default function HomePage() {
     });
   }, [matches, isMyClubsActive, favoriteClubs, searchQuery, selectedCountries, selectedLeagues]);
 
+  const bigLeague = useMemo(() => BIG_LEAGUES.find((b) => b.competitionId === selectedComp), [selectedComp]);
+
+  const displayedLiveMatches = useMemo(() => {
+    return liveMatches.filter((m) => {
+      if (isMyClubsActive && favoriteClubs.size > 0) {
+        if (!isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs)) return false;
+      } else if (selectedComp !== 'ALL' && bigLeague) {
+        const matchComp = m.competition_id === selectedComp || isLeagueMatch(bigLeague.name, m.competition_name);
+        if (!matchComp) return false;
+      }
+      return true;
+    });
+  }, [liveMatches, isMyClubsActive, favoriteClubs, selectedComp, bigLeague]);
+
   const activeFilterCount = (searchQuery ? 1 : 0) + selectedCountries.length + selectedLeagues.length;
   const featuredMatch = displayedMatches[0] || null;
   const trendingMatches = displayedMatches.slice(1, 3);
@@ -119,6 +157,9 @@ export default function HomePage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       <HeroCarousel featuredMatch={featuredMatch} trendingMatches={trendingMatches} onPlay={setActiveVideoMatch} />
+
+      {/* Pinned Live Match Section */}
+      <LiveMatchSection liveMatches={displayedLiveMatches} className="mt-6" />
 
       {/* Filter & Competition Bar */}
       <section className="my-6">

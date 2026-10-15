@@ -26,6 +26,8 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
+import com.dirzaaulia.footballclips.data.telemetry.DeviceTelemetrySync
+
 expect val platformModule: Module
 
 val supabaseModule = module {
@@ -47,6 +49,7 @@ val supabaseModule = module {
 }
 
 val dataModule = module {
+    single { DeviceTelemetrySync(get()) }
     single<HighlightRepository> { HighlightRepositoryImpl(get()) }
     single<ScoreRepository> { ScoreRepositoryImpl(get()) }
     single<ClubRepository> { ClubRepositoryImpl(get()) }

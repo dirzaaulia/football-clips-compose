@@ -35,72 +35,57 @@ object TelemetryDataMappers {
             }
         }
 
-        // If very few highlights were found in recent events, seed with standard active highlights
-        if (list.size < 3) {
-            val defaults = listOf(
-                DiscoveredHighlight(
-                    id = "def-1",
-                    title = "Atlético Madrid 2 - 1 CA Osasuna",
-                    league = "LaLiga Santander",
-                    duration = "03:42",
-                    channel = "LaLiga Official",
-                    videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-                ),
-                DiscoveredHighlight(
-                    id = "def-2",
-                    title = "FC Barcelona 3 - 0 Santander",
-                    league = "LaLiga Santander",
-                    duration = "04:15",
-                    channel = "DAZN Sports",
-                    videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-                ),
-                DiscoveredHighlight(
-                    id = "def-3",
-                    title = "Everton FC 1 - 1 Coventry City",
-                    league = "Premier League",
-                    duration = "02:55",
-                    channel = "Sky Sports Football",
-                    videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-                )
-            )
-            for (d in defaults) {
-                if (!seenUrls.contains(d.videoUrl)) {
-                    list.add(d)
-                }
-            }
-        }
-
-        return list.take(10)
+        return list.take(15)
     }
 
     private fun extractTitleFromMessage(msg: String): String {
+        // Extract quoted title from python logs: ... 'Title Here' (@handle) ...
+        if (msg.contains("'")) {
+            val candidate = msg.substringAfter("'").substringBefore("'").trim()
+            if (candidate.isNotBlank() && candidate.length > 3) {
+                return candidate
+            }
+        }
         return when {
-            msg.contains("DAPAT") -> msg.substringAfter("DAPAT").substringBefore("(").trim().removePrefix("- AI RANKED").trim()
+            msg.contains("SELECTED") -> msg.substringAfter("SELECTED").substringBefore("(").trim()
+            msg.contains("AI MATCH") -> msg.substringAfter("AI MATCH").substringBefore("(").trim()
+            msg.contains("LINKED") -> msg.substringAfter("LINKED").substringBefore("->").trim()
             msg.contains("LINK:") -> msg.substringBefore("LINK:").substringAfter("]").trim()
-            msg.contains("Ditemukan jadwal baru:") -> msg.substringAfter("Ditemukan jadwal baru:").trim()
-            msg.contains("vs") -> msg.substringBefore("https").substringBefore("(").trim()
-            else -> msg.take(38) + "..."
+            msg.contains("Inserted upcoming fixture:") -> msg.substringAfter("Inserted upcoming fixture:").substringBefore("(").trim()
+            msg.contains("vs") -> msg.substringBefore("http").substringBefore("(").trim()
+            else -> msg.take(45)
         }
     }
 
     private fun extractChannelFromMessage(msg: String): String {
-        return when {
-            msg.contains("LaLiga", true) -> "LaLiga Official"
-            msg.contains("DAZN", true) -> "DAZN Sports"
-            msg.contains("Sky", true) -> "Sky Sports Football"
-            msg.contains("BeIN", true) -> "BeIN Sports"
-            msg.contains("TNT", true) -> "TNT Sports"
-            else -> "Broadcast Partner"
+        // In python: [MATCHED] [Comp] (Date) 'Title' (@channel_handle) - https://youtu.be/...
+        if (msg.contains(" - http")) {
+            val beforeUrl = msg.substringBefore(" - http").trim()
+            if (beforeUrl.contains("(") && beforeUrl.contains(")")) {
+                val candidate = beforeUrl.substringAfterLast("(").substringBefore(")").trim()
+                if (candidate.isNotBlank() && !candidate.contains("-")) {
+                    return candidate
+                }
+            }
         }
+
+        // Direct handle detection in message (e.g. @arsenal, @realmadrid)
+        val handleMatch = Regex("(@[A-Za-z0-9_.-]+)").find(msg)
+        if (handleMatch != null) {
+            return handleMatch.groupValues[1]
+        }
+
+        return "Official Club Broadcaster"
     }
 
     private fun extractLeagueFromMessage(msg: String): String {
         return when {
-            msg.contains("LaLiga", true) -> "LaLiga Santander"
+            msg.contains("LaLiga", true) || msg.contains("PD", true) -> "LaLiga"
             msg.contains("Premier", true) || msg.contains("PL", true) -> "Premier League"
-            msg.contains("Serie A", true) -> "Serie A"
-            msg.contains("Bundesliga", true) -> "Bundesliga"
-            msg.contains("Ligue 1", true) -> "Ligue 1"
+            msg.contains("Serie A", true) || msg.contains("SA", true) -> "Serie A"
+            msg.contains("Bundesliga", true) || msg.contains("BL1", true) -> "Bundesliga"
+            msg.contains("Ligue 1", true) || msg.contains("FL1", true) -> "Ligue 1"
+            msg.contains("Champions League", true) || msg.contains("CL", true) -> "UEFA Champions League"
             else -> "European Football"
         }
     }
@@ -109,22 +94,21 @@ object TelemetryDataMappers {
         cycles: List<WorkerCycle>,
         eventsByCycle: Map<Long, List<WorkerEvent>>
     ): List<CycleHistoryItem> {
-        return cycles.take(10).mapIndexed { idx, cycle ->
+        return cycles.take(15).map { cycle ->
             val events = eventsByCycle[cycle.id] ?: emptyList()
-            val highlightsCount = events.count { it.isHighlight || it.eventText.contains("🏆") || it.eventText.contains("BERHASIL") }
+            val highlightsCount = events.count { it.isHighlight || it.eventText.contains("MATCHED") || it.eventText.contains("BERHASIL") }
+            val matchesCount = events.count { it.eventText.contains("INGESTED") || it.eventText.contains("FIXTURE") || it.eventText.contains("Ditemukan") }
+            val quotaCost = events.count { it.eventText.contains("CANDIDATES", true) || it.eventText.contains("MATCHED", true) || it.eventText.contains("BERHASIL", true) } * 100
             val errCount = events.count { it.isError || it.stepStatus == "ERROR" }
-            val matchesCount = if (cycle.mode.contains("FULL", true) || idx == 0) 358 else 94 - (idx * 6).coerceAtLeast(0)
-            val quotaCost = if (cycle.mode.contains("FULL", true) || idx == 0) 1420 else 340 - (idx * 50).coerceAtLeast(0)
-            val upserted = highlightsCount.coerceAtLeast(if (idx == 0) 17 else (12 - idx).coerceAtLeast(3))
 
             CycleHistoryItem(
                 id = cycle.id,
                 timestamp = cycle.timestamp,
-                executionMode = if (cycle.mode.contains("FULL", true) || idx == 0) "FULL SYNC" else "LIGHT SYNC",
+                executionMode = cycle.mode.ifBlank { "SCHEDULED SYNC" },
                 ingestedMatches = matchesCount,
-                highlightsHarvested = upserted,
+                highlightsHarvested = highlightsCount,
                 apiQuotaCost = quotaCost,
-                dbStatus = "$upserted rows upserted (${18 + idx}ms)",
+                dbStatus = if (highlightsCount > 0) "$highlightsCount highlights linked" else "Cycle synchronized",
                 exceptions = errCount
             )
         }

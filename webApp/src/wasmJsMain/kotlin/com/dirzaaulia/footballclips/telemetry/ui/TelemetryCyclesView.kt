@@ -144,25 +144,6 @@ private fun CycleExecutionCard(
             CycleStatPill("API Quota Cost", "${cycle.apiQuotaCost} units", StitchWarning, Modifier.weight(1f))
             CycleStatPill("Database Status", cycle.dbStatus, StitchTextPrimary, Modifier.weight(1.2f))
         }
-
-        // Pipeline Stages Mini Timeline
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(4.dp))
-                .background(StitchSurfaceContainer)
-                .padding(horizontal = 10.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            StageIndicator("1. Fixtures Sync", StitchSuccess)
-            Text("\u2192", color = StitchBorder, fontSize = 10.sp)
-            StageIndicator("2. Highlight Scraper", StitchPrimary)
-            Text("\u2192", color = StitchBorder, fontSize = 10.sp)
-            StageIndicator("3. Standings", StitchSuccess)
-            Text("\u2192", color = StitchBorder, fontSize = 10.sp)
-            StageIndicator("4. Maintenance", StitchSuccess)
-        }
     }
 }
 
@@ -177,13 +158,5 @@ private fun CycleStatPill(label: String, value: String, valueColor: Color, modif
     ) {
         Text(label, fontSize = 7.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
         Text(value, fontSize = 9.sp, color = valueColor, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, maxLines = 1)
-    }
-}
-
-@Composable
-private fun StageIndicator(label: String, dotColor: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(dotColor))
-        Text(label, fontSize = 8.sp, color = StitchTextSecondary, fontFamily = FontFamily.Monospace)
     }
 }

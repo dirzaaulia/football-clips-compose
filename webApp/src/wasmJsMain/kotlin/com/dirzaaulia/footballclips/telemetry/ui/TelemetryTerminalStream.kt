@@ -13,24 +13,33 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.material.icons.filled.Search
+import com.dirzaaulia.footballclips.telemetry.model.CycleHistoryItem
 import com.dirzaaulia.footballclips.telemetry.model.LogStreamItem
 
 @Composable
 fun TelemetryTerminalStream(
+    cycles: List<CycleHistoryItem>,
     logs: List<LogStreamItem>,
-    onInspect: (LogStreamItem) -> Unit,
+    searchQuery: String = "",
+    onClearSearch: () -> Unit = {},
+    onInspectCycle: (CycleHistoryItem) -> Unit,
+    onInspectLog: (LogStreamItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val logsByCycle = remember(logs) { logs.groupBy { it.cycleId } }
+    val activeCycles = remember(cycles, logsByCycle, searchQuery) {
+        if (searchQuery.isBlank()) cycles
+        else cycles.filter { (logsByCycle[it.id]?.isNotEmpty() == true) }
+    }
+
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(6.dp))
@@ -47,7 +56,6 @@ fun TelemetryTerminalStream(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Traffic Light Dots & File Path
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -61,11 +69,8 @@ fun TelemetryTerminalStream(
                 Spacer(Modifier.width(4.dp))
                 Icon(Icons.Default.Folder, null, tint = StitchTextMuted, modifier = Modifier.size(13.dp))
                 Text(
-                    text = "/dev/fc-worker/stream.log",
-                    color = StitchTextSecondary,
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Medium
+                    text = "/dev/fc-worker/stream.log (Grouped by Cycle)",
+                    style = TelemetryTypography.labelSmall.copy(color = StitchTextSecondary)
                 )
 
                 Box(
@@ -75,49 +80,96 @@ fun TelemetryTerminalStream(
                         .border(1.dp, StitchPrimary.copy(alpha = 0.35f), RoundedCornerShape(3.dp))
                         .padding(horizontal = 5.dp, vertical = 1.dp)
                 ) {
-                    Text("STREAMING LIVE", color = StitchPrimary, fontSize = 7.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                    Text("CYCLE STREAM", style = TelemetryTypography.labelSmall.copy(color = StitchPrimary))
                 }
             }
 
-            // Right Counter & Icon
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    text = "Showing ${logs.size.coerceAtMost(18)} of ${logs.size} events",
-                    color = StitchTextMuted,
-                    fontSize = 9.sp,
-                    fontFamily = FontFamily.Monospace
+                    text = "${activeCycles.size} Cycles \u2022 ${logs.size} Events",
+                    style = TelemetryTypography.labelSmall.copy(color = StitchTextMuted)
                 )
-                Icon(Icons.Default.Block, null, tint = StitchTextMuted, modifier = Modifier.size(11.dp))
+                Icon(Icons.Default.Block, null, tint = StitchTextMuted, modifier = Modifier.size(13.dp))
             }
         }
 
-        // Monospace Console Rows
+        // Monospace Console Rows Grouped by Cycle
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(440.dp)
+                .height(640.dp)
                 .background(StitchTerminalBg)
-                .padding(horizontal = 8.dp, vertical = 6.dp)
+                .padding(horizontal = 10.dp, vertical = 8.dp)
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(logs.take(30), key = { it.id }) { item ->
-                    TerminalLogRow(item = item, onClick = { onInspect(item) })
+                items(activeCycles, key = { it.id }) { cycle ->
+                    val cycleLogs = logsByCycle[cycle.id] ?: emptyList()
+                    TelemetryCycleStreamCard(
+                        cycle = cycle,
+                        logs = cycleLogs,
+                        onInspectCycle = onInspectCycle,
+                        onInspectLog = onInspectLog
+                    )
                 }
-                if (logs.isEmpty()) {
+
+                if (activeCycles.isEmpty()) {
                     item {
-                        Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text("No telemetry log events match current filters.", color = StitchTextMuted, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 48.dp, horizontal = 24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = null,
+                                    tint = StitchPrimary,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Text(
+                                    text = if (searchQuery.isNotBlank()) "No log events matching \"$searchQuery\"" else "No telemetry cycles or events found.",
+                                    style = TelemetryTypography.titleMedium.copy(color = StitchTextPrimary)
+                                )
+                                Text(
+                                    text = if (searchQuery.isNotBlank()) "No recorded worker cycles contain this search query." else "Events will appear once worker cycles start streaming.",
+                                    style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted)
+                                )
+                                if (searchQuery.isNotBlank()) {
+                                    Spacer(Modifier.height(4.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(StitchPrimary.copy(alpha = 0.15f))
+                                            .border(1.dp, StitchPrimary.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                                            .clickable { onClearSearch() }
+                                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                                    ) {
+                                        Text(
+                                            "Clear Search Filter",
+                                            style = TelemetryTypography.labelSmall.copy(
+                                                color = StitchPrimary,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+
 
         // Window Bottom Status Line
         Row(
@@ -125,109 +177,21 @@ fun TelemetryTerminalStream(
                 .fillMaxWidth()
                 .background(StitchSurface)
                 .border(1.dp, StitchBorder)
-                .padding(horizontal = 12.dp, vertical = 6.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(StitchSuccess))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(StitchSuccess))
                 Text(
-                    text = "Stream Active \u2022 Output encoding: UTF-8 \u2022 WASM Thread pool: 5/5 workers running",
-                    color = StitchTextMuted,
-                    fontSize = 8.sp,
-                    fontFamily = FontFamily.Monospace
+                    text = "Live Cycle Stream \u2022 Click 'Inspect Run' to view step-by-step accordions",
+                    style = TelemetryTypography.labelSmall.copy(color = StitchTextSecondary)
                 )
             }
             Text(
-                text = "Buffer: ${logs.size.coerceAtMost(18)} / 1000 lines scroll to bottom \u2193",
-                color = StitchPrimary,
-                fontSize = 8.sp,
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Medium
+                text = "${cycles.size} Cycles Active",
+                style = TelemetryTypography.labelSmall.copy(color = StitchPrimary)
             )
-        }
-    }
-}
-
-@Composable
-private fun TerminalLogRow(
-    item: LogStreamItem,
-    onClick: () -> Unit
-) {
-    val tagColor = when (item.level) {
-        "SUCCESS" -> StitchSuccess
-        "WARN" -> StitchWarning
-        "ERROR" -> StitchError
-        else -> StitchPrimary
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(3.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 6.dp, vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        // Timestamp
-        Text(
-            text = item.timestamp.ifBlank { "00:35:51.102 WIB" },
-            color = StitchTextMuted,
-            fontSize = 9.sp,
-            fontFamily = FontFamily.Monospace,
-            modifier = Modifier.width(105.dp),
-            maxLines = 1
-        )
-
-        // Thread Tag
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(2.dp))
-                .background(StitchBorder.copy(alpha = 0.5f))
-                .padding(horizontal = 4.dp, vertical = 1.dp)
-        ) {
-            Text(
-                text = "[${item.threadId}]",
-                color = StitchTextSecondary,
-                fontSize = 8.sp,
-                fontFamily = FontFamily.Monospace
-            )
-        }
-
-        // Action / Level Tag
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(2.dp))
-                .background(tagColor.copy(alpha = 0.12f))
-                .border(1.dp, tagColor.copy(alpha = 0.35f), RoundedCornerShape(2.dp))
-                .padding(horizontal = 4.dp, vertical = 1.dp)
-        ) {
-            Text(
-                text = "[${item.action.ifBlank { item.level }}]",
-                color = tagColor,
-                fontSize = 8.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace
-            )
-        }
-
-        // Clean Log Message
-        Text(
-            text = item.cleanMessage,
-            color = if (item.isHighlight || item.level == "SUCCESS") StitchTextPrimary else StitchTextSecondary,
-            fontSize = 9.sp,
-            fontFamily = FontFamily.Monospace,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
-
-        // Optional League or Meta Hint
-        if (item.cleanMessage.contains("LaLiga", true)) {
-            Text("LaLiga Santander", fontSize = 8.sp, color = StitchPrimary.copy(alpha = 0.7f), fontFamily = FontFamily.Monospace)
-        } else if (item.cleanMessage.contains("Clubs Ok")) {
-            Text("96 Clubs Ok", fontSize = 8.sp, color = StitchSuccess, fontFamily = FontFamily.Monospace)
         }
     }
 }

@@ -20,20 +20,22 @@ export interface MiddlewareResponse {
   data: MiddlewareHighlight[];
 }
 
+export interface MiddlewareFetchResult {
+  items: MiddlewareHighlight[];
+  hasMore: boolean;
+  totalCount: number;
+}
+
 const MIDDLEWARE_URL = 'https://football-clips-middleware.dirzaaulia11.workers.dev';
 
 export async function getMiddlewareHighlights(
-  limit = 24,
-  offset = 0,
-  leagueId?: string
-): Promise<MiddlewareHighlight[]> {
+  limit = 30,
+  offset = 0
+): Promise<MiddlewareFetchResult> {
   try {
     const url = new URL(MIDDLEWARE_URL);
     url.searchParams.set('limit', String(limit));
     url.searchParams.set('offset', String(offset));
-    if (leagueId && leagueId !== 'ALL') {
-      url.searchParams.set('leagueId', leagueId);
-    }
 
     const res = await fetch(url.toString(), {
       next: { revalidate: 60 },
@@ -41,14 +43,22 @@ export async function getMiddlewareHighlights(
 
     if (!res.ok) {
       console.warn('Middleware highlights fetch failed:', res.status);
-      return [];
+      return { items: [], hasMore: false, totalCount: 0 };
     }
 
     const json: MiddlewareResponse = await res.json();
-    return json.data || [];
+    const data = json.data || [];
+    const pagination = json.pagination || { limit, offset, totalCount: 0 };
+    const hasMore = (pagination.offset + pagination.limit) < pagination.totalCount && data.length > 0;
+
+    return {
+      items: data,
+      hasMore,
+      totalCount: pagination.totalCount || 0,
+    };
   } catch (error) {
     console.error('Error fetching middleware highlights:', error);
-    return [];
+    return { items: [], hasMore: false, totalCount: 0 };
   }
 }
 
@@ -132,19 +142,43 @@ function extractTeamsFromTitle(title: string): { home: string; away: string } {
 async function fetchAndProcessMw(
   count: number,
   offset: number,
-  leagueIdParam?: string,
   selectedComp?: string,
   bigLeague?: (typeof BIG_LEAGUES)[number]
 ): Promise<{ records: MatchRecord[]; hasMore: boolean; nextOffset: number }> {
-  const mwData = await getMiddlewareHighlights(count, offset, leagueIdParam);
-  let records = mwData.map(middlewareHighlightToMatchRecord);
-  if (selectedComp && selectedComp !== 'ALL' && bigLeague) {
-    records = records.filter(
-      (m) => isLeagueMatch(bigLeague.name, m.competition_name) || m.competition_id === selectedComp
-    );
+  let currentOffset = offset;
+  const collected: MatchRecord[] = [];
+  let hasMore = true;
+
+  // When a specific competition filter is active, scan up to 3 pages to discover matching items
+  const maxAttempts = selectedComp && selectedComp !== 'ALL' ? 3 : 1;
+  let attempts = 0;
+
+  while (attempts < maxAttempts && collected.length < count && hasMore) {
+    attempts++;
+    const result = await getMiddlewareHighlights(count, currentOffset);
+    currentOffset += count;
+    hasMore = result.hasMore;
+
+    let records = result.items.map(middlewareHighlightToMatchRecord);
+    if (selectedComp && selectedComp !== 'ALL' && bigLeague) {
+      records = records.filter(
+        (m) => isLeagueMatch(bigLeague.name, m.competition_name) || m.competition_id === selectedComp
+      );
+    }
+    collected.push(...records);
+
+    if (result.items.length === 0 || !hasMore) {
+      break;
+    }
   }
-  records.sort((a, b) => (new Date(b.utc_date).getTime() || 0) - (new Date(a.utc_date).getTime() || 0));
-  return { records, hasMore: mwData.length >= count, nextOffset: offset + mwData.length };
+
+  collected.sort((a, b) => (new Date(b.utc_date).getTime() || 0) - (new Date(a.utc_date).getTime() || 0));
+
+  return {
+    records: collected,
+    hasMore,
+    nextOffset: currentOffset,
+  };
 }
 
 export async function fetchMergedHighlightsPage(
@@ -155,7 +189,6 @@ export async function fetchMergedHighlightsPage(
   limitMw = 30
 ): Promise<MergedHighlightsResult> {
   const bigLeague = BIG_LEAGUES.find((b) => b.competitionId === selectedComp);
-  const leagueIdParam = bigLeague?.leagueId ? String(bigLeague.leagueId) : undefined;
 
   let enrichedSupa: MatchRecord[] = [];
   let mwRecords: MatchRecord[] = [];
@@ -176,16 +209,16 @@ export async function fetchMergedHighlightsPage(
       nextOffsetSupabase = offsetSupabase + supabaseData.length;
       hasMoreMw = true;
     } else {
-      nextOffsetSupabase = -1; // Supabase exhausted
+      nextOffsetSupabase = -1; // Supabase exhausted, transition to middleware
       const deficit = limitSupabase - enrichedSupa.length;
-      const mw = await fetchAndProcessMw(Math.max(deficit, limitMw), offsetMw, leagueIdParam, selectedComp, bigLeague);
+      const mw = await fetchAndProcessMw(Math.max(deficit, limitMw), offsetMw, selectedComp, bigLeague);
       mwRecords = mw.records;
       hasMoreMw = mw.hasMore;
       nextOffsetMw = mw.nextOffset;
     }
   } else {
     // 2. Supabase already exhausted, page solely through newest Middleware items
-    const mw = await fetchAndProcessMw(limitMw, offsetMw, leagueIdParam, selectedComp, bigLeague);
+    const mw = await fetchAndProcessMw(limitMw, offsetMw, selectedComp, bigLeague);
     mwRecords = mw.records;
     hasMoreMw = mw.hasMore;
     nextOffsetMw = mw.nextOffset;
@@ -195,15 +228,18 @@ export async function fetchMergedHighlightsPage(
   const seen = new Set<string>();
   const combined: MatchRecord[] = [];
   for (const m of [...enrichedSupa, ...mwRecords]) {
-    if (!m.highlight_video_id || !seen.has(m.highlight_video_id)) {
-      if (m.highlight_video_id) seen.add(m.highlight_video_id);
+    const key = m.highlight_video_id || m.id;
+    if (!seen.has(key)) {
+      seen.add(key);
       combined.push(m);
     }
   }
 
+  const overallHasMore = nextOffsetSupabase >= 0 ? (hasMoreSupabase || hasMoreMw) : hasMoreMw;
+
   return {
     matches: combined,
-    hasMore: hasMoreSupabase || hasMoreMw,
+    hasMore: overallHasMore,
     hasMoreSupabase,
     hasMoreMw,
     nextOffsetSupabase,

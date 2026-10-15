@@ -31,3 +31,28 @@
   - Use `com.google.android.libraries.ads.mobile.sdk.nativead.NativeAdView`.
   - Maintain `MediaView` dimensions of at least `120dp x 120dp` to adhere to Google AdMob policy guidelines.
   - Use `FIT_CENTER` scaling to preserve media aspect ratios.
+
+## Worker & Telemetry Standards
+- **Logging Language**: Strictly English across all worker logs, event messages, subsystem actions, and telemetry UI. No Indonesian or informal phrases in production telemetry.
+- **Fixture Synchronization Logging**:
+  - Do NOT dump raw database records into the telemetry view or make unnecessary large database queries.
+  - Log specific granular match operations:
+    - `[NEW FIXTURE]`: New upcoming fixtures or newly added matches with kickoff time.
+    - `[LIVE SCORE]`: Live score changes and goal alerts with live score.
+    - `[KICKOFF]`: Kickoff events when a match moves into `IN_PLAY`.
+    - `[FULL TIME]`: Final whistle events with full time score.
+    - `[STATUS UPDATE]`: Explicit match status updates.
+    - `[REGRESSION BLOCKED]`: Protection events preventing state reversals.
+- **Highlight Pipeline Logging**:
+  - Strictly adhere to the step-by-step trace:
+    1. `[PROCESS]`: Search start with query and official club channel targets.
+    2. Candidate detection: Number of valid candidate videos found per channel.
+    3. `[AI GEMINI]`: AI reranking evaluation of candidates using Gemini 3.8 Flash.
+    4. `[FALLBACK SELECT]`: Title regex ranking if Gemini hits quota limits or timeouts.
+    5. `[LINKED]` or `[NOT FOUND]`: Final YouTube video ID linked and saved to Supabase, or marked as unavailable.
+- **Sync Intervals & YouTube Quota Tiering**:
+  - Live matches: 1 minute (60s) tick for semi-live score and status updates.
+  - Kickoff within 45 minutes: 30 minutes.
+  - Standard idle / off-peak: 2 hours.
+  - YouTube Highlight Scraping: Runs only after match status is `FINISHED` under 4-tier quota guardrails (Tier 1: 30m, Tier 2: 2h, Tier 3: 6h, Tier 4: 24h).
+

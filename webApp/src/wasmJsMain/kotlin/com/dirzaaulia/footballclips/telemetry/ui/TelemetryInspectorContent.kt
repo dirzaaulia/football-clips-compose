@@ -25,9 +25,12 @@ import com.dirzaaulia.footballclips.telemetry.model.CycleHistoryItem
 import com.dirzaaulia.footballclips.telemetry.model.LogStreamItem
 
 @Composable
-fun CycleInspectorBody(item: CycleHistoryItem) {
+fun CycleInspectorBody(
+    item: CycleHistoryItem,
+    steps: List<com.dirzaaulia.footballclips.telemetry.model.ParsedStep> = emptyList()
+) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Cycle Execution Metadata", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = StitchTextSecondary)
+        Text("Cycle Execution Metadata", style = TelemetryTypography.titleSmall.copy(color = StitchTextSecondary))
         Column(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(StitchSurface).border(1.dp, StitchBorder, RoundedCornerShape(6.dp)).padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -41,64 +44,64 @@ fun CycleInspectorBody(item: CycleHistoryItem) {
             InspectorMetaRow("Exceptions / Errors", "${item.exceptions} err", if (item.exceptions > 0) StitchError else StitchSuccess)
         }
 
-        Text("Active Pipeline Stages Summary", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = StitchTextSecondary)
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            StageRowCard("1. Schedule & Team Sync", "Football-Data.org Ingested: ${item.ingestedMatches} fixtures", "OK", StitchSuccess)
-            StageRowCard("2. YouTube Highlight Scraper", "Scraped ${item.highlightsHarvested} clips (Quota: ${item.apiQuotaCost} units)", "DISCOVERED", StitchPrimary)
-            StageRowCard("3. League Standings Sync", "Synced top 5 European competitions", "OK", StitchSuccess)
-            StageRowCard("4. Maintenance & Cache Purge", "Retention clean (<30 days active)", "CLEAN", StitchSuccess)
-        }
+        Text("Active Pipeline Steps & Match Traces", style = TelemetryTypography.titleSmall.copy(color = StitchTextSecondary))
+        TelemetryCycleAccordions(steps = steps)
     }
 }
 
 @Composable
 fun LogInspectorBody(item: LogStreamItem) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Structured Event Attributes", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = StitchTextSecondary)
+        Text("Structured Event Attributes", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = StitchTextSecondary)
         Column(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(StitchSurface).border(1.dp, StitchBorder, RoundedCornerShape(6.dp)).padding(10.dp),
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(StitchSurface).border(1.dp, StitchBorder, RoundedCornerShape(6.dp)).padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             InspectorMetaRow("Event ID", item.id.toString(), StitchTextPrimary)
-            InspectorMetaRow("Thread Worker", item.threadId, StitchSecondary)
-            InspectorMetaRow("Subsystem", item.subsystem, StitchPrimary)
+            InspectorMetaRow("Subsystem", item.subsystem, TelemetryUtils.getSubsystemBadgeColor(item.subsystem))
             InspectorMetaRow("Action Tag", item.action, StitchTextPrimary)
             InspectorMetaRow("Timestamp (WIB)", item.timestamp, StitchTextPrimary)
             InspectorMetaRow("Cycle Run ID", item.cycleId.toString(), StitchTextMuted)
         }
 
         item.extractedUrl?.let { url ->
-            Text("Harvested YouTube Video", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = StitchTextSecondary)
+            Text("Harvested YouTube Video", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = StitchTextSecondary)
             Row(
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(StitchSurface).border(1.dp, StitchBorder, RoundedCornerShape(6.dp)).padding(10.dp),
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(StitchSurface).border(1.dp, StitchBorder, RoundedCornerShape(6.dp)).padding(12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(url, fontSize = 9.sp, color = StitchPrimary, fontFamily = FontFamily.Monospace, maxLines = 1, modifier = Modifier.weight(1f))
+                Text(url, fontSize = 11.sp, color = StitchPrimary, fontFamily = FontFamily.Monospace, maxLines = 1, modifier = Modifier.weight(1f))
                 Button(
                     onClick = { TelemetryUtils.openUrlInNewTab(url) },
                     colors = ButtonDefaults.buttonColors(containerColor = StitchPrimary, contentColor = Color(0xFF002D6B)),
                     shape = RoundedCornerShape(4.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp)
                 ) {
-                    Text("Open Video", fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                    Text("Open Video", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.width(4.dp))
-                    Icon(Icons.AutoMirrored.Filled.OpenInNew, "Open", modifier = Modifier.size(10.dp))
+                    Icon(Icons.AutoMirrored.Filled.OpenInNew, "Open", modifier = Modifier.size(12.dp))
                 }
             }
         }
 
-        Text("Raw Execution Trace", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = StitchTextSecondary)
+        Text("Raw Execution Trace", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = StitchTextSecondary)
         Box(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(StitchTerminalBg).border(1.dp, StitchBorder, RoundedCornerShape(6.dp)).padding(10.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(6.dp))
+                .background(StitchTerminalBg)
+                .border(1.dp, StitchBorder, RoundedCornerShape(6.dp))
+                .padding(12.dp)
         ) {
             Text(
                 text = item.rawText,
                 color = StitchTextPrimary,
                 fontFamily = FontFamily.Monospace,
-                fontSize = 9.sp,
-                lineHeight = 14.sp,
-                modifier = Modifier.horizontalScroll(rememberScrollState())
+                fontSize = 12.sp,
+                lineHeight = 18.sp,
+                softWrap = true,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
@@ -111,26 +114,72 @@ fun InspectorMetaRow(label: String, value: String, valueColor: Color) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, fontSize = 9.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
-        Text(value, fontSize = 9.sp, color = valueColor, fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace)
+        Text(label, style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted))
+        Text(value, style = TelemetryTypography.bodySmall.copy(color = valueColor, fontWeight = FontWeight.SemiBold))
     }
 }
 
 @Composable
-fun StageRowCard(title: String, subtitle: String, status: String, statusColor: Color) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)).background(StitchSurface).border(1.dp, StitchBorder, RoundedCornerShape(4.dp)).padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(title, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
-            Text(subtitle, fontSize = 8.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
-        }
-        Box(
-            modifier = Modifier.clip(RoundedCornerShape(3.dp)).background(statusColor.copy(alpha = 0.12f)).border(1.dp, statusColor.copy(alpha = 0.35f), RoundedCornerShape(3.dp)).padding(horizontal = 5.dp, vertical = 2.dp)
+fun NotificationInspectorBody(item: com.dirzaaulia.footballclips.telemetry.model.NotificationLogItem) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("Device Notification Preview", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = StitchTextSecondary)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xFF161F2E))
+                .border(1.dp, StitchBorder, RoundedCornerShape(8.dp))
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(status, fontSize = 7.sp, color = statusColor, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(modifier = Modifier.size(14.dp).clip(RoundedCornerShape(3.dp)).background(StitchPrimary))
+                    Text("FootballClips", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary)
+                }
+                Text("now", fontSize = 9.sp, color = StitchTextMuted)
+            }
+            Text(item.title, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary)
+            Text(item.body, fontSize = 11.sp, color = StitchTextSecondary)
+        }
+
+        Text("Distinct Audience & Device Fanout", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = StitchTextSecondary)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(6.dp))
+                .background(StitchSurface)
+                .border(1.dp, StitchBorder, RoundedCornerShape(6.dp))
+                .padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            InspectorMetaRow("Distinct Human Users", "${item.audience.distinctUsers} recipients", StitchPrimary)
+            InspectorMetaRow("Total Devices Fanout", "${item.audience.totalDevices} endpoints", StitchSuccess)
+            InspectorMetaRow("Fanout Ratio", "${item.audience.deviceToUserRatio} devices / user", StitchWarning)
+            InspectorMetaRow("Platform Breakdown", "${item.audience.platformBreakdown.android} Android  |  ${item.audience.platformBreakdown.web} Web", StitchPurple)
+            InspectorMetaRow("Single-Device Users", "${item.audience.distribution.singleDeviceUsers} users", StitchTextSecondary)
+            InspectorMetaRow("Multi-Device Users", "${item.audience.distribution.multiDeviceUsers} users (up to ${item.audience.distribution.maxDevicesForSingleUser} dev)", StitchSuccess)
+        }
+
+        Text("Notification Delivery Metadata", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = StitchTextSecondary)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(6.dp))
+                .background(StitchSurface)
+                .border(1.dp, StitchBorder, RoundedCornerShape(6.dp))
+                .padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            InspectorMetaRow("Event Type", item.eventType.uppercase(), StitchPrimary)
+            InspectorMetaRow("Timestamp (UTC)", item.timestamp, StitchTextPrimary)
+            InspectorMetaRow("Match Fixture", "${item.homeTeam} vs ${item.awayTeam}", StitchSecondary)
+            InspectorMetaRow("Target Topics", item.clubIds.joinToString { "club_$it" }, StitchPrimary)
+            InspectorMetaRow("Storage Pipeline", "GCS CDN (0 Supabase DB writes)", StitchSuccess)
         }
     }
 }

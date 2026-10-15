@@ -1,18 +1,59 @@
 
 # Kata terlarang untuk filter judul video YouTube
 FORBIDDEN_TITLE_PATTERNS: list[tuple[str, str]] = [
-    (r'#shorts|\bshorts\b', 'Shorts'),
-    (r'\b(press conference|presser|press|conferência|conferencia|prensa|conferenza|stampa|pressekonferenz|conférence)\b', 'Press Conference'),
-    (r'\b(interviews?|entrevista|entrevistas|declarações|declaraciones|reacciones|réactions|interviste|dopogara)\b', 'Interview'),
-    (r'\b(rescaldo|post-match|post match|pre-match|pre match|previa|dopopartita|debrief|aftermatch)\b', 'Post/Pre-Match Talk'),
-    (r'\b(training|behind the scenes|inside matchday|inside anfield|vlog)\b', 'Training/BTS'),
-    (r'\b(fan reaction|reactions?|watchalong)\b', 'Reaction'),
-    (r'\b(previews?|pre-match|previa)\b', 'Preview'),
-    (r'\b(wsl|women|féminine|feminina)\b', 'Women Match'),
+    # 1. Shorts, vertical clips, and social media reels
+    (r'#shorts?|\bshorts?\b|#reels?|#tiktok', 'Shorts/Reel'),
+
+    # 2. Press conferences & media conferences (all European languages)
+    (r'\b(press conference|presser|conferência|conferencia|prensa|conferenza|stampa|pressekonferenz|conférence|point presse|conf\' de presse|pk mit|pk vor|rueda de prensa|parla mister|mister\b.*post|mister)\b', 'Press Conference'),
+
+    # 3. Interviews, talks, chats, and personal confession/profile videos
+    (r'\b(interviews?|entrevista|entrevistas|declarações|declaraciones|reacciones|réactions|interviste|dopogara|se confie|il se confie|confie|confidences|entretien|face à face|en tête-à-tête|portrait|itw|in conversation with|exclusive interview|im gespräch|a tu per tu|bate-papo|talks? to|chats? with|player profile|meet the|get to know|q&a|ask me anything|les mots de|le parole di|parole di|al termine di)\b', 'Interview/Profile'),
+
+    # 4. Post/Pre match talk, debriefs, watchalongs, reaction shows
+    (r'\b(rescaldo|post-match|post match|pre-match|pre match|previa|dopopartita|debrief|aftermatch|watchalongs?|reaction show|fan zone|matchday live|half-time:|post\s+[a-z0-9]+-[a-z0-9]+)\b', 'Post/Pre-Match Talk'),
+
+    # 5. Training, Behind the Scenes, Atmosphere, Vlogs, Sights & Sounds, Anniversaries
+    (r'\b(training|trains ahead of|train ahead of|prep|preparations?|cctv|behind the scenes|inside matchday|inside anfield|(?:tunnel|bench|dugout|tactical|manager|boss|player|fan|access|body|ref)\s*cam|alternative commentary|all the angles|uncut exclusive|exclusive footage|vlogs?|sights\s*(?:&|and)\s*sounds|anniversary|celebrations?|unfiltered|access all areas|all access|mic\'d up|on the pitch|warm-up|warm up|arrivals?|matchday experience|behind-the-scenes)\b', 'Training/BTS/Atmosphere'),
+
+    # 6. Fan reactions, player reactions, fan cams
+    (r'\b(fan reactions?|reactions?|reacts?|reaction\b|fan cam|supporters? view|the verdict|live from\b|von fans)\b', 'Fan Reaction'),
+
+    # 7. Previews & predictions
+    (r'\b(previews?|match preview|avant-match|preview show)\b', 'Preview'),
+
+    # 8. Women matches
+    (r'\b(wsl|women|womens?|féminine|feminina|frauen|femminile|femmes)\b', 'Women Match'),
+
+    # 9. Youth / Academy matches
     (r'\b(youth|youths|youth league|u15|u16|u17|u18|u19|u20|u21|u22|u23|primavera|juvenil|sub-15|sub-17|sub-19|sub-20|sub-23|cantera|akademie|junioren|juniors?)\b|\bu[- ]?(?:15|16|17|18|19|20|21|22|23)\b', 'Youth Match'),
-    (r'\b(tous les buts|all goals|all highlights)\b', 'Compilation/All Goals'),
-    (r'\brésumé\s+.*\bjournée\b', 'Weekly Round Review'),
+
+    # 10. Compilations, best saves, all goals of the week, round reviews
+    (r'\b(tous les buts|all goals|all highlights|best\s+goals?|top\s+goals?|goal\s+of\s+the\s+(?:week|month|season|year)|goals\s+of\s+the\s+(?:week|month)|gotm|gotw|gots|buts de la journée|best saves?|top saves?|gol da ricordare|bangers against|pure magic)\b|\brésumé\s+.*\bjournée\b', 'Compilation/Weekly Review'),
+
+    # 11. Historical / Retro / Documentaries / Mini-games / Quizzes / Corporate
+    (r'\b(classic match|retro|rewind|flashback|throwback|documentary|documentaire|history of|memories|tribute|hall of fame|qui était|juegan a|adivinar el escudo|quiz|challenge|crossbar|tier list|sustainability|foundation|charity|mental health|renews until|feeding a football team|trofeo|volksfest|wasen-mehrkampf|2021|2020|2019|2018|2017|2016|2015)\b', 'Documentary/Retro/Social'),
+
+    # 12. Full match replays (only focus on highlights or extended highlights)
+    (r'\b(full match|full match replay|match replay|full game|match complet|partido completo|partita intera|ganzes spiel)\b', 'Full Match Replay'),
 ]
+
+# Required highlight keywords across supported European leagues
+HIGHLIGHT_REQUIRED_KEYWORDS: list[str] = [
+    r'\bhighlights?\b',
+    r'\brésumé\b',
+    r'\bresume\b',
+    r'\bbuts\b',
+    r'\bgoals\b',
+    r'\bresumen\b',
+    r'\bsintesi\b',
+    r'\bzusammenfassung\b',
+    r'\bmelhores momentos\b',
+    r'\bsamenvatting\b',
+    r'\bextended highlights?\b',
+]
+
+
 
 # Pemetaan nama tim ke handle resmi YouTube
 EUROPEAN_CLUB_HANDLES: dict[str, str] = {
@@ -22,6 +63,7 @@ EUROPEAN_CLUB_HANDLES: dict[str, str] = {
     "bournemouth": "@afcbournemouth",
     "brentford": "@brentfordfc",
     "brighton": "@OfficialBHAFC",
+    "burnley": "@burnleyofficial",
     "chelsea": "@chelseafc",
     "coventry city": "@coventrycityfc",
     "crystal palace": "@OfficialCPFC",
@@ -31,12 +73,18 @@ EUROPEAN_CLUB_HANDLES: dict[str, str] = {
     "ipswich town": "@ipswichtown",
     "ipswich": "@ipswichtown",
     "leeds united": "@leedsunited",
+    "leicester city": "@LCFC",
+    "leicester": "@LCFC",
     "liverpool": "@liverpoolfc",
+    "luton town": "@lutontownfc",
+    "luton": "@lutontownfc",
     "manchester city": "@mancity",
     "manchester united": "@manutd",
     "newcastle united": "@NUFC",
     "newcastle": "@NUFC",
     "nottingham forest": "@NottinghamForestFC",
+    "sheffield united": "@SheffieldUnited",
+    "southampton": "@SouthamptonFC",
     "sunderland": "@sunderlandafc",
     "tottenham": "@tottenhamhotspur",
     "west ham": "@westham",
@@ -140,14 +188,38 @@ EUROPEAN_CLUB_HANDLES: dict[str, str] = {
     "fenerbahce": "@fenerbahce"
 }
 
-# Channel ID permanen statis (0 kuota)
+# Official League YouTube Handles (User Directive: LaLiga, Bundesliga, Ligue 1, Serie A search official league channels)
+OFFICIAL_LEAGUE_CHANNELS: dict[str, str] = {
+    # Competition Code
+    "PD": "@LaLiga",
+    "BL1": "@bundesliga",
+    "FL1": "@ligue1",
+    "SA": "@SerieA",
+    # Competition Name fallbacks
+    "LALIGA": "@LaLiga",
+    "PRIMERA DIVISION": "@LaLiga",
+    "BUNDESLIGA": "@bundesliga",
+    "LIGUE 1": "@ligue1",
+    "SERIE A": "@SerieA",
+}
+
+# Channel ID permanen statis (0 kuota) - Verified as of 13 October 2026
 PERMANENT_CHANNEL_IDS: dict[str, str] = {
-    # England
+    # Official League Channels (0 quota resolution)
+    "@LaLiga": "UCTv-XvfzLX3i4IGWAm4sbmA",
+    "@laliga": "UCTv-XvfzLX3i4IGWAm4sbmA",
+    "@bundesliga": "UC6UL29enLNe4mqwTfAyeNuw",
+    "@ligue1": "UCQsH5XtIc9hONE1BQjucM0g",
+    "@SerieA": "UCBJeMCIeLQos7wacox4hmLQ",
+    "@seriea": "UCBJeMCIeLQos7wacox4hmLQ",
+
+    # England - Premier League & Championship
     "@arsenal": "UCpryVRk_VDudG8SHXgWcG0w",
     "@avfcofficial": "UCICNP0mvtr0prFwGUQIABfQ",
     "@afcbournemouth": "UCeOCuVSSweaEj6oVtJZEKQw",
     "@brentfordfc": "UCAalMUm3LIf504ItA3rqfug",
     "@OfficialBHAFC": "UCf-cpC9WAdOsas19JHipukA",
+    "@burnleyofficial": "UChvUXuSDeEFSQZS8GcPMtkg",
     "@chelseafc": "UCU2PacFf99vhb3hNiYDmxww",
     "@coventrycityfc": "UCch_NWdo3JWKngAyO9XlycA",
     "@OfficialCPFC": "UCWB9N0012fG6bGyj486Qxmg",
@@ -156,13 +228,19 @@ PERMANENT_CHANNEL_IDS: dict[str, str] = {
     "@hullcityofficial": "UC8MRV5E-Bi5qWomGjOF0ZQg",
     "@ipswichtown": "UCjNwxJec96lMWgCXjEDhXgQ",
     "@leedsunited": "UCyQcJHDN4uYfPa1DHzKVSnw",
+    "@LCFC": "UCBkRQtxofyXr09mWtgoUUqw",
+    "@lcfc": "UCBkRQtxofyXr09mWtgoUUqw",
     "@liverpoolfc": "UC9LQwHZoucFT94I2h6JOcjw",
+    "@lutontownfc": "UC4JJ6tNdsFsWfvAK2ptcZ0g",
     "@mancity": "UCkzCjdRMrW2vXLx8mvPVLdQ",
     "@manutd": "UC6yW44UGJJBvYTlfC7CRg2Q",
-    "@newcastle": "UCywGl_BPp9QhD0uAcP2HsJw",
+    "@newcastle": "UCdfrgbb2njONUvgXqcpbD6Q",
     "@newcastleunited": "UCywGl_BPp9QhD0uAcP2HsJw",
     "@NUFC": "UCywGl_BPp9QhD0uAcP2HsJw",
     "@NottinghamForestFC": "UCyAxjuAr8f_BFDGCO3Htbxw",
+    "@SheffieldUnited": "UCVER_UoBt84YUrA6s402Q-g",
+    "@SouthamptonFC": "UCxvXjfiIHQ2O6saVx_ZFqnw",
+    "@southamptonfc": "UCxvXjfiIHQ2O6saVx_ZFqnw",
     "@sunderlandafc": "UCrw-7k6yJc0EMJdf-0BAkoQ",
     "@tottenhamhotspur": "UCEg25rdRZXg32iwai6N6l0w",
     "@westham": "UCTqZqExWiRRyAwsVk9Yjk0g",
@@ -213,48 +291,187 @@ PERMANENT_CHANNEL_IDS: dict[str, str] = {
     "@FCLorientOfficiel": "UC1LeTxFgKYwMeQjRjLyGRTQ",
     "@fclorient": "UC1LeTxFgKYwMeQjRjLyGRTQ",
     
-    # Netherlands, Portugal, Scotland & Others
+    # European League Phase (Verified 100% Real IDs)
+    "@afcajax": "UCGpf7WX7R1one-NwOvg_PbQ",
     "@feyenoord": "UCg_DGzRRIQlXpHxCrMMiAIQ",
     "@psv": "UC_2ynsXrRrKP8zYrU7Hc06A",
-    "@afcajax": "UCEvabswk_K5pU_Lg_j11b6Q",
-    "@sportingcp": "UC8-w0D81b-5uSg6e7V9jE2w",
-    "@slbenfica": "UCyZ4X7R1t-K9i6u2D6_yL8w",
-    "@fcporto": "UCjPzK4Fv1gN2fG8H_u9v9sw",
-    "@scbragaoficial": "UCa5R4qg2p9kX-7g_j11b6Q",
-    "@celticfc": "UC8-w0D81b-5uSg6e7V9jE2w",
-    "@rangersfc": "UCyZ4X7R1t-K9i6u2D6_yL8w",
-    "@ClubBruggeKV": "UCjPzK4Fv1gN2fG8H_u9v9sw",
-    "@fcrbs": "UCa5R4qg2p9kX-7g_j11b6Q",
-    "@sksturmtv": "UC8-w0D81b-5uSg6e7V9jE2w",
-    "@gnkdinamo": "UCyZ4X7R1t-K9i6u2D6_yL8w",
-    "@crvenazvezdafk": "UCjPzK4Fv1gN2fG8H_u9v9sw",
-    "@ACSpartaPraha": "UCa5R4qg2p9kX-7g_j11b6Q",
-    "@skslovanbratislava": "UC8-w0D81b-5uSg6e7V9jE2w",
-    "@fcshakhtar": "UCyZ4X7R1t-K9i6u2D6_yL8w",
-    "@bscyb_offiziell": "UCjPzK4Fv1gN2fG8H_u9v9sw",
-    "@galatasaray": "UCa5R4qg2p9kX-7g_j11b6Q",
-    "@fenerbahce": "UC8-w0D81b-5uSg6e7V9jE2w",
+    "@sportingcp": "UCnJj6L93JX3Jrhzv81ayywA",
+    "@slbenfica": "UC8zrah5cNf2c3jKKeD_Z3fw",
+    "@fcporto": "UCQegzQwEExHgXvm_yHptzQg",
+    "@scbragaoficial": "UCp2R9JyHO-MFFR1ARzrLkMA",
+    "@celticfc": "UCBN-bb-hE7jYlcp4exwXRsQ",
+    "@rangersfc": "UCVaGyBPoEAZItDjlFPsRcSA",
+    "@ClubBruggeKV": "UCF3xdWlzDt_OVFCPbt5fa4Q",
+    "@fcrbs": "UCNXjAsLzro7bnZVWqnnkgsg",
+    "@sksturmtv": "UCcReHK9o6bc5NT2cj4mpJKQ",
+    "@gnkdinamo": "UCldRDEKHfzNuigJy7WlUchQ",
+    "@crvenazvezdafk": "UCgONdflkLRAluyngeXsmT4w",
+    "@ACSpartaPraha": "UCJcXzTZcKukYq9O4ZBtVxdw",
+    "@skslovanbratislava": "UC7ldMqVVX6CD6NMZaqsihTw",
+    "@fcshakhtar": "UCmPCqUih--EyT2oxUn72MtA",
+    "@bscyb_offiziell": "UCooboQGJOqDy1-jdBNhweUg",
+    "@galatasaray": "UCQpeujIamj2ZOKXZnrxTRhA",
+    "@fenerbahce": "UCgqlho3-8a6FmDqQm7Q6gJw",
 }
 
 # Custom keyword aliases untuk search query
 CUSTOM_KEYWORD_ALIASES: dict[str, list[str]] = {
+    # England - Premier League
+    "manchester united fc": ["man united", "man utd", "united"],
+    "manchester united": ["man united", "man utd", "united"],
+    "manchester city fc": ["man city", "city"],
+    "manchester city": ["man city", "city"],
+    "tottenham hotspur fc": ["spurs", "tottenham"],
+    "tottenham hotspur": ["spurs", "tottenham"],
+    "wolverhampton wanderers fc": ["wolves", "wolverhampton"],
+    "wolverhampton wanderers": ["wolves", "wolverhampton"],
+    "newcastle united fc": ["newcastle", "nufc"],
+    "newcastle united": ["newcastle", "nufc"],
+    "brighton & hove albion fc": ["brighton", "bhafc"],
+    "brighton & hove albion": ["brighton", "bhafc"],
+    "nottingham forest fc": ["nottingham forest", "forest", "nottingham"],
+    "nottingham forest": ["nottingham forest", "forest", "nottingham"],
+    "aston villa fc": ["aston villa", "villa"],
+    "aston villa": ["aston villa", "villa"],
+    "afc bournemouth": ["bournemouth", "cherries"],
+    "crystal palace fc": ["crystal palace", "palace"],
+    "crystal palace": ["crystal palace", "palace"],
+    "west ham united fc": ["west ham", "hammers"],
+    "west ham united": ["west ham", "hammers"],
+    "brentford fc": ["brentford"],
+    "chelsea fc": ["chelsea"],
+    "arsenal fc": ["arsenal"],
+    "liverpool fc": ["liverpool"],
+    "everton fc": ["everton"],
+    "fulham fc": ["fulham"],
+    "ipswich town fc": ["ipswich"],
+    "ipswich town": ["ipswich"],
+    "leicester city fc": ["leicester"],
+    "leicester city": ["leicester"],
+    "southampton fc": ["southampton"],
+
+    # Spain - LaLiga
+    "real madrid cf": ["real madrid"],
+    "fc barcelona": ["barcelona", "barca"],
+    "club atlético de madrid": ["atletico madrid", "atletico", "atleti"],
+    "atletico madrid": ["atletico madrid", "atletico", "atleti"],
+    "athletic club": ["athletic bilbao", "bilbao"],
+    "rcd espanyol de barcelona": ["espanyol"],
+    "rcd espanyol": ["espanyol"],
+    "rc celta de vigo": ["celta vigo", "celta"],
+    "celta de vigo": ["celta vigo", "celta"],
+    "deportivo alavés": ["alaves"],
+    "deportivo alaves": ["alaves"],
+    "rayo vallecano de madrid": ["rayo vallecano", "rayo"],
+    "rayo vallecano": ["rayo vallecano", "rayo"],
+    "real valladolid cf": ["valladolid"],
+    "real valladolid": ["valladolid"],
+    "real betis balompié": ["real betis", "betis"],
+    "real betis": ["real betis", "betis"],
+    "sevilla fc": ["sevilla"],
+    "villarreal cf": ["villarreal"],
+    "real sociedad de fútbol": ["real sociedad"],
+    "real sociedad": ["real sociedad"],
+    "ca osasuna": ["osasuna"],
+    "rcd mallorca": ["mallorca"],
+    "ud las palmas": ["las palmas"],
+    "cd leganés": ["leganes"],
+    "getafe cf": ["getafe"],
+    "valencia cf": ["valencia"],
+
+    # Germany - Bundesliga
     "borussia dortmund": ["dortmund", "bvb"],
     "bayern münchen": ["bayern", "bayern munich"],
+    "fc bayern münchen": ["bayern", "bayern munich"],
     "bayer 04 leverkusen": ["leverkusen", "bayer leverkusen"],
-    "manchester united fc": ["man united", "man utd"],
-    "manchester city fc": ["man city"],
-    "tottenham hotspur fc": ["spurs", "tottenham"],
-    "wolverhampton wanderers fc": ["wolves"],
-    "newcastle united fc": ["newcastle"],
-    "brighton & hove albion fc": ["brighton"],
-    "nottingham forest fc": ["nottingham"],
-    "paris saint-germain fc": ["psg"],
+    "rb leipzig": ["leipzig", "rb leipzig"],
+    "vfb stuttgart": ["stuttgart"],
+    "eintracht frankfurt": ["frankfurt"],
+    "1. fsv mainz 05": ["mainz"],
+    "1. fc heidenheim 1846": ["heidenheim"],
+    "1. fc union berlin": ["union berlin"],
+    "sc freiburg": ["freiburg"],
+    "vfl bochum 1848": ["bochum"],
+    "fc st. pauli 1910": ["st pauli", "st. pauli"],
+    "tsg 1899 hoffenheim": ["hoffenheim"],
+    "1. fc köln": ["köln", "koln", "cologne"],
+
+    # France - Ligue 1
+    "paris saint-germain fc": ["psg", "paris"],
+    "paris saint-germain": ["psg", "paris"],
     "olympique de marseille": ["marseille", "om"],
     "olympique lyonnais": ["lyon", "ol"],
     "stade rennais fc 1901": ["rennes"],
-    "stade brestois 29": ["brest"],
-    "club atlético de madrid": ["atletico madrid"],
-    "athletic club": ["athletic bilbao"],
-    "fc internazionale milano": ["inter"],
+    "stade brestois 29": ["brest", "brestois"],
+    "stade brestois": ["brest", "brestois"],
+    "as monaco fc": ["monaco"],
+    "as monaco": ["monaco"],
+    "le havre ac": ["le havre", "havre"],
+    "as saint-étienne": ["saint-etienne"],
+    "angers sco": ["angers"],
+    "rc strasbourg alsace": ["strasbourg"],
+    "racing club de lens": ["lens", "rc lens"],
+    "racing de lens": ["lens", "rc lens"],
+    "rc lens": ["lens", "rc lens"],
+    "toulouse fc": ["toulouse"],
+    "fc lorient": ["lorient"],
+    "ogc nice": ["nice"],
+    "losc lille": ["lille"],
+
+    # Italy - Serie A
+    "fc internazionale milano": ["inter", "inter milan"],
+    "internazionale": ["inter", "inter milan"],
+    "ac milan": ["milan", "ac milan"],
+    "juventus fc": ["juventus"],
+    "ss lazio": ["lazio"],
+    "as roma": ["roma"],
+    "atalanta bc": ["atalanta"],
+    "ssc napoli": ["napoli"],
+    "acf fiorentina": ["fiorentina"],
+    "bologna fc 1909": ["bologna"],
+    "hellas verona fc": ["verona"],
+    "parma calcio 1913": ["parma"],
+    "venezia fc": ["venezia"],
+    "como 1907": ["como"],
     "us sassuolo calcio": ["sassuolo"],
+    "us lecce": ["lecce"],
+    "genoa cfc": ["genoa"],
+
+    # European Competitions (Champions League, Europa League)
+    "sporting clube de portugal": ["sporting cp", "sporting"],
+    "sporting cp": ["sporting cp", "sporting"],
+    "sl benfica": ["benfica"],
+    "sport lisboa e benfica": ["benfica"],
+    "fc porto": ["porto"],
+    "sc braga": ["braga"],
+    "feyenoord rotterdam": ["feyenoord"],
+    "feyenoord": ["feyenoord"],
+    "psv eindhoven": ["psv"],
+    "psv": ["psv"],
+    "afc ajax": ["ajax"],
+    "celtic fc": ["celtic"],
+    "rangers fc": ["rangers"],
+    "club brugge kv": ["club brugge", "brugge"],
+    "fc red bull salzburg": ["salzburg"],
+    "red bull salzburg": ["salzburg"],
+    "sk sturm graz": ["sturm graz"],
+    "sturm graz": ["sturm graz"],
+    "gnk dinamo zagreb": ["dinamo zagreb", "dinamo"],
+    "dinamo zagreb": ["dinamo zagreb", "dinamo"],
+    "fk crvena zvezda": ["crvena zvezda", "red star"],
+    "crvena zvezda": ["crvena zvezda", "red star"],
+    "ac sparta praha": ["sparta praha", "sparta prague"],
+    "sparta praha": ["sparta praha", "sparta prague"],
+    "sk slovan bratislava": ["slovan bratislava", "slovan"],
+    "slovan bratislava": ["slovan bratislava", "slovan"],
+    "fc shakhtar donetsk": ["shakhtar donetsk", "shakhtar"],
+    "shakhtar donetsk": ["shakhtar donetsk", "shakhtar"],
+    "bsc young boys": ["young boys"],
+    "young boys": ["young boys"],
+    "galatasaray sk": ["galatasaray"],
+    "galatasaray": ["galatasaray"],
+    "fenerbahçe sk": ["fenerbahce", "fenerbahçe"],
+    "fenerbahce": ["fenerbahce", "fenerbahçe"],
 }
+
+

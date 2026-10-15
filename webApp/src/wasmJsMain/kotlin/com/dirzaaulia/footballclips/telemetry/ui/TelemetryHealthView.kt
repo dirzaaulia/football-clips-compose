@@ -39,14 +39,14 @@ fun TelemetryHealthView(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = "Worker Health & Thread Observability",
+                    text = "Worker Services & Execution Architecture",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = StitchTextPrimary,
                     fontFamily = FontFamily.Monospace
                 )
                 Text(
-                    text = "Real-time diagnostics, thread pool allocation, and API quota projections.",
+                    text = "Python orchestrator executing modular service pipelines with dynamic sleeping intervals.",
                     fontSize = 10.sp,
                     color = StitchTextMuted
                 )
@@ -58,22 +58,25 @@ fun TelemetryHealthView(
                     .border(1.dp, StitchSuccess.copy(alpha = 0.35f), RoundedCornerShape(4.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
-                Text("Health: 100% Nominal", fontSize = 9.sp, color = StitchSuccess, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                Text("Architecture: 100% Operational", fontSize = 9.sp, color = StitchSuccess, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
             }
         }
 
-        // Health Indicators Grid
+        // Factual System Indicators Grid
+        val quotaRatio = if (metrics.apiQuotaTotal > 0) (metrics.apiQuotaUsed.toFloat() / metrics.apiQuotaTotal.toFloat()).coerceIn(0f, 1f) else 0f
+        val quotaPercent = (quotaRatio * 100).toInt()
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            HealthMetricCard("LOOP HEARTBEAT", "248ms avg tick", "100% OK", StitchSuccess, Icons.Default.Favorite, Modifier.weight(1f))
-            HealthMetricCard("DATABASE LATENCY", "18ms (PostgREST)", "Ultra Fast", StitchPrimary, Icons.Default.Bolt, Modifier.weight(1f))
-            HealthMetricCard("WASM HEAP MEMORY", "48.2 MB / 512 MB", "Optimal (9.4%)", StitchSecondary, Icons.Default.Memory, Modifier.weight(1f))
-            HealthMetricCard("QUOTA EXHAUSTION", "14.2% daily usage", "Safe Buffer", StitchWarning, Icons.Default.Token, Modifier.weight(1f))
+            HealthMetricCard("HOST NODE", "free-football-worker", "GCP us-central1-a", StitchSuccess, Icons.Default.Dns, Modifier.weight(1f))
+            HealthMetricCard("RUNTIME ENGINE", "Python 3.12", "WorkerOrchestrator", StitchPrimary, Icons.Default.Code, Modifier.weight(1f))
+            HealthMetricCard("DATABASE", "Supabase PostgreSQL", "Active Client", StitchSecondary, Icons.Default.Storage, Modifier.weight(1f))
+            HealthMetricCard("YOUTUBE QUOTA", "${metrics.apiQuotaUsed} / ${metrics.apiQuotaTotal}", "$quotaPercent% consumed", StitchWarning, Icons.Default.Token, Modifier.weight(1f))
         }
 
-        // Thread Pool Allocation Table
+        // Factual Service Pipeline Allocation Table
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -83,15 +86,15 @@ fun TelemetryHealthView(
                 .padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text("Active Worker Thread Pool (5 Workers)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
-            ThreadRowItem("TH-0", "Main Orchestrator & Signal Watcher", "Event Loop Active", "0.2% CPU", StitchSuccess)
-            ThreadRowItem("TH-1", "YouTube Search & Playlist Scanner (LaLiga, Sky)", "Idle - Sleep Active", "0.0% CPU", StitchPrimary)
-            ThreadRowItem("TH-2", "YouTube Scraper B & Gemini AI Re-ranker", "Idle - Standby", "0.0% CPU", StitchPrimary)
-            ThreadRowItem("TH-3", "Live Score & Regressive Guard Monitor", "Standby Off-Pitch", "0.1% CPU", StitchWarning)
-            ThreadRowItem("TH-4", "Supabase Batch Upserter & Cache Purge", "Connected (18ms)", "0.1% CPU", StitchSuccess)
+            Text("Core Worker Services (Orchestrated in worker/main.py)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
+            ServiceRowItem("match_service.py", "Fixtures, Live Score & Match Sync", "Football-Data.org API", StitchSuccess)
+            ServiceRowItem("highlight_service.py", "Official YouTube Club Highlights & Gemini 2.5 Flash Reranker", "YouTube API v3 + Gemini", StitchPrimary)
+            ServiceRowItem("standings_service.py", "League Standings Ingestion", "12-Hour Sync Cycle", StitchSecondary)
+            ServiceRowItem("maintenance_service.py", "Database Cleanup & 30-Day Retention Purge", "Automated Retention Window", StitchSuccess)
+            ServiceRowItem("telemetry_service.py", "Supabase Ingestion (worker_cycles & worker_events)", "Persistence Pipeline", StitchPrimary)
         }
 
-        // Daily API Quota Projection Card
+        // Dynamic Scheduling Guardrail Card
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -102,21 +105,23 @@ fun TelemetryHealthView(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("YouTube Data API Quota Safety Guardrail", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
-                Text("${metrics.apiQuotaUsed} / ${metrics.apiQuotaTotal} units consumed", fontSize = 9.sp, color = StitchWarning, fontFamily = FontFamily.Monospace)
+                Text("Dynamic Interval Strategy & Safety Guardrail", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
+                Text("Current Sleep: ${metrics.nextSleepText}", fontSize = 9.sp, color = StitchPrimary, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
             }
             LinearProgressIndicator(
-                progress = { 0.142f },
+                progress = { quotaRatio },
                 modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
                 color = StitchWarning,
                 trackColor = StitchBorder
             )
-            Text(
-                text = "Estimated daily consumption at current pace: ~2,400 units (76% headroom remaining). No throttling risk.",
-                fontSize = 9.sp,
-                color = StitchTextMuted,
-                fontFamily = FontFamily.Monospace
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("Live Match (IN_PLAY): 60 sec", fontSize = 9.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
+                Text("Imminent Kickoff (\u226445m): 15 min", fontSize = 9.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
+                Text("Standard Idle: 2 hours", fontSize = 9.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
+            }
         }
     }
 }
@@ -125,7 +130,7 @@ fun TelemetryHealthView(
 private fun HealthMetricCard(
     title: String,
     value: String,
-    status: String,
+    subValue: String,
     accentColor: Color,
     icon: ImageVector,
     modifier: Modifier = Modifier
@@ -138,39 +143,42 @@ private fun HealthMetricCard(
             .padding(12.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(title, fontSize = 8.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
                 Icon(icon, null, tint = accentColor, modifier = Modifier.size(14.dp))
             }
-            Text(value, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
-            Text(status, fontSize = 8.sp, color = accentColor, fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace)
+            Text(value, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
+            Text(subValue, fontSize = 8.sp, color = accentColor, fontFamily = FontFamily.Monospace)
         }
     }
 }
 
 @Composable
-private fun ThreadRowItem(id: String, role: String, state: String, cpu: String, stateColor: Color) {
+private fun ServiceRowItem(
+    serviceName: String,
+    purpose: String,
+    detail: String,
+    statusColor: Color
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(4.dp))
             .background(StitchSurfaceContainer)
             .border(1.dp, StitchBorder, RoundedCornerShape(4.dp))
-            .padding(horizontal = 10.dp, vertical = 8.dp),
+            .padding(horizontal = 10.dp, vertical = 7.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(
-                modifier = Modifier.clip(RoundedCornerShape(3.dp)).background(StitchBorder).padding(horizontal = 5.dp, vertical = 2.dp)
-            ) {
-                Text("[$id]", fontSize = 8.sp, color = StitchTextPrimary, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
-            }
-            Text(role, fontSize = 9.sp, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
+            Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(statusColor))
+            Text(serviceName, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
+            Text(purpose, fontSize = 9.sp, color = StitchTextSecondary)
         }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(state, fontSize = 8.sp, color = stateColor, fontWeight = FontWeight.SemiBold, fontFamily = FontFamily.Monospace)
-            Text(cpu, fontSize = 8.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
-        }
+        Text(detail, fontSize = 9.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
     }
 }

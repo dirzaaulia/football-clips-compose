@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.telemetry.model.CycleHistoryItem
 import com.dirzaaulia.footballclips.telemetry.model.LogStreamItem
+import com.dirzaaulia.footballclips.telemetry.model.NotificationLogItem
+import com.dirzaaulia.footballclips.telemetry.model.WorkerEvent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -30,10 +32,12 @@ import kotlinx.coroutines.launch
 fun TelemetryInspectorDrawer(
     logItem: LogStreamItem?,
     cycleItem: CycleHistoryItem?,
+    notificationItem: NotificationLogItem? = null,
+    cycleEvents: List<WorkerEvent> = emptyList(),
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    if (logItem == null && cycleItem == null) return
+    if (logItem == null && cycleItem == null && notificationItem == null) return
 
     val coroutineScope = rememberCoroutineScope()
     var isTraceCopied by remember { mutableStateOf(false) }
@@ -49,8 +53,8 @@ fun TelemetryInspectorDrawer(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .fillMaxHeight()
-                .widthIn(min = 540.dp, max = 720.dp)
-                .fillMaxWidth(0.55f)
+                .widthIn(min = 600.dp, max = 920.dp)
+                .fillMaxWidth(0.60f)
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {},
             color = StitchSurfaceContainer,
             border = BorderStroke(1.dp, StitchBorder),
@@ -70,8 +74,24 @@ fun TelemetryInspectorDrawer(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        val badgeLabel = if (cycleItem != null) cycleItem.executionMode else (logItem?.level ?: "INFO")
-                        val badgeColor = if (cycleItem != null) StitchSecondary else when (logItem?.level) {
+                        val badgeLabel = if (notificationItem != null) {
+                            notificationItem.eventType.uppercase()
+                        } else if (cycleItem != null) {
+                            cycleItem.executionMode
+                        } else {
+                            logItem?.level ?: "INFO"
+                        }
+
+                        val badgeColor = if (notificationItem != null) {
+                            when (notificationItem.eventType.lowercase()) {
+                                "score" -> StitchSuccess
+                                "highlight" -> StitchPurple
+                                "kickoff" -> StitchPrimary
+                                else -> StitchSecondary
+                            }
+                        } else if (cycleItem != null) {
+                            StitchSecondary
+                        } else when (logItem?.level) {
                             "SUCCESS" -> StitchSuccess
                             "WARN" -> StitchWarning
                             "ERROR" -> StitchError
@@ -87,7 +107,13 @@ fun TelemetryInspectorDrawer(
                             Text(badgeLabel, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = badgeColor, fontFamily = FontFamily.Monospace)
                         }
                         Text(
-                            text = if (cycleItem != null) "Cycle #${cycleItem.id} Run Inspector" else "Telemetry Event #${logItem?.id}",
+                            text = if (notificationItem != null) {
+                                "Notification Fanout Inspector"
+                            } else if (cycleItem != null) {
+                                "Cycle #${cycleItem.id} Run Inspector"
+                            } else {
+                                "Telemetry Event #${logItem?.id}"
+                            },
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = StitchTextPrimary,
@@ -105,7 +131,9 @@ fun TelemetryInspectorDrawer(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
                         onClick = {
-                            val json = if (cycleItem != null) {
+                            val json = if (notificationItem != null) {
+                                "{\"id\":\"${notificationItem.id}\",\"event_type\":\"${notificationItem.eventType}\",\"title\":\"${notificationItem.title}\",\"distinct_users\":${notificationItem.audience.distinctUsers},\"total_devices\":${notificationItem.audience.totalDevices}}"
+                            } else if (cycleItem != null) {
                                 "{\"cycle_id\":${cycleItem.id},\"timestamp\":\"${cycleItem.timestamp}\",\"mode\":\"${cycleItem.executionMode}\",\"ingested_matches\":${cycleItem.ingestedMatches},\"highlights_harvested\":${cycleItem.highlightsHarvested},\"api_quota_cost\":${cycleItem.apiQuotaCost},\"db_status\":\"${cycleItem.dbStatus}\",\"exceptions\":${cycleItem.exceptions}}"
                             } else {
                                 "{\"id\":${logItem?.id},\"cycle_id\":${logItem?.cycleId},\"timestamp\":\"${logItem?.timestamp}\",\"level\":\"${logItem?.level}\",\"subsystem\":\"${logItem?.subsystem}\",\"action\":\"${logItem?.action}\",\"message\":\"${logItem?.cleanMessage?.replace("\"", "\\\"")}\"}"
@@ -126,7 +154,7 @@ fun TelemetryInspectorDrawer(
 
                     Button(
                         onClick = {
-                            val text = cycleItem?.toString() ?: (logItem?.rawText ?: "")
+                            val text = notificationItem?.toString() ?: (cycleItem?.toString() ?: (logItem?.rawText ?: ""))
                             TelemetryUtils.copyToClipboard(text)
                             isTraceCopied = true
                             coroutineScope.launch { delay(2000); isTraceCopied = false }
@@ -142,8 +170,11 @@ fun TelemetryInspectorDrawer(
                     }
                 }
 
-                if (cycleItem != null) {
-                    CycleInspectorBody(cycleItem)
+                if (notificationItem != null) {
+                    NotificationInspectorBody(notificationItem)
+                } else if (cycleItem != null) {
+                    val steps = remember(cycleEvents) { TelemetryParser.parseCycleSteps(cycleEvents) }
+                    CycleInspectorBody(cycleItem, steps = steps)
                 } else if (logItem != null) {
                     LogInspectorBody(logItem)
                 }

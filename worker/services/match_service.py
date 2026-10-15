@@ -1,6 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 from loguru import logger
+from worker.clients.espn_client import espn_client
 from worker.clients.football_data_client import football_data_client
 from worker.clients.supabase_client import supabase_client
 from worker.config.settings import settings
@@ -10,6 +11,14 @@ from worker.utils.telemetry_logger import append_event
 
 
 class MatchService:
+
+    def __init__(self):
+        self.newly_finished_count: int = 0
+
+    def consume_newly_finished(self) -> int:
+        count = self.newly_finished_count
+        self.newly_finished_count = 0
+        return count
 
     @staticmethod
     def safe_parse_iso(date_str: str | None) -> datetime:
@@ -30,13 +39,16 @@ class MatchService:
             log_events = []
 
         now_utc = datetime.now(UTC)
+        provider = (settings.match_data_provider or "football_data").lower()
+        provider_name = "ESPN Live Engine" if provider == "espn" else "Football-Data API"
+
         mode_text = (
-            f"FULL SYNC (H-{settings.retention_days} s/d H+{settings.upcoming_fixture_days})"
+            f"FULL SYNC [{provider_name}] (H-{settings.retention_days} s/d H+{settings.upcoming_fixture_days})"
             if is_full_sync
-            else "LIVE SYNC (H-1 s/d H+7)"
+            else f"LIVE SYNC [{provider_name}] (H-1 to H+7)"
         )
-        logger.info(f"📡 Mode Sinkronisasi: {mode_text}")
-        append_event(log_events, f"📡 Mode Sinkronisasi: {mode_text}", "INFO", "MATCH_SYNC", "MODE")
+        logger.info(f"Sync Mode: {mode_text}")
+        append_event(log_events, f"Sync Mode: {mode_text}", "INFO", "MATCH_SYNC", "MODE")
 
         if is_full_sync:
             date_from = (now_utc - timedelta(days=settings.retention_days)).strftime("%Y-%m-%d")
@@ -45,17 +57,25 @@ class MatchService:
             date_from = (now_utc - timedelta(days=1)).strftime("%Y-%m-%d")
             date_to = (now_utc + timedelta(days=7)).strftime("%Y-%m-%d")
 
-        matches_raw = await football_data_client.get_matches(
-            competitions=settings.target_competitions,
-            date_from=date_from,
-            date_to=date_to
-        )
+        if provider == "espn":
+            matches_raw = await espn_client.get_matches(
+                competitions=settings.target_competitions,
+                date_from=date_from,
+                date_to=date_to,
+            )
+        else:
+            fd_comps = [c for c in settings.target_competitions if c in ["PL", "PD", "SA", "BL1", "FL1", "CL", "EL"]]
+            matches_raw = await football_data_client.get_matches(
+                competitions=fd_comps,
+                date_from=date_from,
+                date_to=date_to,
+            )
 
         if not matches_raw:
-            append_event(log_events, "⚪ Football-Data: Tidak ada data pertandingan yang diterima.", "WARN", "MATCH_SYNC", "EMPTY_API")
+            append_event(log_events, f"{provider_name}: No matches received for sync window.", "WARN", "MATCH_SYNC", "EMPTY_API")
             return []
 
-        msg_fetch = f"📥 Menerima {len(matches_raw)} pertandingan dari API Football-Data ({date_from} s/d {date_to})"
+        msg_fetch = f"Ingested {len(matches_raw)} fixtures from {provider_name} ({date_from} to {date_to})"
         logger.info(msg_fetch)
         append_event(log_events, msg_fetch, "INFO", "MATCH_SYNC", "API_FETCH")
 
@@ -66,37 +86,46 @@ class MatchService:
         api_match_ids = []
 
         for m in matches_raw:
-            comp_name = m.get("competition", {}).get("name", "Unknown")
-            if comp_name == "Primera Division":
-                comp_name = "LaLiga"
+            if provider == "espn":
+                m["updated_at"] = now_utc.isoformat()
+                payload_batch.append(m)
+                api_match_ids.append(m["id"])
+            else:
+                comp_name = m.get("competition", {}).get("name", "Unknown")
+                if comp_name == "Primera Division":
+                    comp_name = "LaLiga"
 
-            match_start = self.safe_parse_iso(m.get("utcDate"))
-            elapsed_minutes = (now_utc - match_start).total_seconds() / 60
-            api_status = m.get("status", "SCHEDULED")
+                match_start = self.safe_parse_iso(m.get("utcDate"))
+                elapsed_minutes = (now_utc - match_start).total_seconds() / 60
+                api_status = m.get("status", "SCHEDULED")
 
-            # Fallback otomatis jika status IN_PLAY tapi sudah lewat 140 menit
-            if api_status in ["IN_PLAY", "PAUSED"] and elapsed_minutes > 140:
-                api_status = "FINISHED"
+                # Fallback otomatis jika status IN_PLAY tapi sudah lewat 140 menit
+                if api_status in ["IN_PLAY", "PAUSED"] and elapsed_minutes > 140:
+                    api_status = "FINISHED"
 
-            payload = {
-                "id": m["id"],
-                "competition_id": m.get("competition", {}).get("code", "OTHER"),
-                "competition_name": comp_name,
-                "utc_date": m.get("utcDate"),
-                "status": api_status,
-                "matchday": m.get("matchday"),
-                "home_team_id": m.get("homeTeam", {}).get("id"),
-                "home_team_name": m.get("homeTeam", {}).get("name", ""),
-                "home_team_crest": m.get("homeTeam", {}).get("crest"),
-                "away_team_id": m.get("awayTeam", {}).get("id"),
-                "away_team_name": m.get("awayTeam", {}).get("name", ""),
-                "away_team_crest": m.get("awayTeam", {}).get("crest"),
-                "home_score": m.get("score", {}).get("fullTime", {}).get("home"),
-                "away_score": m.get("score", {}).get("fullTime", {}).get("away"),
-                "updated_at": now_utc.isoformat()
-            }
-            payload_batch.append(payload)
-            api_match_ids.append(m["id"])
+                matchday = m.get("matchday")
+                payload = {
+                    "id": m["id"],
+                    "competition_id": m.get("competition", {}).get("code", "OTHER"),
+                    "competition_name": comp_name,
+                    "utc_date": m.get("utcDate"),
+                    "status": api_status,
+                    "matchday": matchday,
+                    "round_name": f"Matchweek {matchday}" if matchday else None,
+                    "display_clock": None,
+                    "home_team_id": m.get("homeTeam", {}).get("id"),
+                    "home_team_name": m.get("homeTeam", {}).get("name", ""),
+                    "home_team_crest": m.get("homeTeam", {}).get("crest"),
+                    "away_team_id": m.get("awayTeam", {}).get("id"),
+                    "away_team_name": m.get("awayTeam", {}).get("name", ""),
+                    "away_team_crest": m.get("awayTeam", {}).get("crest"),
+                    "home_score": m.get("score", {}).get("fullTime", {}).get("home"),
+                    "away_score": m.get("score", {}).get("fullTime", {}).get("away"),
+                    "provider": "football_data",
+                    "updated_at": now_utc.isoformat()
+                }
+                payload_batch.append(payload)
+                api_match_ids.append(m["id"])
 
         unique_payloads = list({p['id']: p for p in payload_batch}.values())
         if not unique_payloads:
@@ -115,6 +144,9 @@ class MatchService:
                 old = old_data_map.get(p["id"])
                 h_team, a_team = p["home_team_name"], p["away_team_name"]
 
+                comp_name = p.get("competition_name") or p.get("competition_id") or "League"
+                m_date = str(p.get("utc_date", ""))[:10]
+
                 if old:
                     # Protection against regression from FINISHED back to IN_PLAY/TIMED
                     is_regression = False
@@ -122,7 +154,7 @@ class MatchService:
                         is_regression = True
 
                     if is_regression:
-                        append_event(log_events, f"[REGRESSION_BLOCKED] {h_team} vs {a_team} status retained as {old['status']}", "WARN", "MATCH_SYNC", "REGRESSION")
+                        append_event(log_events, f"[REGRESSION_BLOCKED] [{comp_name}] ({m_date}) {h_team} vs {a_team} status retained as {old['status']}", "WARN", "MATCH_SYNC", "REGRESSION")
                         p["status"] = old["status"]
                         if p.get("home_score") is None:
                             p["home_score"] = old.get("home_score")
@@ -130,26 +162,31 @@ class MatchService:
                             p["away_score"] = old.get("away_score")
                     elif old["status"] != p["status"]:
                         if p["status"] in ["FINISHED", "AWARDED"]:
-                            append_event(log_events, f"[FULL TIME] {h_team} {p.get('home_score') or 0} - {p.get('away_score') or 0} {a_team}", "INFO", "MATCH_SYNC", "FULL_TIME")
+                            self.newly_finished_count += 1
+                            append_event(log_events, f"[FULL TIME] [{comp_name}] ({m_date}) {h_team} vs {a_team} finished: {p.get('home_score') or 0} - {p.get('away_score') or 0}", "INFO", "MATCH_SYNC", "FULL_TIME")
                             notification_service.notify_match_event(p, "fulltime", log_events)
                         elif p["status"] == "IN_PLAY":
-                            append_event(log_events, f"[KICKOFF] {h_team} vs {a_team} underway!", "INFO", "MATCH_SYNC", "KICKOFF")
+                            append_event(log_events, f"[KICKOFF] [{comp_name}] ({m_date}) {h_team} vs {a_team} kicked off (Status: IN_PLAY)", "INFO", "MATCH_SYNC", "KICKOFF")
                             notification_service.notify_match_event(p, "kickoff", log_events)
                         else:
-                            append_event(log_events, f"[STATUS_CHANGE] {h_team} vs {a_team} | {old['status']} -> {p['status']}", "INFO", "MATCH_SYNC", "STATUS_CHANGE")
+                            append_event(log_events, f"[STATUS UPDATE] [{comp_name}] ({m_date}) {h_team} vs {a_team} status changed: {old['status']} -> {p['status']}", "INFO", "MATCH_SYNC", "STATUS_CHANGE")
                         changes_found = True
 
                     if p["status"] in ["IN_PLAY", "PAUSED", "FINISHED"]:
                         h_score_old, a_score_old = old.get("home_score") or 0, old.get("away_score") or 0
                         h_score_new, a_score_new = p.get("home_score") or 0, p.get("away_score") or 0
                         if h_score_old != h_score_new or a_score_old != a_score_new:
-                            append_event(log_events, f"[GOAL] {h_team} {h_score_new} - {a_score_new} {a_team}", "SUCCESS", "MATCH_SYNC", "GOAL_SCORE")
+                            append_event(log_events, f"[LIVE SCORE] [{comp_name}] ({m_date}) Score updated for {h_team} vs {a_team}: {h_score_new} - {a_score_new}", "SUCCESS", "MATCH_SYNC", "GOAL_SCORE")
                             if p["status"] in ["IN_PLAY", "PAUSED"]:
                                 notification_service.notify_match_event(p, "score", log_events)
                             changes_found = True
                 else:
                     changes_found = True
-                    append_event(log_events, f"[NEW FIXTURE] Discovered new fixture: {h_team} vs {a_team}", "INFO", "MATCH_SYNC", "NEW_MATCH")
+                    kickoff_time = p.get("utc_date", "")[11:16] + " UTC" if len(p.get("utc_date", "")) >= 16 else "TBD"
+                    if p["status"] in ["TIMED", "SCHEDULED"]:
+                        append_event(log_events, f"[NEW FIXTURE] [{comp_name}] ({m_date}) Inserted upcoming fixture: {h_team} vs {a_team} (Kickoff: {kickoff_time})", "INFO", "MATCH_SYNC", "NEW_MATCH")
+                    else:
+                        append_event(log_events, f"[NEW FIXTURE] [{comp_name}] ({m_date}) Inserted fixture: {h_team} vs {a_team} (Status: {p['status']})", "INFO", "MATCH_SYNC", "NEW_MATCH")
 
             if not changes_found:
                 append_event(log_events, "No fixture score or status changes detected.", "INFO", "MATCH_SYNC", "NO_CHANGE")

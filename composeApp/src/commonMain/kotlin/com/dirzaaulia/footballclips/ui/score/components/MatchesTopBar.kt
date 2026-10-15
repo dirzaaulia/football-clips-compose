@@ -24,6 +24,9 @@ fun MatchesTopBar(
     isMyClubsActive: Boolean,
     onToggleMyClubs: () -> Unit,
     onOpenMyClubsSheet: () -> Unit,
+    isLiveOnlyActive: Boolean = false,
+    onToggleLiveOnly: () -> Unit = {},
+    liveMatchCount: Int = 0,
     dates: List<DateOption>,
     selectedDate: String?,
     onDateSelected: (String?) -> Unit,
@@ -150,6 +153,9 @@ fun MatchesTopBar(
                 favoriteClubsCount = favoriteClubsCount,
                 onOpenMyClubsSheet = onOpenMyClubsSheet,
                 onToggleMyClubs = onToggleMyClubs,
+                isLiveOnlyActive = isLiveOnlyActive,
+                onToggleLiveOnly = onToggleLiveOnly,
+                liveMatchCount = liveMatchCount,
                 selectedCompetitionId = selectedCompetitionId,
                 onLeagueSelected = onLeagueSelected
             )

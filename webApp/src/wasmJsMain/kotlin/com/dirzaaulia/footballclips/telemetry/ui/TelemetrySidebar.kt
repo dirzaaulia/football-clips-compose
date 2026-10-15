@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,22 +30,22 @@ fun TelemetrySidebar(
 ) {
     Column(
         modifier = modifier
-            .width(210.dp)
+            .width(240.dp)
             .fillMaxHeight()
             .background(StitchSidebar)
             .border(width = 1.dp, color = StitchBorder)
-            .padding(14.dp),
+            .padding(16.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             // Brand & Node Header
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(36.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .background(StitchPrimary.copy(alpha = 0.15f))
                         .border(1.dp, StitchPrimary.copy(alpha = 0.35f), RoundedCornerShape(8.dp)),
@@ -56,7 +55,7 @@ fun TelemetrySidebar(
                         imageVector = Icons.Default.Terminal,
                         contentDescription = "Node Icon",
                         tint = StitchPrimary,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
                 Column {
@@ -64,62 +63,24 @@ fun TelemetrySidebar(
                         Text(
                             text = "FC-WORKER",
                             color = StitchTextPrimary,
-                            fontSize = 13.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace
                         )
-                        Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(StitchSuccess))
+                        Box(modifier = Modifier.size(7.dp).clip(CircleShape).background(StitchSuccess))
                     }
                     Text(
-                        text = "TELEMETRY NODE 01",
+                        text = "free-football-worker",
                         color = StitchTextMuted,
-                        fontSize = 9.sp,
+                        fontSize = 11.5.sp,
                         fontFamily = FontFamily.Monospace,
                         letterSpacing = 0.5.sp
                     )
                 }
             }
 
-            // Engine Loop Heartbeat Bar
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(StitchSurface)
-                    .border(1.dp, StitchBorder, RoundedCornerShape(6.dp))
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "ENGINE LOOP",
-                        color = StitchTextMuted,
-                        fontSize = 9.sp,
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = "248ms tick",
-                        color = StitchPrimary,
-                        fontSize = 9.sp,
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                LinearProgressIndicator(
-                    progress = { 0.72f },
-                    modifier = Modifier.fillMaxWidth().height(3.dp).clip(RoundedCornerShape(2.dp)),
-                    color = StitchPrimary,
-                    trackColor = StitchBorder
-                )
-            }
-
             // Navigation Items
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 SidebarNavItem(
                     title = "Telemetry Stream",
                     icon = Icons.Default.ViewStream,
@@ -127,19 +88,13 @@ fun TelemetrySidebar(
                     onClick = { onSectionSelected(TelemetryNavSection.STREAM) }
                 )
                 SidebarNavItem(
-                    title = "Sync Cycles",
-                    icon = Icons.Default.Refresh,
-                    isSelected = selectedSection == TelemetryNavSection.CYCLES,
-                    onClick = { onSectionSelected(TelemetryNavSection.CYCLES) }
+                    title = "Club Alerts",
+                    icon = Icons.Default.Notifications,
+                    isSelected = selectedSection == TelemetryNavSection.NOTIFICATIONS,
+                    onClick = { onSectionSelected(TelemetryNavSection.NOTIFICATIONS) }
                 )
                 SidebarNavItem(
-                    title = "Clip Pipelines",
-                    icon = Icons.Default.PlayCircle,
-                    isSelected = selectedSection == TelemetryNavSection.PIPELINES,
-                    onClick = { onSectionSelected(TelemetryNavSection.PIPELINES) }
-                )
-                SidebarNavItem(
-                    title = "Worker Threads",
+                    title = "Worker Services",
                     icon = Icons.Default.AccountTree,
                     isSelected = selectedSection == TelemetryNavSection.THREADS,
                     onClick = { onSectionSelected(TelemetryNavSection.THREADS) }
@@ -159,11 +114,14 @@ fun TelemetrySidebar(
             }
         }
 
-        // Bottom Stats (WASM Heap & Edge Status)
+        // Bottom Stats: Factual Worker Node & GCP Environment
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp),
+                .clip(RoundedCornerShape(6.dp))
+                .background(StitchSurface)
+                .border(1.dp, StitchBorder, RoundedCornerShape(6.dp))
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Row(
@@ -171,22 +129,22 @@ fun TelemetrySidebar(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(Icons.Default.Memory, null, tint = StitchTextMuted, modifier = Modifier.size(12.dp))
-                    Text("WASM HEAP", fontSize = 9.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(StitchSuccess))
+                    Text("GCP VM", fontSize = 11.5.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
                 }
-                Text("48.2 MB", fontSize = 9.sp, color = StitchPrimary, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                Text("us-central1-a", fontSize = 11.5.sp, color = StitchTextSecondary, fontFamily = FontFamily.Monospace)
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(StitchSuccess))
-                    Text("EDGE OK", fontSize = 9.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Icon(Icons.Default.Code, null, tint = StitchTextMuted, modifier = Modifier.size(13.dp))
+                    Text("RUNTIME", fontSize = 11.5.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
                 }
-                Text("v2.14.8", fontSize = 9.sp, color = StitchTextSecondary, fontFamily = FontFamily.Monospace)
+                Text("Python 3.12", fontSize = 11.5.sp, color = StitchPrimary, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -211,11 +169,11 @@ private fun SidebarNavItem(
             .background(bg)
             .border(1.dp, border, RoundedCornerShape(6.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 8.dp),
+            .padding(horizontal = 12.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(11.dp)
     ) {
-        Icon(imageVector = icon, contentDescription = title, tint = tint, modifier = Modifier.size(16.dp))
-        Text(text = title, color = tint, fontSize = 11.sp, fontWeight = fw, maxLines = 1)
+        Icon(imageVector = icon, contentDescription = title, tint = tint, modifier = Modifier.size(18.dp))
+        Text(text = title, color = tint, fontSize = 13.5.sp, fontWeight = fw, maxLines = 1)
     }
 }

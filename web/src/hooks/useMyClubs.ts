@@ -47,6 +47,8 @@ export function getServerMyClubsSnapshot(): Set<string> {
   return EMPTY_FAVORITE_CLUBS_SET;
 }
 
+import { syncWebDeviceClubs } from '@/lib/telemetry/device-sync';
+
 export function toggleFavoriteClubAction(clubId: string) {
   initClubs();
   const next = new Set(memoryFavoriteClubs);
@@ -63,6 +65,8 @@ export function toggleFavoriteClubAction(clubId: string) {
     } catch {
       // Ignore quota errors
     }
+    const numClubs = Array.from(next).map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+    syncWebDeviceClubs(numClubs);
   }
   emitChange();
 }

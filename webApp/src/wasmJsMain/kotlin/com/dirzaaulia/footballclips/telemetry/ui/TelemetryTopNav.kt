@@ -7,14 +7,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,34 +41,34 @@ fun TelemetryTopNav(
         // Left Status Badges
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // LIVE WASM Badge
+            // LIVE WASM Client Badge
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(4.dp))
                     .background(StitchSuccess.copy(alpha = 0.12f))
                     .border(1.dp, StitchSuccess.copy(alpha = 0.35f), RoundedCornerShape(4.dp))
-                    .padding(horizontal = 7.dp, vertical = 4.dp),
+                    .padding(horizontal = 9.dp, vertical = 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(StitchSuccess))
-                Text("LIVE WASM", color = StitchSuccess, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(StitchSuccess))
+                Text("LIVE WASM CLIENT", color = StitchSuccess, fontSize = 11.5.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
             }
 
-            // REALTIME SUPABASE Badge
+            // Supabase Database Badge
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(4.dp))
                     .background(StitchSecondary.copy(alpha = 0.12f))
                     .border(1.dp, StitchSecondary.copy(alpha = 0.35f), RoundedCornerShape(4.dp))
-                    .padding(horizontal = 7.dp, vertical = 4.dp),
+                    .padding(horizontal = 9.dp, vertical = 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                Icon(Icons.Default.Bolt, null, tint = StitchSecondary, modifier = Modifier.size(11.dp))
-                Text("REALTIME SUPABASE", color = StitchSecondary, fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                Icon(Icons.Default.Dns, null, tint = StitchSecondary, modifier = Modifier.size(13.dp))
+                Text("SUPABASE DATABASE", color = StitchSecondary, fontSize = 11.5.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
             }
 
             // Timezone
@@ -74,76 +77,44 @@ fun TelemetryTopNav(
                     .clip(RoundedCornerShape(4.dp))
                     .background(StitchSurface)
                     .border(1.dp, StitchBorder, RoundedCornerShape(4.dp))
-                    .padding(horizontal = 7.dp, vertical = 4.dp),
+                    .padding(horizontal = 9.dp, vertical = 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                Icon(Icons.Default.Schedule, null, tint = StitchTextMuted, modifier = Modifier.size(11.dp))
-                Text("WIB Asia/Jakarta UTC+7", color = StitchTextSecondary, fontSize = 9.sp, fontFamily = FontFamily.Monospace)
+                Icon(Icons.Default.Schedule, null, tint = StitchTextMuted, modifier = Modifier.size(13.dp))
+                Text("WIB Asia/Jakarta UTC+7", color = StitchTextSecondary, fontSize = 11.5.sp, fontFamily = FontFamily.Monospace)
             }
         }
 
-        // Right Operational Controls
+        // Right Operational Controls - Clean, genuine refresh button
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Auto Refresh Pill
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(StitchSurface)
-                    .border(1.dp, StitchBorder, RoundedCornerShape(4.dp))
-                    .padding(horizontal = 7.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Box(modifier = Modifier.size(5.dp).clip(CircleShape).background(StitchSuccess))
-                Text("Auto-Refresh: ON", color = StitchTextSecondary, fontSize = 9.sp, fontFamily = FontFamily.Monospace)
-            }
-
-            // Speed Indicator
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(StitchSurface)
-                    .border(1.dp, StitchBorder, RoundedCornerShape(4.dp))
-                    .padding(horizontal = 7.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Icon(Icons.Default.Speed, null, tint = StitchTextMuted, modifier = Modifier.size(11.dp))
-                Text("Speed: 1x (Realtime)", color = StitchTextSecondary, fontSize = 9.sp, fontFamily = FontFamily.Monospace)
-            }
-
-            // Refresh Icon Button
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(StitchSurface)
-                    .border(1.dp, StitchBorder, RoundedCornerShape(4.dp))
-                    .clickable(onClick = onRefresh),
-                contentAlignment = Alignment.Center
+            Button(
+                onClick = onRefresh,
+                enabled = !isLoading,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = StitchSurfaceContainer,
+                    contentColor = StitchTextPrimary
+                ),
+                shape = RoundedCornerShape(6.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, StitchBorder),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
                     contentDescription = "Refresh",
-                    tint = if (isLoading) StitchPrimary else StitchTextSecondary,
-                    modifier = Modifier.size(13.dp)
+                    tint = StitchPrimary,
+                    modifier = Modifier.size(14.dp)
                 )
-            }
-
-            // Power/Status Icon
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(StitchSurface)
-                    .border(1.dp, StitchBorder, RoundedCornerShape(4.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.PowerSettingsNew, null, tint = StitchSuccess, modifier = Modifier.size(13.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = if (isLoading) "Syncing Stream..." else "Refresh Telemetry",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = FontFamily.Monospace
+                )
             }
         }
     }
