@@ -55,11 +55,8 @@ export default {
     // 3. Inspect request for Cache TTL Rules
     const cacheTtl = determineTtl(url);
 
-    // 4. Edge Cache Lookup
-    const cacheKey = new Request(url.toString(), {
-      method: "GET",
-      headers: request.headers,
-    });
+    // 4. Edge Cache Lookup (Normalized URL Key for universal cache sharing)
+    const cacheKey = new Request(url.toString(), { method: "GET" });
     const cache = caches.default;
     let cachedResponse = await cache.match(cacheKey);
 
@@ -75,7 +72,7 @@ export default {
     }
 
     // 5. Cache MISS -> Fetch from Origin (Supabase)
-    const originResponse = await forwardToSupabase(request, env, url);
+    const originResponse = await forwardToSupabase(request, env, url, cacheTtl);
 
     // Only cache successful 200/206 responses
     if (originResponse.status === 200 || originResponse.status === 206) {
@@ -145,7 +142,7 @@ function determineTtl(url: URL): number {
   return 60;
 }
 
-async function forwardToSupabase(request: Request, env: Env, url: URL): Promise<Response> {
+async function forwardToSupabase(request: Request, env: Env, url: URL, cacheTtl: number = 60): Promise<Response> {
   const targetBase = (env.SUPABASE_URL || "https://eiomktvavndorazreyba.supabase.co").replace(/\/$/, "");
   const targetUrl = `${targetBase}${url.pathname}${url.search}`;
 
@@ -159,5 +156,9 @@ async function forwardToSupabase(request: Request, env: Env, url: URL): Promise<
     method: request.method,
     headers: forwardHeaders,
     body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
+    cf: {
+      cacheEverything: true,
+      cacheTtl: cacheTtl,
+    },
   });
 }
