@@ -1,9 +1,11 @@
+import asyncio
 import html
 import re
 from datetime import UTC, datetime, timedelta
 
 from loguru import logger
 
+from worker.clients.edge_cache_client import edge_cache_client
 from worker.clients.gemini_client import gemini_client
 from worker.clients.supabase_client import supabase_client
 from worker.clients.youtube_client import youtube_client
@@ -774,6 +776,9 @@ class HighlightService:
                 append_event(log_events, f"   [ERROR] Match highlight search error for {home} vs {away}: {err_str}", "ERROR", "YOUTUBE", "SEARCH_ERROR")
                 append_event(log_events, f"   [SKIP COOLDOWN] Network/API error occurred. Cooldown not recorded for {home} vs {away} to allow retry next cycle.", "DEBUG", "YOUTUBE", "SKIP_COOLDOWN")
 
+        if linked_count > 0:
+            edge_cache_client.purge_matches_cache()
+
         append_event(log_events, f"Highlight scanning complete. Successfully linked {linked_count} new video highlights.", "SUCCESS", "YOUTUBE", "SUMMARY")
         return linked_count
 
@@ -898,6 +903,10 @@ class HighlightService:
 
                 # Send notifications
                 notification_service.notify_highlight_ready(best_match, video_id, "Official Highlights", log_events)
+
+                # Instantly invalidate Cloudflare Edge Cache so mobile clients see the highlight immediately
+                edge_cache_client.purge_matches_cache()
+
                 return True
             except Exception as e:
                 logger.error(f"[WebSub Direct] Failed to update match {best_match.get('id')}: {e}")

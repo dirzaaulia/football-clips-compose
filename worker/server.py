@@ -73,6 +73,73 @@ async def get_status():
     }
 
 
+@app.get("/metrics")
+async def get_metrics():
+    """Prometheus / OpenMetrics APM telemetry endpoint."""
+    from fastapi.responses import PlainTextResponse
+    from worker.clients.supabase_client import supabase_client
+
+    try:
+        m_res = supabase_client.table("matches").select("id, status, highlight_video_id").execute()
+        matches = m_res.data or []
+        total_matches = len(matches)
+        live_matches = sum(1 for m in matches if m.get("status") in ["IN_PLAY", "PAUSED"])
+        finished_matches = sum(1 for m in matches if m.get("status") == "FINISHED")
+        highlight_linked = sum(1 for m in matches if m.get("highlight_video_id"))
+        unlinked_finished = sum(1 for m in matches if m.get("status") == "FINISHED" and not m.get("highlight_video_id"))
+    except Exception:
+        total_matches = 0
+        live_matches = 0
+        finished_matches = 0
+        highlight_linked = 0
+        unlinked_finished = 0
+
+    lines = [
+        "# HELP footballclips_worker_cycle_index Current cycle sequence index",
+        "# TYPE footballclips_worker_cycle_index counter",
+        f"footballclips_worker_cycle_index {orchestrator.cycle_index}",
+        "",
+        "# HELP footballclips_worker_is_running Worker orchestrator status",
+        "# TYPE footballclips_worker_is_running gauge",
+        f"footballclips_worker_is_running {1 if orchestrator.is_running else 0}",
+        "",
+        "# HELP footballclips_matches_total Total matches tracked in database",
+        "# TYPE footballclips_matches_total gauge",
+        f"footballclips_matches_total {total_matches}",
+        "",
+        "# HELP footballclips_matches_live Live matches in play or paused",
+        "# TYPE footballclips_matches_live gauge",
+        f"footballclips_matches_live {live_matches}",
+        "",
+        "# HELP footballclips_matches_finished Completed matches count",
+        "# TYPE footballclips_matches_finished gauge",
+        f"footballclips_matches_finished {finished_matches}",
+        "",
+        "# HELP footballclips_highlights_linked Matches with verified video highlight",
+        "# TYPE footballclips_highlights_linked gauge",
+        f"footballclips_highlights_linked {highlight_linked}",
+        "",
+        "# HELP footballclips_highlights_unlinked Finished matches awaiting highlight",
+        "# TYPE footballclips_highlights_unlinked gauge",
+        f"footballclips_highlights_unlinked {unlinked_finished}",
+        ""
+    ]
+    return PlainTextResponse(content="\n".join(lines), media_type="text/plain; version=0.0.4")
+
+
+@app.post("/websub/renew")
+async def renew_websub_subscriptions():
+    """Batch renew all official football club and league WebSub subscriptions."""
+    from worker.scripts.subscribe_youtube_websub import websub_subscriber
+    logger.info("[WebSub Serverless] Starting scheduled batch subscription renewal...")
+    await websub_subscriber.subscribe_all()
+    return {
+        "status": "COMPLETED",
+        "message": "All official channels renewed with Google PubSubHubbub",
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+
+
 @app.post("/run-cycle")
 async def trigger_cycle(
     background_tasks: BackgroundTasks,

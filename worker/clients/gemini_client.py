@@ -6,6 +6,8 @@ except ImportError:
     types = None
 
 import json
+import time
+from collections import deque
 
 from loguru import logger
 from pydantic import BaseModel
@@ -19,9 +21,13 @@ class HighlightRerankResult(BaseModel):
 
 class GeminiClient:
     """
-    Modern Gemini AI Client using Google GenAI SDK with structured outputs
+    Modern Gemini AI Client using Google GenAI SDK with structured outputs,
+    in-memory sliding window Token Bucket rate limiter (12 RPM),
     and automatic failover across latest Gemini 3.x Flash models.
     """
+
+    MAX_RPM: int = 12  # Strict ceiling below Google's 15 RPM free tier limit
+    WINDOW_SECONDS: float = 60.0
 
     MODELS_TO_TRY = [
         "gemini-3.5-flash",
@@ -36,12 +42,29 @@ class GeminiClient:
 
     def __init__(self):
         self.client = None
+        self._request_timestamps: deque[float] = deque()
         if settings.gemini_api_key and genai is not None:
             try:
                 self.client = genai.Client(api_key=settings.gemini_api_key)
                 logger.info("Gemini AI Client initialized successfully.")
             except Exception as e:
                 logger.warning(f"Failed to initialize Gemini Client: {e}")
+
+    def _acquire_token(self) -> bool:
+        """Sliding-window token bucket to prevent exceeding free 15 RPM quota."""
+        now = time.monotonic()
+        while self._request_timestamps and now - self._request_timestamps[0] > self.WINDOW_SECONDS:
+            self._request_timestamps.popleft()
+
+        if len(self._request_timestamps) >= self.MAX_RPM:
+            logger.warning(
+                f"[Gemini TokenBucket] Rate limit reached ({len(self._request_timestamps)}/{self.MAX_RPM} req/min). "
+                "Transparently delegating to mathematical heuristic scorer."
+            )
+            return False
+
+        self._request_timestamps.append(now)
+        return True
 
     def rerank_highlights(
         self,
@@ -55,6 +78,10 @@ class GeminiClient:
         and returns the 0-based index of the best candidate, or None if inconclusive.
         """
         if not self.client or not candidates:
+            return None
+
+        # Check token bucket before consuming API call
+        if not self._acquire_token():
             return None
 
         prompt = f"""You are an expert official football highlights curator.

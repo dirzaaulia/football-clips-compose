@@ -34,17 +34,26 @@ export default {
       });
     }
 
-    // 2. Cache Purge Hook (Optional)
+    // 2. Cache Purge Hook
     if (url.pathname === "/api/purge-cache" && request.method === "POST") {
       const authHeader = request.headers.get("Authorization");
       if (env.PURGE_SECRET && authHeader !== `Bearer ${env.PURGE_SECRET}`) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
       }
-      const cache = caches.default;
-      // In Cloudflare Workers, purge by cache tag or full cache
-      return new Response(JSON.stringify({ status: "Purge acknowledged" }), {
-        headers: { "Content-Type": "application/json" },
-      });
+      try {
+        const body = (await request.json().catch(() => ({}))) as { target_url?: string };
+        const target = body.target_url || `${url.origin}/rest/v1/matches?status=eq.FINISHED`;
+        const cache = caches.default;
+        await cache.delete(new Request(target, { method: "GET" }));
+        return new Response(JSON.stringify({ status: "Purged", target }), {
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ status: "Purge error", error: String(e) }), {
+          status: 500,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        });
+      }
     }
 
     // Only cache GET and HEAD requests
