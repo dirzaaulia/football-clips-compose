@@ -1,0 +1,8 @@
+name = "fc-edge-proxy"
+main = "src/index.ts"
+compatibility_date = "2026-10-15"
+
+[vars]
+SUPABASE_URL = "https://eiomktvavndorazreyba.supabase.co"
+# Anonymous public PostgREST key (Safe for public client edge proxies)
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpb21rdHZhdm5kb3JhenJleWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4MDI1NjgsImV4cCI6MjA3NDM3ODU2OH0.98aXl9Y0dC3qS9v38b_v-OUp88wN6K4YxI4n907gY"

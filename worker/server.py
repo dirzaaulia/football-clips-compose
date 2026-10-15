@@ -10,6 +10,7 @@ from fastapi.responses import PlainTextResponse
 from loguru import logger
 from worker.config.settings import settings
 from worker.main import WorkerOrchestrator
+from worker.services.highlight_service import highlight_service
 
 orchestrator = WorkerOrchestrator()
 _background_worker_task: asyncio.Task | None = None
@@ -142,8 +143,21 @@ async def websub_notification(
 
         logger.info(f"[WebSub Push] Received upload notification: {video_id} ('{title}') from channel {channel_id}")
 
-        # Trigger immediate highlight sweep in background
-        background_tasks.add_task(highlight_service.sync_unlinked_highlights, max_batch=10)
+        # Attempt direct event-driven match linking first (<100ms, 0 quota)
+        linked = False
+        if video_id and title:
+            linked = highlight_service.link_websub_video(
+                video_id=video_id,
+                title=title,
+                channel_id=channel_id or ""
+            )
+
+        if linked:
+            logger.info(f"[WebSub Push] Direct match linking succeeded for {video_id} ('{title}')!")
+        else:
+            # Fallback to general highlight sweep in background
+            logger.info(f"[WebSub Push] Direct link not resolved immediately. Enqueuing background sweep.")
+            background_tasks.add_task(highlight_service.sync_unlinked_highlights, max_batch=10)
 
         return PlainTextResponse("Accepted", status_code=200)
     except Exception as e:

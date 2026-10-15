@@ -777,4 +777,133 @@ class HighlightService:
         append_event(log_events, f"Highlight scanning complete. Successfully linked {linked_count} new video highlights.", "SUCCESS", "YOUTUBE", "SUMMARY")
         return linked_count
 
+    def link_websub_video(
+        self,
+        video_id: str,
+        title: str,
+        channel_id: str,
+        log_events: list | None = None
+    ) -> bool:
+        """
+        Instant Event-Driven WebSub Highlight Matcher.
+        When YouTube notifies our webhook of a new club video upload, this method:
+        1. Checks title filters (forbids interviews, training, pressers).
+        2. Queries unlinked finished matches in the last 72 hours from Supabase.
+        3. Identifies candidate matches matching club aliases and scorelines.
+        4. Verifies global playability (oEmbed / YouTube status) - soft fallbacks allowed.
+        5. Updates Supabase instantly (<100ms) with zero YouTube API quota used.
+        """
+        if log_events is None:
+            log_events = []
+
+        if not video_id or not title:
+            return False
+
+        # 1. Title Filter: reject forbidden patterns (shorts, pressers, interviews, training)
+        is_forbidden, reason = self.check_forbidden_title(title)
+        if is_forbidden:
+            append_event(log_events, f"[WEBSUB REJECT] Video '{title}' ({video_id}) rejected: {reason}", "INFO", "WEBSUB", "FORBIDDEN")
+            logger.info(f"[WebSub Direct] Video {video_id} ('{title}') rejected: {reason}")
+            return False
+
+        if not self.has_highlight_keyword(title):
+            append_event(log_events, f"[WEBSUB REJECT] Video '{title}' ({video_id}) lacks highlight keyword", "INFO", "WEBSUB", "NO_KEYWORD")
+            logger.info(f"[WebSub Direct] Video {video_id} ('{title}') lacks highlight keyword")
+            return False
+
+        # 2. Query recent finished unlinked matches from Supabase
+        now_utc = datetime.now(UTC)
+        cutoff_72h = (now_utc - timedelta(hours=72)).isoformat()
+        try:
+            res = (
+                supabase_client.table("matches")
+                .select("*")
+                .eq("status", "FINISHED")
+                .is_("highlight_video_id", "null")
+                .gte("utc_date", cutoff_72h)
+                .order("utc_date", desc=True)
+                .limit(50)
+                .execute()
+            )
+            unlinked_matches = res.data or []
+        except Exception as e:
+            logger.error(f"[WebSub Direct] Error querying unlinked matches: {e}")
+            return False
+
+        if not unlinked_matches:
+            append_event(log_events, f"[WEBSUB] No recent unlinked finished matches in the last 72h.", "INFO", "WEBSUB", "NO_CANDIDATES")
+            return False
+
+        # 3. Identify matches matching team aliases
+        best_match = None
+        best_score = -1
+
+        t_clean = html.unescape(title).lower()
+
+        for m in unlinked_matches:
+            home = m.get("home_team_name", "")
+            away = m.get("away_team_name", "")
+            h_aliases = self.get_team_aliases(home)
+            a_aliases = self.get_team_aliases(away)
+
+            home_hit = any(re.search(rf"\b{re.escape(a)}\b", t_clean) for a in h_aliases)
+            away_hit = any(re.search(rf"\b{re.escape(a)}\b", t_clean) for a in a_aliases)
+
+            # Both teams present in title OR one team present + scoreline
+            if (home_hit and away_hit) or ((home_hit or away_hit) and self.has_scoreline(t_clean)):
+                match_dt = now_utc
+                try:
+                    match_dt = datetime.fromisoformat(str(m.get("utc_date", "")).replace("Z", "+00:00"))
+                except Exception:
+                    pass
+
+                score = self.fallback_score_video(
+                    title=title,
+                    duration_sec=300,
+                    home_team=home,
+                    away_team=away,
+                    h_aliases=h_aliases,
+                    a_aliases=a_aliases,
+                    home_score=m.get("home_score"),
+                    away_score=m.get("away_score"),
+                    published_at=now_utc,
+                    match_utc=match_dt,
+                )
+                if score > best_score:
+                    best_score = score
+                    best_match = m
+
+        if best_match and best_score >= 50:
+            # 4. Check global playability
+            is_playable, is_embeddable, country_count, status_msg = youtube_rss_client.check_video_global_availability(video_id)
+            if not is_playable:
+                append_event(log_events, f"[WEBSUB REJECT] Video {video_id} is not playable globally ({status_msg}).", "WARN", "WEBSUB", "UNPLAYABLE")
+                logger.warning(f"[WebSub Direct] Video {video_id} not playable: {status_msg}")
+                return False
+
+            # Link immediately in Supabase
+            now_iso = now_utc.isoformat()
+            try:
+                supabase_client.table("matches").update({
+                    "highlight_video_id": video_id,
+                    "last_youtube_check": now_iso,
+                    "updated_at": now_iso,
+                }).eq("id", best_match["id"]).execute()
+
+                home_name = best_match.get("home_team_name")
+                away_name = best_match.get("away_team_name")
+                msg = f"[WEBSUB INSTANT LINK] Successfully linked video {video_id} ('{title}') -> {home_name} vs {away_name} (Score: {best_score}, Playable: {status_msg})"
+                append_event(log_events, msg, "SUCCESS", "WEBSUB", "INSTANT_LINK")
+                logger.info(msg)
+
+                # Send notifications
+                notification_service.notify_highlight_ready(best_match, video_id, "Official Highlights", log_events)
+                return True
+            except Exception as e:
+                logger.error(f"[WebSub Direct] Failed to update match {best_match.get('id')}: {e}")
+                return False
+
+        append_event(log_events, f"[WEBSUB NO MATCH] Video '{title}' ({video_id}) did not match any recent unlinked fixture.", "INFO", "WEBSUB", "NO_MATCH")
+        return False
+
 highlight_service = HighlightService()
