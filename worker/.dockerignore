@@ -1,0 +1,13 @@
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+archives/
+scratch/
+.env
+*.env
+tests/
+channel_cache.json
+youtube_quota.json

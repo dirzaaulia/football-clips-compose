@@ -18,7 +18,7 @@ class WebSubSubscriber:
     """Subscribes all official football club & league channels to Google WebSub Hub."""
 
     GOOGLE_HUB_URL = "https://pubsubhubbub.appspot.com/subscribe"
-    DEFAULT_CALLBACK = "https://eiomktvavndorazreyba.supabase.co/functions/v1/youtube-websub"
+    DEFAULT_CALLBACK = "https://fc-worker-519310318914.us-central1.run.app/websub"
     LEASE_SECONDS = 864000  # 10 days
 
     def __init__(self, callback_url: str = DEFAULT_CALLBACK):
