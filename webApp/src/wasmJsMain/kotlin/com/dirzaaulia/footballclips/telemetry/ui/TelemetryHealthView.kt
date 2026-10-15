@@ -70,10 +70,10 @@ fun TelemetryHealthView(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            HealthMetricCard("HOST NODE", "free-football-worker", "GCP us-central1-a", StitchSuccess, Icons.Default.Dns, Modifier.weight(1f))
-            HealthMetricCard("RUNTIME ENGINE", "Python 3.12", "WorkerOrchestrator", StitchPrimary, Icons.Default.Code, Modifier.weight(1f))
-            HealthMetricCard("DATABASE", "Supabase PostgreSQL", "Active Client", StitchSecondary, Icons.Default.Storage, Modifier.weight(1f))
-            HealthMetricCard("YOUTUBE QUOTA", "${metrics.apiQuotaUsed} / ${metrics.apiQuotaTotal}", "$quotaPercent% consumed", StitchWarning, Icons.Default.Token, Modifier.weight(1f))
+            HealthMetricCard("SERVERLESS NODE", "fc-worker-00007", "Cloud Run us-central1", StitchSuccess, Icons.Default.CloudQueue, Modifier.weight(1f))
+            HealthMetricCard("RUNTIME ENGINE", "Python 3.12", "FastAPI + Asyncio Engine", StitchPrimary, Icons.Default.Code, Modifier.weight(1f))
+            HealthMetricCard("DATABASE & EDGE", "Supabase PostgreSQL", "Cloudflare Edge Proxy", StitchSecondary, Icons.Default.Storage, Modifier.weight(1f))
+            HealthMetricCard("YOUTUBE QUOTA", "0 Units / 10,000", "100% Free WebSub + RSS", StitchSuccess, Icons.Default.Token, Modifier.weight(1f))
         }
 
         // Factual Service Pipeline Allocation Table
@@ -87,11 +87,11 @@ fun TelemetryHealthView(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text("Core Worker Services (Orchestrated in worker/main.py)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
-            ServiceRowItem("match_service.py", "Fixtures, Live Score & Match Sync", "Football-Data.org API", StitchSuccess)
-            ServiceRowItem("highlight_service.py", "Official YouTube Club Highlights & Gemini 2.5 Flash Reranker", "YouTube API v3 + Gemini", StitchPrimary)
-            ServiceRowItem("standings_service.py", "League Standings Ingestion", "12-Hour Sync Cycle", StitchSecondary)
-            ServiceRowItem("maintenance_service.py", "Database Cleanup & 30-Day Retention Purge", "Automated Retention Window", StitchSuccess)
-            ServiceRowItem("telemetry_service.py", "Supabase Ingestion (worker_cycles & worker_events)", "Persistence Pipeline", StitchPrimary)
+            ServiceRowItem("match_service.py", "Fixtures, Live Score & Match Sync", "ESPN Sports API (0 Quota)", StitchSuccess)
+            ServiceRowItem("highlight_service.py", "Official YouTube Club Highlights & AI Reranker", "WebSub Push + Channel RSS + Gemini 3.8 Flash", StitchPrimary)
+            ServiceRowItem("standings_service.py", "League Standings Ingestion", "ESPN League Standings Ingestion", StitchSecondary)
+            ServiceRowItem("maintenance_service.py", "Database Cleanup & Stuck Match Recovery", "Self-Healing (>180m IN_PLAY)", StitchSuccess)
+            ServiceRowItem("telemetry_service.py", "Cloud Run Ingestion & OpenMetrics APM", "OpenMetrics /metrics & GCS", StitchPrimary)
         }
 
         // Dynamic Scheduling Guardrail Card

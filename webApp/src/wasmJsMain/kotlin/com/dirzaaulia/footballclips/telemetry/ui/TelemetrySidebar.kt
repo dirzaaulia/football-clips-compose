@@ -88,13 +88,19 @@ fun TelemetrySidebar(
                     onClick = { onSectionSelected(TelemetryNavSection.STREAM) }
                 )
                 SidebarNavItem(
+                    title = "APM & Edge Engine",
+                    icon = Icons.Default.Speed,
+                    isSelected = selectedSection == TelemetryNavSection.APM,
+                    onClick = { onSectionSelected(TelemetryNavSection.APM) }
+                )
+                SidebarNavItem(
                     title = "Club Alerts",
                     icon = Icons.Default.Notifications,
                     isSelected = selectedSection == TelemetryNavSection.NOTIFICATIONS,
                     onClick = { onSectionSelected(TelemetryNavSection.NOTIFICATIONS) }
                 )
                 SidebarNavItem(
-                    title = "Worker Services",
+                    title = "Serverless Services",
                     icon = Icons.Default.AccountTree,
                     isSelected = selectedSection == TelemetryNavSection.THREADS,
                     onClick = { onSectionSelected(TelemetryNavSection.THREADS) }
@@ -114,7 +120,7 @@ fun TelemetrySidebar(
             }
         }
 
-        // Bottom Stats: Factual Worker Node & GCP Environment
+        // Bottom Stats: Serverless Cloud Run & Edge Fleet Environment
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -131,9 +137,9 @@ fun TelemetrySidebar(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(StitchSuccess))
-                    Text("GCP VM", fontSize = 11.5.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
+                    Text("CLOUD RUN", fontSize = 11.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
                 }
-                Text("us-central1-a", fontSize = 11.5.sp, color = StitchTextSecondary, fontFamily = FontFamily.Monospace)
+                Text("us-central1", fontSize = 11.sp, color = StitchTextSecondary, fontFamily = FontFamily.Monospace)
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -141,10 +147,10 @@ fun TelemetrySidebar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Icon(Icons.Default.Code, null, tint = StitchTextMuted, modifier = Modifier.size(13.dp))
-                    Text("RUNTIME", fontSize = 11.5.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
+                    Icon(Icons.Default.Speed, null, tint = StitchSecondary, modifier = Modifier.size(13.dp))
+                    Text("CF EDGE", fontSize = 11.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace)
                 }
-                Text("Python 3.12", fontSize = 11.5.sp, color = StitchPrimary, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                Text("Global (Workers)", fontSize = 11.sp, color = StitchSecondary, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
             }
         }
     }

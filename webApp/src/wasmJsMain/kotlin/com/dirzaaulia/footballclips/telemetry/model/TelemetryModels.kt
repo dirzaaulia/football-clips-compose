@@ -60,10 +60,10 @@ data class SupabaseMatchRecord(
 )
 
 enum class TelemetryFilterLevel(val label: String) {
-    ALL("Semua Status & Logs"),
+    ALL("All Status & Logs"),
     HIGHLIGHT("Highlight / Extract"),
     SYNC("Supabase Sync & Schedules"),
-    SCORE("Deteksi Skor & Match"),
+    SCORE("Score & Match Detection"),
     WARN("Warning / API Quota"),
     ERROR("Error")
 }
@@ -75,8 +75,9 @@ enum class TelemetryViewMode(val label: String) {
 
 enum class TelemetryNavSection(val label: String) {
     STREAM("Telemetry Stream"),
+    APM("APM & Edge Engine"),
     NOTIFICATIONS("Club Alerts"),
-    THREADS("Worker Services"),
+    THREADS("Serverless Services"),
     ALERTS("Failure Alerts"),
     CONFIG("Configuration")
 }
@@ -147,11 +148,11 @@ data class TelemetryMetrics(
     val totalGoals: Int = 0,
     val totalErrors: Int = 0,
     val totalLogLines: Int = 0,
-    val apiQuotaUsed: Int = 1420,
+    val apiQuotaUsed: Int = 0,
     val apiQuotaTotal: Int = 10000,
     val mappedClubs: Int = 96,
     val totalClubs: Int = 96,
-    val nextSleepText: String = "Next sleep: 2 Jam (Jeda normal)",
+    val nextSleepText: String = "Next sleep: 2 Hours (Standard cadence)",
     val cycleNumber: Long = 17,
 )
 
@@ -189,5 +190,53 @@ data class TelemetryStreamPayload(
     val quota: TelemetryQuotaInfo? = null,
     val cycles: List<WorkerCycle> = emptyList(),
     val events: List<WorkerEvent> = emptyList(),
+)
+
+@Serializable
+data class CloudRunHealth(
+    val status: String = "healthy",
+    val service: String = "football-clips-worker",
+    val timestamp: String = "",
+    @SerialName("cycle_index") val cycleIndex: Long = 0,
+    @SerialName("is_running") val isRunning: Boolean = false,
+    val provider: String = "espn",
+    @SerialName("target_competitions") val targetCompetitions: List<String> = emptyList(),
+)
+
+@Serializable
+data class CloudRunStatus(
+    @SerialName("cycle_index") val cycleIndex: Long = 0,
+    val provider: String = "espn",
+    @SerialName("last_youtube_sync_timestamp") val lastYoutubeSyncTimestamp: Double? = null,
+    @SerialName("last_websub_renewal_timestamp") val lastWebsubRenewalTimestamp: Double? = null,
+    val timestamp: String = "",
+)
+
+@Serializable
+data class TriggerCycleResponse(
+    val status: String = "",
+    val message: String = "",
+    val timestamp: String = "",
+)
+
+@Serializable
+data class EdgePurgeResponse(
+    val success: Boolean = false,
+    val message: String = "",
+    val timestamp: String = "",
+)
+
+data class ApmLiveMetrics(
+    val cycleIndex: Long = 0,
+    val isWorkerRunning: Boolean = true,
+    val totalMatches: Int = 793,
+    val liveMatches: Int = 0,
+    val finishedMatches: Int = 0,
+    val highlightsLinked: Int = 0,
+    val highlightsUnlinked: Int = 0,
+    val highlightCoveragePercent: Double = 0.0,
+    val roundTripLatencyMs: Long = 0,
+    val edgeProxyStatus: String = "ONLINE (Cloudflare)",
+    val lastUpdated: String = "",
 )
 
