@@ -76,7 +76,7 @@ Here are the official high-resolution marketing banners featured on the Google P
 - 🌐 **Modern Multi-Platform Architecture**: 
   - **Android Native App**: Jetpack Compose & Compose Multiplatform, hardware-accelerated inline and fullscreen YouTube player, heads-up FCM notifications.
   - **Web Portal ([fc.dirzaaulia.com](https://fc.dirzaaulia.com))**: Built with **Next.js 16 (React 19 & Turbopack)** with Static Site Generation (SSG), Incremental Static Regeneration (ISR), Web Push service worker, and Google AdSense integration.
-  - **Telemetry Dashboard ([fc.dirzaaulia.com/telemetry](https://fc.dirzaaulia.com/telemetry))**: High-performance **Kotlin/Wasm** observability dashboard with interactive side sheets, live sync cycle tracking, and quota monitoring.
+  - **APM Command Center ([fc.dirzaaulia.com/telemetry](https://fc.dirzaaulia.com/telemetry))**: High-performance **Kotlin/Wasm** real-time observability platform with live OpenMetrics streaming, edge cache purging, on-demand cycle triggers, and latency benchmarking.
 - 💎 **Universal Account & In-App Purchase Sync**:
   - Google Native Sign-In via Supabase Auth.
   - Google Play In-App Billing (RevenueCat SDK 10.26) for Android.
@@ -101,10 +101,12 @@ Here are the official high-resolution marketing banners featured on the Google P
 | :--- | :--- | :--- |
 | **Presentation: Android** | Compose Multiplatform 1.12.1<br/>Jetpack Compose, SDK 37 | Material 3 Expressive UI, Hardware-accelerated YouTube player, FCM messaging service (`FootballClipsFirebaseMessagingService`), RevenueCat Google Play billing, NextGen AdMob. |
 | **Presentation: Web Portal** | Next.js 16, React 19, TypeScript<br/>Tailwind CSS, Turbopack | Primary public web portal (`fc.dirzaaulia.com`), SSG/ISR static export, Web Push background Service Worker (`firebase-messaging-sw.js`), Google AdSense ads, contextual notification modal. |
-| **Presentation: Telemetry** | Kotlin/Wasm (WebAssembly)<br/>Compose Web Multiplatform | Real-time observability dashboard (`/telemetry` & `footballclips-telemetry.web.app`), side-sheet event inspector, sync latency graphs, API quota tracking. |
+| **Presentation: APM Command Center** | Kotlin/Wasm (WebAssembly)<br/>Compose Web Multiplatform | Real-time observability dashboard (`/telemetry`), live OpenMetrics stream (`/metrics`), interactive cycle dispatcher, instant Cloudflare cache invalidation, and edge benchmark tester. |
+| **Global Edge Proxy Tier** | Cloudflare Workers (`fc-edge-proxy`)<br/>Edge Cache API | Sub-15ms edge caching layer (`fc-edge-proxy.dirzaaulia11.workers.dev`), multi-tier TTL (30s live, 24h finished, 6h standings), instant purge API (`/api/purge-cache`), and Supabase connection pool protection. |
 | **Cloud Backend & Database** | Supabase Cloud (PostgreSQL 15)<br/>Supabase Auth & Postgrest | Normalized tables (`matches`, `highlights`, `supported_clubs`, `profiles`), worker telemetry logs (`worker_cycles`, `worker_events`), Google OAuth authentication. |
 | **Push Notification Network** | Firebase Cloud Messaging (FCM)<br/>Topic Architecture: `club_{id}` | Global edge fanout delivering goal alerts, match schedules, and highlight releases to millions of Android devices and Web browsers at **\$0 infrastructure cost**. |
-| **Autonomous AI Worker v2.0** | Python 3.13, Asyncio, `uv`<br/>GCP Compute Engine (VM) | Standalone systemd daemon (`football-worker.service` on `free-football-worker`). Ingests Football-Data.org APIs, scans YouTube channels, executes Gemini 3.8 / 3.7 Flash semantic AI verification, and dispatches FCM topic notifications. |
+| **Serverless AI Worker Engine** | Python 3.12, FastAPI, Asyncio<br/>Google Cloud Run (`fc-worker`) | Containerized serverless worker on Cloud Run with automated scale-to-zero, real-time YouTube WebSub push receiver, ESPN sports engine, and Gemini 3.8 Flash AI re-ranking. |
+| **Cron Scheduling Fleet** | Google Cloud Scheduler<br/>3 Perpetual Free Jobs | Drives worker execution cadences (5m standard, 1m weekend peak live, weekly WebSub renewal) strictly within the 100% free perpetual tier. |
 
 ---
 
@@ -120,44 +122,59 @@ Here are the official high-resolution marketing banners featured on the Google P
 | **Dependency Injection** | **Koin** | `4.2.2` | `koin-core`, `koin-compose`, `koin-compose-viewmodel` |
 | **Networking** | **Ktor Client** | `3.6.0` | HTTP client with OkHttp engine on Android and Fetch on Wasm |
 | **Image Loading** | **Coil** | `3.6.3` | `coil-compose`, `coil-network-ktor3`, `coil-svg` |
+| **Global Edge Proxy** | **Cloudflare Workers** | Edge | Sub-15ms edge caching proxy (`fc-edge-proxy`) with instant cache purge |
 | **Backend & Database** | **Supabase Kotlin** | `3.8.0` | Postgrest REST API, GoTrue Auth, Realtime |
 | **Push Notifications** | **Firebase Messaging (FCM)** | `35.0.0` / `7.7.0` | Android FCM SDK, Web Push Worker, Python `firebase-admin` |
 | **In-App Billing** | **RevenueCat Purchases** | `10.26.0` | Google Play Store lifetime non-consumable billing |
 | **Mobile Ads** | **Google Mobile Ads NextGen** | `1.5.0` | Policy-compliant native ads & adaptive banner views |
 | **Web Ads** | **Google AdSense** | Cloud | Responsive display ads adhering to Google publisher policies |
-| **Worker Engine** | **Python (Asyncio & uv)** | `3.13` | Autonomous background sync engine on GCP Compute Engine |
-| **AI Semantic Re-ranker** | **Google Gemini AI** | `gemini-3.8-flash` / `3.7-flash` | Structured JSON semantic video matching & noise filtering |
+| **Serverless Worker Fleet** | **Google Cloud Run** | Revision 8 | Serverless container (`fc-worker`) with automated scale-to-zero |
+| **Scheduler Engine** | **Google Cloud Scheduler** | Cloud | 3 Free perpetual cron jobs (5m sync, 1m weekend live, Sunday WebSub renew) |
+| **Sports Data Engine** | **ESPN Sports API** | Public | Zero rate limit, 0 API quota, full European 2026/2027 coverage |
+| **Video Highlight Ingestion** | **YouTube WebSub + RSS** | Zero Quota | Google PubSubHubbub push notifications + official channel RSS |
+| **AI Semantic Re-ranker** | **Google Gemini AI** | `gemini-3.8-flash` | Structured JSON semantic video matching with token-bucket rate limiter |
 | **Hosting & CDN** | **Firebase Hosting** | Multi-Site | Hosting targets for Next.js web portal and Wasm telemetry |
 
 ---
 
-## 🤖 Autonomous Background AI Worker Engine (v2.0)
+## 🤖 Serverless AI Worker & Event-Driven Engine
 
-Match fixtures, live scores, and verified video highlights are autonomously synchronized via the Python worker engine (`worker/main.py`) running as a continuous systemd service on GCP Compute Engine:
+Match fixtures, live scores, and verified video highlights are synchronized autonomously via the containerized Python worker engine on Google Cloud Run:
 
 ```
-[Football-Data.org API] ──> [match_service.py] ──> (Live Scores & Fixtures) ──> [Supabase DB]
-                                   │
-                                   └──> [notification_service.py] ──> (FCM Topics: club_{id})
-                                                                              │
-[YouTube Data API v3]   ──> [highlight_service.py]                            ▼
-                                   │                                  [Android & Web Push]
-                                   └──> [Gemini 3.8 Flash AI] ──> (Verified Video Recaps)
+                                  [Cloud Scheduler]
+                                         │
+                                         ▼ (HTTP POST /run-cycle)
+[ESPN Sports API] ───────► [match_service.py] ──────► [Supabase DB (PostgreSQL)]
+(0 Rate Limit, 0 Quota)          │                               ▲
+                                 ▼                               │
+                      [notification_service.py]                  │
+                                 │                               │
+                                 ▼ (FCM Topics: club_{id})       │
+                       [Android & Web Push]                      │
+                                                                 │
+[YouTube WebSub Push] ───► [FastAPI /websub]                     │
+[Official Channel RSS] ──► [highlight_service.py] ───────────────┤
+                                 │ (Gemini 3.8 Flash AI)         │
+                                 ▼                               ▼
+                      [EdgeCacheClient (Purge)] ──► [Cloudflare Edge Proxy]
+                                                    (fc-edge-proxy)
 ```
 
-1. **Fixture & Score Extraction (`match_service.py`)**:
-   - Queries Tier-1 competitions from Football-Data.org using adaptive rate-limiting (guarded against 429 errors).
-   - Prevents status and score regression on delayed upstream updates.
-2. **Multi-Channel YouTube Discovery (`highlight_service.py`)**:
-   - Scans official club playlists and authorized league broadcast partners.
-   - Evaluates video duration, title year matching, and anti-retro keyword filters.
+1. **Fixture & Live Score Synchronization (`match_service.py`)**:
+   - Queries Tier-1 competitions from ESPN's public endpoints with zero rate-limit constraints and zero cost.
+   - Prevents status and score regressions on delayed upstream updates.
+2. **Event-Driven YouTube WebSub & RSS Discovery (`highlight_service.py`)**:
+   - Ingests real-time upload webhooks via Google PubSubHubbub (`POST /websub`) for $<100\text{ms}$ instant match linking.
+   - Scans official club and league YouTube RSS feeds with **0 YouTube API quota spent**.
 3. **AI Semantic Reconciliation (`gemini_client.py`)**:
-   - Employs **Gemini 3.8 Flash** (with automatic fallback to `gemini-3.7-flash`, `3.6-flash`, etc.) with season-aware structured prompts to filter out press conferences, podcasts, fan reactions, and archive matches.
-   - Seamless rule-based fallback if AI quota is exhausted.
+   - Employs **Gemini 3.8 Flash** with structured JSON output and a 12 RPM sliding-window token bucket.
+   - Seamless rule-based heuristic scoring fallback if AI quota hits rate limits.
 4. **Real-Time Notification Dispatcher (`notification_service.py`)**:
    - Formats channel-specific payloads for goals, kickoff reminders, and highlight releases.
    - Utilizes an in-memory 24-hour event deduplicator preventing duplicate alerts.
-5. **Automated Maintenance (`maintenance_service.py`)**:
+5. **Self-Healing & Automated Maintenance (`maintenance_service.py`)**:
+   - Recovers matches stuck in `IN_PLAY` beyond 180 minutes and rolls forward stale fixtures.
    - Continuously purges matches, highlights, and telemetry events older than 30 days.
 
 ---
@@ -170,6 +187,9 @@ FootballClips/
 ├── androidApp/                 # Android Native application module
 │   ├── src/main/kotlin/        # Application class, MainActivity, and FCM Service
 │   └── build.gradle.kts        # Android App build & signing configuration
+├── cloudflare/                 # Cloudflare Workers Edge Caching Proxy (fc-edge-proxy)
+│   ├── src/index.ts            # Multi-tier edge caching & instant cache purge API
+│   └── wrangler.toml           # Cloudflare deployment configuration
 ├── composeApp/                 # Shared Kotlin Multiplatform codebase
 │   ├── src/commonMain/         # Shared Compose Multiplatform UI, ViewModels, & Repositories
 │   └── src/androidMain/        # Android-specific KMP implementations & Koin modules
@@ -179,20 +199,21 @@ FootballClips/
 │   ├── src/lib/firebase/       # Firebase Messaging client initialization
 │   ├── public/                 # Web Push service worker (firebase-messaging-sw.js)
 │   └── package.json            # Next.js dependencies & scripts
-├── webApp/                     # Kotlin/Wasm Telemetry & Observability Dashboard
-│   ├── src/wasmJsMain/kotlin/  # Telemetry dashboard, Side Sheets, & sync health inspectors
+├── webApp/                     # Kotlin/Wasm APM Observability & Command Center
+│   ├── src/wasmJsMain/kotlin/  # Live OpenMetrics viewer, Edge latency benchmark, Action toolbar
 │   └── build.gradle.kts        # Wasm browser distribution build config
-├── worker/                     # Python Autonomous AI Worker Engine v2.0
-│   ├── clients/                # Supabase, Football-Data, YouTube, and Gemini AI clients
-│   ├── services/               # Match, Highlight, Notification, Club, & Maintenance services
-│   ├── tests/                  # Pytest unit tests for notification deduplication & payload logic
-│   └── main.py                 # Async worker loop & signal handlers
+├── worker/                     # Python Serverless Worker & APM Engine
+│   ├── clients/                # Supabase, ESPN, YouTube RSS, Gemini AI, and Edge Cache clients
+│   ├── services/               # Match, Highlight, Notification, Standings, & Maintenance services
+│   ├── tests/                  # Pytest unit tests (38/38 passing)
+│   ├── server.py               # FastAPI server (/metrics, /health, /status, /run-cycle, /websub)
+│   ├── Dockerfile              # Container definition for Google Cloud Run
+│   └── main.py                 # Async worker loop & cycle orchestrator
 ├── docs/                       # Architectural documentation & high-resolution vector assets
 │   └── assets/architecture.svg # Standalone vector architecture diagram
 ├── scripts/                    # Deployment & ASO management utilities
 │   ├── deploy_web.py           # Unified Next.js & Wasm build/deploy script for Firebase Hosting
-│   ├── deploy_production.py    # Production deployment utility
-│   └── football-worker.service # Systemd service definition for GCP VM
+│   └── deploy_production.py    # Production deployment utility
 └── gradle/libs.versions.toml   # Centralized version catalog
 ```
 

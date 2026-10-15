@@ -1,33 +1,56 @@
-# ⚡ FootballClips Cloudflare Edge Caching Proxy
+# ⚡ FootballClips Cloudflare Edge Caching Proxy (`fc-edge-proxy`)
 
-This Cloudflare Worker provides a global, zero-cost edge caching layer in front of the Supabase PostgREST endpoints.
+High-performance global edge proxy deployed on Cloudflare Workers providing sub-15ms edge caching and origin connection protection for FootballClips.
 
-## 🎯 Architecture Purpose ($0 Ceiling Maximization)
-- **Direct Connection Protection**: Supabase free-tier allows max 60 direct Postgres connection pools. Edge caching consolidates thousands of concurrent client requests into single origin fetches.
-- **Egress Bandwidth Optimization**: Supabase free-tier limits egress to 5 GB/month. Edge caching offloads up to **95%** of repeated reads, supporting 100,000+ DAU.
-- **Sub-15ms Global Latency**: Responses are served directly from hundreds of Cloudflare PoPs nearest to the user.
+- **Live Production URL**: `https://fc-edge-proxy.dirzaaulia11.workers.dev`
+- **Origin Backend**: Supabase PostgREST (`eiomktvavndorazreyba.supabase.co`)
+- **Cost**: **$0.00 / Month** (100% Perpetual Free Tier — 100,000 requests/day free)
 
-## 🕒 Cache Policy
-| Query / Endpoint | Target Resource | TTL | Strategy |
+---
+
+## 🎯 Architecture Purpose
+
+1. **Supabase Connection Pool Protection**: Consolidates thousands of concurrent client requests into single origin fetches, preventing pool exhaustion on Supabase's 60-connection free limit.
+2. **Egress Bandwidth Offloading**: Cuts up to **95%** of repeated reads, easily preserving the 5 GB/month free egress budget for over 100,000+ daily active users.
+3. **Sub-15ms Global Latency**: Responses are cached and served directly from hundreds of Cloudflare Points of Presence (PoPs) worldwide.
+
+---
+
+## 🕒 Multi-Tier Caching Matrix
+
+| Route / Pattern | Resource Description | Edge TTL | Revalidation Strategy |
 | :--- | :--- | :---: | :--- |
-| `?status=in.(IN_PLAY,PAUSED)` | Live match scores & clocks | **30 seconds** | High-frequency update |
+| `?status=in.(IN_PLAY,PAUSED)` | Live match scores & clocks | **30 seconds** | High-frequency near-live update |
 | `?status=eq.FINISHED` | Completed match highlights & results | **24 hours** | Immutable match data |
-| `/rest/v1/standings` | League table rankings | **6 hours** | Post-matchday updates |
-| `?status=eq.TIMED` | Upcoming match schedules | **5 minutes** | Kickoff proximity updates |
-| All other queries | Fallback default | **60 seconds** | Stale-while-revalidate (60s) |
+| `/rest/v1/standings` | Official league tables | **6 hours** | Periodic table updates |
+| `?status=eq.TIMED` | Upcoming match schedules | **5 minutes** | Kickoff proximity refresh |
+| All other queries | Fallback default | **60 seconds** | `stale-while-revalidate` (60s) |
+
+---
+
+## 🧹 Instant Edge Cache Purge API
+
+The worker exposes an authenticated cache invalidation endpoint:
+
+```http
+POST /api/purge-cache
+X-Purge-Secret: <PURGE_SECRET>
+```
+
+- Triggered automatically by `worker/clients/edge_cache_client.py` whenever `HighlightService` links a newly verified video highlight clip to a match.
+- Can also be triggered directly from the **WASM Telemetry Command Center** toolbar button ("🧹 Purge Cache").
+
+---
 
 ## 🚀 Deployment Instructions
-1. Install dependencies:
-   ```bash
-   cd cloudflare
-   npm install
-   ```
-2. Login to Cloudflare:
-   ```bash
-   npx wrangler login
-   ```
-3. Deploy to Cloudflare Free Tier (100,000 requests/day free):
-   ```bash
-   npx wrangler deploy
-   ```
-4. Point client applications (Android app / Web app) to `https://fc-edge-proxy.<your-subdomain>.workers.dev` instead of the raw Supabase URL.
+
+```bash
+# Install dependencies
+npm install
+
+# Test worker locally
+npx wrangler dev
+
+# Deploy to Cloudflare Workers
+npx wrangler deploy
+```
