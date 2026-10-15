@@ -131,6 +131,47 @@ class YouTubeRSSClient:
         except Exception:
             return True
 
+    def check_video_global_availability(self, video_id: str, min_countries: int = 100) -> tuple[bool, bool, int, str]:
+        """
+        Verify YouTube playability, embeddability, and global country availability with 0 YouTube Data API quota.
+        Does NOT block non-embeddable videos so that the app's 'Watch on YouTube' fallback works seamlessly.
+        Returns: (is_playable, is_embeddable, allowed_country_count, status_message)
+        - is_playable: True if video is public & playable on YouTube (status == 'OK')
+        - is_embeddable: True if 3rd-party website iframe embedding is enabled (oEmbed HTTP 200)
+        - allowed_country_count: number of allowed countries (249 if worldwide)
+        """
+        import json
+
+        # 1. oEmbed check (identifies if iframe embed is allowed or requires YouTube app fallback)
+        is_embeddable = False
+        oembed_url = f"{self.OEMBED_BASE_URL}?url=https://www.youtube.com/watch?v={video_id}&format=json"
+        try:
+            with httpx.Client(timeout=5.0, headers=self.headers) as client:
+                resp = client.get(oembed_url)
+                is_embeddable = (resp.status_code == 200)
+        except Exception as e:
+            logger.debug(f"[Global Availability] oEmbed check error for {video_id}: {e}")
+
+        # 2. Player microformat playability & geoblock inspection
+        watch_url = f"https://www.youtube.com/watch?v={video_id}"
+        try:
+            with httpx.Client(timeout=6.0, headers=self.headers, follow_redirects=True) as client:
+                rw = client.get(watch_url)
+                m = re.search(r"ytInitialPlayerResponse\s*=\s*({.+?});", rw.text)
+                if m:
+                    data = json.loads(m.group(1))
+                    status = data.get("playabilityStatus", {}).get("status")
+                    if status != "OK":
+                        return False, False, 0, f"Unplayable: {status}"
+                    countries = data.get("microformat", {}).get("playerMicroformatRenderer", {}).get("availableCountries", [])
+                    count = len(countries)
+                    is_global = (count == 0 or count >= min_countries)
+                    return True, is_embeddable, count if count > 0 else 249, "Global OK" if is_global else f"Regional only ({count} countries)"
+        except Exception as e:
+            logger.debug(f"[Global Availability] Microformat check error for {video_id}: {e}")
+
+        return True, is_embeddable, 249, "Global OK"
+
     async def search_public_highlights_async(
         self,
         query: str,

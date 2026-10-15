@@ -18,9 +18,42 @@ SEASON_SEED_DATES = {
     2026: "20260915",
 }
 
+UCL_SEASON_DATES = {
+    2024: [
+        "20240917", "20240918", "20240919",
+        "20241001", "20241002",
+        "20241022", "20241023",
+        "20241105", "20241106",
+        "20241126", "20241127",
+        "20241210", "20241211",
+        "20250121", "20250122",
+        "20250129",
+        "20250211", "20250212", "20250218", "20250219",
+        "20250304", "20250305", "20250311", "20250312",
+        "20250408", "20250409", "20250415", "20250416",
+        "20250429", "20250430", "20250506", "20250507",
+        "20250531",
+    ],
+    2025: [
+        "20250916", "20250917", "20250918",
+        "20250930", "20251001",
+        "20251021", "20251022",
+        "20251104", "20251105",
+        "20251125", "20251126",
+        "20251209", "20251210",
+        "20260120", "20260121",
+        "20260128",
+        "20260217", "20260218", "20260224", "20260225",
+        "20260310", "20260311", "20260317", "20260318",
+        "20260407", "20260408", "20260414", "20260415",
+        "20260428", "20260429", "20260505", "20260506",
+        "20260530",
+    ],
+}
+
 
 async def find_historical_highlight(client: httpx.AsyncClient, match: dict) -> str | None:
-    """Find and verify official highlight for a historical match with 0 YouTube Data API quota."""
+    """Find and verify official highlight for a historical match with 0 YouTube Data API quota and global audience availability."""
     home = match.get("home_team_name", "")
     away = match.get("away_team_name", "")
     h_score = match.get("home_score")
@@ -28,7 +61,8 @@ async def find_historical_highlight(client: httpx.AsyncClient, match: dict) -> s
     utc_date = match.get("utc_date", "")
     m_year = utc_date[:4] if len(utc_date) >= 4 else "2024"
 
-    query = f"{home} vs {away} {m_year} highlights official"
+    # Bias query towards official club/league uploads for worldwide availability
+    query = f"{home} vs {away} {m_year} highlights ({home} OR {away}) official"
     try:
         candidates = await youtube_rss_client.search_public_highlights_async(query, client=client)
         if not candidates:
@@ -44,6 +78,8 @@ async def find_historical_highlight(client: httpx.AsyncClient, match: dict) -> s
                 continue
             title = c.get("snippet", {}).get("title", "")
             dur = c.get("duration", 0)
+            ch = c.get("channel", "")
+
             score = highlight_service.fallback_score_video(
                 title=title,
                 duration_sec=dur,
@@ -54,22 +90,46 @@ async def find_historical_highlight(client: httpx.AsyncClient, match: dict) -> s
                 home_score=h_score,
                 away_score=a_score,
                 match_utc=utc_date,
-                channel_handle=c.get("channel"),
+                channel_handle=ch,
             )
+
+            # Heavy demotion for regional TV broadcasters (territorial geoblocks) to prioritize global audiences
+            if ch and any(r in ch.lower() for r in ["indonesia", "asia", "uk", "sky sports", "bein", "vidio", "canal+", "dazn de"]):
+                score -= 30
+
             if score > 0:
-                scored_candidates.append((score, vid, title))
+                scored_candidates.append((score, vid, title, ch))
 
         if not scored_candidates:
             return None
 
         scored_candidates.sort(key=lambda x: x[0], reverse=True)
-        best_score, best_vid, best_title = scored_candidates[0]
 
-        # Only link if candidate achieves strong confidence score
-        if best_score >= 45:
-            # Check embeddability via oEmbed (0 quota)
-            if youtube_rss_client.check_oembed_embeddable(best_vid):
-                return best_vid
+        best_regional_fallback = None
+
+        # Pass 1: Prioritize Worldwide / Global availability (100+ countries allowed)
+        for score, vid, title, ch in scored_candidates:
+            if score < 25:
+                break
+            is_playable, is_embeddable, country_count, reason = youtube_rss_client.check_video_global_availability(vid, min_countries=100)
+            if not is_playable:
+                logger.debug(f"[Historical Highlight] Candidate {vid} ({ch}) unplayable: {reason}")
+                continue
+
+            if country_count >= 100:
+                logger.debug(f"[Historical Highlight] Global match selected: {ch} (Score: {score}, {country_count} countries, Embed: {is_embeddable}): {title}")
+                return vid
+            elif country_count > 0 and best_regional_fallback is None:
+                # Keep the best regional candidate as a fallback if no global option exists
+                best_regional_fallback = (vid, ch, score, country_count, title)
+            else:
+                logger.debug(f"[Historical Highlight] Candidate {vid} ({ch}): {reason}")
+
+        # Pass 2: Graceful fallback - use best regional video only if no global candidate exists
+        if best_regional_fallback:
+            vid, ch, score, count, title = best_regional_fallback
+            logger.info(f"[Historical Highlight] Fallback to regional broadcast: {ch} ({count} countries, Score: {score}): {title}")
+            return vid
     except Exception as e:
         logger.debug(f"[Historical Highlight] Error checking {home} vs {away}: {e}")
 
@@ -79,9 +139,13 @@ async def find_historical_highlight(client: httpx.AsyncClient, match: dict) -> s
 async def fetch_calendar_for_league(
     client: httpx.AsyncClient,
     slug: str,
-    seed_date: str
+    seed_date: str,
+    season_year: int = 2025,
 ) -> list[str]:
     """Retrieve all match dates for a given league season from ESPN calendar metadata."""
+    if slug == "uefa.champions" and season_year in UCL_SEASON_DATES:
+        return UCL_SEASON_DATES[season_year]
+
     url = f"{espn_client.BASE_URL}/{slug}/scoreboard?dates={seed_date}"
     try:
         resp = await client.get(url)
@@ -155,7 +219,7 @@ async def backfill_competition(
     seed_date = SEASON_SEED_DATES.get(season_year, f"{season_year}0915")
     logger.info(f"[{comp_code}] [{comp_name}] Discovering season {season_year}/{season_year + 1} match dates (seed: {seed_date})...")
 
-    match_dates = await fetch_calendar_for_league(client, slug, seed_date)
+    match_dates = await fetch_calendar_for_league(client, slug, seed_date, season_year)
     if not match_dates:
         logger.warning(f"[{comp_code}] No calendar dates returned for season {season_year}. Trying standard fallbacks...")
         # Fallback: probe first week of each month August..May
