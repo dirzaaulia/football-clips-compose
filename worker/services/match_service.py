@@ -6,6 +6,7 @@ from worker.clients.football_data_client import football_data_client
 from worker.clients.supabase_client import supabase_client
 from worker.config.settings import settings
 from worker.services.club_service import club_service
+from worker.services.editorial_rss_service import editorial_rss_service
 from worker.services.notification_service import notification_service
 from worker.utils.telemetry_logger import append_event
 
@@ -229,7 +230,26 @@ class MatchService:
                     except Exception as ex:
                         logger.debug(f"[TACTICAL DATA] Could not fetch summary for {p['id']}: {ex}")
 
+            # 4. Multi-source journalistic enrichment via BBC Sport & The Guardian RSS for match analysis & previews
+            try:
+                rss_articles = await editorial_rss_service.get_articles()
+                if rss_articles:
+                    for p in unique_payloads:
+                        if not p.get("editorial_story"):
+                            h_team = p.get("home_team_name", "")
+                            a_team = p.get("away_team_name", "")
+                            art = editorial_rss_service.match_article_for_fixture(h_team, a_team, rss_articles)
+                            if art:
+                                p["editorial_headline"] = art["headline"]
+                                p["editorial_story"] = art["story"]
+                                p["editorial_source"] = art["source"]
+                                comp_name = p.get("competition_name") or p.get("competition_id") or "League"
+                                append_event(log_events, f"[EDITORIAL RSS] [{comp_name}] Linked {art['source']} journalistic story for {h_team} vs {a_team}", "INFO", "MATCH_SYNC", "EDITORIAL_SYNC")
+            except Exception as e:
+                logger.debug(f"[EDITORIAL RSS] Multi-source enrichment skipped: {e}")
+
             if not changes_found and enriched_count == 0:
+
                 append_event(log_events, "No fixture score or status changes detected.", "INFO", "MATCH_SYNC", "NO_CHANGE")
 
             notification_service.check_upcoming_fixtures(unique_payloads, log_events)

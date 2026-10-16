@@ -122,6 +122,57 @@ class StandingsService:
         # Deduplicate by row id
         unique_standings = list({row["id"]: row for row in all_standings_rows}.values())
 
+        # Enrich 5-match form guide (W,D,L,W,W) from real finished matches in database
+        try:
+            for comp_code in self.STANDINGS_COMPETITIONS:
+                comp_rows = [r for r in unique_standings if r.get("competition_code") == comp_code]
+                if not comp_rows:
+                    continue
+
+                res_m = supabase_client.table("matches").select("home_team_name, away_team_name, home_score, away_score, status, utc_date").eq("competition_id", comp_code).in_("status", ["FINISHED", "AWARDED"]).order("utc_date", desc=True).limit(200).execute()
+                if not res_m.data:
+                    continue
+
+                team_results: dict[str, list[str]] = {}
+                for m in res_m.data:
+                    h_name = (m.get("home_team_name") or "").strip().lower()
+                    a_name = (m.get("away_team_name") or "").strip().lower()
+                    h_score = m.get("home_score", 0) or 0
+                    a_score = m.get("away_score", 0) or 0
+
+                    if h_score > a_score:
+                        h_res, a_res = "W", "L"
+                    elif a_score > h_score:
+                        h_res, a_res = "L", "W"
+                    else:
+                        h_res, a_res = "D", "D"
+
+                    if h_name:
+                        team_results.setdefault(h_name, [])
+                        if len(team_results[h_name]) < 5:
+                            team_results[h_name].append(h_res)
+                    if a_name:
+                        team_results.setdefault(a_name, [])
+                        if len(team_results[a_name]) < 5:
+                            team_results[a_name].append(a_res)
+
+                for r in comp_rows:
+                    # If form is missing or is just a numeric record like '6-0-0', replace with letter form
+                    curr_form = r.get("form") or ""
+                    if not curr_form or not any(c in curr_form for c in "WDL"):
+                        t_name = (r.get("team_name") or "").strip().lower()
+                        matched_seq = team_results.get(t_name)
+                        if not matched_seq:
+                            for k, seq in team_results.items():
+                                if k in t_name or t_name in k:
+                                    matched_seq = seq
+                                    break
+                        if matched_seq:
+                            # Oldest to newest (left to right) standard form guide
+                            r["form"] = ",".join(reversed(matched_seq))
+        except Exception as e:
+            logger.debug(f"[STANDINGS] Form guide calculation skipped: {e}")
+
         try:
             # Batch upsert with on_conflict="id" ensures fixed database footprint (<30 KB)
             supabase_client.table("standings").upsert(unique_standings, on_conflict="id").execute()
