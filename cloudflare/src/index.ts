@@ -1,21 +1,38 @@
 /**
- * FootballClips Cloudflare Edge Caching Proxy
+ * FootballClips Cloudflare Edge Caching Proxy & Universal Router
  * 
- * Sits in front of Supabase PostgREST endpoints to protect against:
- * 1. Supabase direct connection limits (max 60 concurrent)
- * 2. Supabase 5 GB/month egress bandwidth limits
+ * Provides backwards-compatible intelligent routing and multi-tier edge caching:
+ * 1. High-Volume Match & Fixture Data (matches, standings, clubs, worker events):
+ *    -> Routed to self-hosted PostgreSQL 16 + PostgREST on Oracle VM (Strict HTTPS, 0 egress limits)
+ * 2. User Authentication & Profile Data (auth, profiles, storage):
+ *    -> Seamlessly routed to Supabase (GoTrue Auth, Profiles, Storage) with intact JWTs
  * 
- * Provides dynamic multi-tier caching:
+ * Edge Caching:
  * - Live Matches (IN_PLAY, PAUSED): 30s TTL
  * - Finished Matches: 24h (86,400s) TTL
  * - League Standings: 6h (21,600s) TTL
- * - Default / Fixtures: 60s TTL
+ * - Supported Clubs: 24h (86,400s) TTL
+ * - Auth & Profiles: 0s (Cache BYPASS, strictly private)
  */
 
 export interface Env {
-  SUPABASE_URL: string;
-  SUPABASE_ANON_KEY: string;
+  SUPABASE_URL: string;         // Self-hosted PostgREST (https://168.110.196.30.sslip.io)
+  SUPABASE_ANON_KEY: string;    // Supabase Anon Key (for Auth/Profiles fallback)
+  AUTH_SUPABASE_URL?: string;   // Supabase Auth Origin (default: https://eiomktvavndorazreyba.supabase.co)
   PURGE_SECRET?: string;
+}
+
+const POSTGRES_TABLES = [
+  "matches",
+  "standings",
+  "supported_clubs",
+  "worker_cycles",
+  "worker_events",
+];
+
+function isPostgresRoute(pathname: string): boolean {
+  const clean = pathname.replace(/^\/rest\/v1\/?/, "").replace(/^\//, "");
+  return POSTGRES_TABLES.some(table => clean === table || clean.startsWith(`${table}?`) || clean.startsWith(`${table}/`));
 }
 
 export default {
@@ -58,12 +75,18 @@ export default {
       }
     }
 
-    // Only cache GET and HEAD requests
-    if (request.method !== "GET" && request.method !== "HEAD") {
-      const resp = await forwardToSupabase(request, env, url);
+    // 3. Inspect request for Cache TTL Rules
+    const cacheTtl = determineTtl(url);
+
+    // Dynamic mutations (POST, PUT, PATCH, DELETE) or non-cacheable routes (Auth, Profiles)
+    if (request.method !== "GET" && request.method !== "HEAD" || cacheTtl === 0) {
+      const resp = await forwardRequest(request, env, url, 0);
       const headers = new Headers(resp.headers);
       headers.set("Access-Control-Allow-Origin", "*");
       headers.set("Access-Control-Expose-Headers", "Content-Range, Range, Content-Length, X-FC-Cache");
+      if (cacheTtl === 0) {
+        headers.set("X-FC-Cache", "BYPASS");
+      }
       return new Response(resp.body, {
         status: resp.status,
         statusText: resp.statusText,
@@ -71,10 +94,7 @@ export default {
       });
     }
 
-    // 3. Inspect request for Cache TTL Rules
-    const cacheTtl = determineTtl(url);
-
-    // 4. Edge Cache Lookup (Normalized URL Key for universal cache sharing)
+    // 4. Edge Cache Lookup
     const cacheKey = new Request(url.toString(), { method: "GET" });
     const cache = caches.default;
     let cachedResponse = await cache.match(cacheKey);
@@ -91,8 +111,8 @@ export default {
       });
     }
 
-    // 5. Cache MISS -> Fetch from Origin (Supabase)
-    const originResponse = await forwardToSupabase(request, env, url, cacheTtl);
+    // 5. Cache MISS -> Fetch from Origin
+    const originResponse = await forwardRequest(request, env, url, cacheTtl);
 
     // Only cache successful 200/206 responses
     if (originResponse.status === 200 || originResponse.status === 206) {
@@ -122,7 +142,7 @@ export default {
       });
     }
 
-    // Even for errors (4xx, 5xx), return with CORS headers so client gets json error instead of opaque CORS failure
+    // Errors (4xx, 5xx): return with CORS headers so client receives readable error
     const errorHeaders = new Headers(originResponse.headers);
     errorHeaders.set("Access-Control-Allow-Origin", "*");
     errorHeaders.set("Access-Control-Expose-Headers", "Content-Range, Range, Content-Length, X-FC-Cache");
@@ -138,12 +158,22 @@ function determineTtl(url: URL): number {
   const path = url.pathname.toLowerCase();
   const search = url.search.toLowerCase();
 
-  // A. Standings endpoints: 6 hours (21,600 seconds)
+  // A. Never cache authentication, user profile queries, or storage
+  if (path.startsWith("/auth/") || path.includes("profiles") || path.startsWith("/storage/")) {
+    return 0;
+  }
+
+  // B. Standings endpoints: 6 hours
   if (path.includes("standings")) {
     return 21600;
   }
 
-  // B. Live matches query: 30 seconds
+  // C. Supported clubs: 24 hours
+  if (path.includes("supported_clubs")) {
+    return 86400;
+  }
+
+  // D. Live matches query: 30 seconds
   if (
     search.includes("in_play") ||
     search.includes("paused") ||
@@ -152,7 +182,7 @@ function determineTtl(url: URL): number {
     return 30;
   }
 
-  // C. Finished matches query: 24 hours (86,400 seconds)
+  // E. Finished matches query: 24 hours (86,400 seconds)
   if (
     search.includes("status=eq.finished") ||
     search.includes("status=eq.full_time")
@@ -160,7 +190,7 @@ function determineTtl(url: URL): number {
     return 86400;
   }
 
-  // D. Upcoming fixtures / schedule: 5 minutes (300 seconds)
+  // F. Upcoming fixtures / schedule: 5 minutes (300 seconds)
   if (
     search.includes("status=eq.timed") ||
     search.includes("status=eq.scheduled")
@@ -168,40 +198,55 @@ function determineTtl(url: URL): number {
     return 300;
   }
 
-  // E. Default fallback: 60 seconds
+  // G. Default fallback: 60 seconds
   return 60;
 }
 
-async function forwardToSupabase(request: Request, env: Env, url: URL, cacheTtl: number = 60): Promise<Response> {
-  const targetBase = (env.SUPABASE_URL || "https://eiomktvavndorazreyba.supabase.co").replace(/\/$/, "");
-  
-  // Normalize path: strip /rest/v1 prefix when routing to standalone PostgREST
-  const normalizedPath = url.pathname.startsWith("/rest/v1") && !targetBase.includes("supabase.co")
-    ? url.pathname.replace(/^\/rest\/v1/, "")
-    : url.pathname;
-  const targetUrl = `${targetBase}${normalizedPath}${url.search}`;
-
+async function forwardRequest(request: Request, env: Env, url: URL, cacheTtl: number = 60): Promise<Response> {
+  const isPostgres = isPostgresRoute(url.pathname);
   const forwardHeaders = new Headers(request.headers);
-  if (targetBase.includes("supabase.co")) {
+
+  if (isPostgres) {
+    // 1. Route to Oracle VM PostgREST (PostgreSQL 16)
+    const targetBase = (env.SUPABASE_URL || "https://168.110.196.30.sslip.io").replace(/\/$/, "");
+    const normalizedPath = url.pathname.replace(/^\/rest\/v1/, "");
+    const targetUrl = `${targetBase}${normalizedPath}${url.search}`;
+
+    // PostgREST serves web_anon anonymously; strip client auth headers
+    forwardHeaders.delete("authorization");
+    forwardHeaders.delete("apikey");
+
+    return fetch(targetUrl, {
+      method: request.method,
+      headers: forwardHeaders,
+      body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
+      cf: {
+        cacheEverything: cacheTtl > 0,
+        cacheTtl: cacheTtl,
+      },
+    });
+  } else {
+    // 2. Route to Supabase Auth & Profiles (GoTrue, Profiles, Storage)
+    const targetBase = (env.AUTH_SUPABASE_URL || "https://eiomktvavndorazreyba.supabase.co").replace(/\/$/, "");
+    const targetUrl = `${targetBase}${url.pathname}${url.search}`;
+
     if (env.SUPABASE_ANON_KEY) {
-      forwardHeaders.set("apikey", env.SUPABASE_ANON_KEY || forwardHeaders.get("apikey") || "");
+      if (!forwardHeaders.has("apikey")) {
+        forwardHeaders.set("apikey", env.SUPABASE_ANON_KEY);
+      }
       if (!forwardHeaders.has("Authorization")) {
         forwardHeaders.set("Authorization", `Bearer ${env.SUPABASE_ANON_KEY}`);
       }
     }
-  } else {
-    // Standalone PostgREST serves anonymous role web_anon without requiring JWT secret
-    forwardHeaders.delete("authorization");
-    forwardHeaders.delete("apikey");
-  }
 
-  return fetch(targetUrl, {
-    method: request.method,
-    headers: forwardHeaders,
-    body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
-    cf: {
-      cacheEverything: true,
-      cacheTtl: cacheTtl,
-    },
-  });
+    return fetch(targetUrl, {
+      method: request.method,
+      headers: forwardHeaders,
+      body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
+      cf: {
+        cacheEverything: cacheTtl > 0,
+        cacheTtl: cacheTtl,
+      },
+    });
+  }
 }
