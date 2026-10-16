@@ -39,6 +39,7 @@ fun VideoPlayerSheet(
     relatedFixturesFinished: List<HighlightUiItem> = emptyList(),
     relatedFixturesUpcoming: List<HighlightUiItem> = emptyList(),
     relatedItems: List<HighlightUiItem> = emptyList(),
+    isSpoilerFree: Boolean = false,
     onItemClick: ((HighlightUiItem) -> Unit)? = null,
     onDismiss: (Boolean) -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -59,6 +60,7 @@ fun VideoPlayerSheet(
                 relatedFixturesFinished = relatedFixturesFinished,
                 relatedFixturesUpcoming = relatedFixturesUpcoming,
                 relatedItems = relatedItems,
+                isSpoilerFree = isSpoilerFree,
                 onItemClick = onItemClick,
                 isSideSheet = true,
                 onDismiss = onDismiss
@@ -79,6 +81,7 @@ fun VideoPlayerSheet(
                 relatedFixturesFinished = relatedFixturesFinished,
                 relatedFixturesUpcoming = relatedFixturesUpcoming,
                 relatedItems = relatedItems,
+                isSpoilerFree = isSpoilerFree,
                 onItemClick = onItemClick,
                 isSideSheet = false,
                 onDismiss = onDismiss
@@ -95,6 +98,7 @@ private fun VideoPlayerSheetContent(
     relatedFixturesFinished: List<HighlightUiItem>,
     relatedFixturesUpcoming: List<HighlightUiItem>,
     relatedItems: List<HighlightUiItem>,
+    isSpoilerFree: Boolean,
     onItemClick: ((HighlightUiItem) -> Unit)?,
     isSideSheet: Boolean,
     onDismiss: (Boolean) -> Unit
@@ -152,6 +156,7 @@ private fun VideoPlayerSheetContent(
                 if (item != null) {
                     VideoMetadata(
                         item = item,
+                        isSpoilerFree = isSpoilerFree,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp, vertical = 16.dp)

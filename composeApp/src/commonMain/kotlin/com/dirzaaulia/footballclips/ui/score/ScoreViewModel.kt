@@ -129,6 +129,15 @@ class ScoreViewModel(
     internal val _standingsState = MutableStateFlow<StandingsState>(StandingsState.Loading)
     val standingsState: StateFlow<StandingsState> = _standingsState.asStateFlow()
 
+    internal val _selectedSeason = MutableStateFlow<Int>(2026)
+    val selectedSeason: StateFlow<Int> = _selectedSeason.asStateFlow()
+
+    fun setSeason(season: Int) {
+        if (_selectedSeason.value == season) return
+        _selectedSeason.value = season
+        getStandings()
+    }
+
     init {
         viewModelScope.launch { clubRepository.refreshClubs() }
         _selectedDate.value = availableDates.firstOrNull { it.isToday }?.date

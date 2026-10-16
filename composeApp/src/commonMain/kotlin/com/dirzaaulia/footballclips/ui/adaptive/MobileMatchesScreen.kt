@@ -92,13 +92,18 @@ fun MobileMatchesScreen() {
         {
             val standingsState by scoreViewModel.standingsState.collectAsState()
             val selectedCompetitionId by scoreViewModel.selectedCompetitionId.collectAsState()
+            val selectedSeason by scoreViewModel.selectedSeason.collectAsState()
             val isPremium by scoreViewModel.isPremium.collectAsState()
             StandingsScreen(
                 state = standingsState,
                 isPremium = isPremium,
                 selectedCompetitionId = selectedCompetitionId,
+                selectedSeason = selectedSeason,
                 onLeagueSelected = { _, competitionId ->
                     scoreViewModel.selectCompetition(competitionId ?: "PL")
+                },
+                onSeasonSelected = { season ->
+                    scoreViewModel.setSeason(season)
                 },
                 onRetry = { scoreViewModel.getStandings() }
             )
@@ -242,6 +247,8 @@ fun MobileMatchesScreen() {
                     }.take(10)
                 }
 
+                val isSpoilerFreeMode by scoreViewModel.isSpoilerFreeMode.collectAsState()
+
                 VideoPlayerSheet(
                     item = selectedItem,
                     html = videoState.selectedVideoHtml!!,
@@ -249,6 +256,7 @@ fun MobileMatchesScreen() {
                     relatedFixturesFinished = relatedFixturesFinished,
                     relatedFixturesUpcoming = relatedFixturesUpcoming,
                     relatedItems = relatedItems,
+                    isSpoilerFree = isSpoilerFreeMode,
                     onItemClick = { item ->
                         homeViewModel.selectVideo(item)
                         videoState.onVideoClick(item) {}

@@ -11,11 +11,14 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
 
-fun ScoreViewModel.getStandings(competitionId: String? = selectedCompetitionId.value) {
+fun ScoreViewModel.getStandings(
+    competitionId: String? = selectedCompetitionId.value,
+    season: Int = selectedSeason.value
+) {
     val compId = competitionId ?: "PL"
     viewModelScope.launch {
         _standingsState.value = StandingsState.Loading
-        when (val res = standingRepository.getStandings(compId)) {
+        when (val res = standingRepository.getStandings(compId, season)) {
             is NetworkResult.Success -> _standingsState.value = StandingsState.Success(res.data)
             is NetworkResult.Error -> _standingsState.value = StandingsState.Error("Error ${res.code}: ${res.message}")
             is NetworkResult.Exception -> _standingsState.value = StandingsState.Error(res.e.message ?: "Failed to load standings")

@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 import com.dirzaaulia.footballclips.ui.components.filter.LeagueDropdownSelector
+import com.dirzaaulia.footballclips.ui.components.filter.SeasonDropdownSelector
 import com.dirzaaulia.footballclips.ui.score.components.StandingRow
 import com.dirzaaulia.footballclips.ui.score.components.StandingsLegend
 import com.dirzaaulia.footballclips.ui.score.components.StandingsTableHeader
@@ -22,7 +23,9 @@ fun StandingsScreen(
     state: StandingsState,
     isPremium: Boolean,
     selectedCompetitionId: String? = null,
+    selectedSeason: Int = 2026,
     onLeagueSelected: (Int?, String?) -> Unit = { _, _ -> },
+    onSeasonSelected: (Int) -> Unit = {},
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -44,12 +47,21 @@ fun StandingsScreen(
                         )
                     },
                     actions = {
-                        LeagueDropdownSelector(
-                            selectedCompetitionId = selectedCompetitionId ?: "PL",
-                            onLeagueSelected = onLeagueSelected,
-                            showAll = false,
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.padding(end = horizontalPadding)
-                        )
+                        ) {
+                            SeasonDropdownSelector(
+                                selectedSeason = selectedSeason,
+                                onSeasonSelected = onSeasonSelected
+                            )
+                            LeagueDropdownSelector(
+                                selectedCompetitionId = selectedCompetitionId ?: "PL",
+                                onLeagueSelected = onLeagueSelected,
+                                showAll = false
+                            )
+                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface

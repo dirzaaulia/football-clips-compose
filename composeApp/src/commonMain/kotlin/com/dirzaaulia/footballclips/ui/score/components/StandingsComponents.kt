@@ -100,6 +100,50 @@ fun StandingsTableHeader(modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun FormBadges(form: String?, modifier: Modifier = Modifier) {
+    if (form.isNullOrBlank()) return
+    val outcomes = form.replace(",", " ")
+        .split(" ")
+        .filter { it.isNotBlank() }
+        .flatMap { token -> if (token.length > 1 && token.all { it in "WDLwdl" }) token.map { it.toString() } else listOf(token) }
+        .map { it.uppercase().trim() }
+        .filter { it in listOf("W", "D", "L") }
+        .takeLast(5)
+
+    if (outcomes.isEmpty()) return
+
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        outcomes.forEach { outcome ->
+            val (bgColor, text) = when (outcome) {
+                "W" -> Color(0xFF34C759) to "W"
+                "D" -> Color(0xFF8E8E93) to "D"
+                "L" -> Color(0xFFFF3B30) to "L"
+                else -> Color.Transparent to outcome
+            }
+            Box(
+                modifier = Modifier
+                    .size(16.dp)
+                    .clip(CircleShape)
+                    .background(bgColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = text,
+                    color = Color.White,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Black,
+                    lineHeight = 9.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun StandingRow(standing: StandingDto, totalTeams: Int, modifier: Modifier = Modifier) {
     val isUclZone = standing.position in 1..4
     val isRelegationZone = totalTeams > 4 && standing.position > (totalTeams - 3)
@@ -142,7 +186,23 @@ fun StandingRow(standing: StandingDto, totalTeams: Int, modifier: Modifier = Mod
                 Spacer(modifier = Modifier.width(8.dp))
             }
 
-            Text(text = standing.teamName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = standing.teamName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (!standing.form.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(3.dp))
+                    FormBadges(form = standing.form)
+                }
+            }
+
             Text("${standing.playedGames}", style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center, modifier = Modifier.width(28.dp))
             Text("${standing.won}", style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center, modifier = Modifier.width(28.dp))
             Text("${standing.draw}", style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center, modifier = Modifier.width(28.dp))

@@ -191,13 +191,18 @@ fun WebMatchesScreen(
                     composable(NavDestination.Standings.route) {
                         val standingsState by scoreViewModel.standingsState.collectAsState()
                         val selectedCompetitionId by scoreViewModel.selectedCompetitionId.collectAsState()
+                        val selectedSeason by scoreViewModel.selectedSeason.collectAsState()
                         val isPremium by scoreViewModel.isPremium.collectAsState()
                         StandingsScreen(
                             state = standingsState,
                             isPremium = isPremium,
                             selectedCompetitionId = selectedCompetitionId,
+                            selectedSeason = selectedSeason,
                             onLeagueSelected = { _, competitionId ->
                                 scoreViewModel.selectCompetition(competitionId ?: "PL")
+                            },
+                            onSeasonSelected = { season ->
+                                scoreViewModel.setSeason(season)
                             },
                             onRetry = { scoreViewModel.getStandings() }
                         )

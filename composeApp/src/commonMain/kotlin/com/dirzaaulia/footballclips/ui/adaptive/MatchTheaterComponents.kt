@@ -9,6 +9,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -78,8 +82,11 @@ internal fun MatchTheaterMetadataBar(
     item: HighlightUiItem,
     title: String,
     date: String,
+    isSpoilerFree: Boolean = false,
     onIssueClick: () -> Unit
 ) {
+    var isScoreRevealed by remember { mutableStateOf(!isSpoilerFree) }
+
     Surface(
         color = Color(0xFF181818),
         shape = RoundedCornerShape(12.dp),
@@ -117,21 +124,45 @@ internal fun MatchTheaterMetadataBar(
                         )
                     }
 
-                    Surface(
-                        color = Color.Black.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(6.dp),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
-                    ) {
-                        if (item.match.isLive || item.match.isFinished) {
-                            Text(
-                                text = "${item.match.homeScore ?: 0} : ${item.match.awayScore ?: 0}",
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Black,
-                                color = if (item.match.isLive) Color(0xFFFF6B6B) else Color.White,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                letterSpacing = 1.sp
-                            )
+                    if (item.match.isLive || item.match.isFinished) {
+                        if (isSpoilerFree && !isScoreRevealed) {
+                            Surface(
+                                onClick = { isScoreRevealed = true },
+                                color = Color.Black.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(6.dp),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+                            ) {
+                                Text(
+                                    text = "? : ?",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White.copy(alpha = 0.6f),
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    letterSpacing = 1.sp
+                                )
+                            }
                         } else {
+                            Surface(
+                                color = Color.Black.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(6.dp),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+                            ) {
+                                Text(
+                                    text = "${item.match.homeScore ?: 0} : ${item.match.awayScore ?: 0}",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = if (item.match.isLive) Color(0xFFFF6B6B) else Color.White,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    letterSpacing = 1.sp
+                                )
+                            }
+                        }
+                    } else {
+                        Surface(
+                            color = Color.Black.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(6.dp),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f))
+                        ) {
                             Text(
                                 text = item.match.formattedLocalKickoff,
                                 style = MaterialTheme.typography.labelMedium,

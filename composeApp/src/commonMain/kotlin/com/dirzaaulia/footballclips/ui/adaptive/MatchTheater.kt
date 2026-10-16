@@ -63,6 +63,7 @@ internal fun MatchTheater(
     val relatedHighlights by viewModel.relatedHighlights.collectAsState()
     val relatedFixturesFinished by viewModel.relatedFixturesFinished.collectAsState()
     val relatedFixturesUpcoming by viewModel.relatedFixturesUpcoming.collectAsState()
+    val isSpoilerFreeMode by viewModel.isSpoilerFreeMode.collectAsState()
 
     val videoId = when (item) {
         is HighlightUiItem.SupabaseMatch -> item.match.highlightVideoId
@@ -153,6 +154,7 @@ internal fun MatchTheater(
                         item = item,
                         title = title,
                         date = date,
+                        isSpoilerFree = isSpoilerFreeMode,
                         onIssueClick = { showIssueDialog = true }
                     )
                 }

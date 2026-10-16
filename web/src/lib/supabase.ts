@@ -121,11 +121,12 @@ export async function getFixturesByDate(dateStr: string): Promise<MatchRecord[]>
   return (data as unknown as MatchRecord[]) || [];
 }
 
-export async function getStandingsByCompetition(compCode: string): Promise<StandingRecord[]> {
+export async function getStandingsByCompetition(compCode: string, season = 2026): Promise<StandingRecord[]> {
   const { data, error } = await supabase
     .from('standings')
     .select('*')
     .ilike('competition_code', compCode)
+    .eq('season', season)
     .order('position', { ascending: true });
 
   if (error) {

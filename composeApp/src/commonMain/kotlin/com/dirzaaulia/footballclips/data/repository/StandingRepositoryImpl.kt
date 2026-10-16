@@ -13,7 +13,7 @@ class StandingRepositoryImpl(private val client: HttpClient) : StandingRepositor
     private val baseUrl = "${SupabaseConstants.SUPABASE_URL}/rest/v1/standings"
     private val supabaseKey = SupabaseConstants.SUPABASE_ANON_KEY
 
-    override suspend fun getStandings(competitionId: String): NetworkResult<List<StandingDto>> {
+    override suspend fun getStandings(competitionId: String, season: Int): NetworkResult<List<StandingDto>> {
         return try {
             val response = client.get(baseUrl) {
                 header("apikey", supabaseKey)
@@ -23,6 +23,7 @@ class StandingRepositoryImpl(private val client: HttpClient) : StandingRepositor
                     if (competitionId.isNotBlank()) {
                         parameters.append("competition_code", "eq.$competitionId")
                     }
+                    parameters.append("season", "eq.$season")
                     parameters.append("order", "position.asc")
                 }
             }

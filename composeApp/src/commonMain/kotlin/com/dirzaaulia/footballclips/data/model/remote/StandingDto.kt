@@ -19,5 +19,6 @@ data class StandingDto(
     @SerialName("goal_difference") val goalDifference: Int = 0,
     @SerialName("competition_code") val competitionId: String = "",
     @SerialName("team_short_name") val teamShortName: String? = null,
-    @SerialName("form") val form: String? = null
+    @SerialName("form") val form: String? = null,
+    @SerialName("season") val season: Int = 2026
 )

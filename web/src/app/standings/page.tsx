@@ -19,8 +19,14 @@ const LEAGUES = [
   { code: 'PPL', name: 'Liga Portugal' },
 ];
 
+const SEASONS = [
+  { year: 2026, label: '2026/27 (Current)' },
+  { year: 2025, label: '2025/26 (Archive)' },
+];
+
 export default function StandingsPage() {
   const [selectedComp, setSelectedComp] = useState('PL');
+  const [selectedSeason, setSelectedSeason] = useState(2026);
   const [standings, setStandings] = useState<StandingRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,39 +38,58 @@ export default function StandingsPage() {
   useEffect(() => {
     async function load() {
       setIsLoading(true);
-      const data = await getStandingsByCompetition(selectedComp);
+      const data = await getStandingsByCompetition(selectedComp, selectedSeason);
       setStandings(data);
       setIsLoading(false);
     }
     load();
-  }, [selectedComp]);
+  }, [selectedComp, selectedSeason]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-      {/* Title & Compact League Selector */}
+      {/* Title & Compact Selectors */}
       <header className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
             <Trophy className="w-7 h-7 text-[#7098F8]" />
             <span>League Tables & Standings</span>
           </h1>
-          <p className="text-xs sm:text-sm text-[#94A3B8] mt-1">Official European domestic leagues & UEFA Champions League table.</p>
+          <p className="text-xs sm:text-sm text-[#94A3B8] mt-1">Official domestic leagues & UEFA Champions League table standings.</p>
         </div>
 
-        {/* Compact, Intuitive League Selector Dropdown */}
-        <div className="flex items-center gap-2 bg-[#181C20] border border-[#334155] hover:border-[#7098F8]/50 rounded-2xl px-4 py-2 transition-all shadow-md self-start sm:self-auto">
-          <Trophy className="w-4 h-4 text-[#7098F8]" />
-          <select
-            value={selectedComp}
-            onChange={(e) => setSelectedComp(e.target.value)}
-            className="bg-transparent text-white text-xs sm:text-sm font-bold focus:outline-none cursor-pointer pr-1"
-          >
-            {LEAGUES.map((l) => (
-              <option key={l.code} value={l.code} className="bg-[#181C20] text-white">
-                {l.name}
-              </option>
-            ))}
-          </select>
+        {/* Compact, Intuitive Selectors */}
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {/* Season Selector */}
+          <div className="flex items-center gap-2 bg-[#181C20] border border-[#334155] hover:border-[#7098F8]/50 rounded-2xl px-3.5 py-2 transition-all shadow-md">
+            <span className="text-xs text-[#94A3B8] font-medium">Season:</span>
+            <select
+              value={selectedSeason}
+              onChange={(e) => setSelectedSeason(Number(e.target.value))}
+              className="bg-transparent text-white text-xs sm:text-sm font-bold focus:outline-none cursor-pointer pr-1"
+            >
+              {SEASONS.map((s) => (
+                <option key={s.year} value={s.year} className="bg-[#181C20] text-white">
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* League Selector */}
+          <div className="flex items-center gap-2 bg-[#181C20] border border-[#334155] hover:border-[#7098F8]/50 rounded-2xl px-3.5 py-2 transition-all shadow-md">
+            <Trophy className="w-4 h-4 text-[#7098F8]" />
+            <select
+              value={selectedComp}
+              onChange={(e) => setSelectedComp(e.target.value)}
+              className="bg-transparent text-white text-xs sm:text-sm font-bold focus:outline-none cursor-pointer pr-1"
+            >
+              {LEAGUES.map((l) => (
+                <option key={l.code} value={l.code} className="bg-[#181C20] text-white">
+                  {l.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </header>
 
@@ -136,20 +161,28 @@ export default function StandingsPage() {
                       <td className="py-3 px-4 text-center hidden sm:table-cell">
                         {team.form ? (
                           <div className="flex items-center justify-center gap-1">
-                            {team.form.split(',').map((f, i) => (
-                              <span
-                                key={i}
-                                className={`w-4 h-4 rounded flex items-center justify-center text-[9px] font-black text-[#101418] ${
-                                  f.trim() === 'W'
-                                    ? 'bg-emerald-400'
-                                    : f.trim() === 'D'
-                                    ? 'bg-amber-400'
-                                    : 'bg-rose-500 text-white'
-                                }`}
-                              >
-                                {f.trim()}
-                              </span>
-                            ))}
+                            {team.form
+                              .replace(/,/g, ' ')
+                              .split(/\s+/)
+                              .filter(Boolean)
+                              .slice(-5)
+                              .map((f, i) => {
+                                const clean = f.trim().toUpperCase();
+                                return (
+                                  <span
+                                    key={i}
+                                    className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black text-white ${
+                                      clean === 'W'
+                                        ? 'bg-emerald-500'
+                                        : clean === 'D'
+                                        ? 'bg-gray-400'
+                                        : 'bg-rose-500'
+                                    }`}
+                                  >
+                                    {clean}
+                                  </span>
+                                );
+                              })}
                           </div>
                         ) : (
                           <span className="text-[#334155]">-</span>
