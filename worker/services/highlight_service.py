@@ -24,6 +24,9 @@ from worker.utils.telemetry_logger import append_event
 
 class HighlightService:
 
+    def __init__(self):
+        self.cycle_search_api_calls = 0
+
     @staticmethod
     def check_forbidden_title(title: str) -> tuple[bool, str | None]:
         t = title.lower()
@@ -400,6 +403,25 @@ class HighlightService:
                         if any(matches_alias(a, t_lower) for a in target_aliases) and self.has_highlight_keyword(title):
                             matched_items.append({"id": {"videoId": v_id}, "snippet": snippet})
 
+                # Level 3: Budgeted YouTube Data API Search (Controlled Last Resort for Quota Proof)
+                # Generates healthy, steady API activity (1,500-3,500 units/day) for Google Quota Extension audits
+                # Guardrails: Max 3 searches per cycle, only if remaining quota >= 2,500 units, and match age >= 4h
+                if (
+                    not matched_items
+                    and self.cycle_search_api_calls < 3
+                    and youtube_client.estimated_quota_remaining >= 2500
+                    and match_age_hours >= 4.0
+                ):
+                    self.cycle_search_api_calls += 1
+                    append_event(
+                        log_events,
+                        f"   [LAST RESORT SEARCH] Zero-quota scans empty. Executing budgeted YouTube Search API for {handle} (Quota remaining: {youtube_client.estimated_quota_remaining} units)...",
+                        "INFO",
+                        "YOUTUBE",
+                        "API_FALLBACK"
+                    )
+                    matched_items = youtube_client.search_videos(query, c_id, pub_after, pub_before)
+
                 if matched_items:
                     append_event(log_events, f"   [VIDEOS FOUND] Found {len(matched_items)} video(s) from channel {handle}", "INFO", "YOUTUBE", "CHANNEL_FOUND")
                 else:
@@ -643,6 +665,7 @@ class HighlightService:
         if log_events is None:
             log_events = []
 
+        self.cycle_search_api_calls = 0
         now_utc = datetime.now(UTC)
         thirty_days_ago = (now_utc - timedelta(days=30)).isoformat()
 
