@@ -13,10 +13,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -77,9 +84,9 @@ fun TelemetryTopNav(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text("Oracle Super-Node (PG16)", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
+                    Text("Oracle PG16", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
                     Text("•", style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted))
-                    Text("CF Edge Proxy", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
+                    Text("Edge CDN", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
                     Text("•", style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted))
                     Text("Autonomous Worker", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
                 }
@@ -87,69 +94,12 @@ fun TelemetryTopNav(
 
             Spacer(Modifier.width(12.dp))
 
-            // Right Operational Controls (Horizontal Scrollable so buttons never get clipped on any screen width)
+            // Right Controls: Clean Primary Refresh + Consolidated Actions Dropdown Menu
             Row(
-                modifier = Modifier.horizontalScroll(rememberScrollState()),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Mission Control Launcher
-                OutlinedButton(
-                    onClick = {
-                        kotlinx.browser.window.open("https://control.168.110.196.30.sslip.io", "_blank")
-                    },
-                    shape = RoundedCornerShape(4.dp),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = StitchSuccess),
-                    border = BorderStroke(1.dp, StitchSuccess.copy(alpha = 0.4f))
-                ) {
-                    Icon(Icons.Default.Dashboard, contentDescription = null, modifier = Modifier.size(13.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("Mission Control", style = TelemetryTypography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                }
-                // Trigger Run Cycle Button
-                OutlinedButton(
-                    onClick = onTriggerCycle,
-                    enabled = !isLoading,
-                    shape = RoundedCornerShape(4.dp),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = StitchPrimary),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchPrimary.copy(alpha = 0.4f))
-                ) {
-                    Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(14.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("Trigger Run", style = TelemetryTypography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                }
-
-                // Purge Edge Cache Button
-                OutlinedButton(
-                    onClick = onPurgeCache,
-                    enabled = !isLoading,
-                    shape = RoundedCornerShape(4.dp),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = StitchTextSecondary),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchBorder)
-                ) {
-                    Icon(Icons.Default.CleaningServices, contentDescription = null, modifier = Modifier.size(13.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("Purge Cache", style = TelemetryTypography.labelSmall)
-                }
-
-                // Renew WebSub Subscriptions Button
-                OutlinedButton(
-                    onClick = onRenewWebsub,
-                    enabled = !isLoading,
-                    shape = RoundedCornerShape(4.dp),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = StitchTextSecondary),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchBorder)
-                ) {
-                    Icon(Icons.Default.RssFeed, contentDescription = null, modifier = Modifier.size(13.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("Renew WebSub", style = TelemetryTypography.labelSmall)
-                }
-
-                // Refresh Button
+                // Primary Refresh Button
                 Button(
                     onClick = onRefresh,
                     enabled = !isLoading,
@@ -172,6 +122,89 @@ fun TelemetryTopNav(
                         text = if (isLoading) "Syncing..." else "Refresh",
                         style = TelemetryTypography.labelSmall.copy(fontWeight = FontWeight.SemiBold)
                     )
+                }
+
+                // Consolidated Actions Dropdown Menu
+                var showOpsMenu by remember { mutableStateOf(false) }
+                Box {
+                    OutlinedButton(
+                        onClick = { showOpsMenu = true },
+                        shape = RoundedCornerShape(4.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = StitchTextPrimary),
+                        border = BorderStroke(1.dp, StitchBorder)
+                    ) {
+                        Icon(Icons.Default.Tune, contentDescription = null, modifier = Modifier.size(13.dp), tint = StitchPrimary)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Actions", style = TelemetryTypography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                        Spacer(Modifier.width(2.dp))
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = null, modifier = Modifier.size(14.dp), tint = StitchTextMuted)
+                    }
+
+                    DropdownMenu(
+                        expanded = showOpsMenu,
+                        onDismissRequest = { showOpsMenu = false },
+                        modifier = Modifier
+                            .background(StitchSurfaceContainerHigh)
+                            .border(1.dp, StitchBorder, RoundedCornerShape(6.dp))
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                    Text("Trigger Run Cycle", style = TelemetryTypography.labelSmall.copy(fontWeight = FontWeight.Bold, color = StitchPrimary))
+                                    Text("Execute immediate sync pipeline", style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted, fontSize = 9.sp))
+                                }
+                            },
+                            leadingIcon = { Icon(Icons.Default.Bolt, contentDescription = null, tint = StitchPrimary, modifier = Modifier.size(15.dp)) },
+                            onClick = {
+                                showOpsMenu = false
+                                onTriggerCycle()
+                            },
+                            enabled = !isLoading
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                    Text("Purge Edge Cache", style = TelemetryTypography.labelSmall.copy(fontWeight = FontWeight.Bold, color = StitchTextPrimary))
+                                    Text("Evict Cloudflare CDN cache", style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted, fontSize = 9.sp))
+                                }
+                            },
+                            leadingIcon = { Icon(Icons.Default.CleaningServices, contentDescription = null, tint = StitchTextSecondary, modifier = Modifier.size(15.dp)) },
+                            onClick = {
+                                showOpsMenu = false
+                                onPurgeCache()
+                            },
+                            enabled = !isLoading
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                    Text("Renew WebSub Hubs", style = TelemetryTypography.labelSmall.copy(fontWeight = FontWeight.Bold, color = StitchTextPrimary))
+                                    Text("Re-subscribe YouTube PubSub feeds", style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted, fontSize = 9.sp))
+                                }
+                            },
+                            leadingIcon = { Icon(Icons.Default.RssFeed, contentDescription = null, tint = StitchTextSecondary, modifier = Modifier.size(15.dp)) },
+                            onClick = {
+                                showOpsMenu = false
+                                onRenewWebsub()
+                            },
+                            enabled = !isLoading
+                        )
+                        HorizontalDivider(color = StitchBorder, modifier = Modifier.padding(vertical = 4.dp))
+                        DropdownMenuItem(
+                            text = {
+                                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                                    Text("Mission Control ↗", style = TelemetryTypography.labelSmall.copy(fontWeight = FontWeight.Bold, color = StitchSuccess))
+                                    Text("Oracle Grafana & Prometheus", style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted, fontSize = 9.sp))
+                                }
+                            },
+                            leadingIcon = { Icon(Icons.Default.Dashboard, contentDescription = null, tint = StitchSuccess, modifier = Modifier.size(15.dp)) },
+                            onClick = {
+                                showOpsMenu = false
+                                kotlinx.browser.window.open("https://control.168.110.196.30.sslip.io", "_blank")
+                            }
+                        )
+                    }
                 }
             }
         }
