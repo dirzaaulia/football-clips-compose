@@ -24,6 +24,70 @@ const SEASONS = [
   { year: 2025, label: '2025/26 (Archive)' },
 ];
 
+function normalizeTeamNameForDeduplication(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\b(fc|afc|cf|sc|bc|ssc|as|ac|rc|ogc|vfb|tsv|sv|cd|ud|ca|rb|us)\b/gi, '')
+    .replace(/balompie/gi, '')
+    .replace(/calcio/gi, '')
+    .replace(/de barcelona/gi, '')
+    .replace(/münchen/gi, 'munich')
+    .replace(/manchester/gi, 'man')
+    .replace(/tottenham hotspur/gi, 'spurs')
+    .replace(/tottenham/gi, 'spurs')
+    .replace(/wolverhampton wanderers/gi, 'wolves')
+    .replace(/wolverhampton/gi, 'wolves')
+    .replace(/saint-germain/gi, 'sg')
+    .replace(/saint germain/gi, 'sg')
+    .replace(/atletico de madrid/gi, 'atletico')
+    .replace(/atlético de madrid/gi, 'atletico')
+    .replace(/atletico madrid/gi, 'atletico')
+    .replace(/atlético madrid/gi, 'atletico')
+    .replace(/athletic club/gi, 'bilbao')
+    .replace(/athletic bilbao/gi, 'bilbao')
+    .replace(/internazionale/gi, 'inter')
+    .replace(/inter milan/gi, 'inter')
+    .replace(/[^a-z0-9]/gi, '')
+    .trim();
+}
+
+function deduplicateStandings(standings: StandingRecord[]): StandingRecord[] {
+  if (standings.length <= 1) return standings;
+
+  const grouped = new Map<string, StandingRecord[]>();
+  for (const item of standings) {
+    const key = normalizeTeamNameForDeduplication(item.team_name || String(item.team_id || item.id));
+    if (!grouped.has(key)) {
+      grouped.set(key, []);
+    }
+    grouped.get(key)!.push(item);
+  }
+
+  const result: StandingRecord[] = [];
+  for (const duplicates of grouped.values()) {
+    if (duplicates.length === 1) {
+      result.push(duplicates[0]);
+    } else {
+      const best = duplicates.reduce((prev, curr) => {
+        let prevScore = 0;
+        let currScore = 0;
+        if (prev.played_games > 0) prevScore += 50;
+        if (curr.played_games > 0) currScore += 50;
+        if (prev.crest_url) prevScore += 20;
+        if (curr.crest_url) currScore += 20;
+        if (prev.points > 0) prevScore += 10;
+        if (curr.points > 0) currScore += 10;
+        return currScore > prevScore ? curr : prev;
+      }, duplicates[0]);
+      result.push(best);
+    }
+  }
+
+  return result
+    .sort((a, b) => (a.position || 0) - (b.position || 0))
+    .map((team, idx) => ({ ...team, position: idx + 1 }));
+}
+
 export default function StandingsPage() {
   const [selectedComp, setSelectedComp] = useState('PL');
   const [selectedSeason, setSelectedSeason] = useState(2026);
@@ -39,7 +103,7 @@ export default function StandingsPage() {
     async function load() {
       setIsLoading(true);
       const data = await getStandingsByCompetition(selectedComp, selectedSeason);
-      setStandings(data);
+      setStandings(deduplicateStandings(data));
       setIsLoading(false);
     }
     load();
@@ -145,7 +209,7 @@ export default function StandingsPage() {
                           />
                         </div>
                       )}
-                      <span className="truncate max-w-[180px] sm:max-w-xs">{team.team_name}</span>
+                      <span className="font-bold text-white whitespace-normal">{team.team_name}</span>
                     </td>
                     <td className="py-3 px-3 text-center text-[#94A3B8]">{team.played_games}</td>
                     <td className="py-3 px-3 text-center">{team.won}</td>

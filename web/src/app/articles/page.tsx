@@ -52,7 +52,7 @@ export default async function ArticlesPage() {
           </h1>
         </div>
         <p className="text-xs text-[#94A3B8] max-w-sm sm:text-right hidden sm:block">
-          Authentic tactical breakdowns and verified journalism. Zero dummy data.
+          Authentic tactical breakdowns and verified sports journalism across top competitions.
         </p>
       </header>
 

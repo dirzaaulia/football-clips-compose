@@ -46,7 +46,7 @@ internal fun VideoMetadata(
             title = "${item.match.homeTeamName} vs ${item.match.awayTeamName}"
             leagueName = item.match.competitionName
             date = item.match.formattedLocalKickoff
-            recapAnalysis = item.match.recapAnalysis
+            recapAnalysis = com.dirzaaulia.footballclips.util.MatchAnalysisUtils.getSummaryOrPreview(item.match)
             homeCrest = item.match.homeTeamCrest
             awayCrest = item.match.awayTeamCrest
             scoreText = if (item.match.homeScore != null && item.match.awayScore != null) {
@@ -218,9 +218,13 @@ internal fun VideoMetadata(
             )
         }
 
-        // Tactical Recap & Match Analysis (Spoiler Guarded)
+        // Tactical Recap & Match Analysis (Preview for upcoming / Summary for finished)
         if (!recapAnalysis.isNullOrBlank()) {
-            if (isSpoilerFree && !isAnalysisRevealed) {
+            val isUpcoming = item is HighlightUiItem.SupabaseMatch && com.dirzaaulia.footballclips.util.MatchAnalysisUtils.isUpcoming(item.match)
+            val isGuarded = !isUpcoming && isSpoilerFree && !isAnalysisRevealed
+            val sectionHeader = if (isUpcoming) "MATCH PREVIEW & TACTICAL SETUP" else "MATCH SUMMARY & TACTICAL BREAKDOWN"
+
+            if (isGuarded) {
                 Card(
                     onClick = { isAnalysisRevealed = true },
                     colors = CardDefaults.cardColors(
@@ -245,7 +249,7 @@ internal fun VideoMetadata(
                                 tint = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "Match Analysis & Recap",
+                                text = "Match Summary & Breakdown",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -276,7 +280,7 @@ internal fun VideoMetadata(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Text(
-                                text = "✨ AI TACTICAL ANALYSIS",
+                                text = sectionHeader,
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Black,
                                 color = MaterialTheme.colorScheme.primary,

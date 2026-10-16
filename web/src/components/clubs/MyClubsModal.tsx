@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
-import { Search, Star, Sparkles, Check, X, Bell } from 'lucide-react';
+import { Search, Star, Sparkles, Check, X, Bell, Trophy } from 'lucide-react';
 import { SUPPORTED_CLUBS } from '@/lib/clubs';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import ModalSideSheet from '@/components/common/ModalSideSheet';
@@ -18,8 +18,8 @@ const LEAGUE_TABS = [
   { code: 'ALL', name: 'All Leagues' }, { code: 'PL', name: 'Premier League' },
   { code: 'PD', name: 'La Liga' }, { code: 'SA', name: 'Serie A' },
   { code: 'BL1', name: 'Bundesliga' }, { code: 'FL1', name: 'Ligue 1' },
-  { code: 'SPL', name: 'Saudi Pro' }, { code: 'MLS', name: 'MLS' },
-  { code: 'DED', name: 'Eredivisie' }, { code: 'PPL', name: 'Portugal' }
+  { code: 'SPL', name: 'Saudi Pro League' }, { code: 'MLS', name: 'Major League Soccer' },
+  { code: 'DED', name: 'Eredivisie' }, { code: 'PPL', name: 'Liga Portugal' }
 ];
 
 export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
@@ -77,14 +77,14 @@ export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
   }, [search, selectedLeague]);
 
   const titleHeader = (
-    <div className="flex items-center justify-between w-full pr-2">
-      <div className="flex items-center gap-2 min-w-0">
-        <Star className="w-4 h-4 text-[#7098F8] fill-[#7098F8] shrink-0" />
+    <div className="flex items-center justify-between w-full pr-3 gap-6">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <Star className="w-5 h-5 text-[#7098F8] fill-[#7098F8] shrink-0" />
         <span className="font-extrabold text-sm sm:text-base text-white truncate">
           My Favorite Clubs
         </span>
         {favoriteCount > 0 && (
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#1E3A8A]/50 text-[#7098F8] border border-[#7098F8]/40 shrink-0">
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#1E3A8A] text-[#7098F8] border border-[#7098F8]/40 shrink-0">
             {favoriteCount}
           </span>
         )}
@@ -92,15 +92,15 @@ export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
 
       <button
         onClick={handleNotificationToggle}
-        className={`px-2 py-1 rounded-lg border flex items-center gap-1.5 text-xs font-semibold transition cursor-pointer shrink-0 ${
+        className={`ml-auto px-3 py-1.5 rounded-xl border flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer shrink-0 shadow-sm ${
           notificationsEnabled
-            ? 'bg-blue-600/20 text-blue-400 border-blue-500/40'
-            : 'bg-[#181C20] text-slate-400 hover:text-white border-[#334155]'
+            ? 'bg-blue-600/20 text-[#4FC3F7] border-[#4FC3F7]/40 hover:bg-blue-600/30'
+            : 'bg-[#181C20] text-[#94A3B8] hover:text-white border-[#334155]'
         }`}
         title={notificationsEnabled ? 'Match alerts active' : 'Turn on match alerts'}
       >
-        <Bell className={`w-3.5 h-3.5 ${notificationsEnabled ? 'fill-current' : ''}`} />
-        <span className="text-[11px]">{notificationsEnabled ? 'Alerts On' : 'Alerts'}</span>
+        <Bell className={`w-3.5 h-3.5 ${notificationsEnabled ? 'fill-current text-[#4FC3F7]' : ''}`} />
+        <span>{notificationsEnabled ? 'Alerts On' : 'Alerts'}</span>
       </button>
     </div>
   );
@@ -112,7 +112,7 @@ export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
       title={titleHeader}
       widthClass="sm:max-w-[480px] md:max-w-[520px]"
     >
-      {/* Search & Filter Controls */}
+      {/* Search & League Dropdown Controls */}
       <div className="p-4 border-b border-[#334155]/50 space-y-3 bg-[#101418]/60 shrink-0">
         <div className="relative">
           <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -133,23 +133,20 @@ export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs touch-pan-x">
-          {LEAGUE_TABS.map((tab) => {
-            const active = selectedLeague === tab.code;
-            return (
-              <button
-                key={tab.code}
-                onClick={() => setSelectedLeague(tab.code)}
-                className={`px-3 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer ${
-                  active
-                    ? 'bg-[#1E3A8A] text-white border border-[#7098F8]/50 shadow-[0_0_10px_rgba(112,152,248,0.25)]'
-                    : 'bg-[#181C20] text-[#94A3B8] hover:text-white border border-[#334155]'
-                }`}
-              >
+        {/* Clean League Dropdown Filter */}
+        <div className="flex items-center gap-2 bg-[#181C20] border border-[#334155] hover:border-[#7098F8]/50 rounded-xl px-3 py-2 transition-all shadow-inner">
+          <Trophy className="w-4 h-4 text-[#7098F8] shrink-0" />
+          <select
+            value={selectedLeague}
+            onChange={(e) => setSelectedLeague(e.target.value)}
+            className="w-full bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer pr-1"
+          >
+            {LEAGUE_TABS.map((tab) => (
+              <option key={tab.code} value={tab.code} className="bg-[#181C20] text-white">
                 {tab.name}
-              </button>
-            );
-          })}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
