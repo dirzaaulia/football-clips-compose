@@ -687,9 +687,10 @@ class HighlightService:
                 tier_counter[t_match] += 1
 
             tier_summary = ", ".join(f"{cnt} in {t}" for t, cnt in tier_counter.items())
+            all_fixtures = [f"{m.get('home_team_name', 'Home')} vs {m.get('away_team_name', 'Away')}" for m, _ in cooldown_skipped]
             append_event(
                 log_events,
-                f"[COOLDOWN PROTECTED] {len(cooldown_skipped)} fixture(s) in cooldown guardrail ({tier_summary}).",
+                f"[COOLDOWN PROTECTED] {len(cooldown_skipped)} fixture(s) in cooldown guardrail ({tier_summary}): {', '.join(all_fixtures)}.",
                 "INFO",
                 "YOUTUBE",
                 "COOLDOWN_PROTECTED"
