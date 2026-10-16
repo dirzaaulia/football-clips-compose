@@ -8,7 +8,7 @@ FORBIDDEN_TITLE_PATTERNS: list[tuple[str, str]] = [
     (r'\b(press conference|presser|conferência|conferencia|prensa|conferenza|stampa|pressekonferenz|conférence|point presse|conf\' de presse|pk mit|pk vor|rueda de prensa|parla mister|mister\b.*post|mister)\b', 'Press Conference'),
 
     # 3. Interviews, talks, chats, and personal confession/profile videos
-    (r'\b(interviews?|entrevista|entrevistas|declarações|declaraciones|reacciones|réactions|interviste|dopogara|se confie|il se confie|confie|confidences|entretien|face à face|en tête-à-tête|portrait|itw|in conversation with|exclusive interview|im gespräch|a tu per tu|bate-papo|talks? to|chats? with|player profile|meet the|get to know|q&a|ask me anything|les mots de|le parole di|parole di|al termine di|commento|a fine partita)\b|:\s*["“][^"”]+["”]', 'Interview/Profile'),
+    (r'\b(interviews?|entrevista|entrevistas|declarações|declaraciones|reacciones|réactions|interviste|dopogara|se confie|il se confie|confie|confidences|entretien|face à face|en tête-à-tête|portrait|itw|in conversation with|exclusive interview|im gespräch|a tu per tu|bate-papo|talks? to|chats? with|player profile|meet the|get to know|q&a|ask me anything|les mots de|le parole di|parole di|al termine di|commento|a fine partita|stimmen zum spiel|stimmen nach|trainerstimmen|nach dem spiel)\b|:\s*["“„][^"”]+["”]|^\s*["“„][^"”]+["”]|["“„][^"”]+["”]\s*\|', 'Interview/Profile'),
 
     # 4. Post/Pre match talk, debriefs, watchalongs, reaction shows
     (r'\b(rescaldo|post-match|post match|pre-match|pre match|previa|dopopartita|debrief|aftermatch|watchalongs?|reaction show|fan zone|matchday live|half-time:|post\s+[a-z0-9]+-[a-z0-9]+)\b', 'Post/Pre-Match Talk'),
