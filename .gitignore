@@ -42,3 +42,4 @@ youtube_quota.json
 worker/.env
 worker/archives/
 worker/.venv/
+.wrangler/

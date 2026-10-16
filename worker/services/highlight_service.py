@@ -338,23 +338,48 @@ class HighlightService:
 
                 matched_items = []
                 is_league_channel = handle in OFFICIAL_LEAGUE_CHANNELS.values()
-                is_historical = match_age_hours > 72.0
+                scan_limit = 15 if match_age_hours <= 24.0 else 25
+                append_event(log_events, f"   [CHANNEL SCAN] Checking channel {handle} uploads...", "INFO", "YOUTUBE", "CHANNEL_SCAN")
 
-                if is_historical:
-                    append_event(log_events, f"   [HISTORICAL SEARCH] Match age {match_age_hours / 24:.1f}d (>3d). Bypassing playlist scan directly to date-bounded Search API ({m_date}) for {handle}...", "INFO", "YOUTUBE", "HISTORICAL_SEARCH")
-                    matched_items = youtube_client.search_videos(query, c_id, pub_after, pub_before)
+                # Priority 1: Zero-Quota RSS Discovery (0 API Quota Units)
+                raw_items = youtube_rss_client.fetch_channel_recent_videos(c_id)
+                if raw_items:
+                    append_event(log_events, f"   [RSS DISCOVERY] Ingested {len(raw_items)} fresh uploads from {handle} via RSS (0 Quota Units)", "INFO", "YOUTUBE", "RSS_DISCOVERY")
+                elif youtube_client.estimated_quota_remaining >= 10:
+                    # Low-cost Fallback: Uploads Playlist scan (1 API Quota Unit, never 100-quota search)
+                    raw_items = youtube_client.get_playlist_recent_videos(c_id, max_results=scan_limit)
                 else:
-                    scan_limit = 15 if match_age_hours <= 24.0 else 25
-                    append_event(log_events, f"   [CHANNEL SCAN] Checking channel {handle} uploads...", "INFO", "YOUTUBE", "CHANNEL_SCAN")
-                    # Priority 1: Zero-Quota RSS Discovery (0 API Quota Units)
-                    raw_items = youtube_rss_client.fetch_channel_recent_videos(c_id)
-                    if raw_items:
-                        append_event(log_events, f"   [RSS DISCOVERY] Ingested {len(raw_items)} fresh uploads from {handle} via RSS (0 Quota Units)", "INFO", "YOUTUBE", "RSS_DISCOVERY")
-                    else:
-                        # Fallback to YouTube Data API playlist scan if RSS is unavailable
-                        raw_items = youtube_client.get_playlist_recent_videos(c_id, max_results=scan_limit)
+                    raw_items = []
 
-                    # First pass: matches containing BOTH teams within match date window
+                # First pass: matches containing BOTH teams within match date window
+                for item in raw_items:
+                    snippet = item.get("snippet", {})
+                    title = html.unescape(snippet.get("title", ""))
+                    v_id = snippet.get("resourceId", {}).get("videoId")
+                    if not v_id:
+                        continue
+
+                    pub_str = snippet.get("publishedAt")
+                    if pub_str:
+                        try:
+                            p_dt = datetime.fromisoformat(pub_str.replace("Z", "+00:00"))
+                            if not (match_start - timedelta(hours=2) <= p_dt <= match_start + timedelta(hours=96)):
+                                logger.debug(f"[BLOCKED DATE] '{title[:50]}' published at {pub_str} is outside match window ({m_date})")
+                                continue
+                        except Exception:
+                            pass
+
+                    t_lower = title.lower()
+                    has_h = any(matches_alias(a, t_lower) for a in h_aliases)
+                    has_a = any(matches_alias(a, t_lower) for a in a_aliases)
+                    if has_h and has_a:
+                        if is_league_channel or self.has_highlight_keyword(title) or self.has_scoreline(title):
+                            matched_items.append({"id": {"videoId": v_id}, "snippet": snippet})
+
+                # Second pass (fallback only for dedicated club channels, NEVER on league channels)
+                # STRICT REQUIREMENT: Club videos matching only the opponent MUST contain an explicit highlight keyword!
+                if not matched_items and not is_league_channel:
+                    target_aliases = a_aliases if handle == self.get_club_handle(home) else h_aliases
                     for item in raw_items:
                         snippet = item.get("snippet", {})
                         title = html.unescape(snippet.get("title", ""))
@@ -367,46 +392,13 @@ class HighlightService:
                             try:
                                 p_dt = datetime.fromisoformat(pub_str.replace("Z", "+00:00"))
                                 if not (match_start - timedelta(hours=2) <= p_dt <= match_start + timedelta(hours=96)):
-                                    logger.debug(f"[BLOCKED DATE] '{title[:50]}' published at {pub_str} is outside match window ({m_date})")
                                     continue
                             except Exception:
                                 pass
 
                         t_lower = title.lower()
-                        has_h = any(matches_alias(a, t_lower) for a in h_aliases)
-                        has_a = any(matches_alias(a, t_lower) for a in a_aliases)
-                        if has_h and has_a:
-                            if is_league_channel or self.has_highlight_keyword(title) or self.has_scoreline(title):
-                                matched_items.append({"id": {"videoId": v_id}, "snippet": snippet})
-
-                    # Second pass (fallback only for dedicated club channels, NEVER on league channels)
-                    # STRICT REQUIREMENT: Club videos matching only the opponent MUST contain an explicit highlight keyword!
-                    if not matched_items and not is_league_channel:
-                        target_aliases = a_aliases if handle == self.get_club_handle(home) else h_aliases
-                        for item in raw_items:
-                            snippet = item.get("snippet", {})
-                            title = html.unescape(snippet.get("title", ""))
-                            v_id = snippet.get("resourceId", {}).get("videoId")
-                            if not v_id:
-                                continue
-
-                            pub_str = snippet.get("publishedAt")
-                            if pub_str:
-                                try:
-                                    p_dt = datetime.fromisoformat(pub_str.replace("Z", "+00:00"))
-                                    if not (match_start - timedelta(hours=2) <= p_dt <= match_start + timedelta(hours=96)):
-                                        continue
-                                except Exception:
-                                    pass
-
-                            t_lower = title.lower()
-                            if any(matches_alias(a, t_lower) for a in target_aliases) and self.has_highlight_keyword(title):
-                                matched_items.append({"id": {"videoId": v_id}, "snippet": snippet})
-
-                    # Fallback to Search API only if playlist scan returned nothing, match is at least 12h old, and quota is sufficient
-                    if not matched_items and match_age_hours >= 12.0 and youtube_client.estimated_quota_remaining >= 500:
-                        append_event(log_events, f"   [SEARCH FALLBACK] Playlist scan empty and match age {match_age_hours:.1f}h >= 12h. Querying Search API for {handle}...", "INFO", "YOUTUBE", "SEARCH_FALLBACK")
-                        matched_items = youtube_client.search_videos(query, c_id, pub_after, pub_before)
+                        if any(matches_alias(a, t_lower) for a in target_aliases) and self.has_highlight_keyword(title):
+                            matched_items.append({"id": {"videoId": v_id}, "snippet": snippet})
 
                 if matched_items:
                     append_event(log_events, f"   [VIDEOS FOUND] Found {len(matched_items)} video(s) from channel {handle}", "INFO", "YOUTUBE", "CHANNEL_FOUND")
