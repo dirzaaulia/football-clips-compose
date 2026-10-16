@@ -43,3 +43,16 @@ worker/.env
 worker/archives/
 worker/.venv/
 .wrangler/
+
+# Database dumps and SQLite files
+*.sql
+*.dump
+*.db
+*.sqlite
+*.sqlite3
+!supabase/migrations/*.sql
+
+# Build caches & logs
+*.log
+.turbo/
+*.tsbuildinfo

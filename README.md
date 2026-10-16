@@ -104,8 +104,10 @@ Here are the official high-resolution marketing banners featured on the Google P
 | **Presentation: APM Command Center** | Kotlin/Wasm (WebAssembly)<br/>Compose Web Multiplatform | Real-time observability dashboard (`/telemetry`), live OpenMetrics stream (`/metrics`), interactive cycle dispatcher, instant Cloudflare cache invalidation, and edge benchmark tester. |
 | **Global Edge Proxy Tier** | Cloudflare Workers (`fc-edge-proxy`)<br/>Edge Cache API | Sub-15ms edge caching layer (`fc-edge-proxy.dirzaaulia11.workers.dev`), multi-tier TTL (30s live, 24h finished, 6h standings), instant purge API (`/api/purge-cache`), and Supabase connection pool protection. |
 | **Cloud Backend & Database** | Supabase Cloud (PostgreSQL 15)<br/>Supabase Auth & Postgrest | Normalized tables (`matches`, `highlights`, `supported_clubs`, `profiles`), worker telemetry logs (`worker_cycles`, `worker_events`), Google OAuth authentication. |
-| **Push Notification Network** | Firebase Cloud Messaging (FCM)<br/>Topic Architecture: `club_{id}` | Global edge fanout delivering goal alerts, match schedules, and highlight releases to millions of Android devices and Web browsers at **\$0 infrastructure cost**. |
-| **Serverless AI Worker Engine** | Python 3.12, FastAPI, Asyncio<br/>Google Cloud Run (`fc-worker`) | Containerized serverless worker on Cloud Run with automated scale-to-zero, real-time YouTube WebSub push receiver, ESPN sports engine, and Gemini 3.8 Flash AI re-ranking. |
+| **Push Notification Network** | Firebase Cloud Messaging (FCM)<br/>Topic Architecture: `club_{id}` | Global edge fanout delivering goal alerts, match schedules, and highlight releases to millions of Android devices and Web browsers at **$0 infrastructure cost**. |
+| **Serverless AI Worker Engine** | Python 3.12/3.13, FastAPI, Asyncio<br/>Google Cloud Run (`fc-worker`) | Containerized serverless worker on Cloud Run with automated scale-to-zero, real-time YouTube WebSub push receiver, ESPN sports engine, and Gemini 3.8 Flash AI re-ranking. |
+| **Autonomous Super-Node** | Oracle Always Free (Ampere ARM64)<br/>PostgreSQL 16, PostgREST, Caddy | Dedicated 4-core, 24GB RAM super-node (`168.110.196.30`) with Caddy TLS reverse proxy, FileBrowser Quantum, PostgreSQL 16, Ollama, Whisper, and n8n. |
+| **Offsite Backup & Cloud Storage** | Backblaze B2 + Rclone Sync<br/>Automated Cron Engine | Nightly automated synchronization from Backblaze B2 to the super-node cloud vault with encrypted storage and automated retention. |
 | **Cron Scheduling Fleet** | Google Cloud Scheduler<br/>3 Perpetual Free Jobs | Drives worker execution cadences (5m standard, 1m weekend peak live, weekly WebSub renewal) strictly within the 100% free perpetual tier. |
 
 ---
@@ -117,13 +119,16 @@ Here are the official high-resolution marketing banners featured on the Google P
 | **Language** | **Kotlin** | `2.4.21` | Modern compiler with K2 engine & multiplatform targets |
 | **Build System** | **Android Gradle Plugin (AGP)** | `9.4.0` | Latest Gradle configuration with Target SDK 37 |
 | **UI Framework (Mobile/Wasm)** | **Compose Multiplatform** | `1.12.1` | Declarative UI for Android Native and WebAssembly |
-| **Web Portal Engine** | **Next.js (App Router)** | `16.4.0` | React 19, Turbopack, Tailwind CSS, Static Export (SSG/ISR) |
+| **Web Portal Engine** | **Next.js (App Router)** | `16.4.0` | React 19, Turbopack, Tailwind CSS, Play Store Install Banner, SSG/ISR |
 | **Target Platform (Android)** | **Android 16 / SDK 37** | SDK 37 | Min SDK 24, compile & target SDK 37 |
 | **Dependency Injection** | **Koin** | `4.2.2` | `koin-core`, `koin-compose`, `koin-compose-viewmodel` |
 | **Networking** | **Ktor Client** | `3.6.0` | HTTP client with OkHttp engine on Android and Fetch on Wasm |
 | **Image Loading** | **Coil** | `3.6.3` | `coil-compose`, `coil-network-ktor3`, `coil-svg` |
 | **Global Edge Proxy** | **Cloudflare Workers** | Edge | Sub-15ms edge caching proxy (`fc-edge-proxy`) with instant cache purge |
-| **Backend & Database** | **Supabase Kotlin** | `3.8.0` | Postgrest REST API, GoTrue Auth, Realtime |
+| **Cloud Database** | **Supabase Cloud** | `3.8.0` | Managed PostgreSQL 15, Postgrest REST API, GoTrue Auth, Realtime |
+| **Dedicated Super-Node** | **Oracle Always Free ARM64** | Ubuntu 24.04 | 4 OCPUs, 24GB RAM, PostgreSQL 16, PostgREST API, Anti-Idle Shield |
+| **Web File Manager** | **FileBrowser Quantum** | `v2.0.1` | Modern web file manager behind Caddy TLS (`files.168.110.196.30.sslip.io`) |
+| **Offsite Cloud Sync** | **Backblaze B2 & Rclone** | `1.60.1` | Automated disaster recovery synchronization to super-node cloud vault |
 | **Push Notifications** | **Firebase Messaging (FCM)** | `35.0.0` / `7.7.0` | Android FCM SDK, Web Push Worker, Python `firebase-admin` |
 | **In-App Billing** | **RevenueCat Purchases** | `10.26.0` | Google Play Store lifetime non-consumable billing |
 | **Mobile Ads** | **Google Mobile Ads NextGen** | `1.5.0` | Policy-compliant native ads & adaptive banner views |
@@ -211,6 +216,12 @@ FootballClips/
 │   └── main.py                 # Async worker loop & cycle orchestrator
 ├── docs/                       # Architectural documentation & high-resolution vector assets
 │   └── assets/architecture.svg # Standalone vector architecture diagram
+├── oracle/                     # Oracle Always Free ARM64 Super-Node Infrastructure
+│   ├── docker-compose.yml      # Multi-service topology (Postgres, PostgREST, FileBrowser Quantum, Caddy)
+│   ├── Caddyfile               # Auto-TLS reverse proxy configuration
+│   ├── sync_backblaze.sh       # Rclone automated Backblaze B2 sync script
+│   ├── backup_postgres.sh      # Automated nightly PostgreSQL backup script
+│   └── README.md               # Node architecture & operations guide
 ├── scripts/                    # Deployment & ASO management utilities
 │   ├── deploy_web.py           # Unified Next.js & Wasm build/deploy script for Firebase Hosting
 │   └── deploy_production.py    # Production deployment utility
@@ -300,7 +311,8 @@ python scripts/deploy_web.py
 - **Web & Telemetry (Firebase Hosting)**: Multi-site hosting targets:
   - **Main Web Portal**: [https://fc.dirzaaulia.com](https://fc.dirzaaulia.com) (Fallback: `https://footballclips.web.app`)
   - **Telemetry Dashboard**: [https://fc.dirzaaulia.com/telemetry](https://fc.dirzaaulia.com/telemetry) (Standalone: `https://footballclips-telemetry.web.app`)
-- **Worker Daemon (GCP Compute Engine)**: Managed via `systemd` (`football-worker.service`) on VM `free-football-worker` with automatic restart and rolling log retention.
+- **Worker Daemon & Automation**: Containerized serverless worker running on **Google Cloud Run** (`fc-worker` revision 8) with automated scale-to-zero, triggered by **Google Cloud Scheduler** across 3 perpetual free cron jobs.
+- **Always-Free Super-Node (Oracle Cloud ARM64)**: Autonomous super-node on Oracle Cloud (`168.110.196.30`) with Caddy TLS reverse proxy, hosting PostgreSQL 16, PostgREST API (`https://168.110.196.30.sslip.io`), FileBrowser Quantum (`https://files.168.110.196.30.sslip.io`), and automated Backblaze B2 disaster recovery sync.
 
 ---
 

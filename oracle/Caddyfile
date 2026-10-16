@@ -1,0 +1,7 @@
+files.168.110.196.30.sslip.io {
+    reverse_proxy jarvis-filebrowser:80
+}
+
+168.110.196.30.sslip.io {
+    reverse_proxy jarvis-postgrest:3000
+}

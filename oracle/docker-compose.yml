@@ -111,17 +111,20 @@ services:
     networks:
       - jarvis_net
 
-  # 7. Private Cloud & Cross-Device Hub (Filebrowser)
+  # 7. Private Cloud & Cross-Device Hub (FileBrowser Quantum)
   filebrowser:
-    image: filebrowser/filebrowser:latest
+    image: gtstef/filebrowser:latest
     container_name: jarvis-filebrowser
     restart: unless-stopped
     ports:
       - "8090:80"
+    environment:
+      - FILEBROWSER_CONFIG=/home/filebrowser/data/config.yaml
+      - FILEBROWSER_ADMIN_PASSWORD=${FILEBROWSER_ADMIN_PASSWORD:-jarvis_secure_admin_2026}
     volumes:
       - ./storage/cloud:/srv
-      - ./storage/filebrowser/database.db:/database.db
-      - ./storage/filebrowser/settings.json:/.filebrowser.json
+      - ./storage/filebrowser/data:/home/filebrowser/data
+      - ./storage/filebrowser/config.yaml:/home/filebrowser/data/config.yaml:ro
     deploy:
       resources:
         limits:
@@ -159,7 +162,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jarvis_postgres_secure_2026}
     volumes:
       - ./storage/postgres:/var/lib/postgresql/data
-      - ./init_footballclips.sql:/docker-entrypoint-initdb.d/init_footballclips.sql:ro
+      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "5432:5432"
     deploy:
