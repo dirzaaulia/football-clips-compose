@@ -680,11 +680,18 @@ class HighlightService:
                 cooldown_skipped.append((m, reason))
 
         if cooldown_skipped:
-            sample_reasons = [f"{m.get('home_team_name', 'Home')} vs {m.get('away_team_name', 'Away')} ({r})" for m, r in cooldown_skipped[:3]]
+            from collections import Counter
+            tier_counter = Counter()
+            for _, r in cooldown_skipped:
+                t_match = r.split(" active")[0].strip() if " active" in r else "Active"
+                tier_counter[t_match] += 1
+
+            tier_summary = ", ".join(f"{cnt} in {t}" for t, cnt in tier_counter.items())
+            sample_fixtures = [f"{m.get('home_team_name', 'Home')} vs {m.get('away_team_name', 'Away')}" for m, _ in cooldown_skipped[:3]]
             more_str = f" (+{len(cooldown_skipped) - 3} more)" if len(cooldown_skipped) > 3 else ""
             append_event(
                 log_events,
-                f"[COOLDOWN PROTECTED] {len(cooldown_skipped)} fixture(s) currently in cooldown guardrail: {'; '.join(sample_reasons)}{more_str}.",
+                f"[COOLDOWN PROTECTED] {len(cooldown_skipped)} fixture(s) in cooldown guardrail ({tier_summary}). Waiting: {', '.join(sample_fixtures)}{more_str}.",
                 "INFO",
                 "YOUTUBE",
                 "COOLDOWN_PROTECTED"
@@ -774,7 +781,7 @@ class HighlightService:
             except Exception as e:
                 err_str = str(e) or type(e).__name__
                 append_event(log_events, f"   [ERROR] Match highlight search error for {home} vs {away}: {err_str}", "ERROR", "YOUTUBE", "SEARCH_ERROR")
-                append_event(log_events, f"   [SKIP COOLDOWN] Network/API error occurred. Cooldown not recorded for {home} vs {away} to allow retry next cycle.", "DEBUG", "YOUTUBE", "SKIP_COOLDOWN")
+                append_event(log_events, f"   [SKIP COOLDOWN] Network/API error ({err_str}). Cooldown not recorded for {home} vs {away} to allow retry next cycle.", "DEBUG", "YOUTUBE", "SKIP_COOLDOWN")
 
         if linked_count > 0:
             edge_cache_client.purge_matches_cache()

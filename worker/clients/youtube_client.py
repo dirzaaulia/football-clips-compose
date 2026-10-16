@@ -110,7 +110,7 @@ class YouTubeClient:
                     self.increment_quota(1)
                     return channel_id
         except Exception as e:
-            logger.warning(f"Gagal resolve handle {handle}: {e}")
+            logger.warning(f"Failed to resolve handle {handle}: {e}")
         return None
 
     def get_playlist_recent_videos(self, channel_id: str, max_results: int = 30) -> list[dict]:
