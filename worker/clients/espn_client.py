@@ -31,6 +31,10 @@ class ESPNClient:
         "CDR": {"slug": "esp.copa_del_rey", "name": "Copa del Rey", "type": "cup"},
         "DFB": {"slug": "ger.dfb_pokal", "name": "DFB-Pokal", "type": "cup"},
         "CIT": {"slug": "ita.coppa_italia", "name": "Coppa Italia", "type": "cup"},
+        "SPL": {"slug": "sau.1", "name": "Saudi Pro League", "type": "league"},
+        "MLS": {"slug": "usa.1", "name": "Major League Soccer", "type": "league"},
+        "DED": {"slug": "ned.1", "name": "Eredivisie", "type": "league"},
+        "PPL": {"slug": "por.1", "name": "Liga Portugal", "type": "league"},
     }
 
     # Inverse mapping from ESPN slug -> internal code

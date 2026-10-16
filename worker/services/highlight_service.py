@@ -254,9 +254,13 @@ class HighlightService:
             score -= 10
 
         if geo_penalty == 0:
-            score += 5
-        elif geo_penalty >= 900:
-            score -= 25
+            score += 10
+        elif geo_penalty >= 950:  # Strict regional whitelist (<50 countries, e.g. Sky Sports UK, CBS US)
+            score -= 60
+        elif geo_penalty >= 900:  # Moderate regional whitelist (<100 countries)
+            score -= 30
+        elif geo_penalty > 0:
+            score -= 10
 
         return score
 

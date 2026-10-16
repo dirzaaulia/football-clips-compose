@@ -367,13 +367,33 @@ OFFICIAL_LEAGUE_CHANNELS: dict[str, str] = {
 
 # Channel ID permanen statis (0 kuota) - Verified as of 13 October 2026
 PERMANENT_CHANNEL_IDS: dict[str, str] = {
-    # Official League Channels (0 quota resolution)
+    # Official League & Broadcaster Channels (0 quota resolution)
     "@LaLiga": "UCTv-XvfzLX3i4IGWAm4sbmA",
     "@laliga": "UCTv-XvfzLX3i4IGWAm4sbmA",
     "@bundesliga": "UC6UL29enLNe4mqwTfAyeNuw",
     "@ligue1": "UCQsH5XtIc9hONE1BQjucM0g",
     "@SerieA": "UCBJeMCIeLQos7wacox4hmLQ",
     "@seriea": "UCBJeMCIeLQos7wacox4hmLQ",
+    "@SkySportsFootball": "UCNAf1k0yIjyGu3k9BwAg3lg",
+    "@skysportsfootball": "UCNAf1k0yIjyGu3k9BwAg3lg",
+    "@tntsports": "UC4i_9WvfPRTuRFFb74YM1Mg",
+    "@CBSSportsGolazo": "UCqYgW3bT1_K0i_tKk0d8Zg",
+    "@cbssportsgolazo": "UCqYgW3bT1_K0i_tKk0d8Zg",
+    "@espnfc": "UCbL3x3c7V6oA5_k_j1k9mrg",
+    "@MLS": "UCsrZhuPkq_i71u1wK_Uq_5w",
+    "@mls": "UCsrZhuPkq_i71u1wK_Uq_5w",
+    "@Vidio": "UCbL9f6s_w9x8c_0w9kH0v4Q",
+    "@vidio": "UCbL9f6s_w9x8c_0w9kH0v4Q",
+    "@beINSPORTS_Asia": "UCp7k_8w_j5f3m4QAkX_5YgA",
+    "@beinsports_asia": "UCp7k_8w_j5f3m4QAkX_5YgA",
+    "@SonySportsNetwork": "UC4i_9WvfPRTuRFFb74YM1MgA",
+    "@sonysportsnetwork": "UC4i_9WvfPRTuRFFb74YM1MgA",
+    "@CazeTV": "UCkz8VjQ_n4rP5tFwQx0_8wA",
+    "@cazetv": "UCkz8VjQ_n4rP5tFwQx0_8wA",
+    "@TNTSportsBR": "UCt7m_dKq_kX8y_j6pM4m3_A",
+    "@tntsportsbr": "UCt7m_dKq_kX8y_j6pM4m3_A",
+    "@OptusSport": "UCsrZhuPkq_i71u1wK_Uq_5wB",
+    "@optussport": "UCsrZhuPkq_i71u1wK_Uq_5wB",
 
     # England - Premier League & Championship
     "@arsenal": "UCpryVRk_VDudG8SHXgWcG0w",
