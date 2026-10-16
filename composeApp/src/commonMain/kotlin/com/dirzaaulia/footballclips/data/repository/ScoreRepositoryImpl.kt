@@ -25,7 +25,7 @@ class ScoreRepositoryImpl(private val client: HttpClient) : ScoreRepository {
         offset: Int
     ): NetworkResult<List<MatchDto>> {
         return try {
-            val order = if (ascending) "utc_date.asc" else "utc_date.desc"
+            val order = if (ascending) "utc_date.asc,id.asc" else "utc_date.desc,id.desc"
             val effectiveLimit = if (limit > 0) limit else 20
             val response = client.get(baseUrl) {
                 header("apikey", supabaseKey)

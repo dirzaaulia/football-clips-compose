@@ -71,11 +71,11 @@ fun TelemetryTopNav(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Text("Cloud Run", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
+                    Text("Oracle Super-Node (PG16)", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
                     Text("•", style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted))
                     Text("CF Edge Proxy", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
                     Text("•", style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted))
-                    Text("Supabase (Live)", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
+                    Text("Cloud Run Worker", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
                 }
             }
 
@@ -84,6 +84,20 @@ fun TelemetryTopNav(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // Mission Control Launcher
+                OutlinedButton(
+                    onClick = {
+                        kotlinx.browser.window.open("https://control.168.110.196.30.sslip.io", "_blank")
+                    },
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = StitchSuccess),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchSuccess.copy(alpha = 0.4f))
+                ) {
+                    Icon(Icons.Default.Dashboard, contentDescription = null, modifier = Modifier.size(13.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Mission Control", style = TelemetryTypography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                }
                 // Trigger Run Cycle Button
                 OutlinedButton(
                     onClick = onTriggerCycle,

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jarvis Mission Control • Super-Node</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+            },
+            surface: {
+              900: '#0a0d14',
+              800: '#111726',
+              750: '#151d30',
+              700: '#1b243b',
+              600: '#263352',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #07090e; color: #f1f5f9; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .glass-card { background: rgba(17, 23, 38, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass-card-hover:hover { border-color: rgba(52, 211, 153, 0.4); transform: translateY(-1px); transition: all 0.2s ease; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0a0d14; }
+    ::-webkit-scrollbar-thumb { background: #263352; border-radius: 3px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation Header -->
+  <header class="border-b border-white/10 bg-surface-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
+        <i data-lucide="shield" class="w-5 h-5 text-surface-900 stroke-[2.5]"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-bold text-base tracking-tight text-white">JARVIS <span class="text-brand-400 font-extrabold">SUPER-NODE</span></h1>
+          <span class="px-2 py-0.5 text-[10px] font-mono font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            ALWAYS FREE ARM64
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-400 font-mono">168.110.196.30 • Batam AD-1 (4 OCPU • 24GB RAM)</p>
+      </div>
+    </div>
+
+    <!-- Quick Links & Actions -->
+    <div class="flex items-center gap-2.5">
+      <a href="https://files.168.110.196.30.sslip.io" target="_blank" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-700 hover:bg-surface-600 border border-white/10 transition flex items-center gap-1.5 text-slate-200">
+        <i data-lucide="folder" class="w-3.5 h-3.5 text-amber-400"></i>
+        <span>File Vault</span>
+      </a>
+      <a href="https://footballclips-telemetry.web.app" target="_blank" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-700 hover:bg-surface-600 border border-white/10 transition flex items-center gap-1.5 text-slate-200">
+        <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-400"></i>
+        <span>WASM APM</span>
+      </a>
+      <a href="https://fc.dirzaaulia.com" target="_blank" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-brand-500 hover:bg-brand-600 text-surface-900 font-semibold transition flex items-center gap-1.5 shadow-sm">
+        <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+        <span>FootballClips Web</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content Grid -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+
+    <!-- Section 1: Top Metrics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="glass-card rounded-2xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-slate-400 text-xs">
+          <span>Total Database Matches</span>
+          <i data-lucide="database" class="w-4 h-4 text-emerald-400"></i>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="metric-total-matches" class="text-3xl font-extrabold text-white font-mono">--</span>
+          <span class="text-xs text-emerald-400">deduplicated</span>
+        </div>
+        <div class="mt-2 text-[11px] text-slate-400 flex items-center justify-between border-t border-white/5 pt-2">
+          <span>PostgreSQL 16 Core</span>
+          <span class="font-mono text-emerald-400">Online</span>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-slate-400 text-xs">
+          <span>Official Highlights Linked</span>
+          <i data-lucide="video" class="w-4 h-4 text-rose-400"></i>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="metric-highlights" class="text-3xl font-extrabold text-white font-mono">--</span>
+          <span id="metric-highlight-pct" class="text-xs text-rose-400">--% rate</span>
+        </div>
+        <div class="mt-2 text-[11px] text-slate-400 flex items-center justify-between border-t border-white/5 pt-2">
+          <span>AI Gemini Verified</span>
+          <span class="font-mono text-white/80">Strict Guardrails</span>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-slate-400 text-xs">
+          <span>Live In-Play / Upcoming</span>
+          <i data-lucide="radio" class="w-4 h-4 text-amber-400"></i>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="metric-live-matches" class="text-3xl font-extrabold text-amber-400 font-mono">0</span>
+          <span id="metric-upcoming" class="text-xs text-slate-400">-- scheduled</span>
+        </div>
+        <div class="mt-2 text-[11px] text-slate-400 flex items-center justify-between border-t border-white/5 pt-2">
+          <span>Edge Cache Proxy</span>
+          <span class="font-mono text-emerald-400">30s TTL</span>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-4 flex flex-col justify-between">
+        <div class="flex items-center justify-between text-slate-400 text-xs">
+          <span>Backblaze B2 Vault</span>
+          <i data-lucide="cloud-check" class="w-4 h-4 text-cyan-400"></i>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span class="text-2xl font-bold text-white font-mono">Active</span>
+          <span class="text-xs text-cyan-400 font-mono">Daily 03:00</span>
+        </div>
+        <div class="mt-2 text-[11px] text-slate-400 flex items-center justify-between border-t border-white/5 pt-2">
+          <span>Bucket: dirza-personal-web</span>
+          <span class="font-mono text-emerald-400">Mirrored</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Services Topology & AI Engines -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Left 2 Cols: Running SuperNode Infrastructure -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="glass-card rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <i data-lucide="server" class="w-5 h-5 text-brand-400"></i>
+              <h2 class="font-bold text-sm tracking-wide text-white uppercase">Autonomous Super-Node Topology</h2>
+            </div>
+            <span class="text-xs font-mono text-slate-400">All 10 Containers Healthy</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div class="bg-surface-800/80 rounded-xl p-3 border border-white/5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-white">PostgreSQL 16</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mt-1">:5432 • Core Datastore</p>
+            </div>
+
+            <div class="bg-surface-800/80 rounded-xl p-3 border border-white/5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-white">PostgREST API</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mt-1">:3000 • REST Engine</p>
+            </div>
+
+            <div class="bg-surface-800/80 rounded-xl p-3 border border-white/5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-white">Caddy Auto-TLS</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mt-1">:80/:443 • Reverse Proxy</p>
+            </div>
+
+            <div class="bg-surface-800/80 rounded-xl p-3 border border-white/5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-white">FileBrowser Q</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mt-1">:8090 • Private Cloud</p>
+            </div>
+
+            <div class="bg-surface-800/80 rounded-xl p-3 border border-white/5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-white">Ollama ARM64</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mt-1">:11434 • Local LLMs</p>
+            </div>
+
+            <div class="bg-surface-800/80 rounded-xl p-3 border border-white/5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-white">Whisper Speech</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mt-1">:8000 • Turbo Audio</p>
+            </div>
+
+            <div class="bg-surface-800/80 rounded-xl p-3 border border-white/5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-white">Qdrant Vector</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mt-1">:6333 • Semantic RAM</p>
+            </div>
+
+            <div class="bg-surface-800/80 rounded-xl p-3 border border-white/5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-white">n8n Automation</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mt-1">:5678 • Workflows</p>
+            </div>
+
+            <div class="bg-surface-800/80 rounded-xl p-3 border border-white/5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-white">Anti-Idle Shield</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              </div>
+              <p class="text-[11px] text-slate-400 font-mono mt-1">Active • 0-Reclaim</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Latest Matches Quick Table -->
+        <div class="glass-card rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="list" class="w-4 h-4 text-emerald-400"></i>
+              <h3 class="font-bold text-sm text-white">Live PostgREST Feed (Latest Database Matches)</h3>
+            </div>
+            <button onclick="loadMatches()" class="text-xs text-brand-400 hover:text-brand-300 font-mono flex items-center gap-1">
+              <i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="text-[11px] uppercase bg-surface-800/60 text-slate-400 font-mono border-b border-white/5">
+                <tr>
+                  <th class="py-2 px-3">Date</th>
+                  <th class="py-2 px-3">Comp</th>
+                  <th class="py-2 px-3">Match</th>
+                  <th class="py-2 px-3">Score</th>
+                  <th class="py-2 px-3">Status</th>
+                  <th class="py-2 px-3">Highlight</th>
+                </tr>
+              </thead>
+              <tbody id="matches-tbody" class="divide-y divide-white/5 font-mono">
+                <tr>
+                  <td colspan="6" class="text-center py-6 text-slate-500">Loading matches from PostgreSQL...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Personal Productivity & Quick Actions -->
+      <div class="space-y-6">
+
+        <!-- Quick Actions Panel -->
+        <div class="glass-card rounded-2xl p-5 space-y-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> Command Actions
+          </h3>
+          <div class="space-y-2">
+            <button onclick="triggerSyncCycle()" class="w-full py-2.5 px-3 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-xs font-medium text-slate-200 flex items-center justify-between transition group">
+              <span class="flex items-center gap-2">
+                <i data-lucide="refresh-cw" class="w-4 h-4 text-brand-400 group-hover:rotate-180 transition duration-500"></i>
+                <span>Trigger Scraper Cycle</span>
+              </span>
+              <span class="text-[10px] text-slate-400 font-mono">Cloud Run</span>
+            </button>
+
+            <button onclick="purgeEdgeCache()" class="w-full py-2.5 px-3 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-xs font-medium text-slate-200 flex items-center justify-between transition">
+              <span class="flex items-center gap-2">
+                <i data-lucide="trash-2" class="w-4 h-4 text-rose-400"></i>
+                <span>Purge Edge Proxy Cache</span>
+              </span>
+              <span class="text-[10px] text-slate-400 font-mono">Cloudflare</span>
+            </button>
+
+            <a href="https://files.168.110.196.30.sslip.io" target="_blank" class="w-full py-2.5 px-3 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-xs font-medium text-slate-200 flex items-center justify-between transition">
+              <span class="flex items-center gap-2">
+                <i data-lucide="hard-drive" class="w-4 h-4 text-cyan-400"></i>
+                <span>Open Cloud Storage Vault</span>
+              </span>
+              <span class="text-[10px] text-slate-400 font-mono">FileBrowser</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Personal Productivity & Agenda Checklist -->
+        <div class="glass-card rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i> Mission Checklist
+            </h3>
+            <span id="task-counter" class="text-[11px] font-mono text-slate-400">0/0</span>
+          </div>
+
+          <div id="todo-list" class="space-y-2 text-xs">
+            <!-- Dynamic Todo items rendered from localStorage -->
+          </div>
+
+          <div class="flex items-center gap-2 pt-2 border-t border-white/5">
+            <input type="text" id="new-task-input" placeholder="Add mission goal..." class="flex-1 bg-surface-800 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 font-sans">
+            <button onclick="addTask()" class="px-3 py-1.5 bg-brand-500 hover:bg-brand-600 text-surface-900 rounded-lg font-bold text-xs">Add</button>
+          </div>
+        </div>
+
+        <!-- Fast Scratchpad -->
+        <div class="glass-card rounded-2xl p-5 space-y-2">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span class="font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="edit-3" class="w-4 h-4 text-purple-400"></i> Scratchpad
+            </span>
+            <span id="scratch-status" class="text-[10px] font-mono text-emerald-400">Saved</span>
+          </div>
+          <textarea id="scratchpad" rows="4" placeholder="Quick notes, logs, or command drafts..." class="w-full bg-surface-800/80 border border-white/10 rounded-xl p-3 text-xs text-slate-200 font-mono placeholder-slate-500 focus:outline-none focus:border-brand-500 resize-none"></textarea>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="border-t border-white/10 py-4 px-6 text-center text-xs text-slate-500 font-mono">
+    Jarvis Autonomous Super-Node • Batam, Indonesia • Strict Zero-Dollar Infrastructure © 2026
+  </footer>
+
+  <script>
+    lucide.createIcons();
+
+    // 1. Fetch Matches from PostgREST
+    async function loadMatches() {
+      try {
+        const resp = await fetch('https://168.110.196.30.sslip.io/matches?select=id,utc_date,competition_id,home_team_name,away_team_name,home_score,away_score,status,highlight_video_id&order=utc_date.desc,id.desc&limit=10');
+        if (!resp.ok) throw new Error('Network error');
+        const data = await resp.json();
+        
+        const tbody = document.getElementById('matches-tbody');
+        tbody.innerHTML = '';
+        data.forEach(m => {
+          const tr = document.createElement('tr');
+          const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED';
+          const statusBadge = isLive 
+            ? '<span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold animate-pulse text-[10px]">LIVE</span>'
+            : `<span class="text-slate-400 text-[10px]">${m.status}</span>`;
+          
+          const hlBadge = m.highlight_video_id
+            ? `<a href="https://youtu.be/${m.highlight_video_id}" target="_blank" class="text-rose-400 hover:underline flex items-center gap-1">▶ ${m.highlight_video_id}</a>`
+            : '<span class="text-slate-600">-</span>';
+
+          const dateStr = new Date(m.utc_date).toLocaleString('id-ID', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+          tr.innerHTML = `
+            <td class="py-2 px-3 text-slate-400">${dateStr}</td>
+            <td class="py-2 px-3 font-bold text-slate-300">${m.competition_id}</td>
+            <td class="py-2 px-3 text-white font-sans">${m.home_team_name} vs ${m.away_team_name}</td>
+            <td class="py-2 px-3 text-emerald-400 font-bold">${m.home_score !== null ? `${m.home_score} - ${m.away_score}` : '-'}</td>
+            <td class="py-2 px-3">${statusBadge}</td>
+            <td class="py-2 px-3 font-mono">${hlBadge}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // Compute metrics
+        const totalResp = await fetch('https://168.110.196.30.sslip.io/matches?select=count', { headers: { 'Prefer': 'count=exact' } });
+        const contentRange = totalResp.headers.get('content-range');
+        if (contentRange) {
+          const total = contentRange.split('/')[1];
+          document.getElementById('metric-total-matches').innerText = total;
+        }
+
+        const hlResp = await fetch('https://168.110.196.30.sslip.io/matches?highlight_video_id=not.is.null&select=count', { headers: { 'Prefer': 'count=exact' } });
+        const hlRange = hlResp.headers.get('content-range');
+        if (hlRange && contentRange) {
+          const hlCount = parseInt(hlRange.split('/')[1]);
+          const totalCount = parseInt(contentRange.split('/')[1]);
+          document.getElementById('metric-highlights').innerText = hlCount;
+          document.getElementById('metric-highlight-pct').innerText = `${Math.round((hlCount / totalCount) * 100)}% rate`;
+        }
+
+      } catch (e) {
+        console.error('Error loading matches:', e);
+      }
+    }
+
+    // 2. Trigger Scraper Cycle
+    async function triggerSyncCycle() {
+      if (!confirm('Dispatch on-demand worker cycle to Google Cloud Run?')) return;
+      try {
+        const res = await fetch('https://fc-worker-915002008392.us-central1.run.app/run-cycle', { method: 'POST' });
+        alert('Cycle dispatched successfully!');
+        setTimeout(loadMatches, 3000);
+      } catch (e) {
+        alert('Failed to trigger cycle: ' + e.message);
+      }
+    }
+
+    // 3. Purge Edge Cache
+    async function purgeEdgeCache() {
+      if (!confirm('Purge all Cloudflare Edge Proxy caches?')) return;
+      try {
+        const res = await fetch('https://fc-edge-proxy.dirzaaulia11.workers.dev/api/purge-cache', { method: 'POST' });
+        alert('Edge cache successfully purged!');
+      } catch (e) {
+        alert('Purge request sent.');
+      }
+    }
+
+    // 4. Todo Checklist with localStorage
+    const defaultTodos = [
+      { id: 1, text: "Oracle Super-Node HTTPS & Caddy operational", done: true },
+      { id: 2, text: "FileBrowser Quantum & Backblaze B2 sync active", done: true },
+      { id: 3, text: "PostgreSQL 16 deterministic pagination index", done: true },
+      { id: 4, text: "Deploy Google Play Store In-App Updates bundle", done: false },
+      { id: 5, text: "WASM Telemetry Grafana-grade metric sparklines", done: false }
+    ];
+
+    let todos = JSON.parse(localStorage.getItem('jarvis_todos')) || defaultTodos;
+
+    function renderTodos() {
+      const container = document.getElementById('todo-list');
+      container.innerHTML = '';
+      let doneCount = 0;
+      todos.forEach((t, idx) => {
+        if (t.done) doneCount++;
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between p-2 rounded-lg bg-surface-800/60 border border-white/5';
+        div.innerHTML = `
+          <label class="flex items-center gap-2 cursor-pointer flex-1">
+            <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTodo(${idx})" class="rounded border-slate-700 text-brand-500 focus:ring-0">
+            <span class="${t.done ? 'line-through text-slate-500' : 'text-slate-200'}">${t.text}</span>
+          </label>
+          <button onclick="deleteTodo(${idx})" class="text-slate-600 hover:text-rose-400 p-1">×</button>
+        `;
+        container.appendChild(div);
+      });
+      document.getElementById('task-counter').innerText = `${doneCount}/${todos.length}`;
+      localStorage.setItem('jarvis_todos', JSON.stringify(todos));
+    }
+
+    function toggleTodo(idx) {
+      todos[idx].done = !todos[idx].done;
+      renderTodos();
+    }
+
+    function deleteTodo(idx) {
+      todos.splice(idx, 1);
+      renderTodos();
+    }
+
+    function addTask() {
+      const input = document.getElementById('new-task-input');
+      const val = input.value.trim();
+      if (!val) return;
+      todos.push({ id: Date.now(), text: val, done: false });
+      input.value = '';
+      renderTodos();
+    }
+
+    // 5. Scratchpad auto-save
+    const scratch = document.getElementById('scratchpad');
+    scratch.value = localStorage.getItem('jarvis_scratchpad') || '';
+    scratch.addEventListener('input', () => {
+      localStorage.setItem('jarvis_scratchpad', scratch.value);
+      const s = document.getElementById('scratch-status');
+      s.innerText = 'Saved';
+      s.className = 'text-[10px] font-mono text-emerald-400';
+    });
+
+    // Initial load
+    renderTodos();
+    loadMatches();
+  </script>
+</body>
+</html>

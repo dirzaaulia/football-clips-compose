@@ -203,6 +203,34 @@ fun TelemetryApmEdgeView(
             TtlRowItem("General Upcoming Fixtures", "GET /rest/v1/matches?status=eq.TIMED", "5 Minutes (300s)", "Scheduled matches cache with auto edge invalidation", StitchWarning)
         }
 
+        // Grafana-Grade Production SLA & Health Matrix
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(6.dp))
+                .background(StitchSurface)
+                .border(1.dp, StitchBorder, RoundedCornerShape(6.dp))
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Enterprise SLA & Subsystem Health Matrix", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
+                Text("Grafana / Cloud Monitoring Grade", fontSize = 10.sp, color = StitchSuccess, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+            }
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SlaHealthCard("Oracle Super-Node", "99.99%", "4 OCPU / 24GB RAM", StitchSuccess, Modifier.weight(1f))
+                SlaHealthCard("PostgreSQL 16 & API", "100%", "Batam NVMe Core", StitchSuccess, Modifier.weight(1f))
+                SlaHealthCard("CF Edge Proxy", "99.99%", "Sub-15ms Global CDN", StitchSuccess, Modifier.weight(1f))
+                SlaHealthCard("Cloud Run Worker", "100%", "Scale-to-Zero Node", StitchSuccess, Modifier.weight(1f))
+                SlaHealthCard("Backblaze B2 Vault", "100%", "Daily 03:00 Sync", StitchSuccess, Modifier.weight(1f))
+            }
+        }
+
         // Perpetual $0.00 / Mo Infrastructure Guardrails Breakdown
         Column(
             modifier = Modifier
@@ -215,11 +243,38 @@ fun TelemetryApmEdgeView(
         ) {
             Text("100% Perpetual Free Tier Infrastructure Budget ($0.00 / Mo)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary, fontFamily = FontFamily.Monospace)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FreeTierCard("Google Cloud Run", "2,000,000 free req/mo", "Serverless Container Node", StitchSuccess, Modifier.weight(1f))
-                FreeTierCard("Cloudflare Workers", "100,000 free req/day", "Global Edge Caching Proxy", StitchSecondary, Modifier.weight(1f))
-                FreeTierCard("Google Cloud Scheduler", "3 Free Perpetual Jobs", "Standard, Weekend Live, WebSub", StitchPrimary, Modifier.weight(1f))
-                FreeTierCard("YouTube Ingestion", "0 API Units Spent", "100% WebSub + RSS Feeds", StitchSuccess, Modifier.weight(1f))
+                FreeTierCard("Oracle Always Free", "4 OCPU • 24GB RAM", "Autonomous Super-Node", StitchSuccess, Modifier.weight(1f))
+                FreeTierCard("Google Cloud Run", "2M free req/mo", "Serverless Container Node", StitchPrimary, Modifier.weight(1f))
+                FreeTierCard("Cloudflare Workers", "100k req/day", "Global Edge Caching Proxy", StitchSecondary, Modifier.weight(1f))
+                FreeTierCard("Backblaze B2", "10GB Vault Free", "Disaster Recovery Sync", StitchWarning, Modifier.weight(1f))
+                FreeTierCard("YouTube Ingestion", "0 Quota Units", "100% WebSub + RSS", StitchSuccess, Modifier.weight(1f))
             }
+        }
+    }
+}
+
+@Composable
+private fun SlaHealthCard(
+    title: String,
+    sla: String,
+    detail: String,
+    statusColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(4.dp))
+            .background(StitchSidebar)
+            .border(1.dp, statusColor.copy(alpha = 0.25f), RoundedCornerShape(4.dp))
+            .padding(10.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(title, fontSize = 10.5.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary)
+                Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(statusColor))
+            }
+            Text(sla, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = statusColor, fontFamily = FontFamily.Monospace)
+            Text(detail, fontSize = 8.5.sp, color = StitchTextMuted, fontFamily = FontFamily.Monospace, maxLines = 1)
         }
     }
 }

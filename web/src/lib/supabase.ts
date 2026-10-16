@@ -63,6 +63,7 @@ export async function getRecentHighlights(limit = 24, offset = 0, competitionId?
     .select('*')
     .not('highlight_video_id', 'is', null)
     .order('utc_date', { ascending: false })
+    .order('id', { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (competitionId && competitionId !== 'ALL') {
