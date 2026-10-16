@@ -35,13 +35,17 @@ def main():
     print("\n📦 Building Next.js Web application...")
     run_command("npm run build", cwd=web_dir)
 
-    # 1.5 Ensure /match/index.html fallback exists for Firebase SPA routing
+    # 1.5 Ensure clean /match/index.html fallback exists for Firebase SPA routing
     out_match_dir = os.path.join(web_dir, "out", "match")
-    if os.path.exists(out_match_dir):
-        match_htmls = [f for f in os.listdir(out_match_dir) if f.endswith(".html") and f != "index.html"]
-        if match_htmls:
-            shutil.copyfile(os.path.join(out_match_dir, match_htmls[0]), os.path.join(out_match_dir, "index.html"))
-            print(f"📄 Created Match Centre fallback shell at {os.path.join(out_match_dir, 'index.html')}")
+    match_html_path = os.path.join(web_dir, "out", "match.html")
+    match_index_path = os.path.join(out_match_dir, "index.html")
+    if not os.path.exists(out_match_dir):
+        os.makedirs(out_match_dir, exist_ok=True)
+    if os.path.exists(match_html_path):
+        shutil.copyfile(match_html_path, match_index_path)
+        print(f"📄 Generated clean Match Centre fallback shell from match.html at {match_index_path}")
+    elif os.path.exists(match_index_path):
+        print(f"📄 Verified Match Centre fallback shell at {match_index_path}")
 
     public_telemetry_dir = os.path.join(web_dir, "public", "telemetry")
 

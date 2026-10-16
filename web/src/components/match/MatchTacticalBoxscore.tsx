@@ -12,7 +12,6 @@ interface MatchTacticalBoxscoreProps {
 export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscoreProps) {
   const { isSpoilerFree } = useSpoilerFree();
   const [isRevealed, setIsRevealed] = useState(false);
-  const [activeTab, setActiveTab] = useState<'stats' | 'lineups' | 'story'>('stats');
 
   const stats = match.statistics;
   const formations = match.formations;
@@ -20,18 +19,68 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
   const story = match.editorial_story;
   const source = match.editorial_source || 'ESPN Accredited';
 
-  const hasStats = Boolean(stats && (stats.home || stats.away));
-  const hasFormations = Boolean(formations && (formations.home || formations.away));
+  const hasStats = Boolean(
+    stats &&
+      ((stats.home && Object.keys(stats.home).length > 0) ||
+        (stats.away && Object.keys(stats.away).length > 0))
+  );
+  const hasFormations = Boolean(
+    formations &&
+      ((formations.home?.starters && formations.home.starters.length > 0) ||
+        (formations.away?.starters && formations.away.starters.length > 0))
+  );
   const hasStory = Boolean(story && story.trim().length > 0);
+
+  const [activeTab, setActiveTab] = useState<'stats' | 'lineups' | 'story'>(() => {
+    if (hasStats) return 'stats';
+    if (hasFormations) return 'lineups';
+    return 'story';
+  });
+
+  React.useEffect(() => {
+    if (activeTab === 'stats' && !hasStats) {
+      if (hasFormations) setActiveTab('lineups');
+      else if (hasStory) setActiveTab('story');
+    } else if (activeTab === 'lineups' && !hasFormations) {
+      if (hasStats) setActiveTab('stats');
+      else if (hasStory) setActiveTab('story');
+    } else if (activeTab === 'story' && !hasStory) {
+      if (hasStats) setActiveTab('stats');
+      else if (hasFormations) setActiveTab('lineups');
+    }
+  }, [hasStats, hasFormations, hasStory, activeTab]);
 
   if (!hasStats && !hasFormations && !hasStory) {
     return null;
   }
 
-  const isGuarded = isSpoilerFree && !isRevealed;
+  const isFinished = match.status === 'FINISHED';
+  const isLive =
+    match.status === 'IN_PLAY' ||
+    match.status === 'PAUSED' ||
+    match.status === 'LIVE';
+  const isUpcoming = !isFinished && !isLive;
+
+  // Never guard tactical preview for upcoming matches
+  const isGuarded = !isUpcoming && isSpoilerFree && !isRevealed;
 
   const homeName = match.home_team_name || match.home_team;
   const awayName = match.away_team_name || match.away_team;
+
+  const formatStatDisplay = (val: string, isPct?: boolean, key?: string) => {
+    const num = parseFloat(val);
+    if (isNaN(num)) return val;
+    if (isPct) {
+      if (key === 'possessionPct') {
+        return `${num.toFixed(1)}%`;
+      }
+      if (num <= 1.0 && num > 0) {
+        return `${Math.round(num * 100)}%`;
+      }
+      return `${Math.round(num)}%`;
+    }
+    return val;
+  };
 
   // Stat metrics to display with user-friendly labels
   const STAT_METRICS: Array<{ key: string; label: string; isPct?: boolean }> = [
@@ -147,11 +196,11 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
                     <div key={key} className="space-y-1">
                       <div className="flex items-center justify-between text-xs font-bold text-[#F1F5F9] px-2">
                         <span className="font-mono text-[#7098F8]">
-                          {rawHome}{isPct ? '%' : ''}
+                          {formatStatDisplay(rawHome, isPct, key)}
                         </span>
                         <span className="text-[11px] text-[#94A3B8] font-medium">{label}</span>
                         <span className="font-mono text-[#4FC3F7]">
-                          {rawAway}{isPct ? '%' : ''}
+                          {formatStatDisplay(rawAway, isPct, key)}
                         </span>
                       </div>
 

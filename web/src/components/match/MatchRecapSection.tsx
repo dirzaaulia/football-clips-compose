@@ -6,15 +6,24 @@ import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 
 interface MatchRecapSectionProps {
   recapAnalysis?: string | null;
+  status?: string;
 }
 
-export default function MatchRecapSection({ recapAnalysis }: MatchRecapSectionProps) {
+export default function MatchRecapSection({ recapAnalysis, status }: MatchRecapSectionProps) {
   const { isSpoilerFree } = useSpoilerFree();
   const [isRevealed, setIsRevealed] = useState(false);
 
   if (!recapAnalysis || !recapAnalysis.trim()) return null;
 
-  const isGuarded = isSpoilerFree && !isRevealed;
+  const isFinished = status === 'FINISHED';
+  const isLive = status === 'IN_PLAY' || status === 'PAUSED' || status === 'LIVE';
+  const isUpcoming = !isFinished && !isLive;
+
+  // Never spoiler-guard upcoming preview summaries; only guard finished/live games when spoiler-free is on
+  const isGuarded = !isUpcoming && isSpoilerFree && !isRevealed;
+  const sectionTitle = isUpcoming
+    ? 'Match Preview & Tactical Setup'
+    : 'Match Summary & Tactical Breakdown';
 
   return (
     <section className="rounded-3xl bg-[#181C20] border border-[#334155] p-6 sm:p-8 space-y-4 shadow-xl">
@@ -22,10 +31,10 @@ export default function MatchRecapSection({ recapAnalysis }: MatchRecapSectionPr
         <div className="flex items-center gap-2 text-[#7098F8]">
           <Sparkles className="w-4 h-4 text-[#4FC3F7]" />
           <h2 className="text-sm font-extrabold uppercase tracking-wider text-white">
-            Tactical Breakdown &amp; Match Analysis
+            {sectionTitle}
           </h2>
         </div>
-        {isSpoilerFree && (
+        {!isUpcoming && isSpoilerFree && (
           <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
             Spoiler Guarded
           </span>

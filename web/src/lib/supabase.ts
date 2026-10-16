@@ -44,7 +44,7 @@ export interface MatchRecord {
   country_logo?: string | null;
   season?: number;
   formations?: MatchFormations | null;
-  statistics?: Record<'home' | 'away', Record<string, string>> | null;
+  statistics?: { home?: Record<string, string>; away?: Record<string, string> } | null;
   editorial_headline?: string | null;
   editorial_story?: string | null;
   editorial_source?: string | null;
