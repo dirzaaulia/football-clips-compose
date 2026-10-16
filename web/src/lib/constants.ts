@@ -29,6 +29,13 @@ export const BIG_LEAGUES: BigLeague[] = [
     logo: 'https://crests.football-data.org/EL.png',
   },
   {
+    name: 'Conference League',
+    leagueId: 3338,
+    countryCode: 'EU',
+    competitionId: 'ECL',
+    logo: 'https://crests.football-data.org/ECL.png',
+  },
+  {
     name: 'Premier League',
     leagueId: 33973,
     countryCode: 'GB-ENG',
@@ -102,6 +109,16 @@ export function normalizeLeagueName(name: string): string {
 
   if (lower === 'uefa europa league' || lower === 'europa league' || lower === 'el') {
     return 'Europa League';
+  }
+
+  if (
+    lower === 'uefa conference league' ||
+    lower === 'uefa europa conference league' ||
+    lower === 'conference league' ||
+    lower === 'ecl' ||
+    lower === 'uecl'
+  ) {
+    return 'Conference League';
   }
 
   return trimmed;

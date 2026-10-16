@@ -31,6 +31,12 @@ fun String.normalizeLeagueName(): String {
         trimmed.equals("Europa League", ignoreCase = true) ||
         trimmed.equals("EL", ignoreCase = true) -> "Europa League"
 
+        trimmed.equals("UEFA Conference League", ignoreCase = true) ||
+        trimmed.equals("UEFA Europa Conference League", ignoreCase = true) ||
+        trimmed.equals("Conference League", ignoreCase = true) ||
+        trimmed.equals("ECL", ignoreCase = true) ||
+        trimmed.equals("UECL", ignoreCase = true) -> "Conference League"
+
         else -> trimmed
     }
 }

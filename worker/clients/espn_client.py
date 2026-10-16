@@ -25,6 +25,7 @@ class ESPNClient:
         "FL1": {"slug": "fra.1", "name": "Ligue 1", "type": "league"},
         "CL": {"slug": "uefa.champions", "name": "UEFA Champions League", "type": "cup"},
         "EL": {"slug": "uefa.europa", "name": "UEFA Europa League", "type": "cup"},
+        "ECL": {"slug": "uefa.europa.conf", "name": "UEFA Conference League", "type": "cup"},
         "FAC": {"slug": "eng.fa", "name": "FA Cup", "type": "cup"},
         "EFL": {"slug": "eng.league_cup", "name": "Carabao Cup", "type": "cup"},
         "CDR": {"slug": "esp.copa_del_rey", "name": "Copa del Rey", "type": "cup"},

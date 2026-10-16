@@ -286,8 +286,8 @@ class HighlightService:
         now_utc = datetime.now(UTC)
         match_age_hours = (now_utc - match_start).total_seconds() / 3600.0
 
-        # UEFA Champions League & Europa League embargo rule: clubs cannot legally publish highlights until H+2.5h
-        if comp_id in ["CL", "EL"] and match_age_hours < 2.5:
+        # UEFA European embargo rule: clubs cannot legally publish highlights until H+2.5h
+        if comp_id in ["CL", "EL", "ECL"] and match_age_hours < 2.5:
             append_event(
                 log_events,
                 f"   [SKIP EMBARGO] {home} vs {away} finished {match_age_hours:.1f}h ago (< 2.5h UEFA media embargo window). Awaiting official club upload release.",
@@ -687,11 +687,9 @@ class HighlightService:
                 tier_counter[t_match] += 1
 
             tier_summary = ", ".join(f"{cnt} in {t}" for t, cnt in tier_counter.items())
-            sample_fixtures = [f"{m.get('home_team_name', 'Home')} vs {m.get('away_team_name', 'Away')}" for m, _ in cooldown_skipped[:3]]
-            more_str = f" (+{len(cooldown_skipped) - 3} more)" if len(cooldown_skipped) > 3 else ""
             append_event(
                 log_events,
-                f"[COOLDOWN PROTECTED] {len(cooldown_skipped)} fixture(s) in cooldown guardrail ({tier_summary}). Waiting: {', '.join(sample_fixtures)}{more_str}.",
+                f"[COOLDOWN PROTECTED] {len(cooldown_skipped)} fixture(s) in cooldown guardrail ({tier_summary}).",
                 "INFO",
                 "YOUTUBE",
                 "COOLDOWN_PROTECTED"
