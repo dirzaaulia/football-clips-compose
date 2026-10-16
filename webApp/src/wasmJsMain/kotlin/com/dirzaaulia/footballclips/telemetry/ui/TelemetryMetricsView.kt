@@ -51,8 +51,8 @@ fun TelemetryMetricsView(
             )
 
             val linkedHighlights = apmLiveMetrics?.highlightsLinked ?: metrics.totalHighlights
-            val totalFinished = apmLiveMetrics?.finishedMatches ?: 263
-            val coverage = apmLiveMetrics?.highlightCoveragePercent ?: (if (totalFinished > 0) (linkedHighlights.toFloat() / totalFinished.toFloat() * 100).toInt().toDouble() else 48.7)
+            val totalFinished = apmLiveMetrics?.finishedMatches ?: 276
+            val coverage = apmLiveMetrics?.highlightCoveragePercent ?: (if (totalFinished > 0) (((linkedHighlights.toDouble() / totalFinished.toDouble()) * 100.0 * 10.0).toInt() / 10.0) else 0.0)
 
             KpiMetricCard(
                 title = "HIGHLIGHT COVERAGE",
@@ -65,12 +65,12 @@ fun TelemetryMetricsView(
                 modifier = Modifier.weight(1f)
             )
 
-            val totalMatches = apmLiveMetrics?.totalMatches ?: 793
+            val totalMatches = apmLiveMetrics?.totalMatches ?: (if (metrics.totalCandidates > 0) metrics.totalCandidates else 788)
             KpiMetricCard(
                 title = "TRACKED FIXTURES",
                 subTitle = "2026/2027 European Season",
                 value = "$totalMatches",
-                deltaText = "EPL, UCL, LaLiga, Serie A, etc.",
+                deltaText = "${metrics.totalCompetitions} Leagues & Domestic Cups",
                 deltaColor = StitchSecondary,
                 icon = Icons.Default.CalendarMonth,
                 iconTint = StitchSecondary,

@@ -95,9 +95,9 @@ class TelemetryService:
             status = step.get("status", "OK")
             for line in step.get("events", []):
                 upper = line.upper()
-                is_hl = any(k in upper for k in ["HIGHLIGHT", "LINKED", "BERHASIL", "MATCHED"])
-                is_goal = any(k in upper for k in ["GOAL", "SKOR", "LIVE SCORE"])
-                is_err = any(k in upper for k in ["ERROR", "GAGAL", "CRITICAL", "EXCEPTION"])
+                is_hl = any(k in upper for k in ["HIGHLIGHT", "LINKED", "MATCHED", "VERIFIED"])
+                is_goal = any(k in upper for k in ["GOAL", "SCORE", "LIVE SCORE"])
+                is_err = any(k in upper for k in ["ERROR", "CRITICAL", "EXCEPTION", "FAILED"])
 
                 new_events.append({
                     "id": curr_id,

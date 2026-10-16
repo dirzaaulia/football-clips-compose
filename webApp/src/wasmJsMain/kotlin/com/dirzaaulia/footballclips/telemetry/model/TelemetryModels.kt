@@ -46,6 +46,8 @@ data class SupabaseMatchRecord(
     val awayTeamName: String,
     @SerialName("competition_name")
     val competitionName: String = "European Football",
+    @SerialName("competition_id")
+    val competitionId: String? = null,
     @SerialName("utc_date")
     val utcDate: String,
     val status: String,
@@ -55,6 +57,11 @@ data class SupabaseMatchRecord(
     val awayScore: Int? = null,
     @SerialName("highlight_video_id")
     val highlightVideoId: String? = null,
+    val provider: String? = "espn",
+    @SerialName("display_clock")
+    val displayClock: String? = null,
+    @SerialName("round_name")
+    val roundName: String? = null,
     @SerialName("updated_at")
     val updatedAt: String? = null
 )
@@ -75,6 +82,7 @@ enum class TelemetryViewMode(val label: String) {
 
 enum class TelemetryNavSection(val label: String) {
     STREAM("Telemetry Stream"),
+    PIPELINES("Match Pipelines"),
     APM("APM & Edge Engine"),
     NOTIFICATIONS("Club Alerts"),
     THREADS("Serverless Services"),
@@ -142,9 +150,9 @@ data class CycleWithEvents(
 )
 
 data class TelemetryMetrics(
-    val totalCycles: Int = 17,
-    val totalHighlights: Int = 17,
-    val totalCandidates: Int = 358,
+    val totalCycles: Int = 0,
+    val totalHighlights: Int = 0,
+    val totalCandidates: Int = 0,
     val totalGoals: Int = 0,
     val totalErrors: Int = 0,
     val totalLogLines: Int = 0,
@@ -152,8 +160,11 @@ data class TelemetryMetrics(
     val apiQuotaTotal: Int = 10000,
     val mappedClubs: Int = 96,
     val totalClubs: Int = 96,
-    val nextSleepText: String = "Next sleep: 2 Hours (Standard cadence)",
-    val cycleNumber: Long = 17,
+    val totalCompetitions: Int = 12,
+    val espnMatchesCount: Int = 0,
+    val legacyMatchesCount: Int = 0,
+    val nextSleepText: String = "Next Run: Dynamic Scheduler Active",
+    val cycleNumber: Long = 0,
 )
 
 data class CycleHistoryItem(

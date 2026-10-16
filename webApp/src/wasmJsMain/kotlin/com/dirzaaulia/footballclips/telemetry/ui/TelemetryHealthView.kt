@@ -70,7 +70,7 @@ fun TelemetryHealthView(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            HealthMetricCard("SERVERLESS NODE", "fc-worker-00007", "Cloud Run us-central1", StitchSuccess, Icons.Default.CloudQueue, Modifier.weight(1f))
+            HealthMetricCard("SERVERLESS NODE", "fc-worker-00008-4d6", "Cloud Run us-central1", StitchSuccess, Icons.Default.CloudQueue, Modifier.weight(1f))
             HealthMetricCard("RUNTIME ENGINE", "Python 3.12", "FastAPI + Asyncio Engine", StitchPrimary, Icons.Default.Code, Modifier.weight(1f))
             HealthMetricCard("DATABASE & EDGE", "Supabase PostgreSQL", "Cloudflare Edge Proxy", StitchSecondary, Icons.Default.Storage, Modifier.weight(1f))
             HealthMetricCard("YOUTUBE QUOTA", "0 Units / 10,000", "100% Free WebSub + RSS", StitchSuccess, Icons.Default.Token, Modifier.weight(1f))

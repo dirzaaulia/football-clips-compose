@@ -44,20 +44,26 @@ object TelemetryPipelineMapper {
             val scoreStr = if (match.homeScore != null && match.awayScore != null) {
                 "${match.homeScore} - ${match.awayScore}"
             } else "vs"
+            val clockStr = match.displayClock?.takeIf { it.isNotBlank() }?.let { " ($it)" } ?: ""
             val stage = when {
                 match.highlightVideoId != null -> PipelineStepStage.LINKED
                 match.status == "FINISHED" -> PipelineStepStage.MATCH_FINISHED
                 match.status in listOf("IN_PLAY", "PAUSED", "LIVE") -> PipelineStepStage.LIVE_GOAL
                 else -> PipelineStepStage.FIXTURE_INGESTED
             }
+            val providerLabel = when (match.provider?.lowercase()) {
+                "espn" -> "ESPN Live Engine"
+                "football_data" -> "Legacy Archive"
+                else -> match.provider ?: "ESPN Live Engine"
+            }
             val detail = buildString {
-                append("[$scoreStr] Status: ${match.status}")
+                append("[$scoreStr$clockStr] Status: ${match.status}")
                 if (match.highlightVideoId != null) {
                     append(" · Highlight linked")
                 } else if (match.status == "FINISHED") {
                     append(" · Awaiting clip scrape")
                 } else {
-                    append(" · Synced from football-data.org")
+                    append(" · Synced from $providerLabel")
                 }
             }
             PipelineStageStep(
@@ -68,7 +74,7 @@ object TelemetryPipelineMapper {
                 stage = stage,
                 status = if (match.highlightVideoId != null) "SUCCESS" else "INFO",
                 detailMessage = detail,
-                channelOrSource = if (match.highlightVideoId != null) "YouTube Highlight" else "football-data.org",
+                channelOrSource = if (match.highlightVideoId != null) "YouTube Highlight" else providerLabel,
                 videoUrl = match.highlightVideoId?.let { "https://www.youtube.com/watch?v=$it" },
                 timestamp = match.updatedAt ?: match.utcDate,
                 rawLogItem = null

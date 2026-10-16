@@ -70,15 +70,16 @@ object TelemetryParser {
                     extractedUrl = TelemetryUtils.extractYouTubeUrl(raw)
                 )
             }
-        }.sortedBy { it.id }
+        }.sortedByDescending { it.id }
     }
 
     private fun inferSubsystem(stepTitle: String): String {
         return when {
-            stepTitle.contains("Step 1", true) || stepTitle.contains("Schedule", true) || stepTitle.contains("Team", true) -> "MATCH_SYNC"
-            stepTitle.contains("Step 2", true) || stepTitle.contains("Highlight", true) -> "YOUTUBE"
-            stepTitle.contains("Step 3", true) || stepTitle.contains("Standings", true) -> "STANDINGS"
-            stepTitle.contains("Step 4", true) || stepTitle.contains("Maintenance", true) -> "MAINTENANCE"
+            stepTitle.contains("Step 1", true) || stepTitle.contains("Match", true) || stepTitle.contains("Schedule", true) || stepTitle.contains("Team", true) -> "MATCH_SYNC"
+            stepTitle.contains("Step 2", true) || stepTitle.contains("Maintenance", true) || stepTitle.contains("Purge", true) -> "MAINTENANCE"
+            stepTitle.contains("Step 3", true) || stepTitle.contains("Highlight", true) || stepTitle.contains("YouTube", true) -> "YOUTUBE"
+            stepTitle.contains("Step 4", true) || stepTitle.contains("Standings", true) -> "STANDINGS"
+            stepTitle.contains("Step 5", true) || stepTitle.contains("WebSub", true) -> "WEBSUB"
             else -> "WORKER"
         }
     }

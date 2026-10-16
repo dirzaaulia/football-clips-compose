@@ -52,19 +52,20 @@ class TelemetryRepository(
     suspend fun getRecentCycles(limit: Int = 500): Result<List<WorkerCycle>> {
         return runCatching {
             val stream = getTelemetryStream().getOrThrow()
-            stream.cycles.take(limit)
+            stream.cycles.sortedByDescending { it.cycleIndex ?: it.id }.take(limit)
         }
     }
 
     suspend fun getEventsForCycles(cycleIds: List<Long>): Result<List<WorkerEvent>> {
         return runCatching {
             val stream = cachedPayload ?: getTelemetryStream().getOrThrow()
-            if (cycleIds.isEmpty()) {
+            val events = if (cycleIds.isEmpty()) {
                 stream.events
             } else {
                 val idSet = cycleIds.toSet()
                 stream.events.filter { it.cycleId in idSet }
             }
+            events.sortedByDescending { it.id }
         }
     }
 
@@ -82,14 +83,15 @@ class TelemetryRepository(
         }
     }
 
-    suspend fun getSyncedMatches(limit: Int = 20): Result<List<SupabaseMatchRecord>> {
+    suspend fun getSyncedMatches(limit: Int = 100): Result<List<SupabaseMatchRecord>> {
+        val selectFields = "id,home_team_name,away_team_name,competition_name,competition_id,utc_date,status,home_score,away_score,highlight_video_id,provider,display_clock,round_name,updated_at"
         return runCatching {
             try {
                 val edgeResponse = client.get("${TelemetryConstants.EDGE_PROXY_URL}/rest/v1/matches") {
                     header("apikey", key)
                     header("Authorization", "Bearer $key")
                     url {
-                        parameters.append("select", "id,home_team_name,away_team_name,competition_name,utc_date,status,home_score,away_score,highlight_video_id,updated_at")
+                        parameters.append("select", selectFields)
                         parameters.append("order", "utc_date.desc")
                         parameters.append("limit", limit.toString())
                     }
@@ -100,7 +102,7 @@ class TelemetryRepository(
                     header("apikey", key)
                     header("Authorization", "Bearer $key")
                     url {
-                        parameters.append("select", "id,home_team_name,away_team_name,competition_name,utc_date,status,home_score,away_score,highlight_video_id,updated_at")
+                        parameters.append("select", selectFields)
                         parameters.append("order", "utc_date.desc")
                         parameters.append("limit", limit.toString())
                     }
