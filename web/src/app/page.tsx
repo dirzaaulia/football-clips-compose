@@ -10,6 +10,7 @@ import { useDragScroll } from '@/hooks/useDragScroll';
 import HeroCarousel from '@/components/hero/HeroCarousel';
 import LiveMatchSection from '@/components/live/LiveMatchSection';
 import HighlightCard from '@/components/feed/HighlightCard';
+import HighlightCardSkeleton from '@/components/feed/HighlightCardSkeleton';
 import VideoPlayerSideSheet from '@/components/player/VideoPlayerSideSheet';
 import NativeInFeedAdCard from '@/components/ads/NativeInFeedAdCard';
 import MyClubsModal from '@/components/clubs/MyClubsModal';
@@ -156,7 +157,12 @@ export default function HomePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-      <HeroCarousel featuredMatch={featuredMatch} trendingMatches={trendingMatches} onPlay={setActiveVideoMatch} />
+      <HeroCarousel
+        featuredMatch={featuredMatch}
+        trendingMatches={trendingMatches}
+        onPlay={setActiveVideoMatch}
+        isLoading={loading.initial}
+      />
 
       {/* Pinned Live Match Section */}
       <LiveMatchSection liveMatches={displayedLiveMatches} className="mt-6" />
@@ -216,7 +222,9 @@ export default function HomePage() {
       {/* Highlights Grid */}
       {loading.initial ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 my-6">
-          {[...Array(6)].map((_, i) => (<div key={i} className="h-64 rounded-2xl bg-[#1E2227]/60 animate-pulse border border-[#334155]" />))}
+          {[...Array(6)].map((_, i) => (
+            <HighlightCardSkeleton key={i} />
+          ))}
         </div>
       ) : feedMatches.length === 0 ? (
         <div className="text-center py-20 bg-[#181C20] rounded-3xl border border-[#334155] my-6 space-y-3">

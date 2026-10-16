@@ -28,6 +28,18 @@ class HighlightService:
         self.cycle_search_api_calls = 0
 
     @staticmethod
+    def get_safe_quota_remaining() -> int:
+        try:
+            val = getattr(youtube_client, "estimated_quota_remaining", None)
+            if val is not None:
+                return val() if callable(val) else int(val)
+            if hasattr(youtube_client, "get_remaining_quota"):
+                return int(youtube_client.get_remaining_quota())
+        except Exception:
+            pass
+        return 10000
+
+    @staticmethod
     def check_forbidden_title(title: str) -> tuple[bool, str | None]:
         t = title.lower()
         for pattern, reason in FORBIDDEN_TITLE_PATTERNS:
@@ -348,7 +360,7 @@ class HighlightService:
                 raw_items = youtube_rss_client.fetch_channel_recent_videos(c_id)
                 if raw_items:
                     append_event(log_events, f"   [RSS DISCOVERY] Ingested {len(raw_items)} fresh uploads from {handle} via RSS (0 Quota Units)", "INFO", "YOUTUBE", "RSS_DISCOVERY")
-                elif youtube_client.estimated_quota_remaining >= 10:
+                elif self.get_safe_quota_remaining() >= 10:
                     # Low-cost Fallback: Uploads Playlist scan (1 API Quota Unit, never 100-quota search)
                     raw_items = youtube_client.get_playlist_recent_videos(c_id, max_results=scan_limit)
                 else:
@@ -409,13 +421,13 @@ class HighlightService:
                 if (
                     not matched_items
                     and self.cycle_search_api_calls < 3
-                    and youtube_client.estimated_quota_remaining >= 2500
+                    and self.get_safe_quota_remaining() >= 2500
                     and match_age_hours >= 4.0
                 ):
                     self.cycle_search_api_calls += 1
                     append_event(
                         log_events,
-                        f"   [LAST RESORT SEARCH] Zero-quota scans empty. Executing budgeted YouTube Search API for {handle} (Quota remaining: {youtube_client.estimated_quota_remaining} units)...",
+                        f"   [LAST RESORT SEARCH] Zero-quota scans empty. Executing budgeted YouTube Search API for {handle} (Quota remaining: {self.get_safe_quota_remaining()} units)...",
                         "INFO",
                         "YOUTUBE",
                         "API_FALLBACK"
@@ -728,7 +740,7 @@ class HighlightService:
         # Only allow up to 5 historical searches per cycle and ONLY if estimated quota >= 1000.
         filtered_batch = []
         historical_count = 0
-        quota_remaining = youtube_client.estimated_quota_remaining
+        quota_remaining = self.get_safe_quota_remaining()
 
         for m in sorted_matches:
             try:

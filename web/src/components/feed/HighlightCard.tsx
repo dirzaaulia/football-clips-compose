@@ -18,7 +18,7 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
   const [isRevealed, setIsRevealed] = useState(false);
 
   const thumbnailUrl = match.highlight_video_id
-    ? `https://i.ytimg.com/vi/${match.highlight_video_id}/maxresdefault.jpg`
+    ? `https://i.ytimg.com/vi/${match.highlight_video_id}/hqdefault.jpg`
     : '/favicon.png';
 
   const shouldHideScore = isSpoilerFree && !isRevealed;

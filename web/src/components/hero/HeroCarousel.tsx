@@ -7,11 +7,13 @@ import Link from 'next/link';
 import { MatchRecord } from '@/lib/supabase';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 import AdSenseBanner from '../ads/AdSenseBanner';
+import HeroCarouselSkeleton from './HeroCarouselSkeleton';
 
 interface HeroCarouselProps {
   featuredMatch: MatchRecord | null;
   trendingMatches: MatchRecord[];
   onPlay: (match: MatchRecord) => void;
+  isLoading?: boolean;
 }
 
 function TrendingItemCard({
@@ -27,7 +29,7 @@ function TrendingItemCard({
   const isHidden = isSpoilerFree && !isRevealed;
 
   const miniThumb = match.highlight_video_id
-    ? `https://i.ytimg.com/vi/${match.highlight_video_id}/mqdefault.jpg`
+    ? `https://i.ytimg.com/vi/${match.highlight_video_id}/hqdefault.jpg`
     : '/favicon.png';
   const homeName = match.home_team_name || match.home_team;
   const awayName = match.away_team_name || match.away_team;
@@ -95,16 +97,20 @@ export default function HeroCarousel({
   featuredMatch,
   trendingMatches = [],
   onPlay,
+  isLoading = false,
 }: HeroCarouselProps) {
   const { isSpoilerFree } = useSpoilerFree();
   const [isRevealed, setIsRevealed] = useState(false);
 
-  if (!featuredMatch) return null;
+  if (isLoading || !featuredMatch) {
+    if (isLoading) return <HeroCarouselSkeleton />;
+    return null;
+  }
 
   const isScoreHidden = isSpoilerFree && !isRevealed;
 
   const thumbnailUrl = featuredMatch.highlight_video_id
-    ? `https://i.ytimg.com/vi/${featuredMatch.highlight_video_id}/maxresdefault.jpg`
+    ? `https://i.ytimg.com/vi/${featuredMatch.highlight_video_id}/hqdefault.jpg`
     : '/favicon.png';
 
   const homeName = featuredMatch.home_team_name || featuredMatch.home_team;

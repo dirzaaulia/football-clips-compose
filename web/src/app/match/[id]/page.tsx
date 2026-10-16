@@ -94,7 +94,7 @@ export async function generateMetadata({ params, searchParams }: MatchPageProps)
       description,
       type: 'article',
       images: match.highlight_video_id
-        ? [`https://i.ytimg.com/vi/${match.highlight_video_id}/maxresdefault.jpg`]
+        ? [`https://i.ytimg.com/vi/${match.highlight_video_id}/hqdefault.jpg`]
         : [],
     },
   };
