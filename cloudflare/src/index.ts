@@ -86,6 +86,7 @@ export default {
     // Only cache successful 200/206 responses
     if (originResponse.status === 200 || originResponse.status === 206) {
       const responseHeaders = new Headers(originResponse.headers);
+      responseHeaders.delete("set-cookie");
       responseHeaders.set("X-FC-Cache", "MISS");
       responseHeaders.set("Access-Control-Allow-Origin", "*");
       responseHeaders.set(
