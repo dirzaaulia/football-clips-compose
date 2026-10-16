@@ -3,6 +3,7 @@ package com.dirzaaulia.footballclips.telemetry.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -198,6 +199,14 @@ fun TelemetryScreen(
                     actionMessage = actionMessage
                 )
 
+                if (isLoading) {
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth().height(3.dp),
+                        color = StitchPrimary,
+                        trackColor = StitchBorder
+                    )
+                }
+
                 LazyColumn(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
@@ -222,6 +231,7 @@ fun TelemetryScreen(
                                 TelemetryTerminalStream(
                                     cycles = cycleHistory,
                                     logs = filteredStream,
+                                    isLoading = isLoading,
                                     searchQuery = searchQuery,
                                     onClearSearch = { searchQuery = "" },
                                     onInspectCycle = { selectedCycleItem = it },

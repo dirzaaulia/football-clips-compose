@@ -11,6 +11,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -18,9 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.telemetry.model.CycleHistoryItem
 import com.dirzaaulia.footballclips.telemetry.model.LogStreamItem
 
@@ -28,6 +29,7 @@ import com.dirzaaulia.footballclips.telemetry.model.LogStreamItem
 fun TelemetryTerminalStream(
     cycles: List<CycleHistoryItem>,
     logs: List<LogStreamItem>,
+    isLoading: Boolean = false,
     searchQuery: String = "",
     onClearSearch: () -> Unit = {},
     onInspectCycle: (CycleHistoryItem) -> Unit,
@@ -88,6 +90,20 @@ fun TelemetryTerminalStream(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(StitchSecondary.copy(alpha = 0.15f))
+                            .border(1.dp, StitchSecondary.copy(alpha = 0.4f), RoundedCornerShape(3.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "SYNCING...",
+                            style = TelemetryTypography.labelSmall.copy(color = StitchSecondary, fontWeight = FontWeight.Bold)
+                        )
+                    }
+                }
                 Text(
                     text = "${activeCycles.size} Cycles \u2022 ${logs.size} Events",
                     style = TelemetryTypography.labelSmall.copy(color = StitchTextMuted)
@@ -120,30 +136,60 @@ fun TelemetryTerminalStream(
 
                 if (activeCycles.isEmpty()) {
                     item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 48.dp, horizontal = 24.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                        if (isLoading) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 56.dp, horizontal = 24.dp),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = null,
-                                    tint = StitchPrimary,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                                Text(
-                                    text = if (searchQuery.isNotBlank()) "No log events matching \"$searchQuery\"" else "No telemetry cycles or events found.",
-                                    style = TelemetryTypography.titleMedium.copy(color = StitchTextPrimary)
-                                )
-                                Text(
-                                    text = if (searchQuery.isNotBlank()) "No recorded worker cycles contain this search query." else "Events will appear once worker cycles start streaming.",
-                                    style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted)
-                                )
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(36.dp),
+                                        strokeWidth = 3.dp,
+                                        color = StitchPrimary
+                                    )
+                                    Text(
+                                        text = "LOADING WORKER TELEMETRY & CYCLES...",
+                                        style = TelemetryTypography.titleMedium.copy(
+                                            color = StitchPrimary,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    )
+                                    Text(
+                                        text = "Connecting to Google Cloud Storage telemetry stream and parsing execution cycles...",
+                                        style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted)
+                                    )
+                                }
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 48.dp, horizontal = 24.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Search,
+                                        contentDescription = null,
+                                        tint = StitchPrimary,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                    Text(
+                                        text = if (searchQuery.isNotBlank()) "No log events matching \"$searchQuery\"" else "No telemetry cycles or events found.",
+                                        style = TelemetryTypography.titleMedium.copy(color = StitchTextPrimary)
+                                    )
+                                    Text(
+                                        text = if (searchQuery.isNotBlank()) "No recorded worker cycles contain this search query." else "Events will appear once worker cycles start streaming.",
+                                        style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted)
+                                    )
                                 if (searchQuery.isNotBlank()) {
                                     Spacer(Modifier.height(4.dp))
                                     Box(
@@ -169,9 +215,9 @@ fun TelemetryTerminalStream(
                 }
             }
         }
+    }
 
-
-        // Window Bottom Status Line
+    // Window Bottom Status Line
         Row(
             modifier = Modifier
                 .fillMaxWidth()
