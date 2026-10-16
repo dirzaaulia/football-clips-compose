@@ -21,6 +21,7 @@ data class Match(
     val homeScore: Int?,
     val awayScore: Int?,
     val highlightVideoId: String?,
+    val recapAnalysis: String? = null,
     val roundName: String? = null,
     val displayClock: String? = null
 ) {
@@ -105,6 +106,7 @@ fun MatchDto.toMatch(): Match {
         homeScore = homeScore,
         awayScore = awayScore,
         highlightVideoId = highlightVideoId,
+        recapAnalysis = recapAnalysis,
         roundName = roundName,
         displayClock = displayClock
     )

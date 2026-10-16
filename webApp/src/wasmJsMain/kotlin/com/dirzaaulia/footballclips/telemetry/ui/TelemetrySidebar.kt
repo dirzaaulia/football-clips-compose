@@ -88,8 +88,8 @@ fun TelemetrySidebar(
                     onClick = { onSectionSelected(TelemetryNavSection.STREAM) }
                 )
                 SidebarNavItem(
-                    title = "Match Pipelines",
-                    icon = Icons.Default.SportsSoccer,
+                    title = "Database Catalog",
+                    icon = Icons.Default.Storage,
                     isSelected = selectedSection == TelemetryNavSection.PIPELINES,
                     onClick = { onSectionSelected(TelemetryNavSection.PIPELINES) }
                 )

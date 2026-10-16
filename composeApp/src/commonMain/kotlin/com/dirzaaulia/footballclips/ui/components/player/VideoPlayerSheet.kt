@@ -18,8 +18,15 @@ import com.dirzaaulia.footballclips.util.extractVideoId
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.adaptive.LocalIsBigScreen
 import com.dirzaaulia.footballclips.util.isWasmTarget
 
@@ -28,6 +35,9 @@ import com.dirzaaulia.footballclips.util.isWasmTarget
 fun VideoPlayerSheet(
     html: String,
     item: HighlightUiItem?,
+    relatedHighlights: List<HighlightUiItem> = emptyList(),
+    relatedFixturesFinished: List<HighlightUiItem> = emptyList(),
+    relatedFixturesUpcoming: List<HighlightUiItem> = emptyList(),
     relatedItems: List<HighlightUiItem> = emptyList(),
     onItemClick: ((HighlightUiItem) -> Unit)? = null,
     onDismiss: (Boolean) -> Unit,
@@ -45,6 +55,9 @@ fun VideoPlayerSheet(
             VideoPlayerSheetContent(
                 videoId = videoId,
                 item = item,
+                relatedHighlights = relatedHighlights,
+                relatedFixturesFinished = relatedFixturesFinished,
+                relatedFixturesUpcoming = relatedFixturesUpcoming,
                 relatedItems = relatedItems,
                 onItemClick = onItemClick,
                 isSideSheet = true,
@@ -62,6 +75,9 @@ fun VideoPlayerSheet(
             VideoPlayerSheetContent(
                 videoId = videoId,
                 item = item,
+                relatedHighlights = relatedHighlights,
+                relatedFixturesFinished = relatedFixturesFinished,
+                relatedFixturesUpcoming = relatedFixturesUpcoming,
                 relatedItems = relatedItems,
                 onItemClick = onItemClick,
                 isSideSheet = false,
@@ -75,11 +91,19 @@ fun VideoPlayerSheet(
 private fun VideoPlayerSheetContent(
     videoId: String?,
     item: HighlightUiItem?,
+    relatedHighlights: List<HighlightUiItem>,
+    relatedFixturesFinished: List<HighlightUiItem>,
+    relatedFixturesUpcoming: List<HighlightUiItem>,
     relatedItems: List<HighlightUiItem>,
     onItemClick: ((HighlightUiItem) -> Unit)?,
     isSideSheet: Boolean,
     onDismiss: (Boolean) -> Unit
 ) {
+    val effectiveHighlights = if (relatedHighlights.isNotEmpty()) relatedHighlights else relatedItems
+    val totalFixturesCount = relatedFixturesFinished.size + relatedFixturesUpcoming.size
+    var selectedTab by remember { mutableStateOf(0) }
+    var fixtureSubTab by remember { mutableStateOf(0) } // 0: Results, 1: Upcoming
+
     key(videoId) {
         Box(
             modifier = Modifier
@@ -130,40 +154,140 @@ private fun VideoPlayerSheetContent(
                         item = item,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 20.dp)
+                            .padding(horizontal = 24.dp, vertical = 16.dp)
                     )
                 }
 
-                if (relatedItems.isNotEmpty()) {
-                    Text(
-                        text = "Related Highlights",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Black,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+                if (effectiveHighlights.isNotEmpty() || totalFixturesCount > 0) {
+                    val tabs = listOf(
+                        "HIGHLIGHTS (${effectiveHighlights.size})",
+                        "FIXTURES ($totalFixturesCount)"
                     )
 
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth()
+                    PrimaryTabRow(
+                        selectedTabIndex = selectedTab,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        containerColor = Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        divider = {}
                     ) {
-                        items(
-                            items = relatedItems,
-                            key = { item -> 
-                                when (item) {
-                                    is HighlightUiItem.SupabaseMatch -> item.match.id.toString()
-                                    is HighlightUiItem.Highlight -> item.highlight.title
-                                    is HighlightUiItem.BannerAd -> item.id
+                        tabs.forEachIndexed { index, titleText ->
+                            Tab(
+                                selected = selectedTab == index,
+                                onClick = { selectedTab = index },
+                                text = {
+                                    Text(
+                                        titleText,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Black,
+                                        letterSpacing = 0.5.sp
+                                    )
                                 }
-                            }
-                        ) { relatedItem ->
-                            RelatedHighlightItem(
-                                item = relatedItem,
-                                onClick = { onItemClick?.invoke(relatedItem) }
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (selectedTab == 0) {
+                        if (effectiveHighlights.isNotEmpty()) {
+                            LazyRow(
+                                contentPadding = PaddingValues(horizontal = 24.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp)
+                            ) {
+                                items(
+                                    items = effectiveHighlights,
+                                    key = { it.uniqueId }
+                                ) { relatedItem ->
+                                    RelatedHighlightItem(
+                                        item = relatedItem,
+                                        onClick = { onItemClick?.invoke(relatedItem) }
+                                    )
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = "No other highlights found.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                            )
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 24.dp, vertical = 6.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                FilterChip(
+                                    selected = fixtureSubTab == 0,
+                                    onClick = { fixtureSubTab = 0 },
+                                    label = {
+                                        Text(
+                                            "RESULTS (${relatedFixturesFinished.size})",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                )
+                                FilterChip(
+                                    selected = fixtureSubTab == 1,
+                                    onClick = { fixtureSubTab = 1 },
+                                    label = {
+                                        Text(
+                                            "UPCOMING (${relatedFixturesUpcoming.size})",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                )
+                            }
+
+                            val currentFixtures = if (fixtureSubTab == 0) relatedFixturesFinished else relatedFixturesUpcoming
+                            if (currentFixtures.isEmpty()) {
+                                Text(
+                                    text = if (fixtureSubTab == 0) "No finished results found." else "No scheduled fixtures found.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                                )
+                            } else {
+                                LazyRow(
+                                    contentPadding = PaddingValues(horizontal = 24.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp)
+                                ) {
+                                    items(
+                                        items = currentFixtures,
+                                        key = { it.uniqueId }
+                                    ) { fixtureItem ->
+                                        if (fixtureItem is HighlightUiItem.SupabaseMatch) {
+                                            RelatedFixtureItem(
+                                                item = fixtureItem,
+                                                onClick = {
+                                                    if (!fixtureItem.match.highlightVideoId.isNullOrBlank()) {
+                                                        onItemClick?.invoke(fixtureItem)
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                 } else {
                     Spacer(modifier = Modifier.height(16.dp))
                 }

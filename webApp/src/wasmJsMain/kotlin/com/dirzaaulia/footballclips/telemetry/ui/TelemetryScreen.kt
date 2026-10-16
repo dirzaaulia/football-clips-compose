@@ -232,13 +232,8 @@ fun TelemetryScreen(
                         }
                         TelemetryNavSection.PIPELINES -> {
                             item {
-                                TelemetryPipelinesView(
-                                    logs = logStream,
-                                    highlightMatches = emptyList(),
-                                    metrics = metrics,
-                                    onInspectStep = { logItem ->
-                                        selectedInspectorItem = logItem
-                                    },
+                                TelemetryCatalogView(
+                                    repository = repository,
                                     onOpenVideo = { url ->
                                         TelemetryUtils.openUrlInNewTab(url)
                                     },

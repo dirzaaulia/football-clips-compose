@@ -32,6 +32,13 @@ object BigLeaguesConstants {
             logo = "https://crests.football-data.org/EL.png"
         ),
         BigLeague(
+            name = "Conference League",
+            leagueId = null,
+            countryCode = "EU",
+            competitionId = "ECL",
+            logo = "https://crests.football-data.org/ECL.png"
+        ),
+        BigLeague(
             name = "Premier League",
             leagueId = 33973,
             countryCode = "GB-ENG",

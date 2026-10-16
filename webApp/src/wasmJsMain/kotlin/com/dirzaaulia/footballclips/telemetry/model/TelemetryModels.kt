@@ -44,6 +44,10 @@ data class SupabaseMatchRecord(
     val homeTeamName: String,
     @SerialName("away_team_name")
     val awayTeamName: String,
+    @SerialName("home_team_crest")
+    val homeTeamCrest: String? = null,
+    @SerialName("away_team_crest")
+    val awayTeamCrest: String? = null,
     @SerialName("competition_name")
     val competitionName: String = "European Football",
     @SerialName("competition_id")
@@ -82,7 +86,7 @@ enum class TelemetryViewMode(val label: String) {
 
 enum class TelemetryNavSection(val label: String) {
     STREAM("Telemetry Stream"),
-    PIPELINES("Match Pipelines"),
+    PIPELINES("Database Catalog"),
     APM("APM & Edge Engine"),
     NOTIFICATIONS("Club Alerts"),
     THREADS("Serverless Services"),

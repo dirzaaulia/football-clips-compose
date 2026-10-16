@@ -48,6 +48,7 @@ import com.dirzaaulia.footballclips.ui.home.HomeScreen
 import com.dirzaaulia.footballclips.ui.home.HomeScreenFloatingActions
 import com.dirzaaulia.footballclips.ui.home.HomeState
 import com.dirzaaulia.footballclips.ui.home.HomeViewModel
+import com.dirzaaulia.footballclips.ui.home.selectVideo
 import com.dirzaaulia.footballclips.ui.info.InfoScreen
 import com.dirzaaulia.footballclips.ui.navigation.NavDestination
 import com.dirzaaulia.footballclips.ui.score.MatchesAndHighlightsScreen
@@ -71,11 +72,21 @@ fun MobileMatchesScreen() {
     val scoreViewModel: ScoreViewModel = koinViewModel()
     val homeViewModel: HomeViewModel = koinViewModel()
 
+    val relatedHighlights by homeViewModel.relatedHighlights.collectAsState()
+    val relatedFixturesFinished by homeViewModel.relatedFixturesFinished.collectAsState()
+    val relatedFixturesUpcoming by homeViewModel.relatedFixturesUpcoming.collectAsState()
+
     val homeContent: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit = remember {
-        { HomeScreen(viewModel = homeViewModel, onVideoClick = { item, onDismiss -> videoState.onVideoClick(item, onDismiss) }) }
+        { HomeScreen(viewModel = homeViewModel, onVideoClick = { item, onDismiss ->
+            homeViewModel.selectVideo(item)
+            videoState.onVideoClick(item, onDismiss)
+        }) }
     }
     val fixturesContent: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit = remember {
-        { MatchesAndHighlightsScreen(viewModel = scoreViewModel, onVideoClick = { item, onDismiss -> videoState.onVideoClick(item, onDismiss) }) }
+        { MatchesAndHighlightsScreen(viewModel = scoreViewModel, onVideoClick = { item, onDismiss ->
+            homeViewModel.selectVideo(item)
+            videoState.onVideoClick(item, onDismiss)
+        }) }
     }
     val standingsContent: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit = remember {
         {
@@ -234,8 +245,14 @@ fun MobileMatchesScreen() {
                 VideoPlayerSheet(
                     item = selectedItem,
                     html = videoState.selectedVideoHtml!!,
+                    relatedHighlights = relatedHighlights,
+                    relatedFixturesFinished = relatedFixturesFinished,
+                    relatedFixturesUpcoming = relatedFixturesUpcoming,
                     relatedItems = relatedItems,
-                    onItemClick = { item -> videoState.onVideoClick(item) {} },
+                    onItemClick = { item ->
+                        homeViewModel.selectVideo(item)
+                        videoState.onVideoClick(item) {}
+                    },
                     onDismiss = { isExternal -> videoState.onDismiss(isExternal) }
                 )
             }
