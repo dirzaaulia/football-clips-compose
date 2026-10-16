@@ -200,6 +200,7 @@ dependencies {
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.messaging)
+    implementation(libs.play.app.update)
 
     debugImplementation(libs.chucker.library)
     releaseImplementation(libs.chucker.library.no.op)

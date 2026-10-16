@@ -33,6 +33,7 @@ google-services = "4.5.0"
 firebase-crashlytics-plugin = "3.0.8"
 firebase-bom = "35.0.0"
 triplet-play = "4.1.1"
+play-app-update = "2.1.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -93,6 +94,7 @@ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "fir
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
+play-app-update = { module = "com.google.android.play:app-update-ktx", version.ref = "play-app-update" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
