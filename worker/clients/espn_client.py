@@ -31,7 +31,7 @@ class ESPNClient:
         "CDR": {"slug": "esp.copa_del_rey", "name": "Copa del Rey", "type": "cup"},
         "DFB": {"slug": "ger.dfb_pokal", "name": "DFB-Pokal", "type": "cup"},
         "CIT": {"slug": "ita.coppa_italia", "name": "Coppa Italia", "type": "cup"},
-        "SPL": {"slug": "sau.1", "name": "Saudi Pro League", "type": "league"},
+        "SPL": {"slug": "ksa.1", "name": "Saudi Pro League", "type": "league"},
         "MLS": {"slug": "usa.1", "name": "Major League Soccer", "type": "league"},
         "DED": {"slug": "ned.1", "name": "Eredivisie", "type": "league"},
         "PPL": {"slug": "por.1", "name": "Liga Portugal", "type": "league"},
@@ -275,16 +275,22 @@ class ESPNClient:
         all_matches: list[dict[str, Any]] = []
         seen_ids: set[int] = set()
 
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        sem = asyncio.Semaphore(15)
+
+        async with httpx.AsyncClient(timeout=25.0) as client:
+            async def bounded_fetch(slug: str, day: str):
+                async with sem:
+                    return await self.fetch_scoreboard_day(client, slug, day)
+
             tasks = []
             task_metadata = []
 
             for league in target_leagues:
                 for day_str in days_to_fetch:
-                    tasks.append(self.fetch_scoreboard_day(client, league["slug"], day_str))
+                    tasks.append(bounded_fetch(league["slug"], day_str))
                     task_metadata.append(league)
 
-            # Concurrent async execution across all dates and leagues
+            # Concurrent bounded execution across all dates and leagues
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
             for result, league_info in zip(results, task_metadata, strict=False):
