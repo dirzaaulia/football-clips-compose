@@ -29,7 +29,14 @@ data class Match(
         get() = roundName ?: matchday?.let { "Matchweek $it" } ?: competitionName
 
     val leagueEmblemUrl: String
-        get() = "https://crests.football-data.org/${competitionId.uppercase()}.png"
+        get() = when (competitionId.uppercase()) {
+            "SPL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2488.png"
+            "MLS" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/19.png"
+            "DED" -> "https://crests.football-data.org/ED.png"
+            "FAC" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/40.png"
+            "CDR" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/80.png"
+            else -> "https://crests.football-data.org/${competitionId.uppercase()}.png"
+        }
 
     private val localDateTime by lazy {
         try {

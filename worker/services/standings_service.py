@@ -11,8 +11,8 @@ from worker.utils.telemetry_logger import append_event
 
 
 class StandingsService:
-    # Leagues supported for league tables (Top 5 European Leagues + UEFA Champions League)
-    STANDINGS_COMPETITIONS = ["PL", "PD", "SA", "BL1", "FL1", "CL"]
+    # Leagues supported for league tables (Top European Leagues + UEFA Champions League + Global Leagues)
+    STANDINGS_COMPETITIONS = ["PL", "PD", "SA", "BL1", "FL1", "CL", "SPL", "MLS", "DED", "PPL"]
 
     def __init__(self):
         self.last_sync_timestamp: float = 0.0

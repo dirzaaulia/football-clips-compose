@@ -17,7 +17,9 @@ interface MyClubsModalProps {
 const LEAGUE_TABS = [
   { code: 'ALL', name: 'All Leagues' }, { code: 'PL', name: 'Premier League' },
   { code: 'PD', name: 'La Liga' }, { code: 'SA', name: 'Serie A' },
-  { code: 'BL1', name: 'Bundesliga' }, { code: 'FL1', name: 'Ligue 1' }
+  { code: 'BL1', name: 'Bundesliga' }, { code: 'FL1', name: 'Ligue 1' },
+  { code: 'SPL', name: 'Saudi Pro' }, { code: 'MLS', name: 'MLS' },
+  { code: 'DED', name: 'Eredivisie' }, { code: 'PPL', name: 'Portugal' }
 ];
 
 export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {

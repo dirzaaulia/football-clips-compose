@@ -37,6 +37,7 @@ screenshots/
 scratch/
 channel_cache.json
 youtube_quota.json
+telemetry_cache.json
 .env
 *.env
 worker/.env

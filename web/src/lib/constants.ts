@@ -70,6 +70,34 @@ export const BIG_LEAGUES: BigLeague[] = [
     competitionId: 'FL1',
     logo: 'https://crests.football-data.org/FL1.png',
   },
+  {
+    name: 'Saudi Pro League',
+    leagueId: null,
+    countryCode: 'SA',
+    competitionId: 'SPL',
+    logo: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2488.png',
+  },
+  {
+    name: 'MLS',
+    leagueId: null,
+    countryCode: 'US',
+    competitionId: 'MLS',
+    logo: 'https://a.espncdn.com/i/leaguelogos/soccer/500/19.png',
+  },
+  {
+    name: 'Eredivisie',
+    leagueId: null,
+    countryCode: 'NL',
+    competitionId: 'DED',
+    logo: 'https://crests.football-data.org/ED.png',
+  },
+  {
+    name: 'Liga Portugal',
+    leagueId: null,
+    countryCode: 'PT',
+    competitionId: 'PPL',
+    logo: 'https://crests.football-data.org/PPL.png',
+  },
 ];
 
 export function normalizeLeagueName(name: string): string {
@@ -119,6 +147,22 @@ export function normalizeLeagueName(name: string): string {
     lower === 'uecl'
   ) {
     return 'Conference League';
+  }
+
+  if (lower === 'saudi pro league' || lower === 'saudi professional league' || lower === 'spl') {
+    return 'Saudi Pro League';
+  }
+
+  if (lower === 'major league soccer' || lower === 'mls') {
+    return 'MLS';
+  }
+
+  if (lower === 'eredivisie' || lower === 'ded' || lower === 'ed') {
+    return 'Eredivisie';
+  }
+
+  if (lower === 'liga portugal' || lower === 'primeira liga' || lower === 'ppl') {
+    return 'Liga Portugal';
   }
 
   return trimmed;

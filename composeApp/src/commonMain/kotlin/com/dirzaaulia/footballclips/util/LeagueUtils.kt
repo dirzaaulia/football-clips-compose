@@ -37,6 +37,21 @@ fun String.normalizeLeagueName(): String {
         trimmed.equals("ECL", ignoreCase = true) ||
         trimmed.equals("UECL", ignoreCase = true) -> "Conference League"
 
+        trimmed.equals("Saudi Pro League", ignoreCase = true) ||
+        trimmed.equals("Saudi Professional League", ignoreCase = true) ||
+        trimmed.equals("SPL", ignoreCase = true) -> "Saudi Pro League"
+
+        trimmed.equals("Major League Soccer", ignoreCase = true) ||
+        trimmed.equals("MLS", ignoreCase = true) -> "MLS"
+
+        trimmed.equals("Eredivisie", ignoreCase = true) ||
+        trimmed.equals("DED", ignoreCase = true) ||
+        trimmed.equals("ED", ignoreCase = true) -> "Eredivisie"
+
+        trimmed.equals("Liga Portugal", ignoreCase = true) ||
+        trimmed.equals("Primeira Liga", ignoreCase = true) ||
+        trimmed.equals("PPL", ignoreCase = true) -> "Liga Portugal"
+
         else -> trimmed
     }
 }

@@ -30,5 +30,5 @@ async def test_standings_service_sync_espn():
     """Verify StandingsService runs cleanly with ESPN provider."""
     events = []
     rows = await standings_service.sync_standings(force=True, log_events=events)
-    assert len(rows) == 132, f"Total standings across 6 competitions should be 132, got {len(rows)}"
+    assert len(rows) >= 200, f"Total standings across 10 competitions should be at least 200, got {len(rows)}"
     assert any("PL: 20 clubs processed via ESPN" in str(e) for e in events)

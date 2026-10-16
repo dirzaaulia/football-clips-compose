@@ -21,9 +21,10 @@ class ClubService:
         now_utc = datetime.now(UTC).isoformat()
         clubs_map = {}
 
+        eligible_comps = set(settings.big_five_competitions) | {"SPL", "MLS", "DED", "PPL"}
         for m in matches_data:
             comp_code = m.get("competition", {}).get("code") or m.get("competition_id")
-            if comp_code in settings.big_five_competitions:
+            if comp_code in eligible_comps:
                 comp_name = m.get("competition", {}).get("name") or m.get("competition_name", "Unknown")
                 if comp_name == "Primera Division":
                     comp_name = "LaLiga"

@@ -72,6 +72,34 @@ object BigLeaguesConstants {
             countryCode = "FR",
             competitionId = "FL1",
             logo = "https://crests.football-data.org/FL1.png"
+        ),
+        BigLeague(
+            name = "Saudi Pro League",
+            leagueId = null,
+            countryCode = "SA",
+            competitionId = "SPL",
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/2488.png"
+        ),
+        BigLeague(
+            name = "MLS",
+            leagueId = null,
+            countryCode = "US",
+            competitionId = "MLS",
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/19.png"
+        ),
+        BigLeague(
+            name = "Eredivisie",
+            leagueId = null,
+            countryCode = "NL",
+            competitionId = "DED",
+            logo = "https://crests.football-data.org/ED.png"
+        ),
+        BigLeague(
+            name = "Liga Portugal",
+            leagueId = null,
+            countryCode = "PT",
+            competitionId = "PPL",
+            logo = "https://crests.football-data.org/PPL.png"
         )
     )
 }
