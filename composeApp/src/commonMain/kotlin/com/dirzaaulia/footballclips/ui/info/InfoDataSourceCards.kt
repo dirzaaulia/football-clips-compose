@@ -47,7 +47,7 @@ internal fun DataSourceCard(
                 }
             }
             append(", matches and fixtures are provided by ")
-            withLink(LinkAnnotation.Url("https://www.football-data.org")) {
+            withLink(LinkAnnotation.Url("https://www.espn.com/soccer")) {
                 withStyle(
                     style = SpanStyle(
                         color = linkColor,
@@ -55,7 +55,7 @@ internal fun DataSourceCard(
                         textDecoration = TextDecoration.Underline
                     )
                 ) {
-                    append("football-data.org")
+                    append("ESPN Live Engine")
                 }
             }
             append(". We aggregate content from these official and trusted sources to bring you the best football experience. All team and league logos are retrieved from the ")

@@ -96,7 +96,7 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
     '100% Ad-Free across all highlights, scores, and fixtures',
     'Instant full AI tactical recap debriefs & match reports',
     'High-definition uninterrupted video playback',
-    'Cross-platform sync with FootballClips Android app',
+    'Cross-platform sync with Football Highlights & Clips Android app',
   ];
 
   const titleHeader = (

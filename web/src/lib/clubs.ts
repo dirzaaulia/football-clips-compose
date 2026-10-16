@@ -72,6 +72,37 @@ export const SUPPORTED_CLUBS: SupportedClub[] = [
   c('olympique_de_marseille', 'Olympique de Marseille', 'Marseille', 'FL1', 'Ligue 1', 'https://crests.football-data.org/516.png'),
   c('as_monaco_fc', 'AS Monaco FC', 'Monaco', 'FL1', 'Ligue 1', 'https://crests.football-data.org/548.png'),
   c('olympique_lyonnais', 'Olympique Lyonnais', 'Lyon', 'FL1', 'Ligue 1', 'https://crests.football-data.org/523.png'),
+
+  // Saudi Pro League (SPL)
+  c('al_hilal_sfc', 'Al Hilal SFC', 'Al Hilal', 'SPL', 'Saudi Pro League', 'https://a.espncdn.com/i/teamlogos/soccer/500/7339.png', 'Al-Hilal'),
+  c('al_nassr_fc', 'Al Nassr FC', 'Al Nassr', 'SPL', 'Saudi Pro League', 'https://a.espncdn.com/i/teamlogos/soccer/500/7342.png', 'Al-Nassr'),
+  c('al_ittihad_fc', 'Al Ittihad FC', 'Al Ittihad', 'SPL', 'Saudi Pro League', 'https://a.espncdn.com/i/teamlogos/soccer/500/7338.png', 'Al-Ittihad'),
+  c('al_ahli_saudi_fc', 'Al Ahli Saudi FC', 'Al Ahli', 'SPL', 'Saudi Pro League', 'https://a.espncdn.com/i/teamlogos/soccer/500/7337.png', 'Al-Ahli'),
+  c('al_shabab_fc', 'Al Shabab FC', 'Al Shabab', 'SPL', 'Saudi Pro League', 'https://a.espncdn.com/i/teamlogos/soccer/500/7343.png', 'Al-Shabab'),
+  c('al_ettifaq_fc', 'Al Ettifaq FC', 'Al Ettifaq', 'SPL', 'Saudi Pro League', 'https://a.espncdn.com/i/teamlogos/soccer/500/7335.png', 'Al-Ettifaq'),
+
+  // MLS (MLS)
+  c('inter_miami_cf', 'Inter Miami CF', 'Inter Miami', 'MLS', 'MLS', 'https://a.espncdn.com/i/teamlogos/soccer/500/19106.png', 'Inter Miami'),
+  c('la_galaxy', 'LA Galaxy', 'LA Galaxy', 'MLS', 'MLS', 'https://a.espncdn.com/i/teamlogos/soccer/500/187.png', 'Galaxy'),
+  c('los_angeles_fc', 'Los Angeles FC', 'LAFC', 'MLS', 'MLS', 'https://a.espncdn.com/i/teamlogos/soccer/500/18966.png', 'LAFC'),
+  c('columbus_crew', 'Columbus Crew', 'Columbus Crew', 'MLS', 'MLS', 'https://a.espncdn.com/i/teamlogos/soccer/500/183.png'),
+  c('new_york_red_bulls', 'New York Red Bulls', 'NY Red Bulls', 'MLS', 'MLS', 'https://a.espncdn.com/i/teamlogos/soccer/500/190.png', 'Red Bulls'),
+  c('new_york_city_fc', 'New York City FC', 'NYCFC', 'MLS', 'MLS', 'https://a.espncdn.com/i/teamlogos/soccer/500/17606.png', 'NYCFC'),
+  c('atlanta_united_fc', 'Atlanta United FC', 'Atlanta United', 'MLS', 'MLS', 'https://a.espncdn.com/i/teamlogos/soccer/500/18418.png'),
+  c('seattle_sounders_fc', 'Seattle Sounders FC', 'Seattle Sounders', 'MLS', 'MLS', 'https://a.espncdn.com/i/teamlogos/soccer/500/9723.png', 'Sounders'),
+
+  // Eredivisie (DED)
+  c('afc_ajax', 'AFC Ajax', 'Ajax', 'DED', 'Eredivisie', 'https://crests.football-data.org/678.png', 'Ajax'),
+  c('psv_eindhoven', 'PSV Eindhoven', 'PSV', 'DED', 'Eredivisie', 'https://crests.football-data.org/674.png', 'PSV'),
+  c('feyenoord_rotterdam', 'Feyenoord Rotterdam', 'Feyenoord', 'DED', 'Eredivisie', 'https://crests.football-data.org/675.png', 'Feyenoord'),
+  c('az_alkmaar', 'AZ Alkmaar', 'AZ', 'DED', 'Eredivisie', 'https://crests.football-data.org/682.png', 'AZ'),
+  c('fc_twente_65', "FC Twente '65", 'FC Twente', 'DED', 'Eredivisie', 'https://crests.football-data.org/666.png', 'Twente'),
+
+  // Liga Portugal (PPL)
+  c('sl_benfica', 'SL Benfica', 'Benfica', 'PPL', 'Liga Portugal', 'https://crests.football-data.org/1903.png', 'Benfica'),
+  c('sporting_cp', 'Sporting CP', 'Sporting CP', 'PPL', 'Liga Portugal', 'https://crests.football-data.org/498.png', 'Sporting Lisbon', 'Sporting'),
+  c('fc_porto', 'FC Porto', 'Porto', 'PPL', 'Liga Portugal', 'https://crests.football-data.org/503.png', 'Porto'),
+  c('sc_braga', 'SC Braga', 'Braga', 'PPL', 'Liga Portugal', 'https://crests.football-data.org/5613.png', 'Braga'),
 ];
 
 export function isMatchForFavoriteClubs(

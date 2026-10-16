@@ -14,47 +14,12 @@ import { Trophy, Calendar } from 'lucide-react';
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-async function resolveMatch(
-  id: string,
-  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
-): Promise<MatchRecord | null> {
-  const match = await getMatchById(id);
-  if (match) return match;
-
-  const sp = searchParams ? await searchParams : {};
-  if (sp.home && sp.away) {
-    const home = typeof sp.home === 'string' ? sp.home : 'Home Team';
-    const away = typeof sp.away === 'string' ? sp.away : 'Away Team';
-    const comp = typeof sp.comp === 'string' ? sp.comp : 'Official Highlights';
-    const vid = typeof sp.vid === 'string' ? sp.vid : null;
-    const date = typeof sp.date === 'string' ? sp.date : new Date().toISOString();
-    const homeCrest = typeof sp.homeCrest === 'string' ? sp.homeCrest : null;
-    const awayCrest = typeof sp.awayCrest === 'string' ? sp.awayCrest : null;
-
-    return {
-      id,
-      competition_id: 'ALL',
-      competition_name: comp,
-      utc_date: date,
-      status: 'FINISHED',
-      home_team: home,
-      away_team: away,
-      home_team_name: home,
-      away_team_name: away,
-      home_team_crest: homeCrest,
-      away_team_crest: awayCrest,
-      home_score: null,
-      away_score: null,
-      highlight_video_id: vid,
-      recap_analysis: null,
-    };
-  }
-
-  return null;
+async function resolveMatch(id: string): Promise<MatchRecord | null> {
+  return await getMatchById(id);
 }
+
 
 export async function generateStaticParams() {
   try {
@@ -69,10 +34,11 @@ export async function generateStaticParams() {
   }
 }
 
-export async function generateMetadata({ params, searchParams }: MatchPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: MatchPageProps): Promise<Metadata> {
   const { id } = await params;
-  const match = await resolveMatch(id, searchParams);
+  const match = await resolveMatch(id);
   if (!match) return { title: 'Match Not Found' };
+
 
   const homeName = match.home_team_name || match.home_team || 'Home Team';
   const awayName = match.away_team_name || match.away_team || 'Away Team';
@@ -103,9 +69,10 @@ export async function generateMetadata({ params, searchParams }: MatchPageProps)
   };
 }
 
-export default async function MatchDetailPage({ params, searchParams }: MatchPageProps) {
+export default async function MatchDetailPage({ params }: MatchPageProps) {
   const { id } = await params;
-  const match = await resolveMatch(id, searchParams);
+  const match = await resolveMatch(id);
+
 
   if (!match) notFound();
 
@@ -143,7 +110,7 @@ export default async function MatchDetailPage({ params, searchParams }: MatchPag
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <MatchCentreHeader videoId={match.highlight_video_id} />
+      <MatchCentreHeader videoId={match.highlight_video_id} title={`${homeName} vs ${awayName}`} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-8 space-y-6">

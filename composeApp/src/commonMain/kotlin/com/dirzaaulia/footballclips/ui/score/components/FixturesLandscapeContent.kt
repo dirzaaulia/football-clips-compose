@@ -64,6 +64,7 @@ import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndica
 import com.dirzaaulia.footballclips.ui.components.filter.SeasonDropdownSelector
 import com.dirzaaulia.footballclips.ui.score.ArchiveSeasonIndicator
 import com.dirzaaulia.footballclips.ui.score.DateOption
+import com.dirzaaulia.footballclips.ui.score.MatchStatusFilter
 import com.dirzaaulia.footballclips.ui.score.ScoreState
 import com.dirzaaulia.footballclips.ui.score.ScoreViewModel
 
@@ -189,6 +190,36 @@ fun FixturesLandscapeContent(
                         contentPadding = PaddingValues(bottom = 8.dp)
                     ) {
                         if (selectedSeason == 2026) {
+                            item {
+                                val selectedStatus by viewModel.selectedStatusFilter.collectAsState()
+                                val isLiveOnly by viewModel.isLiveOnlyFilterActive.collectAsState()
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    listOf(
+                                        MatchStatusFilter.ALL to "All",
+                                        MatchStatusFilter.FINISHED to "Fin",
+                                        MatchStatusFilter.UPCOMING to "Upc"
+                                    ).forEach { (status, label) ->
+                                        val isSelected = selectedStatus == status && !isLiveOnly
+                                        FilterChip(
+                                            selected = isSelected,
+                                            onClick = { viewModel.selectStatusFilter(status) },
+                                            label = {
+                                                Text(
+                                                    text = label,
+                                                    fontSize = 10.sp,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                                )
+                                            },
+                                            modifier = Modifier.weight(1f).height(28.dp),
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
+                                    }
+                                }
+                            }
+
                             item {
                                 val isLiveOnly by viewModel.isLiveOnlyFilterActive.collectAsState()
                                 val liveCount by viewModel.liveMatchCount.collectAsState()

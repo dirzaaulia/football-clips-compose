@@ -13,6 +13,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import coil3.compose.AsyncImage
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
+import com.dirzaaulia.footballclips.util.shareText
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable
@@ -76,11 +78,39 @@ internal fun VideoMetadata(
                 fontWeight = FontWeight.Black,
                 letterSpacing = 1.sp
             )
-            Text(
-                text = date,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = date,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                IconButton(
+                    onClick = {
+                        val shareUrl = when (item) {
+                            is HighlightUiItem.SupabaseMatch -> "https://fc.dirzaaulia.com/match/${item.match.id}"
+                            is HighlightUiItem.Highlight -> item.highlight.videoUrl.ifBlank { "https://fc.dirzaaulia.com" }
+                            is HighlightUiItem.BannerAd -> "https://fc.dirzaaulia.com"
+                        }
+                        val shareTextContent = "Watch highlights for $title on Football Highlights & Clips!"
+                        shareText(
+                            title = title,
+                            text = shareTextContent,
+                            url = shareUrl
+                        )
+                    },
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = "Share",
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
 
         // Teams & Scoreline Row

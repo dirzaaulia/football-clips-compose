@@ -40,7 +40,7 @@ class MatchService:
             log_events = []
 
         now_utc = datetime.now(UTC)
-        provider = (settings.match_data_provider or "football_data").lower()
+        provider = (settings.match_data_provider or "espn").lower()
         provider_name = "ESPN Live Engine" if provider == "espn" else "Football-Data API"
 
         mode_text = (

@@ -27,8 +27,8 @@ import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndica
 import com.dirzaaulia.footballclips.ui.components.notification.NotificationPermissionBottomSheet
 import com.dirzaaulia.footballclips.ui.components.common.MyClubsBottomSheet
 import com.dirzaaulia.footballclips.ui.score.components.FixturesLandscapeContent
-import com.dirzaaulia.footballclips.ui.score.components.MatchCard
 import com.dirzaaulia.footballclips.ui.score.components.MatchesTopBar
+import com.dirzaaulia.footballclips.ui.score.components.StandardMatchCard
 import com.dirzaaulia.footballclips.ui.score.components.WebFixtureCard
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -51,6 +51,7 @@ fun MatchesAndHighlightsScreen(
     val supportedClubs by viewModel.supportedClubs.collectAsState()
     val isMyClubsActive by viewModel.isMyClubsFilterActive.collectAsState()
     val isLiveOnlyActive by viewModel.isLiveOnlyFilterActive.collectAsState()
+    val selectedStatusFilter by viewModel.selectedStatusFilter.collectAsState()
     val liveMatchCount by viewModel.liveMatchCount.collectAsState()
     val selectedSeason by viewModel.selectedSeason.collectAsState()
     val isFiltersExpanded by viewModel.isFiltersExpanded.collectAsState()
@@ -117,6 +118,8 @@ fun MatchesAndHighlightsScreen(
                         onLeagueSelected = { _, competitionId -> viewModel.selectCompetition(competitionId) },
                         selectedSeason = selectedSeason,
                         onSeasonSelected = viewModel::setSeason,
+                        selectedStatusFilter = selectedStatusFilter,
+                        onStatusFilterSelected = viewModel::selectStatusFilter,
                         isFiltersExpanded = isFiltersExpanded,
                         onToggleFilterExpanded = { viewModel.toggleFiltersExpanded() }
                     )
@@ -197,7 +200,7 @@ fun MatchesAndHighlightsScreen(
                                             when (item) {
                                                 is HighlightUiItem.SupabaseMatch -> {
                                                     val isFav = SupportedClubsConstants.isMatchForFavoriteClubs(item.match, favoriteClubs, supportedClubs)
-                                                    MatchCard(
+                                                    StandardMatchCard(
                                                         match = item.match,
                                                         isSpoilerFree = isSpoilerFreeMode,
                                                         isRevealed = revealedMatchIds.contains(item.match.id),

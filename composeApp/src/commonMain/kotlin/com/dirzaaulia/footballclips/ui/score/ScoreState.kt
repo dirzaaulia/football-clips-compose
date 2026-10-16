@@ -17,3 +17,10 @@ sealed interface StandingsState {
     data class Success(val standings: List<StandingDto>) : StandingsState
     data class Error(val message: String) : StandingsState
 }
+
+enum class MatchStatusFilter(val label: String) {
+    ALL("All"),
+    LIVE("Live"),
+    FINISHED("Finished"),
+    UPCOMING("Upcoming")
+}

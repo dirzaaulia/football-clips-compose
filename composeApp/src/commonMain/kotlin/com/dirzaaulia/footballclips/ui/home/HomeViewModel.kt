@@ -46,6 +46,16 @@ class HomeViewModel(
     val selectedLeagueId: StateFlow<Int?> = _selectedLeagueId.asStateFlow()
     internal val _selectedCompetitionId = MutableStateFlow<String?>(null)
 
+    val selectedSeason: StateFlow<Int> = preferenceManager.selectedSeason
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 2026)
+
+    fun setSeason(season: Int) {
+        if (selectedSeason.value == season) return
+        viewModelScope.launch {
+            preferenceManager.setSelectedSeason(season)
+        }
+    }
+
     internal val _selectedItem = MutableStateFlow<HighlightUiItem?>(null)
     val selectedItem = _selectedItem.asStateFlow()
     internal val _relatedHighlights = MutableStateFlow<List<HighlightUiItem>>(emptyList())
@@ -130,6 +140,10 @@ class HomeViewModel(
         observeBillingErrors()
         observeAdsRemoved()
         observeProfileForBilling()
-        refreshData()
+        viewModelScope.launch {
+            preferenceManager.selectedSeason.collect {
+                refreshData()
+            }
+        }
     }
 }

@@ -24,4 +24,7 @@ expect class PreferenceManager {
     val favoriteClubs: Flow<Set<String>>
     suspend fun setFavoriteClubs(clubs: Set<String>)
     suspend fun toggleFavoriteClub(clubId: String)
+
+    val selectedSeason: Flow<Int>
+    suspend fun setSelectedSeason(season: Int)
 }

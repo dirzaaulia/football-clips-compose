@@ -82,6 +82,14 @@ class FootballClipsApplication : Application(), SingletonImageLoader.Factory, Co
             modules(appModules)
         }
 
+        // Initialize Notification Channels eagerly
+        try {
+            com.dirzaaulia.footballclips.notification.NotificationHelper.createNotificationChannels(this)
+        } catch (t: Throwable) {
+            Log.e("FootballClipsApp", "Failed to create notification channels: ${t.message}")
+        }
+
+
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
                 currentActivity = WeakReference(activity)

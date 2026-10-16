@@ -72,21 +72,26 @@ private fun MyClubsSheetContent(
     isSideSheet: Boolean
 ) {
     var searchQuery by remember { mutableStateOf("") }
-    var selectedLeagueCode by remember { mutableStateOf<String?>("PL") }
+    var selectedLeagueCode by remember { mutableStateOf<String?>("ALL") }
 
     val leagueTabs = remember {
         listOf(
+            "ALL" to "All",
             "PL" to "Premier League",
             "PD" to "La Liga",
             "SA" to "Serie A",
             "BL1" to "Bundesliga",
-            "FL1" to "Ligue 1"
+            "FL1" to "Ligue 1",
+            "SPL" to "Saudi Pro",
+            "MLS" to "MLS",
+            "DED" to "Eredivisie",
+            "PPL" to "Liga Portugal"
         )
     }
 
     val filteredClubs = remember(clubs, searchQuery, selectedLeagueCode) {
         clubs.filter { club ->
-            val matchesLeague = selectedLeagueCode == null || club.leagueCode == selectedLeagueCode
+            val matchesLeague = selectedLeagueCode == null || selectedLeagueCode == "ALL" || club.leagueCode == selectedLeagueCode
             val matchesSearch = searchQuery.isBlank() || 
                 club.name.contains(searchQuery, ignoreCase = true) ||
                 club.shortName.contains(searchQuery, ignoreCase = true) ||

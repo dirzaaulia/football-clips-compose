@@ -177,6 +177,17 @@ class StandingsService:
             # Batch upsert with on_conflict="id" ensures fixed database footprint (<30 KB)
             supabase_client.table("standings").upsert(unique_standings, on_conflict="id").execute()
             self.last_sync_timestamp = now_utc.timestamp()
+
+            # Automatically prune any stale rows for updated competitions that were not included in this fresh sync
+            for comp_code in self.STANDINGS_COMPETITIONS:
+                comp_rows = [r for r in unique_standings if r.get("competition_code") == comp_code]
+                if comp_rows:
+                    target_season = comp_rows[0].get("season", season or 2026)
+                    try:
+                        supabase_client.table("standings").delete().eq("competition_code", comp_code).eq("season", target_season).lt("updated_at", now_utc.isoformat()).execute()
+                    except Exception as pe:
+                        logger.debug(f"[STANDINGS] Stale prune skipped for {comp_code}: {pe}")
+
             msg = f"[STANDINGS] Successfully upserted {len(unique_standings)} standings rows to Supabase ({provider.upper()})."
             append_event(log_events, msg, "SUCCESS", "STANDINGS", "DB_UPSERT")
             logger.info(msg)

@@ -20,6 +20,7 @@ internal suspend fun fetchSupabaseMatches(
     competitionId: String?,
     limit: Int,
     offset: Int,
+    season: Int? = null,
 ): Pair<List<Match>, Boolean> {
     var attempt = 0
     while (attempt < 3) {
@@ -30,6 +31,7 @@ internal suspend fun fetchSupabaseMatches(
             ascending = false,
             limit = limit,
             offset = offset,
+            season = season,
         )
         if (res is NetworkResult.Success) {
             val newM = res.data.map { it.toMatch() }
@@ -62,13 +64,41 @@ internal suspend fun fetchExternalHighlightsData(
 }
 
 internal suspend fun HomeViewModel.fetchLeagueFixtures(compId: String) {
-    val f = scoreRepository.getMatches(competitionId = compId, status = "FINISHED", ascending = false)
+    val f = scoreRepository.getMatches(
+        competitionId = compId,
+        status = "FINISHED",
+        ascending = false,
+        limit = 20,
+        season = selectedSeason.value
+    )
     if (f is NetworkResult.Success) {
         _relatedFixturesFinished.value = f.data.map { HighlightUiItem.SupabaseMatch(it.toMatch()) }
     }
-    val u = scoreRepository.getMatches(competitionId = compId, excludeStatus = "FINISHED", ascending = true)
+    val u = scoreRepository.getMatches(
+        competitionId = compId,
+        excludeStatus = "FINISHED",
+        ascending = true,
+        limit = 20,
+        season = selectedSeason.value
+    )
     if (u is NetworkResult.Success) {
         _relatedFixturesUpcoming.value = u.data.map { it.toMatch() }.filter { it.isScheduled }.map { HighlightUiItem.SupabaseMatch(it) }
+    }
+}
+
+internal suspend fun HomeViewModel.fetchRelatedHighlights(compId: String?, currentItemUniqueId: String) {
+    val h = scoreRepository.getMatches(
+        competitionId = compId,
+        hasHighlight = true,
+        ascending = false,
+        limit = 20,
+        season = selectedSeason.value
+    )
+    if (h is NetworkResult.Success) {
+        val fetched = h.data.map { HighlightUiItem.SupabaseMatch(it.toMatch()) }
+            .filter { it.uniqueId != currentItemUniqueId }
+        val merged = (_relatedHighlights.value + fetched).distinctBy { it.uniqueId }.take(20)
+        _relatedHighlights.value = merged
     }
 }
 
@@ -79,7 +109,7 @@ internal suspend fun HomeViewModel.getSupabaseHighlights(isRefresh: Boolean = tr
         hasMoreSupabase = true
     }
     if (!hasMoreSupabase) return
-    val (newM, hasMore) = fetchSupabaseMatches(scoreRepository, _selectedCompetitionId.value, supabaseLimit, supabaseOffset)
+    val (newM, hasMore) = fetchSupabaseMatches(scoreRepository, _selectedCompetitionId.value, supabaseLimit, supabaseOffset, season = selectedSeason.value)
     val exIds = supabaseMatches.map { it.id }.toSet()
     val exVideos = supabaseMatches.mapNotNull { it.highlightVideoId }.toSet()
     val deduplicated = newM.filter { it.id !in exIds && (it.highlightVideoId == null || it.highlightVideoId !in exVideos) }
@@ -150,7 +180,11 @@ internal fun calculateRelatedHighlights(
     }
 
     val leagueName = bigLeague?.name ?: originalLeagueName
-    val competitionId = if (item is HighlightUiItem.SupabaseMatch) item.match.competitionId else bigLeague?.competitionId
+    val competitionId = if (item is HighlightUiItem.SupabaseMatch) {
+        item.match.competitionId.takeIf { it.isNotBlank() } ?: bigLeague?.competitionId
+    } else {
+        bigLeague?.competitionId
+    }
 
     if (leagueName == null) return Pair(emptyList(), null)
 

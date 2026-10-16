@@ -38,7 +38,8 @@ fun MatchCard(
             isRevealed = isRevealed,
             isFavorite = isFavorite,
             showTeamName = showTeamName,
-            onRevealClick = onRevealClick
+            onRevealClick = onRevealClick,
+            onWatchHighlightClick = onWatchHighlightClick
         )
     }
 }

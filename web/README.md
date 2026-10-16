@@ -1,6 +1,6 @@
-# ⚽ Football Clips Web Portal
+# ⚽ Football Highlights & Clips Web Portal
 
-The official web platform for **Football Clips**, built with **Next.js 16 (App Router)**, **React 19**, **TypeScript**, and **Tailwind CSS**, deployed globally via **Firebase Hosting** at [fc.dirzaaulia.com](https://fc.dirzaaulia.com).
+The official web platform for **Football Highlights & Clips**, built with **Next.js 16 (App Router)**, **React 19**, **TypeScript**, and **Tailwind CSS**, deployed globally via **Firebase Hosting** at [fc.dirzaaulia.com](https://fc.dirzaaulia.com).
 
 ---
 

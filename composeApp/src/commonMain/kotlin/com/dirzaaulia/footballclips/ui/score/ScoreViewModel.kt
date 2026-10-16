@@ -73,6 +73,16 @@ class ScoreViewModel(
     val favoriteClubs: StateFlow<Set<String>> = preferenceManager.favoriteClubs
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
 
+    private val _selectedStatusFilter = MutableStateFlow(MatchStatusFilter.ALL)
+    val selectedStatusFilter: StateFlow<MatchStatusFilter> = _selectedStatusFilter.asStateFlow()
+
+    fun selectStatusFilter(filter: MatchStatusFilter) {
+        if (_selectedStatusFilter.value == filter) return
+        _selectedStatusFilter.value = filter
+        _isLiveOnlyFilterActive.value = (filter == MatchStatusFilter.LIVE)
+        getMatches()
+    }
+
     private val _isMyClubsFilterActive = MutableStateFlow(false)
     val isMyClubsFilterActive: StateFlow<Boolean> = _isMyClubsFilterActive.asStateFlow()
 
@@ -107,7 +117,9 @@ class ScoreViewModel(
     }
 
     fun toggleLiveOnlyFilter() {
-        _isLiveOnlyFilterActive.value = !_isLiveOnlyFilterActive.value
+        val next = !_isLiveOnlyFilterActive.value
+        _isLiveOnlyFilterActive.value = next
+        _selectedStatusFilter.value = if (next) MatchStatusFilter.LIVE else MatchStatusFilter.ALL
         getMatches()
     }
 
@@ -129,21 +141,24 @@ class ScoreViewModel(
     internal val _standingsState = MutableStateFlow<StandingsState>(StandingsState.Loading)
     val standingsState: StateFlow<StandingsState> = _standingsState.asStateFlow()
 
-    internal val _selectedSeason = MutableStateFlow<Int>(2026)
-    val selectedSeason: StateFlow<Int> = _selectedSeason.asStateFlow()
+    val selectedSeason: StateFlow<Int> = preferenceManager.selectedSeason
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 2026)
 
     fun setSeason(season: Int) {
-        if (_selectedSeason.value == season) return
-        _selectedSeason.value = season
-        getMatches()
-        getStandings()
+        if (selectedSeason.value == season) return
+        viewModelScope.launch {
+            preferenceManager.setSelectedSeason(season)
+        }
     }
-
 
     init {
         viewModelScope.launch { clubRepository.refreshClubs() }
         _selectedDate.value = availableDates.firstOrNull { it.isToday }?.date
-        getMatches()
-        getStandings("PL")
+        viewModelScope.launch {
+            preferenceManager.selectedSeason.collect {
+                getMatches()
+                getStandings()
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.dirzaaulia.footballclips.ui.home
 import androidx.lifecycle.viewModelScope
 import com.dirzaaulia.footballclips.data.billing.BillingManager
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
+import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.firstOrNull
@@ -12,9 +13,11 @@ fun HomeViewModel.refreshData() {
     viewModelScope.launch {
         _uiState.value = HomeState.Loading
         getSupabaseHighlights()
-        if (_showExternalHighlights.value || supabaseMatches.isEmpty()) {
+        val isArchiveSeason = selectedSeason.value != 2026
+        if (!isArchiveSeason && (_showExternalHighlights.value || supabaseMatches.isEmpty())) {
             getExternalHighlights(isRefresh = true)
         } else {
+            allHighlights.clear()
             updateUiState()
         }
     }
@@ -41,7 +44,12 @@ fun HomeViewModel.selectVideo(item: HighlightUiItem?) {
     }
     val (related, compId) = calculateRelatedHighlights(item, supabaseMatches, allHighlights)
     _relatedHighlights.value = related
-    if (compId != null) viewModelScope.launch { fetchLeagueFixtures(compId) }
+    viewModelScope.launch {
+        fetchRelatedHighlights(compId, item.uniqueId)
+        if (compId != null) {
+            fetchLeagueFixtures(compId)
+        }
+    }
 }
 
 fun HomeViewModel.loadMore() {

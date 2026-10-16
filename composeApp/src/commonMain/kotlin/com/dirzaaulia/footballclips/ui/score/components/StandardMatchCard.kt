@@ -4,9 +4,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,23 +26,30 @@ fun StandardMatchCard(
     isRevealed: Boolean = false,
     isFavorite: Boolean = false,
     showTeamName: Boolean = true,
-    onRevealClick: (() -> Unit)? = null
+    onRevealClick: (() -> Unit)? = null,
+    onWatchHighlightClick: ((String) -> Unit)? = null
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val isLandscape = maxWidth < 300.dp || maxHeight < 300.dp
         val shouldShowName = showTeamName && !isLandscape
 
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(
+                    if (!match.highlightVideoId.isNullOrEmpty() && onWatchHighlightClick != null) {
+                        Modifier.clickable { onWatchHighlightClick(match.highlightVideoId) }
+                    } else Modifier
+                ),
             shape = RoundedCornerShape(14.dp),
             color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(
-            width = if (isFavorite) 1.5.dp else 1.dp,
-            color = if (isFavorite) Color(0xFFFFB300).copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-        ),
-        tonalElevation = 0.dp,
-        shadowElevation = 2.dp
-    ) {
+            border = BorderStroke(
+                width = if (isFavorite) 1.5.dp else 1.dp,
+                color = if (isFavorite) Color(0xFFFFB300).copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            ),
+            tonalElevation = 0.dp,
+            shadowElevation = 2.dp
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -139,6 +146,35 @@ fun StandardMatchCard(
                     showName = shouldShowName,
                     modifier = Modifier.weight(1f)
                 )
+            }
+
+            if (!match.highlightVideoId.isNullOrEmpty() && onWatchHighlightClick != null) {
+                Spacer(modifier = Modifier.height(14.dp))
+                FilledTonalButton(
+                    onClick = { onWatchHighlightClick(match.highlightVideoId) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(38.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Watch Highlight",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.3.sp
+                    )
+                }
             }
         }
     }

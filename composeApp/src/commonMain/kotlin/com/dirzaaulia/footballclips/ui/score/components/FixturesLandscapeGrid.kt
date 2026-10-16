@@ -85,7 +85,7 @@ internal fun FixturesLandscapeGrid(
                             when (item) {
                                 is HighlightUiItem.SupabaseMatch -> {
                                     val isFav = SupportedClubsConstants.isMatchForFavoriteClubs(item.match, favoriteClubs, supportedClubs)
-                                    MatchCard(
+                                    StandardMatchCard(
                                         match = item.match,
                                         isSpoilerFree = isSpoilerFreeMode,
                                         isRevealed = revealedMatchIds.contains(item.match.id),

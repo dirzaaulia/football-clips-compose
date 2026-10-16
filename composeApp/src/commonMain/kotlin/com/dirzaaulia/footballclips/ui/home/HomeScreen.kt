@@ -58,6 +58,7 @@ fun HomeScreen(
     var showFilterSheet by remember { mutableStateOf(false) }
     val filterState by viewModel.filterState.collectAsState()
     val selectedLeagueId by viewModel.selectedLeagueId.collectAsState()
+    val selectedSeason by viewModel.selectedSeason.collectAsState()
     val favoriteClubs by viewModel.favoriteClubs.collectAsState()
     var showMyClubsSheet by remember { mutableStateOf(false) }
 
@@ -131,6 +132,8 @@ fun HomeScreen(
                     isSpoilerFreeMode = isSpoilerFreeMode,
                     favoriteClubsCount = favoriteClubs.size,
                     isScrolled = isScrolled,
+                    selectedSeason = selectedSeason,
+                    onSeasonSelected = { viewModel.setSeason(it) },
                     onTitleTap = {
                         val now = Clock.System.now().toEpochMilliseconds()
                         if (now - lastTitleTapTime < 800) titleTapCount++ else titleTapCount = 1

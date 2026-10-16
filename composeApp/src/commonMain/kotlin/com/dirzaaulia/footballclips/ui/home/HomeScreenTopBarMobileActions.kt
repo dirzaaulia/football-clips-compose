@@ -1,12 +1,14 @@
 package com.dirzaaulia.footballclips.ui.home
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,15 +31,17 @@ internal fun HomeScreenTopBarMobileActions(
     onShowPaywall: () -> Unit,
     onShowFilter: () -> Unit,
 ) {
+    var showMoreMenu by remember { mutableStateOf(false) }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
         modifier = Modifier.padding(end = 4.dp)
     ) {
-        // Filter Button
+        // 1. Filter Button
         IconButton(
             onClick = onShowFilter,
-            modifier = Modifier.size(38.dp)
+            modifier = Modifier.size(36.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.FilterList,
@@ -47,10 +51,10 @@ internal fun HomeScreenTopBarMobileActions(
             )
         }
 
-        // My Clubs Button
+        // 2. My Clubs Button
         IconButton(
             onClick = onShowMyClubs,
-            modifier = Modifier.size(38.dp)
+            modifier = Modifier.size(36.dp)
         ) {
             BadgedBox(
                 badge = {
@@ -73,74 +77,111 @@ internal fun HomeScreenTopBarMobileActions(
             }
         }
 
-        // Spoiler Free Mode Button
-        IconButton(
-            onClick = onToggleSpoilerFree,
-            modifier = Modifier.size(38.dp)
+        // 3. Compact Elegant Premium Diamond Button
+        Surface(
+            onClick = onShowPaywall,
+            shape = RoundedCornerShape(10.dp),
+            color = if (isPremium) {
+                Color(0xFF4CAF50).copy(alpha = 0.15f)
+            } else {
+                Color(0xFFD4AF37).copy(alpha = 0.15f)
+            },
+            border = BorderStroke(
+                1.dp,
+                if (isPremium) Color(0xFF4CAF50).copy(alpha = 0.5f) else Color(0xFFD4AF37).copy(alpha = 0.6f)
+            ),
+            modifier = Modifier.size(34.dp)
         ) {
-            Icon(
-                imageVector = if (isSpoilerFreeMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                contentDescription = "Spoiler Free Mode",
-                tint = if (isSpoilerFreeMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
-            )
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                Icon(
+                    imageVector = if (isPremium) Icons.Default.VideoLibrary else Icons.Default.Diamond,
+                    contentDescription = if (isPremium) "Premium Member" else "Upgrade to Premium",
+                    tint = if (isPremium) Color(0xFF4CAF50) else Color(0xFFD4AF37),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
 
-        // Theme Toggle Button
-        if (!isWasmTarget) {
+        // 4. Unified Overflow More Menu (Spoiler-Free, Theme)
+        Box {
             IconButton(
-                onClick = { onDarkModeToggle(!isDarkMode) },
-                modifier = Modifier.size(38.dp)
+                onClick = { showMoreMenu = true },
+                modifier = Modifier.size(36.dp)
             ) {
                 Icon(
-                    imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
-                    contentDescription = "Toggle Theme",
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "More Options",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
-        }
 
-        // Go Premium Button
-        if (isScrolled) {
-            FilledIconButton(
-                onClick = onShowPaywall,
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = if (isPremium) Color(0xFF4CAF50) else Color(0xFFD4AF37),
-                    contentColor = if (isPremium) Color.White else Color.Black
-                ),
-                modifier = Modifier.size(38.dp),
-                shape = RoundedCornerShape(12.dp)
+            DropdownMenu(
+                expanded = showMoreMenu,
+                onDismissRequest = { showMoreMenu = false },
+                modifier = Modifier
+                    .width(220.dp)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             ) {
-                Icon(
-                    imageVector = if (isPremium) Icons.Default.VideoLibrary else Icons.Default.Diamond,
-                    contentDescription = "Premium",
-                    modifier = Modifier.size(18.dp)
+                // Spoiler Free Toggle Item
+                DropdownMenuItem(
+                    leadingIcon = {
+                        Icon(
+                            imageVector = if (isSpoilerFreeMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = null,
+                            tint = if (isSpoilerFreeMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = "Spoiler-Free Mode",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = if (isSpoilerFreeMode) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isSpoilerFreeMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    trailingIcon = {
+                        Switch(
+                            checked = isSpoilerFreeMode,
+                            onCheckedChange = null,
+                            modifier = Modifier.height(24.dp)
+                        )
+                    },
+                    onClick = {
+                        onToggleSpoilerFree()
+                        showMoreMenu = false
+                    },
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
                 )
-            }
-        } else {
-            Button(
-                onClick = onShowPaywall,
-                modifier = Modifier.height(38.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isPremium) Color(0xFF4CAF50) else Color(0xFFD4AF37),
-                    contentColor = if (isPremium) Color.White else Color.Black
-                ),
-                shape = RoundedCornerShape(12.dp),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Icon(
-                    if (isPremium) Icons.Default.VideoLibrary else Icons.Default.Diamond,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    if (isPremium) "PREMIUM" else "GO PREMIUM",
-                    fontWeight = FontWeight.Black,
-                    style = MaterialTheme.typography.labelMedium
-                )
+
+                // Theme Toggle Item
+                if (!isWasmTarget) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                    DropdownMenuItem(
+                        leadingIcon = {
+                            Icon(
+                                imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        text = {
+                            Text(
+                                text = if (isDarkMode) "Light Mode" else "Dark Mode",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        onClick = {
+                            onDarkModeToggle(!isDarkMode)
+                            showMoreMenu = false
+                        },
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                    )
+                }
             }
         }
     }

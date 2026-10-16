@@ -22,11 +22,11 @@ import kotlinx.serialization.json.Json
 import kotlin.time.TimeSource
 
 object TelemetryConstants {
-    const val SUPABASE_URL = "https://fc-edge-proxy.dirzaaulia11.workers.dev"
+    const val SUPABASE_URL = "https://edge.fc.dirzaaulia.com"
     const val SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpb21rdHZhdm5kb3JhenJleWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1OTQ4ODcsImV4cCI6MjEwMzE3MDg4N30.GhP7TJXMeAEpG8F-9pB_SLNwaXLjIrOJ2LAiPC1kCk4"
     const val GCS_TELEMETRY_URL = "https://storage.googleapis.com/highlightdata-telemetry/telemetry.json"
     const val CLOUD_RUN_URL = "https://fc-worker-519310318914.us-central1.run.app"
-    const val EDGE_PROXY_URL = "https://fc-edge-proxy.dirzaaulia11.workers.dev"
+    const val EDGE_PROXY_URL = "https://edge.fc.dirzaaulia.com"
 }
 
 class TelemetryRepository(

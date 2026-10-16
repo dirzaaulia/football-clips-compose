@@ -36,6 +36,9 @@ FORBIDDEN_TITLE_PATTERNS: list[tuple[str, str]] = [
 
     # 12. Full match replays (only focus on highlights or extended highlights)
     (r'\b(full match|full match replay|match replay|full game|match complet|partido completo|partita intera|ganzes spiel)\b', 'Full Match Replay'),
+
+    # 13. Video games, simulations, PES, FIFA, eFootball, and VFX animations
+    (r'\b(gameplay|game\s*play|efootball|pes\s*\d*|fifa\s*\d*|ea\s*sports\s*fc|fc\s*2[4-7]|dls|dream league|vfx|simulation|simulated|mod\b|concept)\b', 'Gaming/Simulation/VFX'),
 ]
 
 # Required highlight keywords across supported European leagues

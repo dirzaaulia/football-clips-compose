@@ -2,6 +2,7 @@ package com.dirzaaulia.footballclips.data.local
 
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -33,11 +34,13 @@ actual class PreferenceManager(
     private val favoriteClubsKey = stringSetPreferencesKey("favorite_clubs")
     private val deviceIdKey = stringPreferencesKey("telemetry_device_id")
     private val anonUserIdKey = stringPreferencesKey("telemetry_anon_user_id")
+    private val selectedSeasonKey = intPreferencesKey("selected_season")
 
     private val _inMemoryDarkMode = MutableStateFlow<Boolean?>(null)
     private val _inMemorySpoilerFree = MutableStateFlow<Boolean?>(null)
     private val _inMemorySpoilerConfigured = MutableStateFlow<Boolean?>(null)
     private val _inMemoryFavoriteClubs = MutableStateFlow<Set<String>?>(null)
+    private val _inMemorySelectedSeason = MutableStateFlow<Int?>(null)
 
     actual val isAdsRemoved: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[adsRemovedKey] ?: false
@@ -141,6 +144,23 @@ actual class PreferenceManager(
         } catch (_: Exception) {
         }
         syncTelemetry(updated)
+    }
+
+    actual val selectedSeason: Flow<Int> = combine(
+        context.dataStore.data.map { preferences -> preferences[selectedSeasonKey] ?: 2026 },
+        _inMemorySelectedSeason
+    ) { fromDisk, inMem ->
+        inMem ?: fromDisk
+    }
+
+    actual suspend fun setSelectedSeason(season: Int) {
+        _inMemorySelectedSeason.value = season
+        try {
+            context.dataStore.edit { preferences ->
+                preferences[selectedSeasonKey] = season
+            }
+        } catch (_: Exception) {
+        }
     }
 
     private suspend fun syncTelemetry(clubs: Set<String>) {

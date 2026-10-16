@@ -55,7 +55,7 @@ internal fun WebNavigationRail(
             ) {
                 Image(
                     painter = painterResource(Res.drawable.app_icon),
-                    contentDescription = "FootballClips Logo",
+                    contentDescription = "Football Highlights & Clips Logo",
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)

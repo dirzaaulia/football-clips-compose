@@ -6,7 +6,7 @@ from loguru import logger
 class EdgeCacheClient:
     """Non-blocking background client to purge Cloudflare Edge Cache upon match state changes."""
 
-    PROXY_PURGE_URL = "https://fc-edge-proxy.dirzaaulia11.workers.dev/api/purge-cache"
+    PROXY_PURGE_URL = "https://edge.fc.dirzaaulia.com/api/purge-cache"
 
     @classmethod
     def purge_matches_cache(cls):

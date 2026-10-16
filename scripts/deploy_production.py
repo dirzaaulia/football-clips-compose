@@ -147,23 +147,23 @@ INFORMAÇÕES LEGAIS E DIREITOS AUTORAIS:
 RELEASE_NOTES = [
     {
         "language": "id",
-        "text": "• Perbaikan masalah masuk (sign-in) dengan Akun Google untuk kelancaran pendaftaran & akses pembelian Premium.\n• Pengoptimalan ukuran aplikasi (33% lebih kecil & hemat penyimpanan).\n• Peningkatan performa dan stabilitas aplikasi."
+        "text": "• Filter status pertandingan & toggle Live cepat di tab Jadwal.\n• Tonton highlight langsung dari kartu pertandingan yang telah selesai.\n• Dukungan My Clubs diperluas: Liga Arab Saudi (SPL), MLS, Eredivisie, dan Liga Portugal.\n• Peningkatan tampilan klasemen dan stabilitas aplikasi."
     },
     {
         "language": "en-US",
-        "text": "• Fixed Google sign-in issue for seamless Premium access and purchases.\n• Optimized app size (33% smaller APK & reduced storage footprint).\n• Performance improvements and stability fixes."
+        "text": "• Match status filters & quick Live toggle directly on the Fixtures tab.\n• Watch highlights seamlessly from finished match cards.\n• Expanded My Clubs support: Saudi Pro League, MLS, Eredivisie, and Liga Portugal.\n• Standings display improvements and overall performance enhancements."
     },
     {
         "language": "es-419",
-        "text": "• Corrección en el inicio de sesión con Google para acceso y compra de versión Premium.\n• Optimización del tamaño de la aplicación (33% más pequeña).\n• Mejoras de rendimiento y estabilidad."
+        "text": "• Filtros por estado de partido y acceso directo en vivo en el calendario.\n• Mira resúmenes directamente en los partidos finalizados.\n• Expansión de Mis Clubes: Liga Saudí, MLS, Eredivisie y Liga Portugal.\n• Mejoras en la tabla de posiciones y estabilidad general."
     },
     {
         "language": "es-ES",
-        "text": "• Corrección en el inicio de sesión con Google para acceso y compra de versión Premium.\n• Optimización del tamaño de la aplicación (33% más pequeña).\n• Mejoras de rendimiento y estabilidad."
+        "text": "• Filtros por estado de partido y acceso directo en vivo en el calendario.\n• Mira resúmenes directamente en los partidos finalizados.\n• Expansión de Mis Clubes: Liga Saudí, MLS, Eredivisie y Liga Portugal.\n• Mejoras en la tabla de posiciones y estabilidad general."
     },
     {
         "language": "pt-BR",
-        "text": "• Correção no login com Google para acesso e compra de versão Premium.\n• Otimização do tamanho do aplicativo (33% menor).\n• Melhorias de desempenho e estabilidade."
+        "text": "• Filtros de status de partida e alternador Ao Vivo na aba de jogos.\n• Assista aos melhores momentos diretamente nos cartões de partidas finalizadas.\n• Meus Clubes expandido: Liga Saudita, MLS, Eredivisie e Liga Portugal.\n• Melhorias na tabela de classificação e estabilidade do aplicativo."
     }
 ]
 

@@ -35,7 +35,8 @@ val AvailableSeasons = listOf(
 fun SeasonDropdownSelector(
     selectedSeason: Int,
     onSeasonSelected: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isCompact: Boolean = false,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -48,31 +49,38 @@ fun SeasonDropdownSelector(
     Box(modifier = modifier) {
         Surface(
             onClick = { expanded = true },
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-            border = null,
-            modifier = Modifier.height(36.dp)
+            shape = RoundedCornerShape(if (isCompact) 14.dp else 20.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (isCompact) 0.5f else 0.6f),
+            border = if (isCompact) {
+                androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                )
+            } else null,
+            modifier = Modifier.height(if (isCompact) 28.dp else 36.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.padding(horizontal = 10.dp)
+                horizontalArrangement = Arrangement.spacedBy(if (isCompact) 3.dp else 6.dp),
+                modifier = Modifier.padding(horizontal = if (isCompact) 7.dp else 10.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.CalendarMonth,
-                    contentDescription = null,
-                    modifier = Modifier.size(15.dp),
-                    tint = if (currentOption.isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (!isCompact) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp),
+                        tint = if (currentOption.isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
                 Text(
                     text = currentOption.label,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = if (isCompact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                if (currentOption.isCurrent) {
+                if (!isCompact && currentOption.isCurrent) {
                     Box(
                         modifier = Modifier
                             .size(6.dp)
@@ -85,7 +93,7 @@ fun SeasonDropdownSelector(
                     imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(18.dp)
+                        .size(if (isCompact) 16.dp else 18.dp)
                         .rotate(arrowRotation),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )

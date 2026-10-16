@@ -61,7 +61,7 @@ export function setupForegroundMessageListener(onNotification: (payload: { title
   if (!messaging) return () => {};
 
   return onMessage(messaging, (payload) => {
-    const title = payload.notification?.title || payload.data?.title || 'Football Clips Alert';
+    const title = payload.notification?.title || payload.data?.title || 'Football Highlights & Clips Alert';
     const body = payload.notification?.body || payload.data?.body || '';
     const url = payload.data?.url || '/';
     onNotification({ title, body, url });

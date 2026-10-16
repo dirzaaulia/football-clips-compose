@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 import com.dirzaaulia.footballclips.ui.components.filter.LeagueDropdownSelector
@@ -40,11 +41,22 @@ fun StandingsScreen(
             topBar = {
                 TopAppBar(
                     title = {
-                        Text(
-                            text = "Standings",
-                            style = if (isLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Black
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Standings",
+                                style = if (isWeb) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = if (isWeb) 1.sp else (-0.5).sp
+                            )
+                            SeasonDropdownSelector(
+                                selectedSeason = selectedSeason,
+                                onSeasonSelected = onSeasonSelected,
+                                isCompact = !isWeb
+                            )
+                        }
                     },
                     actions = {
                         Row(
@@ -52,10 +64,6 @@ fun StandingsScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.padding(end = horizontalPadding)
                         ) {
-                            SeasonDropdownSelector(
-                                selectedSeason = selectedSeason,
-                                onSeasonSelected = onSeasonSelected
-                            )
                             LeagueDropdownSelector(
                                 selectedCompetitionId = selectedCompetitionId ?: "PL",
                                 onLeagueSelected = onLeagueSelected,
@@ -64,7 +72,7 @@ fun StandingsScreen(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
                     )
                 )
             }

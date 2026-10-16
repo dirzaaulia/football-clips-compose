@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     football_data_api_key: str = Field(default="", alias="FOOTBALL_DATA_API_KEY")
     youtube_api_key: str = Field(default="", alias="YOUTUBE_API_KEY")
     gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")
-    match_data_provider: str = Field(default="football_data", alias="MATCH_DATA_PROVIDER")
+    match_data_provider: str = Field(default="espn", alias="MATCH_DATA_PROVIDER")
     standings_provider: str = Field(default="espn", alias="STANDINGS_PROVIDER")
     r2_account_id: str | None = Field(default=None, alias="R2_ACCOUNT_ID")
     r2_access_key_id: str | None = Field(default=None, alias="R2_ACCESS_KEY_ID")

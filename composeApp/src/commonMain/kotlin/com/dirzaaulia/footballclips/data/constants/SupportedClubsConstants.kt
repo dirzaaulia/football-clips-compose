@@ -120,6 +120,39 @@ object SupportedClubsConstants {
         c("stade_brestois_29", "Stade Brestois 29", "Stade Brestois ", "FL1", "Ligue 1", "https://crests.football-data.org/512.png"),
         c("stade_rennais_fc_1901", "Stade Rennais FC 1901", "Stade Rennais 1", "FL1", "Ligue 1", "https://crests.football-data.org/529.png", "Stade Rennais 1901"),
         c("toulouse_fc", "Toulouse FC", "Toulouse", "FL1", "Ligue 1", "https://crests.football-data.org/511.png", "Toulouse"),
+        // Saudi Pro League (SPL)
+        c("al_hilal_sfc", "Al Hilal SFC", "Al Hilal", "SPL", "Saudi Pro League", "https://a.espncdn.com/i/teamlogos/soccer/500/7339.png", "Al-Hilal"),
+        c("al_nassr_fc", "Al Nassr FC", "Al Nassr", "SPL", "Saudi Pro League", "https://a.espncdn.com/i/teamlogos/soccer/500/7342.png", "Al-Nassr"),
+        c("al_ittihad_fc", "Al Ittihad FC", "Al Ittihad", "SPL", "Saudi Pro League", "https://a.espncdn.com/i/teamlogos/soccer/500/7338.png", "Al-Ittihad"),
+        c("al_ahli_saudi_fc", "Al Ahli Saudi FC", "Al Ahli", "SPL", "Saudi Pro League", "https://a.espncdn.com/i/teamlogos/soccer/500/7337.png", "Al-Ahli"),
+        c("al_shabab_fc", "Al Shabab FC", "Al Shabab", "SPL", "Saudi Pro League", "https://a.espncdn.com/i/teamlogos/soccer/500/7343.png", "Al-Shabab"),
+        c("al_ettifaq_fc", "Al Ettifaq FC", "Al Ettifaq", "SPL", "Saudi Pro League", "https://a.espncdn.com/i/teamlogos/soccer/500/7335.png", "Al-Ettifaq"),
+        c("al_taawoun_fc", "Al Taawoun FC", "Al Taawoun", "SPL", "Saudi Pro League", "https://a.espncdn.com/i/teamlogos/soccer/500/10940.png", "Al-Taawoun"),
+        c("al_fateh_sc", "Al Fateh SC", "Al Fateh", "SPL", "Saudi Pro League", "https://a.espncdn.com/i/teamlogos/soccer/500/10939.png", "Al-Fateh"),
+        // MLS (MLS)
+        c("inter_miami_cf", "Inter Miami CF", "Inter Miami", "MLS", "MLS", "https://a.espncdn.com/i/teamlogos/soccer/500/19106.png", "Inter Miami"),
+        c("la_galaxy", "LA Galaxy", "LA Galaxy", "MLS", "MLS", "https://a.espncdn.com/i/teamlogos/soccer/500/187.png", "Galaxy"),
+        c("los_angeles_fc", "Los Angeles FC", "LAFC", "MLS", "MLS", "https://a.espncdn.com/i/teamlogos/soccer/500/18966.png", "LAFC"),
+        c("columbus_crew", "Columbus Crew", "Columbus Crew", "MLS", "MLS", "https://a.espncdn.com/i/teamlogos/soccer/500/183.png"),
+        c("new_york_red_bulls", "New York Red Bulls", "NY Red Bulls", "MLS", "MLS", "https://a.espncdn.com/i/teamlogos/soccer/500/190.png", "Red Bulls"),
+        c("new_york_city_fc", "New York City FC", "NYCFC", "MLS", "MLS", "https://a.espncdn.com/i/teamlogos/soccer/500/17606.png", "NYCFC"),
+        c("atlanta_united_fc", "Atlanta United FC", "Atlanta United", "MLS", "MLS", "https://a.espncdn.com/i/teamlogos/soccer/500/18418.png"),
+        c("seattle_sounders_fc", "Seattle Sounders FC", "Seattle Sounders", "MLS", "MLS", "https://a.espncdn.com/i/teamlogos/soccer/500/9723.png", "Sounders"),
+        c("philadelphia_union", "Philadelphia Union", "Philadelphia", "MLS", "MLS", "https://a.espncdn.com/i/teamlogos/soccer/500/10972.png"),
+        c("fc_cincinnati", "FC Cincinnati", "FC Cincinnati", "MLS", "MLS", "https://a.espncdn.com/i/teamlogos/soccer/500/18267.png", "Cincinnati"),
+        // Eredivisie (DED)
+        c("afc_ajax", "AFC Ajax", "Ajax", "DED", "Eredivisie", "https://crests.football-data.org/678.png", "Ajax"),
+        c("psv_eindhoven", "PSV Eindhoven", "PSV", "DED", "Eredivisie", "https://crests.football-data.org/674.png", "PSV"),
+        c("feyenoord_rotterdam", "Feyenoord Rotterdam", "Feyenoord", "DED", "Eredivisie", "https://crests.football-data.org/675.png", "Feyenoord"),
+        c("az_alkmaar", "AZ Alkmaar", "AZ", "DED", "Eredivisie", "https://crests.football-data.org/682.png", "AZ"),
+        c("fc_twente_65", "FC Twente '65", "FC Twente", "DED", "Eredivisie", "https://crests.football-data.org/666.png", "Twente"),
+        c("fc_utrecht", "FC Utrecht", "FC Utrecht", "DED", "Eredivisie", "https://crests.football-data.org/676.png", "Utrecht"),
+        // Liga Portugal (PPL)
+        c("sl_benfica", "SL Benfica", "Benfica", "PPL", "Liga Portugal", "https://crests.football-data.org/1903.png", "Benfica"),
+        c("sporting_cp", "Sporting CP", "Sporting CP", "PPL", "Liga Portugal", "https://crests.football-data.org/498.png", "Sporting Lisbon", "Sporting"),
+        c("fc_porto", "FC Porto", "Porto", "PPL", "Liga Portugal", "https://crests.football-data.org/503.png", "Porto"),
+        c("sc_braga", "SC Braga", "Braga", "PPL", "Liga Portugal", "https://crests.football-data.org/5613.png", "Braga"),
+        c("vit_ria_sc", "Vitória SC", "Vitória SC", "PPL", "Liga Portugal", "https://crests.football-data.org/5529.png", "Guimaraes"),
     )
 
     val premierLeagueClubs by lazy { allClubs.filter { it.leagueCode == "PL" } }
@@ -127,6 +160,10 @@ object SupportedClubsConstants {
     val serieAClubs by lazy { allClubs.filter { it.leagueCode == "SA" } }
     val bundesligaClubs by lazy { allClubs.filter { it.leagueCode == "BL1" } }
     val ligue1Clubs by lazy { allClubs.filter { it.leagueCode == "FL1" } }
+    val saudiProLeagueClubs by lazy { allClubs.filter { it.leagueCode == "SPL" } }
+    val mlsClubs by lazy { allClubs.filter { it.leagueCode == "MLS" } }
+    val eredivisieClubs by lazy { allClubs.filter { it.leagueCode == "DED" } }
+    val ligaPortugalClubs by lazy { allClubs.filter { it.leagueCode == "PPL" } }
 
     private val clubsById: Map<String, SupportedClub> by lazy { allClubs.associateBy { it.id } }
 

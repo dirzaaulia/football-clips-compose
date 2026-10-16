@@ -58,6 +58,17 @@
                 tools:node="remove" />
         </provider>
 
+        <!-- Firebase Cloud Messaging Defaults -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_brand" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="fc_channel_live_scores" />
+
         <!-- Firebase Cloud Messaging Push Service -->
         <service
             android:name=".notification.FootballClipsFirebaseMessagingService"

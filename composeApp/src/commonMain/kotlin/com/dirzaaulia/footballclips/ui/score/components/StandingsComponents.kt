@@ -193,9 +193,7 @@ fun StandingRow(standing: StandingDto, totalTeams: Int, modifier: Modifier = Mod
                 Text(
                     text = standing.teamName,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    fontWeight = FontWeight.SemiBold
                 )
                 if (!standing.form.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(3.dp))

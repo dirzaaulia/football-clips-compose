@@ -1,5 +1,4 @@
-/* eslint-disable no-undef */
-// FootballClips Firebase Cloud Messaging Service Worker for Web Push
+// Football Highlights & Clips Firebase Cloud Messaging Service Worker for Web Push
 importScripts('https://www.gstatic.com/firebasejs/11.4.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.4.0/firebase-messaging-compat.js');
 
@@ -14,10 +13,10 @@ const messaging = firebase.messaging();
 
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {
-  const notificationTitle = payload.notification?.title || payload.data?.title || 'Football Clips Alert';
+  const notificationTitle = payload.notification?.title || payload.data?.title || 'Football Highlights & Clips Alert';
   const notificationOptions = {
     body: payload.notification?.body || payload.data?.body || '',
-    icon: '/icons/icon-192.png',
+    icon: payload.notification?.icon || '/icons/icon-192.png',
     badge: '/icons/badge-72.png',
     tag: payload.data?.match_id || 'footballclips-alert',
     data: {

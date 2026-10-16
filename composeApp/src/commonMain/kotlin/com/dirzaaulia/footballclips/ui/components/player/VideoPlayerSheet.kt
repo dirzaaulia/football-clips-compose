@@ -165,8 +165,8 @@ private fun VideoPlayerSheetContent(
 
                 if (effectiveHighlights.isNotEmpty() || totalFixturesCount > 0) {
                     val tabs = listOf(
-                        "HIGHLIGHTS (${effectiveHighlights.size})",
-                        "FIXTURES ($totalFixturesCount)"
+                        "HIGHLIGHTS",
+                        "FIXTURES"
                     )
 
                     PrimaryTabRow(
@@ -238,7 +238,7 @@ private fun VideoPlayerSheetContent(
                                     onClick = { fixtureSubTab = 0 },
                                     label = {
                                         Text(
-                                            "RESULTS (${relatedFixturesFinished.size})",
+                                            "RESULTS",
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold
                                         )
@@ -249,7 +249,7 @@ private fun VideoPlayerSheetContent(
                                     onClick = { fixtureSubTab = 1 },
                                     label = {
                                         Text(
-                                            "UPCOMING (${relatedFixturesUpcoming.size})",
+                                            "UPCOMING",
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold
                                         )

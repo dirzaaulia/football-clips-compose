@@ -46,7 +46,7 @@ export default function PlayStoreInstallBanner() {
         <div className="relative w-11 h-11 rounded-xl overflow-hidden border border-[#7098F8]/40 bg-[#101418] shrink-0">
           <Image
             src="/app_icon.png"
-            alt="Football Clips Android App"
+            alt="Football Highlights & Clips Android App"
             width={44}
             height={44}
             className="object-cover"
@@ -57,7 +57,7 @@ export default function PlayStoreInstallBanner() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-black text-white tracking-tight flex items-center gap-1.5">
-              <span>FootballClips on Android</span>
+              <span>Football Highlights & Clips on Android</span>
               <span className="text-[9px] font-bold bg-[#7098F8]/20 text-[#7098F8] px-1.5 py-0.5 rounded">Native</span>
             </h4>
             <button

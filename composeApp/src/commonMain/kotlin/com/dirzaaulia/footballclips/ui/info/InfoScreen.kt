@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -33,12 +34,13 @@ fun InfoScreen(
                     title = {
                         Text(
                             "Information",
-                            style = if (isLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.ExtraBold
+                            style = if (isWide) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = if (isWide) 1.sp else (-0.5).sp
                         )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
                     )
                 )
             }
