@@ -125,7 +125,7 @@ fun TelemetryTerminalStream(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(activeCycles, key = { it.id }) { cycle ->
-                    val cycleLogs = logsByCycle[cycle.id] ?: emptyList()
+                    val cycleLogs = (logsByCycle[cycle.id] ?: emptyList()).sortedBy { it.id }
                     TelemetryCycleStreamCard(
                         cycle = cycle,
                         logs = cycleLogs,

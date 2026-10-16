@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Eye, EyeOff, Gem, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff, Gem, CheckCircle2, Smartphone } from 'lucide-react';
 
 interface SidebarBottomControlsProps {
   isCollapsed: boolean;
@@ -75,6 +75,20 @@ export default function SidebarBottomControls({
           {!isCollapsed && <span className="tracking-wide">PREMIUM</span>}
         </button>
       )}
+
+      {/* Android Native App on Google Play */}
+      <a
+        href="https://play.google.com/store/apps/details?id=com.dirzaaulia.footballclips"
+        target="_blank"
+        rel="noopener noreferrer"
+        title={isCollapsed ? 'Get Android App on Google Play' : undefined}
+        className={`w-full py-2 rounded-2xl bg-[#181C20] hover:bg-[#1E2227] text-[#94A3B8] hover:text-[#7098F8] font-bold text-xs border border-[#334155]/80 hover:border-[#7098F8]/50 transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+          isCollapsed ? 'px-0' : 'px-3'
+        }`}
+      >
+        <Smartphone className="w-4 h-4 text-[#7098F8] shrink-0" />
+        {!isCollapsed && <span className="truncate">Google Play App</span>}
+      </a>
     </div>
   );
 }

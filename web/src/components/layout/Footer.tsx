@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShieldCheck, Video, Database } from 'lucide-react';
+import { ShieldCheck, Video, Database, Smartphone } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -30,6 +30,17 @@ export default function Footer() {
             <p className="text-xs leading-relaxed text-[#94A3B8]">
               Verified official European match highlights, AI tactical reports, live schedules, and league tables. Powered by the Kinetic Editorial design system.
             </p>
+            <div className="pt-1">
+              <a
+                href="https://play.google.com/store/apps/details?id=com.dirzaaulia.footballclips"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#181C20] hover:bg-[#1E2227] border border-[#7098F8]/40 hover:border-[#7098F8] text-white font-bold text-[11px] transition-all cursor-pointer shadow-sm"
+              >
+                <Smartphone className="w-3.5 h-3.5 text-[#7098F8]" />
+                <span>Get App on Google Play</span>
+              </a>
+            </div>
           </div>
 
           {/* Col 2: Compliance & Technology */}

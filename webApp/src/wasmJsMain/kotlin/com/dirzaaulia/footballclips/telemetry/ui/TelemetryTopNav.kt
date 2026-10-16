@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -43,149 +44,110 @@ fun TelemetryTopNav(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left Status Badges
+            // Left Status Summary (Clean & Minimalist)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // LIVE WASM Client Badge
+                // Status Pill
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(4.dp))
-                        .background(StitchSuccess.copy(alpha = 0.12f))
-                        .border(1.dp, StitchSuccess.copy(alpha = 0.35f), RoundedCornerShape(4.dp))
+                        .background(StitchSurfaceContainer)
+                        .border(1.dp, StitchBorder, RoundedCornerShape(4.dp))
                         .padding(horizontal = 8.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(StitchSuccess))
-                    Text("LIVE WASM CLIENT", color = StitchSuccess, fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                    Box(modifier = Modifier.size(7.dp).clip(CircleShape).background(StitchSuccess))
+                    Text(
+                        text = "OPERATIONAL",
+                        style = TelemetryTypography.labelSmall.copy(color = StitchSuccess, fontWeight = FontWeight.Bold)
+                    )
                 }
 
-                // Cloud Run Worker Node
-                val latencyText = if (apmLiveMetrics != null && apmLiveMetrics.roundTripLatencyMs > 0) "${apmLiveMetrics.roundTripLatencyMs}ms" else "ONLINE"
+                // Subtle subsystem status items
                 Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(StitchPrimary.copy(alpha = 0.12f))
-                        .border(1.dp, StitchPrimary.copy(alpha = 0.35f), RoundedCornerShape(4.dp))
-                        .padding(horizontal = 8.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(Icons.Default.CloudQueue, null, tint = StitchPrimary, modifier = Modifier.size(13.dp))
-                    Text("CLOUD RUN $latencyText", color = StitchPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
-                }
-
-                // Cloudflare Edge Proxy Badge
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(StitchSecondary.copy(alpha = 0.12f))
-                        .border(1.dp, StitchSecondary.copy(alpha = 0.35f), RoundedCornerShape(4.dp))
-                        .padding(horizontal = 8.dp, vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    Icon(Icons.Default.Speed, null, tint = StitchSecondary, modifier = Modifier.size(13.dp))
-                    Text("CF EDGE PROXY", color = StitchSecondary, fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
-                }
-
-                // Supabase Database Badge
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(StitchSurface)
-                        .border(1.dp, StitchBorder, RoundedCornerShape(4.dp))
-                        .padding(horizontal = 8.dp, vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                ) {
-                    Icon(Icons.Default.Storage, null, tint = StitchTextMuted, modifier = Modifier.size(13.dp))
-                    Text("SUPABASE (793 FIXTURES)", color = StitchTextSecondary, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+                    Text("Cloud Run", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
+                    Text("•", style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted))
+                    Text("CF Edge Proxy", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
+                    Text("•", style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted))
+                    Text("Supabase (Live)", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
                 }
             }
 
-            // Right Operational Controls - Command Buttons
+            // Right Operational Controls
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Trigger Sync Cycle Button
-                Button(
+                // Trigger Run Cycle Button
+                OutlinedButton(
                     onClick = onTriggerCycle,
                     enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = StitchPrimary.copy(alpha = 0.18f),
-                        contentColor = StitchPrimary
-                    ),
-                    shape = RoundedCornerShape(6.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchPrimary.copy(alpha = 0.4f)),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = StitchPrimary),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchPrimary.copy(alpha = 0.4f))
                 ) {
-                    Icon(Icons.Default.Bolt, contentDescription = "Trigger Cycle", modifier = Modifier.size(14.dp))
+                    Icon(Icons.Default.Bolt, contentDescription = null, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Trigger Cycle", fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                    Text("Trigger Run", style = TelemetryTypography.labelSmall.copy(fontWeight = FontWeight.Bold))
                 }
 
                 // Purge Edge Cache Button
-                Button(
+                OutlinedButton(
                     onClick = onPurgeCache,
                     enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = StitchSecondary.copy(alpha = 0.18f),
-                        contentColor = StitchSecondary
-                    ),
-                    shape = RoundedCornerShape(6.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchSecondary.copy(alpha = 0.4f)),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = StitchTextSecondary),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchBorder)
                 ) {
-                    Icon(Icons.Default.CleaningServices, contentDescription = "Purge Cache", modifier = Modifier.size(13.dp))
+                    Icon(Icons.Default.CleaningServices, contentDescription = null, modifier = Modifier.size(13.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Purge Cache", fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                    Text("Purge Cache", style = TelemetryTypography.labelSmall)
                 }
 
-                // Renew WebSub Button
-                Button(
+                // Renew WebSub Subscriptions Button
+                OutlinedButton(
                     onClick = onRenewWebsub,
                     enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = StitchSurfaceContainer,
-                        contentColor = StitchTextPrimary
-                    ),
-                    shape = RoundedCornerShape(6.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchBorder),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = StitchTextSecondary),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchBorder)
                 ) {
-                    Icon(Icons.Default.RssFeed, contentDescription = "Renew WebSub", modifier = Modifier.size(13.dp))
+                    Icon(Icons.Default.RssFeed, contentDescription = null, modifier = Modifier.size(13.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Renew WebSub", fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                    Text("Renew WebSub", style = TelemetryTypography.labelSmall)
                 }
 
-                // Refresh Telemetry Button
+                // Refresh Button
                 Button(
                     onClick = onRefresh,
                     enabled = !isLoading,
+                    shape = RoundedCornerShape(4.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = StitchSurfaceContainer,
+                        containerColor = StitchSurfaceContainerHigh,
                         contentColor = StitchTextPrimary
                     ),
-                    shape = RoundedCornerShape(6.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchBorder),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                    modifier = Modifier.border(1.dp, StitchBorder, RoundedCornerShape(4.dp))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = "Refresh",
-                        tint = StitchPrimary,
+                        tint = if (isLoading) StitchPrimary else StitchTextPrimary,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(Modifier.width(5.dp))
                     Text(
                         text = if (isLoading) "Syncing..." else "Refresh",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        fontFamily = FontFamily.Monospace
+                        style = TelemetryTypography.labelSmall.copy(fontWeight = FontWeight.SemiBold)
                     )
                 }
             }

@@ -414,7 +414,7 @@ fun TelemetryCatalogView(
         } else {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
@@ -438,8 +438,31 @@ fun TelemetryCatalogView(
                     )
                 }
 
+                // Desktop Table Column Header
+                Surface(
+                    shape = RoundedCornerShape(4.dp),
+                    color = StitchSurfaceContainer,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchBorder),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text("TIME (UTC)", style = TelemetryTypography.labelSmall.copy(color = StitchTextMuted), modifier = Modifier.width(105.dp))
+                        Text("COMP", style = TelemetryTypography.labelSmall.copy(color = StitchTextMuted), modifier = Modifier.width(42.dp))
+                        Text("MATCH (HOME VS AWAY)", style = TelemetryTypography.labelSmall.copy(color = StitchTextMuted), modifier = Modifier.weight(1f))
+                        Text("STATUS", style = TelemetryTypography.labelSmall.copy(color = StitchTextMuted), modifier = Modifier.width(90.dp))
+                        Text("OFFICIAL HIGHLIGHT", style = TelemetryTypography.labelSmall.copy(color = StitchTextMuted), modifier = Modifier.width(140.dp))
+                        Text("SRC", style = TelemetryTypography.labelSmall.copy(color = StitchTextMuted), modifier = Modifier.width(48.dp))
+                    }
+                }
+
                 filteredMatches.forEach { match ->
-                    MatchCatalogItemCard(
+                    MatchCatalogTableRow(
                         match = match,
                         onOpenVideo = onOpenVideo
                     )
@@ -450,7 +473,7 @@ fun TelemetryCatalogView(
 }
 
 @Composable
-private fun MatchCatalogItemCard(
+private fun MatchCatalogTableRow(
     match: SupabaseMatchRecord,
     onOpenVideo: (String) -> Unit
 ) {
@@ -459,211 +482,170 @@ private fun MatchCatalogItemCard(
     val hasHighlight = !match.highlightVideoId.isNullOrBlank()
 
     Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = StitchSurface,
+        shape = RoundedCornerShape(4.dp),
+        color = if (isLive) StitchError.copy(alpha = 0.05f) else StitchSurface,
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
-            if (isLive) StitchError.copy(alpha = 0.5f) else StitchBorder
+            if (isLive) StitchError.copy(alpha = 0.4f) else StitchBorder
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Header Row: Competition, Kickoff, Status, Provider
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            // 1. Kickoff Time UTC
+            Text(
+                text = match.utcDate.replace("T", " ").take(16),
+                style = TelemetryTypography.codeStream.copy(color = StitchTextMuted, fontSize = 11.sp),
+                modifier = Modifier.width(105.dp)
+            )
+
+            // 2. League Badge
+            Surface(
+                shape = RoundedCornerShape(3.dp),
+                color = StitchPrimary.copy(alpha = 0.12f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, StitchPrimary.copy(alpha = 0.3f)),
+                modifier = Modifier.width(42.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = StitchPrimary.copy(alpha = 0.15f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, StitchPrimary.copy(alpha = 0.4f))
-                    ) {
-                        Text(
-                            text = (match.competitionId ?: match.competitionName).uppercase(),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = StitchPrimary,
-                            fontFamily = FontFamily.Monospace,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-
-                    Text(
-                        text = match.utcDate.replace("T", " ").take(16) + " UTC",
-                        fontSize = 11.sp,
-                        color = StitchTextMuted,
-                        fontFamily = FontFamily.Monospace
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    // Status Badge
-                    val statusColor = when {
-                        isLive -> StitchError
-                        isFinished -> StitchSuccess
-                        else -> StitchTextMuted
-                    }
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = statusColor.copy(alpha = 0.15f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, statusColor.copy(alpha = 0.4f))
-                    ) {
-                        Text(
-                            text = if (isLive) "● LIVE ${match.displayClock ?: ""}" else match.status,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = statusColor,
-                            fontFamily = FontFamily.Monospace,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-
-                    // Provider Badge
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = StitchSurfaceContainer,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, StitchBorder)
-                    ) {
-                        Text(
-                            text = (match.provider ?: "ESPN").uppercase(),
-                            fontSize = 10.sp,
-                            color = StitchSecondary,
-                            fontFamily = FontFamily.Monospace,
-                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                        )
-                    }
-                }
+                Text(
+                    text = (match.competitionId ?: match.competitionName).take(4).uppercase(),
+                    style = TelemetryTypography.labelSmall.copy(
+                        color = StitchPrimary,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    ),
+                    modifier = Modifier.padding(vertical = 2.dp)
+                )
             }
 
-            // Teams & Score Row
+            // 3. Teams & Score
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(StitchSurfaceContainer)
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Home Team
                 Text(
                     text = match.homeTeamName,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = StitchTextPrimary,
-                    fontFamily = FontFamily.Monospace,
+                    style = TelemetryTypography.bodyMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = StitchTextPrimary,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.End
+                    ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
 
-                // Score / VS
                 Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = if (isFinished || isLive) StitchPrimary.copy(alpha = 0.15f) else StitchSurfaceContainerHigh,
+                    shape = RoundedCornerShape(4.dp),
+                    color = if (isFinished || isLive) StitchSurfaceContainerHigh else StitchBorder.copy(alpha = 0.3f),
                     border = androidx.compose.foundation.BorderStroke(
                         1.dp,
-                        if (isFinished || isLive) StitchPrimary.copy(alpha = 0.3f) else StitchBorder
-                    ),
-                    modifier = Modifier.padding(horizontal = 12.dp)
+                        if (isLive) StitchError.copy(alpha = 0.5f) else StitchBorder
+                    )
                 ) {
                     val scoreText = if (match.homeScore != null && match.awayScore != null) {
                         "${match.homeScore} - ${match.awayScore}"
                     } else "VS"
                     Text(
                         text = scoreText,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Black,
-                        color = if (isFinished || isLive) StitchPrimary else StitchTextMuted,
-                        fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        style = TelemetryTypography.codeStream.copy(
+                            color = if (isLive) StitchError else if (isFinished) StitchTextPrimary else StitchTextMuted,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                     )
                 }
 
-                // Away Team
                 Text(
                     text = match.awayTeamName,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = StitchTextPrimary,
-                    fontFamily = FontFamily.Monospace,
+                    style = TelemetryTypography.bodyMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = StitchTextPrimary
+                    ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.End
+                    modifier = Modifier.weight(1f)
                 )
             }
 
-            // Footer Row: Highlight Attachment & Meta
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            // 4. Status Badge
+            val statusColor = when {
+                isLive -> StitchError
+                isFinished -> StitchSuccess
+                else -> StitchTextMuted
+            }
+            Surface(
+                shape = RoundedCornerShape(3.dp),
+                color = statusColor.copy(alpha = 0.12f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, statusColor.copy(alpha = 0.35f)),
+                modifier = Modifier.width(90.dp)
             ) {
-                if (hasHighlight) {
-                    Surface(
-                        onClick = { onOpenVideo("https://www.youtube.com/watch?v=${match.highlightVideoId}") },
-                        shape = RoundedCornerShape(4.dp),
-                        color = StitchSuccess.copy(alpha = 0.12f),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, StitchSuccess.copy(alpha = 0.4f))
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                tint = StitchSuccess,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Text(
-                                text = "YOUTUBE: ${match.highlightVideoId}",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = StitchSuccess,
-                                fontFamily = FontFamily.Monospace
-                            )
-                            Icon(
-                                imageVector = Icons.Default.OpenInNew,
-                                contentDescription = null,
-                                tint = StitchSuccess,
-                                modifier = Modifier.size(12.dp)
-                            )
-                        }
-                    }
-                } else {
+                Text(
+                    text = if (isLive) "LIVE ${match.displayClock ?: ""}".trim() else match.status,
+                    style = TelemetryTypography.labelSmall.copy(
+                        color = statusColor,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    ),
+                    modifier = Modifier.padding(vertical = 2.dp)
+                )
+            }
+
+            // 5. Highlight Video Badge
+            if (hasHighlight) {
+                Surface(
+                    onClick = { onOpenVideo("https://www.youtube.com/watch?v=${match.highlightVideoId}") },
+                    shape = RoundedCornerShape(3.dp),
+                    color = StitchSuccess.copy(alpha = 0.12f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchSuccess.copy(alpha = 0.4f)),
+                    modifier = Modifier.width(140.dp)
+                ) {
                     Row(
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(StitchTextMuted.copy(alpha = 0.4f)))
+                        Icon(Icons.Default.PlayArrow, null, tint = StitchSuccess, modifier = Modifier.size(13.dp))
                         Text(
-                            text = if (isFinished) "No Highlight Attached (Pending Scraping)" else "Awaiting Match Kickoff",
-                            fontSize = 11.sp,
-                            color = StitchTextMuted,
-                            fontFamily = FontFamily.Monospace
+                            text = match.highlightVideoId ?: "",
+                            style = TelemetryTypography.codeStream.copy(color = StitchSuccess, fontSize = 10.5.sp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
+                        Icon(Icons.Default.OpenInNew, null, tint = StitchSuccess, modifier = Modifier.size(11.dp))
                     }
                 }
+            } else {
+                Box(
+                    modifier = Modifier.width(140.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (isFinished) "Pending Scraper" else "Upcoming",
+                        style = TelemetryTypography.labelSmall.copy(color = StitchTextMuted)
+                    )
+                }
+            }
 
+            // 6. Provider Tag
+            Surface(
+                shape = RoundedCornerShape(3.dp),
+                color = StitchSurfaceContainer,
+                border = androidx.compose.foundation.BorderStroke(1.dp, StitchBorder),
+                modifier = Modifier.width(48.dp)
+            ) {
                 Text(
-                    text = "ID: ${match.id}",
-                    fontSize = 10.sp,
-                    color = StitchTextMuted.copy(alpha = 0.6f),
-                    fontFamily = FontFamily.Monospace
+                    text = (match.provider ?: "ESPN").take(4).uppercase(),
+                    style = TelemetryTypography.labelSmall.copy(
+                        color = StitchSecondary,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    ),
+                    modifier = Modifier.padding(vertical = 2.dp)
                 )
             }
         }

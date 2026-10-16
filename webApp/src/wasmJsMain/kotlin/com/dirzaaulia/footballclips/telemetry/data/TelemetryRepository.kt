@@ -83,7 +83,11 @@ class TelemetryRepository(
         }
     }
 
-    suspend fun getSyncedMatches(limit: Int = 100): Result<List<SupabaseMatchRecord>> {
+    suspend fun getSyncedMatches(
+        limit: Int = 150,
+        hasHighlight: Boolean? = null,
+        status: String? = null
+    ): Result<List<SupabaseMatchRecord>> {
         val selectFields = "id,home_team_name,away_team_name,home_team_crest,away_team_crest,competition_name,competition_id,utc_date,status,home_score,away_score,highlight_video_id,provider,display_clock,round_name,updated_at"
         return runCatching {
             try {
@@ -92,6 +96,14 @@ class TelemetryRepository(
                     header("Authorization", "Bearer $key")
                     url {
                         parameters.append("select", selectFields)
+                        if (hasHighlight == true) {
+                            parameters.append("highlight_video_id", "not.is.null")
+                        } else if (hasHighlight == false) {
+                            parameters.append("highlight_video_id", "is.null")
+                        }
+                        if (status != null) {
+                            parameters.append("status", "eq.$status")
+                        }
                         parameters.append("order", "utc_date.desc")
                         parameters.append("limit", limit.toString())
                     }
@@ -103,6 +115,14 @@ class TelemetryRepository(
                     header("Authorization", "Bearer $key")
                     url {
                         parameters.append("select", selectFields)
+                        if (hasHighlight == true) {
+                            parameters.append("highlight_video_id", "not.is.null")
+                        } else if (hasHighlight == false) {
+                            parameters.append("highlight_video_id", "is.null")
+                        }
+                        if (status != null) {
+                            parameters.append("status", "eq.$status")
+                        }
                         parameters.append("order", "utc_date.desc")
                         parameters.append("limit", limit.toString())
                     }

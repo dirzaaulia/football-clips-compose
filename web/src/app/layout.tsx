@@ -6,6 +6,7 @@ import BottomNav from '@/components/layout/BottomNav';
 import Footer from '@/components/layout/Footer';
 import SplashScreen from '@/components/common/SplashScreen';
 import CookieConsentBanner from '@/components/common/CookieConsentBanner';
+import PlayStoreInstallBanner from '@/components/common/PlayStoreInstallBanner';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -88,6 +89,8 @@ export default function RootLayout({
           <Footer />
           {/* Cookie & GDPR Consent Banner (Positioned within content area) */}
           <CookieConsentBanner />
+          {/* Google Play Store Android App Install Prompt */}
+          <PlayStoreInstallBanner />
         </div>
 
         {/* Mobile Navigation Dock */}

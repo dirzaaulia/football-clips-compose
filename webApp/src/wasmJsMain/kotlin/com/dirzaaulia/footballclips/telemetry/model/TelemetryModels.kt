@@ -72,7 +72,7 @@ data class SupabaseMatchRecord(
 
 @Serializable
 data class TelemetryStandingRecord(
-    val id: Long? = null,
+    val id: String? = null,
     @SerialName("competition_code")
     val competitionCode: String = "",
     @SerialName("competition_name")

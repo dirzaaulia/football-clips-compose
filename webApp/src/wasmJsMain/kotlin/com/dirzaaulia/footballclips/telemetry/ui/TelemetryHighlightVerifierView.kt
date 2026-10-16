@@ -45,7 +45,13 @@ fun TelemetryHighlightVerifierView(
         isLoading = true
         errorMessage = null
         coroutineScope.launch {
-            repository.getSyncedMatches(limit = 150)
+            val hasHl = when (filterMode) {
+                "LINKED" -> true
+                "MISSING" -> false
+                else -> null
+            }
+            val st = if (filterMode == "MISSING") "FINISHED" else null
+            repository.getSyncedMatches(limit = 150, hasHighlight = hasHl, status = st)
                 .onSuccess { data ->
                     matches = data
                     isLoading = false
@@ -57,7 +63,7 @@ fun TelemetryHighlightVerifierView(
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(filterMode) {
         loadMatches()
     }
 
@@ -148,17 +154,18 @@ fun TelemetryHighlightVerifierView(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Search Input
-                TextField(
+                OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     placeholder = {
                         Text(
                             "Search match (e.g. Dortmund, Pafos, Arsenal, or YouTube Video ID)...",
-                            fontSize = 12.sp,
-                            color = StitchTextMuted,
-                            fontFamily = FontFamily.Monospace
+                            style = TelemetryTypography.bodyMedium.copy(color = StitchTextMuted),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     },
+                    textStyle = TelemetryTypography.bodyMedium.copy(color = StitchTextPrimary),
                     leadingIcon = {
                         Icon(Icons.Default.Search, contentDescription = "Search", tint = StitchPrimary, modifier = Modifier.size(16.dp))
                     },
@@ -170,20 +177,17 @@ fun TelemetryHighlightVerifierView(
                         }
                     },
                     singleLine = true,
-                    colors = TextFieldDefaults.colors(
+                    shape = RoundedCornerShape(6.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = StitchSurfaceContainer,
                         unfocusedContainerColor = StitchSurfaceContainer,
+                        focusedBorderColor = StitchPrimary,
+                        unfocusedBorderColor = StitchBorder,
                         focusedTextColor = StitchTextPrimary,
                         unfocusedTextColor = StitchTextPrimary,
-                        cursorColor = StitchPrimary,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
+                        cursorColor = StitchPrimary
                     ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(40.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .border(1.dp, StitchBorder, RoundedCornerShape(6.dp))
+                    modifier = Modifier.weight(1f)
                 )
 
                 // Mode Selector (Linked vs Missing)

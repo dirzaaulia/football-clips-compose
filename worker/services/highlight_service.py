@@ -290,7 +290,8 @@ class HighlightService:
     def search_highlight_for_match(
         self,
         match: dict,
-        log_events: list | None = None
+        log_events: list | None = None,
+        claimed_video_ids: set[str] | None = None
     ) -> tuple[str | None, dict | None]:
         if log_events is None:
             log_events = []
@@ -489,6 +490,12 @@ class HighlightService:
 
         if not candidates:
             return None, None
+
+        if claimed_video_ids:
+            candidates = [c for c in candidates if c.get("id") not in claimed_video_ids]
+            if not candidates:
+                append_event(log_events, f"   [ALL CLAIMED] All detected candidates ({home} vs {away}) are already linked to other matches in Supabase.", "INFO", "YOUTUBE", "CLAIMED")
+                return None, None
 
         append_event(log_events, f"   [CANDIDATES] Found {len(candidates)} official highlight candidate(s) for {home} vs {away}:", "INFO", "YOUTUBE", "CANDIDATES")
         for idx, c in enumerate(candidates, 1):
@@ -775,6 +782,13 @@ class HighlightService:
         linked_count = 0
         now_iso = now_utc.isoformat()
 
+        # Pre-fetch all claimed video IDs to prevent duplicate video assignment collisions
+        try:
+            res_claimed = supabase_client.table("matches").select("highlight_video_id").not_.is_("highlight_video_id", "null").execute()
+            claimed_video_ids = {r["highlight_video_id"] for r in (res_claimed.data or []) if r.get("highlight_video_id")}
+        except Exception:
+            claimed_video_ids = set()
+
         for match in filtered_batch:
             home = match.get("home_team_name", "Home")
             away = match.get("away_team_name", "Away")
@@ -782,8 +796,15 @@ class HighlightService:
             m_date = str(match.get("utc_date", ""))[:10]
             append_event(log_events, f"[SEARCH] Searching official highlights for: {home} vs {away} ({m_date})", "INFO", "YOUTUBE", "SEARCH_START")
             try:
-                vid, reg = self.search_highlight_for_match(match, log_events)
+                vid, reg = self.search_highlight_for_match(match, log_events, claimed_video_ids)
                 if vid:
+                    if vid in claimed_video_ids:
+                        append_event(log_events, f"   [DUPLICATE DETECTED] Video {vid} already assigned to another fixture. Entering cooldown.", "WARN", "YOUTUBE", "DUPLICATE_CLAIM")
+                        supabase_client.table("matches").update({
+                            "last_youtube_check": now_iso
+                        }).eq("id", match["id"]).execute()
+                        continue
+
                     update_data = {
                         "highlight_video_id": vid,
                         "last_youtube_check": now_iso
@@ -793,12 +814,23 @@ class HighlightService:
 
                     try:
                         supabase_client.table("matches").update(update_data).eq("id", match["id"]).execute()
+                        claimed_video_ids.add(vid)
                     except Exception as e:
-                        if "youtube_region_info" in str(e) and "youtube_region_info" in update_data:
+                        err_msg = str(e)
+                        if "23505" in err_msg or "uq_matches_highlight_video_id" in err_msg:
+                            claimed_video_ids.add(vid)
+                            append_event(log_events, f"   [DUPLICATE BLOCKED] Video {vid} is already claimed by another match in database. Setting cooldown.", "WARN", "YOUTUBE", "DUPLICATE_CLAIM")
+                            supabase_client.table("matches").update({
+                                "last_youtube_check": now_iso
+                            }).eq("id", match["id"]).execute()
+                            continue
+                        elif "youtube_region_info" in err_msg and "youtube_region_info" in update_data:
                             del update_data["youtube_region_info"]
                             supabase_client.table("matches").update(update_data).eq("id", match["id"]).execute()
+                            claimed_video_ids.add(vid)
                         else:
                             raise e
+
                     linked_count += 1
                     append_event(log_events, f"   [LINKED] {home} vs {away} -> https://youtu.be/{vid} saved to Supabase.", "SUCCESS", "YOUTUBE", "DB_LINKED")
                     notification_service.notify_highlight_ready(match, vid, "Official Highlights", log_events)
@@ -810,8 +842,14 @@ class HighlightService:
                     }).eq("id", match["id"]).execute()
             except Exception as e:
                 err_str = str(e) or type(e).__name__
-                append_event(log_events, f"   [ERROR] Match highlight search error for {home} vs {away}: {err_str}", "ERROR", "YOUTUBE", "SEARCH_ERROR")
-                append_event(log_events, f"   [SKIP COOLDOWN] Network/API error ({err_str}). Cooldown not recorded for {home} vs {away} to allow retry next cycle.", "DEBUG", "YOUTUBE", "SKIP_COOLDOWN")
+                if "23505" in err_str or "uq_matches_highlight_video_id" in err_str:
+                    append_event(log_events, f"   [DUPLICATE BLOCKED] Match highlight constraint collision for {home} vs {away}. Entering cooldown.", "WARN", "YOUTUBE", "DUPLICATE_CLAIM")
+                    supabase_client.table("matches").update({
+                        "last_youtube_check": now_iso
+                    }).eq("id", match["id"]).execute()
+                else:
+                    append_event(log_events, f"   [ERROR] Match highlight search error for {home} vs {away}: {err_str}", "ERROR", "YOUTUBE", "SEARCH_ERROR")
+                    append_event(log_events, f"   [SKIP COOLDOWN] Network/API error ({err_str}). Cooldown not recorded for {home} vs {away} to allow retry next cycle.", "DEBUG", "YOUTUBE", "SKIP_COOLDOWN")
 
         if linked_count > 0:
             edge_cache_client.purge_matches_cache()
