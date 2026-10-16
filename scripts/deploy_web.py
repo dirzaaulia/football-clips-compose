@@ -43,26 +43,20 @@ def main():
             shutil.copyfile(os.path.join(out_match_dir, match_htmls[0]), os.path.join(out_match_dir, "index.html"))
             print(f"📄 Created Match Centre fallback shell at {os.path.join(out_match_dir, 'index.html')}")
 
-    # 2. Copy WASM telemetry build into Next.js static export for /telemetry route
-    if os.path.exists(wasm_dir):
-        print(f"\n📋 Syncing WASM Telemetry assets to {out_telemetry_dir}...")
-        if os.path.exists(out_telemetry_dir):
-            shutil.rmtree(out_telemetry_dir)
-        shutil.copytree(wasm_dir, out_telemetry_dir)
-        index_path = os.path.join(out_telemetry_dir, "index.html")
-        if os.path.exists(index_path):
-            with open(index_path, "r", encoding="utf-8") as f:
-                content = f.read()
-            if "<head>" in content and "<base" not in content:
-                content = content.replace("<head>", '<head>\n    <base href="/telemetry/">')
-            with open(index_path, "w", encoding="utf-8") as f:
-                f.write(content)
-    else:
+    public_telemetry_dir = os.path.join(web_dir, "public", "telemetry")
+
+    # 2. Copy WASM telemetry build into Next.js static export & public folder for /telemetry route
+    if not os.path.exists(wasm_dir):
         print("\n⚠️ WASM Telemetry build not found. Building with Gradle...")
         gradle_cmd = "gradlew.bat" if sys.platform == "win32" else "./gradlew"
         run_command(f"{gradle_cmd} :webApp:wasmJsBrowserDistribution", cwd=root_dir)
-        shutil.copytree(wasm_dir, out_telemetry_dir)
-        index_path = os.path.join(out_telemetry_dir, "index.html")
+
+    print(f"\n📋 Syncing WASM Telemetry assets to {out_telemetry_dir} & {public_telemetry_dir}...")
+    for target_dir in [out_telemetry_dir, public_telemetry_dir]:
+        if os.path.exists(target_dir):
+            shutil.rmtree(target_dir)
+        shutil.copytree(wasm_dir, target_dir)
+        index_path = os.path.join(target_dir, "index.html")
         if os.path.exists(index_path):
             with open(index_path, "r", encoding="utf-8") as f:
                 content = f.read()
