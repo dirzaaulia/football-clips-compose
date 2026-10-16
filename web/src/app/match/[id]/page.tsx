@@ -7,7 +7,9 @@ import { generateMatchRecap } from '@/lib/gemini';
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
 import MatchCentreHeader from '@/components/match/MatchCentreHeader';
 import MatchSidebar from '@/components/match/MatchSidebar';
-import { Trophy, Calendar, Sparkles } from 'lucide-react';
+import MatchScoreSection from '@/components/match/MatchScoreSection';
+import MatchRecapSection from '@/components/match/MatchRecapSection';
+import { Trophy, Calendar } from 'lucide-react';
 
 interface MatchPageProps {
   params: Promise<{ id: string }>;
@@ -187,30 +189,11 @@ export default async function MatchDetailPage({ params, searchParams }: MatchPag
                 <span className="text-base sm:text-xl font-black text-white leading-tight">{homeName}</span>
               </div>
 
-              <div className={`px-5 py-2.5 rounded-2xl text-center shadow-inner shrink-0 ${
-                match.status === 'IN_PLAY' || match.status === 'PAUSED'
-                  ? 'bg-[#101418] border border-red-500/50 shadow-[0_0_12px_rgba(239,68,68,0.25)]'
-                  : 'bg-[#101418] border border-[#7098F8]/40'
-              }`}>
-                <span className="text-xl sm:text-2xl font-black text-white">
-                  {match.home_score != null && match.away_score != null
-                    ? `${match.home_score} - ${match.away_score}`
-                    : 'vs'}
-                </span>
-                <div className={`text-[10px] font-bold uppercase tracking-wider mt-0.5 ${
-                  match.status === 'IN_PLAY' || match.status === 'PAUSED'
-                    ? 'text-red-400 animate-pulse'
-                    : 'text-[#4FC3F7]'
-                }`}>
-                  {match.status === 'PAUSED'
-                    ? 'Half Time'
-                    : match.status === 'IN_PLAY' || match.status === 'LIVE'
-                    ? 'Live In-Play'
-                    : match.status === 'FINISHED'
-                    ? 'Full Time'
-                    : 'Scheduled'}
-                </div>
-              </div>
+              <MatchScoreSection
+                homeScore={match.home_score}
+                awayScore={match.away_score}
+                status={match.status}
+              />
 
               <div className="flex items-center justify-end gap-3 flex-1 min-w-0 text-right">
                 <span className="text-base sm:text-xl font-black text-white leading-tight">{awayName}</span>
@@ -225,19 +208,8 @@ export default async function MatchDetailPage({ params, searchParams }: MatchPag
 
           <AdSenseBanner slotId="5616816386" format="horizontal" />
 
-          {/* AI Tactical Breakdown & Match Report */}
-          <section className="rounded-3xl bg-[#181C20] border border-[#334155] p-6 sm:p-8 space-y-4">
-            <div className="flex items-center gap-2 pb-3 border-b border-[#334155]/60 text-[#7098F8]">
-              <Sparkles className="w-4 h-4 text-[#4FC3F7]" />
-              <h2 className="text-sm font-extrabold uppercase tracking-wider text-white">
-                Tactical Breakdown &amp; Match Analysis
-              </h2>
-            </div>
-
-            <div className="prose prose-invert max-w-none text-[#F1F5F9] text-xs sm:text-sm leading-relaxed space-y-3 whitespace-pre-line">
-              {recapAnalysis}
-            </div>
-          </section>
+          {/* AI Tactical Breakdown & Match Report (Spoiler Guarded) */}
+          <MatchRecapSection recapAnalysis={recapAnalysis} />
         </div>
 
         <div className="lg:col-span-4 space-y-6">

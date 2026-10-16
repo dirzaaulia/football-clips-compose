@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Play, Calendar, Trophy } from 'lucide-react';
 import { MatchRecord } from '@/lib/supabase';
+import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 
 interface MatchSidebarProps {
   competitionName: string;
@@ -17,6 +18,7 @@ export default function MatchSidebar({
   highlights,
   fixtures,
 }: MatchSidebarProps) {
+  const { isSpoilerFree } = useSpoilerFree();
   const [activeTab, setActiveTab] = useState<'highlights' | 'fixtures'>('highlights');
 
   return (
@@ -90,7 +92,11 @@ export default function MatchSidebar({
                       {home} vs {away}
                     </h4>
                     <span className="text-[10px] text-[#94A3B8]">
-                      {m.home_score !== null ? `${m.home_score} - ${m.away_score}` : 'Full Time'}
+                      {isSpoilerFree
+                        ? 'Highlight Available'
+                        : m.home_score !== null
+                        ? `${m.home_score} - ${m.away_score}`
+                        : 'Full Time'}
                     </span>
                   </div>
                 </Link>
@@ -124,7 +130,7 @@ export default function MatchSidebar({
                   <div className="flex items-center justify-between font-bold text-white">
                     <span className="truncate flex-1">{home}</span>
                     <span className="px-2 text-center text-[#7098F8]">
-                      {isFinished ? `${m.home_score ?? 0} - ${m.away_score ?? 0}` : 'vs'}
+                      {isFinished && !isSpoilerFree ? `${m.home_score ?? 0} - ${m.away_score ?? 0}` : 'vs'}
                     </span>
                     <span className="truncate flex-1 text-right">{away}</span>
                   </div>

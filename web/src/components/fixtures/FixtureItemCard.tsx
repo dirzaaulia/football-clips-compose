@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Play, Radio, Shield } from 'lucide-react';
+import { Play, Radio, Shield, EyeOff } from 'lucide-react';
 import { MatchRecord } from '@/lib/supabase';
+import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 
 interface FixtureItemCardProps {
   match: MatchRecord;
 }
 
 export default function FixtureItemCard({ match }: FixtureItemCardProps) {
+  const { isSpoilerFree } = useSpoilerFree();
+  const [isRevealed, setIsRevealed] = useState(false);
   const isFinished = match.status === 'FINISHED';
   const isLive = match.status === 'IN_PLAY' || match.status === 'PAUSED' || match.status === 'LIVE';
   const isPaused = match.status === 'PAUSED';
@@ -18,6 +21,8 @@ export default function FixtureItemCard({ match }: FixtureItemCardProps) {
     hour: '2-digit',
     minute: '2-digit',
   });
+
+  const shouldHideScore = isSpoilerFree && !isRevealed && (isFinished || isLive);
 
   return (
     <div
@@ -58,22 +63,33 @@ export default function FixtureItemCard({ match }: FixtureItemCardProps) {
           ) : null}
         </div>
 
-        {/* Score Badge */}
-        <div
-          className={`px-3 py-1 rounded-xl text-center min-w-[70px] ${
-            isLive
-              ? 'bg-[#101418] border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.25)]'
-              : 'bg-[#101418] border border-[#334155]'
-          }`}
-        >
-          <span
-            className={`text-sm font-black tracking-wider ${
-              isLive ? 'text-red-400' : 'text-white'
+        {/* Score Badge (Spoiler Guarded) */}
+        {shouldHideScore ? (
+          <button
+            onClick={() => setIsRevealed(true)}
+            title="Click to reveal score"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#101418] border border-[#334155] hover:border-[#7098F8]/60 text-xs font-bold text-[#94A3B8] hover:text-white transition-all cursor-pointer min-w-[70px] justify-center group"
+          >
+            <EyeOff className="w-3 h-3 text-[#7098F8] group-hover:scale-110 transition-transform" />
+            <span className="tracking-widest">? - ?</span>
+          </button>
+        ) : (
+          <div
+            className={`px-3 py-1 rounded-xl text-center min-w-[70px] ${
+              isLive
+                ? 'bg-[#101418] border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.25)]'
+                : 'bg-[#101418] border border-[#334155]'
             }`}
           >
-            {isFinished || isLive ? `${match.home_score ?? 0} - ${match.away_score ?? 0}` : 'vs'}
-          </span>
-        </div>
+            <span
+              className={`text-sm font-black tracking-wider ${
+                isLive ? 'text-red-400' : 'text-white'
+              }`}
+            >
+              {isFinished || isLive ? `${match.home_score ?? 0} - ${match.away_score ?? 0}` : 'vs'}
+            </span>
+          </div>
+        )}
 
         {/* Away Team */}
         <div className="flex items-center gap-2 flex-1 justify-start min-w-0">
