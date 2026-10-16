@@ -68,7 +68,7 @@ internal fun HomeViewModel.updateUiState(removed: Boolean? = null) {
         _uiState.value = HomeState.Success(
             items = builtItems,
             isAdsRemoved = removed ?: isAdsRemoved.value,
-            canLoadMore = hasMoreSupabase || (_showExternalHighlights.value && currentOffset < totalCount),
+            canLoadMore = hasMoreSupabase || (totalCount == 0 || currentOffset < totalCount),
         )
         _filterState.value = extractAllFilters(
             supabaseMatches,

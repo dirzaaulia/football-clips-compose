@@ -11,6 +11,7 @@ import com.dirzaaulia.footballclips.data.repository.HighlightRepository
 import com.dirzaaulia.footballclips.data.repository.ScoreRepository
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.domain.model.toMatch
+import com.dirzaaulia.footballclips.util.extractVideoId
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -196,11 +197,12 @@ internal fun buildHomeUiItems(
     }
     items.addAll(filteredSupabase.map { HighlightUiItem.SupabaseMatch(it) })
 
-    if (showExternalHighlights || supabaseMatches.isEmpty()) {
+    if (showExternalHighlights || allHighlights.isNotEmpty() || supabaseMatches.isEmpty()) {
         val topLeague = BigLeaguesConstants.leagues.find {
             (it.leagueId != null && it.leagueId == selectedLeagueId) ||
                 (it.competitionId != null && it.competitionId == selectedCompetitionId)
         }
+        val existingVideoIds = filteredSupabase.mapNotNull { it.highlightVideoId }.toSet()
 
         val filteredExternal = allHighlights.filter { highlight ->
             val matchSearch = searchQuery.isEmpty() ||
@@ -215,7 +217,10 @@ internal fun buildHomeUiItems(
                 highlight.leagueName.contains(topLeague.name, ignoreCase = true) ||
                 (topLeague.name == "La Liga" && highlight.countryName.contains("Spain", ignoreCase = true))
 
-            matchSearch && matchesSelectedFilters && matchesTopLeague
+            val extVideoId = extractVideoId(highlight.embedHtml.ifEmpty { highlight.videoUrl })
+            val isNotDuplicate = extVideoId == null || extVideoId !in existingVideoIds
+
+            matchSearch && matchesSelectedFilters && matchesTopLeague && isNotDuplicate
         }
 
         items.addAll(filteredExternal.map { HighlightUiItem.Highlight(it) })

@@ -54,7 +54,7 @@ fun HomeViewModel.loadMore() {
                 if (cs is HomeState.Success) _uiState.value = cs.copy(isLoadingMore = true, loadMoreError = null)
                 getSupabaseHighlights(false)
                 updateUiState()
-            } else if (_showExternalHighlights.value) {
+            } else {
                 getExternalHighlightsInternal(false)
             }
         } catch (e: Exception) {
