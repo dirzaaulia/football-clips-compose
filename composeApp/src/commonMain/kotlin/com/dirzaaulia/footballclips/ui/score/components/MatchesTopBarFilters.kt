@@ -20,7 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.dirzaaulia.footballclips.ui.components.filter.BigLeaguesQuickFilterBar
+import com.dirzaaulia.footballclips.ui.components.filter.LeagueDropdownSelector
 import com.dirzaaulia.footballclips.ui.score.DateOption
 import com.dirzaaulia.footballclips.ui.score.WebDateSelectorCard
 
@@ -119,34 +119,32 @@ internal fun MatchesTopBarFilters(
                         )
                     }
 
-                    BigLeaguesQuickFilterBar(
+                    LeagueDropdownSelector(
                         selectedCompetitionId = if (isMyClubsActive) null else selectedCompetitionId,
                         onLeagueSelected = { leagueId, competitionId ->
                             if (isMyClubsActive) onToggleMyClubs()
                             onLeagueSelected(leagueId, competitionId)
                         },
-                        isCompact = true,
-                        contentPadding = PaddingValues(0.dp),
                     )
                 }
             } else {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = horizontalPadding, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    WebDateSelectorCard(
-                        dates = dates,
-                        selectedDate = selectedDate,
-                        onDateSelected = onDateSelected,
-                    )
-
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        WebDateSelectorCard(
+                            dates = dates,
+                            selectedDate = selectedDate,
+                            onDateSelected = onDateSelected,
+                        )
+
                         FilterChip(
                             selected = isLiveOnlyActive,
                             onClick = onToggleLiveOnly,
@@ -170,7 +168,13 @@ internal fun MatchesTopBarFilters(
                             },
                             shape = RoundedCornerShape(20.dp),
                         )
+                    }
 
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         FilterChip(
                             selected = isMyClubsActive,
                             onClick = {
@@ -197,20 +201,17 @@ internal fun MatchesTopBarFilters(
                             },
                             shape = RoundedCornerShape(20.dp),
                         )
+
+                        LeagueDropdownSelector(
+                            selectedCompetitionId = if (isMyClubsActive) null else selectedCompetitionId,
+                            onLeagueSelected = { leagueId, competitionId ->
+                                if (isMyClubsActive) onToggleMyClubs()
+                                onLeagueSelected(leagueId, competitionId)
+                            },
+                        )
                     }
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                BigLeaguesQuickFilterBar(
-                    selectedCompetitionId = if (isMyClubsActive) null else selectedCompetitionId,
-                    onLeagueSelected = { leagueId, competitionId ->
-                        if (isMyClubsActive) onToggleMyClubs()
-                        onLeagueSelected(leagueId, competitionId)
-                    },
-                    contentPadding = PaddingValues(horizontal = horizontalPadding),
-                )
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }

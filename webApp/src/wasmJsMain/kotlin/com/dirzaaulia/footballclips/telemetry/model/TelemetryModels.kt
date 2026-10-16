@@ -70,6 +70,35 @@ data class SupabaseMatchRecord(
     val updatedAt: String? = null
 )
 
+@Serializable
+data class TelemetryStandingRecord(
+    val id: Long? = null,
+    @SerialName("competition_code")
+    val competitionCode: String = "",
+    @SerialName("competition_name")
+    val competitionName: String = "",
+    val position: Int = 0,
+    @SerialName("team_name")
+    val teamName: String = "",
+    @SerialName("team_short_name")
+    val teamShortName: String? = null,
+    @SerialName("crest_url")
+    val crestUrl: String? = null,
+    @SerialName("played_games")
+    val playedGames: Int = 0,
+    val won: Int = 0,
+    val draw: Int = 0,
+    val lost: Int = 0,
+    val points: Int = 0,
+    @SerialName("goals_for")
+    val goalsFor: Int = 0,
+    @SerialName("goals_against")
+    val goalsAgainst: Int = 0,
+    @SerialName("goal_difference")
+    val goalDifference: Int = 0,
+    val form: String? = null
+)
+
 enum class TelemetryFilterLevel(val label: String) {
     ALL("All Status & Logs"),
     HIGHLIGHT("Highlight / Extract"),
@@ -85,12 +114,11 @@ enum class TelemetryViewMode(val label: String) {
 }
 
 enum class TelemetryNavSection(val label: String) {
-    STREAM("Telemetry Stream"),
-    PIPELINES("Database Catalog"),
-    APM("APM & Edge Engine"),
+    STREAM("Pipeline Health"),
+    HIGHLIGHT_VERIFIER("Highlight Verifier"),
+    FIXTURE_SYNC("Fixture & Live Sync"),
+    STANDINGS_AUDIT("Standings Consistency"),
     NOTIFICATIONS("Club Alerts"),
-    THREADS("Serverless Services"),
-    ALERTS("Failure Alerts"),
     CONFIG("Configuration")
 }
 

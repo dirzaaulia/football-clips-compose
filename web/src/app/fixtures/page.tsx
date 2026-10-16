@@ -6,7 +6,7 @@ import { BIG_LEAGUES, isLeagueMatch } from '@/lib/constants';
 import { isMatchForFavoriteClubs } from '@/lib/clubs';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import { useDragScroll } from '@/hooks/useDragScroll';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, CheckCircle2, Clock, Star, Radio } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, CheckCircle2, Clock, Star, Radio, Trophy } from 'lucide-react';
 import Image from 'next/image';
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
 import FixtureItemCard from '@/components/fixtures/FixtureItemCard';
@@ -206,58 +206,56 @@ export default function FixturesPage() {
         </div>
       </div>
 
-      {/* Row 2: Competition & My Clubs Horizontal Scrollable Chips */}
-      <div ref={scrollRef} className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none touch-pan-x overscroll-x-contain py-1 select-none mb-5">
-        {/* My Clubs Chip */}
-        <button
-          suppressHydrationWarning
-          onClick={() => {
-            if (favoriteCount === 0) {
-              setIsMyClubsModalOpen(true);
-            } else {
-              setIsMyClubsActive(!isMyClubsActive);
-            }
-          }}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
-            isMyClubsActive && favoriteCount > 0
-              ? 'bg-[#1E3A8A]/50 text-[#7098F8] border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
-              : 'bg-[#181C20] text-[#94A3B8] hover:text-white hover:bg-[#1E2227] border border-[#334155]'
-          }`}
-        >
-          <Star className={`w-3.5 h-3.5 shrink-0 ${isMyClubsActive && mounted && favoriteCount > 0 ? 'text-[#7098F8] fill-[#7098F8]' : 'text-[#7098F8]'}`} />
-          <span suppressHydrationWarning>My Clubs {mounted && favoriteCount > 0 ? `(${favoriteCount})` : ''}</span>
-        </button>
-
-        {BIG_LEAGUES.map((c) => {
-          const isSelected = !isMyClubsActive && selectedComp === c.competitionId;
-          return (
-            <button
-              key={c.competitionId || c.name}
-              onClick={() => {
+      {/* Row 2: Competition Dropdown & My Clubs Quick Toggle (Compact & Space Efficient) */}
+      <div className="flex flex-wrap items-center justify-between gap-2.5 mb-5">
+        <div className="flex items-center gap-2">
+          {/* League Dropdown Selector */}
+          <div className="flex items-center gap-2 bg-[#181C20] border border-[#334155] hover:border-[#7098F8]/50 rounded-xl px-3 py-1.5 transition-all shadow-sm">
+            <Trophy className="w-3.5 h-3.5 text-[#7098F8]" />
+            <select
+              value={isMyClubsActive ? '' : selectedComp}
+              onChange={(e) => {
                 setIsMyClubsActive(false);
-                setSelectedComp(c.competitionId || 'ALL');
+                setSelectedComp(e.target.value);
               }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
-                isSelected
-                  ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
-                  : 'bg-[#181C20] text-[#94A3B8] hover:text-white hover:bg-[#1E2227] border border-[#334155]'
-              }`}
+              className="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer pr-1"
             >
-              {c.logo ? (
-                <div className="relative w-4 h-4 shrink-0">
-                  <Image
-                    src={c.logo}
-                    alt={c.name}
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                </div>
-              ) : null}
-              <span>{c.name}</span>
-            </button>
-          );
-        })}
+              {BIG_LEAGUES.map((c) => (
+                <option key={c.competitionId || c.name} value={c.competitionId || 'ALL'} className="bg-[#181C20] text-white">
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* My Clubs Chip */}
+          <button
+            suppressHydrationWarning
+            onClick={() => {
+              if (favoriteCount === 0) {
+                setIsMyClubsModalOpen(true);
+              } else {
+                setIsMyClubsActive(!isMyClubsActive);
+              }
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+              isMyClubsActive && favoriteCount > 0
+                ? 'bg-[#1E3A8A]/50 text-[#7098F8] border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
+                : 'bg-[#181C20] text-[#94A3B8] hover:text-white hover:bg-[#1E2227] border border-[#334155]'
+            }`}
+          >
+            <Star className={`w-3.5 h-3.5 shrink-0 ${isMyClubsActive && mounted && favoriteCount > 0 ? 'text-[#7098F8] fill-[#7098F8]' : 'text-[#7098F8]'}`} />
+            <span suppressHydrationWarning>My Clubs {mounted && favoriteCount > 0 ? `(${favoriteCount})` : ''}</span>
+          </button>
+        </div>
+
+        {/* Active League Badge / Summary */}
+        <div className="hidden sm:flex items-center gap-2 text-xs text-[#94A3B8]">
+          <span>Showing:</span>
+          <span className="font-bold text-white bg-[#1E2227] border border-[#334155]/60 px-2.5 py-1 rounded-lg">
+            {isMyClubsActive ? `My Clubs (${favoriteCount})` : (bigLeague?.name || 'All Competitions')}
+          </span>
+        </div>
       </div>
 
       {/* Pinned Live Match Section when in ALL mode */}

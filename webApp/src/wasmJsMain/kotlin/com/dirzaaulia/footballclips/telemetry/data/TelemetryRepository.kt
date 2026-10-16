@@ -112,6 +112,21 @@ class TelemetryRepository(
         }
     }
 
+    suspend fun getStandings(competitionCode: String = "PL"): Result<List<com.dirzaaulia.footballclips.telemetry.model.TelemetryStandingRecord>> {
+        return runCatching {
+            val response = client.get("${TelemetryConstants.EDGE_PROXY_URL}/rest/v1/standings") {
+                header("apikey", key)
+                header("Authorization", "Bearer $key")
+                url {
+                    parameters.append("select", "*")
+                    parameters.append("competition_code", "ilike.$competitionCode")
+                    parameters.append("order", "position.asc")
+                }
+            }
+            response.body<List<com.dirzaaulia.footballclips.telemetry.model.TelemetryStandingRecord>>()
+        }
+    }
+
     suspend fun getLiveApmMetrics(): Result<ApmLiveMetrics> {
         return runCatching {
             val mark = TimeSource.Monotonic.markNow()

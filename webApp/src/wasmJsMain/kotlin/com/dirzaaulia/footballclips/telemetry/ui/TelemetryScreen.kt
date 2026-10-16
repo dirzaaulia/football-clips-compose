@@ -230,7 +230,18 @@ fun TelemetryScreen(
                                 )
                             }
                         }
-                        TelemetryNavSection.PIPELINES -> {
+                        TelemetryNavSection.HIGHLIGHT_VERIFIER -> {
+                            item {
+                                TelemetryHighlightVerifierView(
+                                    repository = repository,
+                                    onOpenVideo = { url ->
+                                        TelemetryUtils.openUrlInNewTab(url)
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                        TelemetryNavSection.FIXTURE_SYNC -> {
                             item {
                                 TelemetryCatalogView(
                                     repository = repository,
@@ -241,11 +252,11 @@ fun TelemetryScreen(
                                 )
                             }
                         }
-                        TelemetryNavSection.APM -> {
+                        TelemetryNavSection.STANDINGS_AUDIT -> {
                             item {
-                                TelemetryApmEdgeView(
+                                TelemetryStandingsConsistencyView(
                                     repository = repository,
-                                    apmLiveMetrics = apmLiveMetrics
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                         }
@@ -256,17 +267,6 @@ fun TelemetryScreen(
                                     audienceState = audienceState,
                                     onInspectNotification = { selectedNotificationItem = it },
                                     onRefresh = loadData
-                                )
-                            }
-                        }
-                        TelemetryNavSection.THREADS -> {
-                            item { TelemetryHealthView(metrics = metrics) }
-                        }
-                        TelemetryNavSection.ALERTS -> {
-                            item {
-                                TelemetryAlertsView(
-                                    alerts = logStream.filter { it.isError || it.level == "WARN" },
-                                    onInspectAlert = { selectedInspectorItem = it }
                                 )
                             }
                         }

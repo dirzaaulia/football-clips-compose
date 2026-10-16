@@ -82,40 +82,34 @@ fun TelemetrySidebar(
             // Navigation Items
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 SidebarNavItem(
-                    title = "Telemetry Stream",
-                    icon = Icons.Default.ViewStream,
+                    title = "Pipeline Health",
+                    icon = Icons.Default.MonitorHeart,
                     isSelected = selectedSection == TelemetryNavSection.STREAM,
                     onClick = { onSectionSelected(TelemetryNavSection.STREAM) }
                 )
                 SidebarNavItem(
-                    title = "Database Catalog",
-                    icon = Icons.Default.Storage,
-                    isSelected = selectedSection == TelemetryNavSection.PIPELINES,
-                    onClick = { onSectionSelected(TelemetryNavSection.PIPELINES) }
+                    title = "Highlight Verifier",
+                    icon = Icons.Default.VideoLibrary,
+                    isSelected = selectedSection == TelemetryNavSection.HIGHLIGHT_VERIFIER,
+                    onClick = { onSectionSelected(TelemetryNavSection.HIGHLIGHT_VERIFIER) }
                 )
                 SidebarNavItem(
-                    title = "APM & Edge Engine",
-                    icon = Icons.Default.Speed,
-                    isSelected = selectedSection == TelemetryNavSection.APM,
-                    onClick = { onSectionSelected(TelemetryNavSection.APM) }
+                    title = "Fixture & Live Sync",
+                    icon = Icons.Default.Sync,
+                    isSelected = selectedSection == TelemetryNavSection.FIXTURE_SYNC,
+                    onClick = { onSectionSelected(TelemetryNavSection.FIXTURE_SYNC) }
+                )
+                SidebarNavItem(
+                    title = "Standings Consistency",
+                    icon = Icons.Default.EmojiEvents,
+                    isSelected = selectedSection == TelemetryNavSection.STANDINGS_AUDIT,
+                    onClick = { onSectionSelected(TelemetryNavSection.STANDINGS_AUDIT) }
                 )
                 SidebarNavItem(
                     title = "Club Alerts",
                     icon = Icons.Default.Notifications,
                     isSelected = selectedSection == TelemetryNavSection.NOTIFICATIONS,
                     onClick = { onSectionSelected(TelemetryNavSection.NOTIFICATIONS) }
-                )
-                SidebarNavItem(
-                    title = "Serverless Services",
-                    icon = Icons.Default.AccountTree,
-                    isSelected = selectedSection == TelemetryNavSection.THREADS,
-                    onClick = { onSectionSelected(TelemetryNavSection.THREADS) }
-                )
-                SidebarNavItem(
-                    title = "Failure Alerts",
-                    icon = Icons.Default.Warning,
-                    isSelected = selectedSection == TelemetryNavSection.ALERTS,
-                    onClick = { onSectionSelected(TelemetryNavSection.ALERTS) }
                 )
                 SidebarNavItem(
                     title = "Configuration",

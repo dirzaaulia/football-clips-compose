@@ -11,7 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
-import com.dirzaaulia.footballclips.ui.components.filter.BigLeaguesQuickFilterBar
+import com.dirzaaulia.footballclips.ui.components.filter.LeagueDropdownSelector
 import com.dirzaaulia.footballclips.ui.score.components.StandingRow
 import com.dirzaaulia.footballclips.ui.score.components.StandingsLegend
 import com.dirzaaulia.footballclips.ui.score.components.StandingsTableHeader
@@ -35,29 +35,26 @@ fun StandingsScreen(
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
-                Column {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = "League Standings",
-                                style = if (isLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.Black
-                            )
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.surface
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "Standings",
+                            style = if (isLandscape) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Black
                         )
+                    },
+                    actions = {
+                        LeagueDropdownSelector(
+                            selectedCompetitionId = selectedCompetitionId ?: "PL",
+                            onLeagueSelected = onLeagueSelected,
+                            showAll = false,
+                            modifier = Modifier.padding(end = horizontalPadding)
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
                     )
-
-                    // League filter bar for switching standings between leagues
-                    BigLeaguesQuickFilterBar(
-                        selectedCompetitionId = selectedCompetitionId ?: "PL",
-                        onLeagueSelected = onLeagueSelected,
-                        showAll = false,
-                        isCompact = isWeb,
-                        contentPadding = PaddingValues(horizontal = horizontalPadding, vertical = 2.dp)
-                    )
-                }
+                )
             }
         ) { innerPadding ->
             Box(

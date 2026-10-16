@@ -116,7 +116,11 @@ class HighlightService:
         t = title.lower()
         score = 0
 
-        # --- 0. HARD DISQUALIFIERS (Throwbacks, Past Years, Non-Match Side Content) ---
+        # --- 0. HARD DISQUALIFIERS (Forbidden Patterns, Throwbacks, Past Years, Non-Match Side Content) ---
+        is_forbidden, _ = HighlightService.check_forbidden_title(title)
+        if is_forbidden:
+            return -100
+
         # A. Throwback & Retro blacklist: reject historical clips disguised as match highlights
         throwback_indicators = [
             "on this day", "throwback", "classic clash", "classic match", "retro",

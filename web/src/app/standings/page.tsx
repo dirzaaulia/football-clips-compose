@@ -37,34 +37,32 @@ export default function StandingsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-      {/* Title */}
-      <header className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
-          <Trophy className="w-7 h-7 text-[#7098F8]" />
-          <span>League Tables & Standings</span>
-        </h1>
-        <p className="text-xs sm:text-sm text-[#94A3B8] mt-1">Official European domestic leagues & UEFA Champions League table.</p>
-      </header>
+      {/* Title & Compact League Selector */}
+      <header className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
+            <Trophy className="w-7 h-7 text-[#7098F8]" />
+            <span>League Tables & Standings</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-[#94A3B8] mt-1">Official European domestic leagues & UEFA Champions League table.</p>
+        </div>
 
-      {/* League Selection Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 scrollbar-none">
-        {LEAGUES.map((l) => {
-          const isSelected = selectedComp === l.code;
-          return (
-            <button
-              key={l.code}
-              onClick={() => setSelectedComp(l.code)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                isSelected
-                  ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
-                  : 'bg-[#181C20] text-[#94A3B8] hover:text-white hover:bg-[#1E2227] border border-[#334155]'
-              }`}
-            >
-              {l.name}
-            </button>
-          );
-        })}
-      </div>
+        {/* Compact, Intuitive League Selector Dropdown */}
+        <div className="flex items-center gap-2 bg-[#181C20] border border-[#334155] hover:border-[#7098F8]/50 rounded-2xl px-4 py-2 transition-all shadow-md self-start sm:self-auto">
+          <Trophy className="w-4 h-4 text-[#7098F8]" />
+          <select
+            value={selectedComp}
+            onChange={(e) => setSelectedComp(e.target.value)}
+            className="bg-transparent text-white text-xs sm:text-sm font-bold focus:outline-none cursor-pointer pr-1"
+          >
+            {LEAGUES.map((l) => (
+              <option key={l.code} value={l.code} className="bg-[#181C20] text-white">
+                {l.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </header>
 
       <AdSenseBanner slotId="5616816386" format="horizontal" />
 
