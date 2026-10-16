@@ -174,12 +174,25 @@ function determineTtl(url: URL): number {
 
 async function forwardToSupabase(request: Request, env: Env, url: URL, cacheTtl: number = 60): Promise<Response> {
   const targetBase = (env.SUPABASE_URL || "https://eiomktvavndorazreyba.supabase.co").replace(/\/$/, "");
-  const targetUrl = `${targetBase}${url.pathname}${url.search}`;
+  
+  // Normalize path: strip /rest/v1 prefix when routing to standalone PostgREST
+  const normalizedPath = url.pathname.startsWith("/rest/v1") && !targetBase.includes("supabase.co")
+    ? url.pathname.replace(/^\/rest\/v1/, "")
+    : url.pathname;
+  const targetUrl = `${targetBase}${normalizedPath}${url.search}`;
 
   const forwardHeaders = new Headers(request.headers);
-  forwardHeaders.set("apikey", env.SUPABASE_ANON_KEY || forwardHeaders.get("apikey") || "");
-  if (!forwardHeaders.has("Authorization")) {
-    forwardHeaders.set("Authorization", `Bearer ${env.SUPABASE_ANON_KEY}`);
+  if (targetBase.includes("supabase.co")) {
+    if (env.SUPABASE_ANON_KEY) {
+      forwardHeaders.set("apikey", env.SUPABASE_ANON_KEY || forwardHeaders.get("apikey") || "");
+      if (!forwardHeaders.has("Authorization")) {
+        forwardHeaders.set("Authorization", `Bearer ${env.SUPABASE_ANON_KEY}`);
+      }
+    }
+  } else {
+    // Standalone PostgREST serves anonymous role web_anon without requiring JWT secret
+    forwardHeaders.delete("authorization");
+    forwardHeaders.delete("apikey");
   }
 
   return fetch(targetUrl, {

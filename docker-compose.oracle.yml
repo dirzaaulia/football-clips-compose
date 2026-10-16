@@ -1,0 +1,197 @@
+services:
+  # 1. Zero-Trust Ingress (Cloudflare Tunnel - 0 Open Ports)
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: jarvis-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    profiles:
+      - tunnel
+    networks:
+      - jarvis_net
+
+  # 2. Local AI Reasoning Engine (Ollama ARM64)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: jarvis-ollama
+    restart: unless-stopped
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_NUM_PARALLEL=2
+    volumes:
+      - ./storage/ollama:/root/.ollama
+    deploy:
+      resources:
+        limits:
+          cpus: '2.5'
+          memory: 8G
+    networks:
+      - jarvis_net
+
+  # 3. Audio Perception (Faster-Whisper Large-v3-Turbo ARM64)
+  whisper:
+    image: ghcr.io/speaches-ai/speaches:latest-cpu
+    container_name: jarvis-whisper
+    restart: unless-stopped
+    environment:
+      - WHISPER_MODEL=deepdml/faster-whisper-large-v3-turbo-ct2
+      - WHISPER_DEVICE=cpu
+      - WHISPER_COMPUTE_TYPE=int8
+    volumes:
+      - ./storage/whisper:/root/.cache/huggingface
+    deploy:
+      resources:
+        limits:
+          cpus: '1.2'
+          memory: 2.5G
+    networks:
+      - jarvis_net
+
+  # 4. Hybrid Intelligent AI Gateway (FastAPI Proxy Router)
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: jarvis-gateway
+    restart: unless-stopped
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - WHISPER_BASE_URL=http://whisper:8000
+      - QDRANT_BASE_URL=http://qdrant:6333
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - API_AUTH_TOKEN=${API_AUTH_TOKEN}
+    ports:
+      - "8080:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 1G
+    networks:
+      - jarvis_net
+
+  # 5. Semantic Long-Term Memory (Qdrant Vector Database)
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: jarvis-qdrant
+    restart: unless-stopped
+    volumes:
+      - ./storage/qdrant:/qdrant/storage
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 3G
+    networks:
+      - jarvis_net
+
+  # 6. Autonomous Action Hub (n8n Workflow Engine)
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: jarvis-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_SECURE_COOKIE=false
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=168
+      - N8N_DEFAULT_BINARY_DATA_MODE=filesystem
+    volumes:
+      - ./storage/n8n:/home/node/.n8n
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 3G
+    networks:
+      - jarvis_net
+
+  # 7. Private Cloud & Cross-Device Hub (Filebrowser)
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: jarvis-filebrowser
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    volumes:
+      - ./storage/cloud:/srv
+      - ./storage/filebrowser/database.db:/database.db
+      - ./storage/filebrowser/settings.json:/.filebrowser.json
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+    networks:
+      - jarvis_net
+
+  # 8. Oracle Cloud Anti-Idle Shield (Protects instance from 7-day deletion)
+  oracle-shield:
+    image: alpine:latest
+    container_name: jarvis-oracle-shield
+    restart: unless-stopped
+    command: >
+      sh -c "while true; do
+        nice -n 19 dd if=/dev/urandom of=/dev/null bs=1M count=150 status=none 2>/dev/null;
+        sleep 60;
+      done"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 256M
+    networks:
+      - jarvis_net
+
+  # 9. Enterprise PostgreSQL 16 Datastore (Universal Core Database)
+  postgres:
+    image: postgres:16-alpine
+    container_name: jarvis-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: footballclips
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jarvis_postgres_secure_2026}
+    volumes:
+      - ./storage/postgres:/var/lib/postgresql/data
+      - ./init_footballclips.sql:/docker-entrypoint-initdb.d/init_footballclips.sql:ro
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 4G
+    networks:
+      - jarvis_net
+
+  # 10. PostgREST (Universal REST API - 1:1 Supabase Replacement)
+  postgrest:
+    image: postgrest/postgrest:latest
+    container_name: jarvis-postgrest
+    restart: unless-stopped
+    environment:
+      PGRST_DB_URI: postgres://postgres:${POSTGRES_PASSWORD:-jarvis_postgres_secure_2026}@postgres:5432/footballclips
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: web_anon
+      PGRST_SERVER_PORT: 3000
+    ports:
+      - "80:3000"
+    depends_on:
+      - postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 1G
+    networks:
+      - jarvis_net
+
+networks:
+  jarvis_net:
+    driver: bridge
