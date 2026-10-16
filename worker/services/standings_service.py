@@ -17,10 +17,11 @@ class StandingsService:
     def __init__(self):
         self.last_sync_timestamp: float = 0.0
 
-    async def sync_standings(self, force: bool = False, log_events: list | None = None) -> list[dict]:
+    async def sync_standings(self, force: bool = False, season: int | None = None, log_events: list | None = None) -> list[dict]:
         """
         Synchronize standings table to Supabase.
         Supports both zero-quota ESPN Standings Engine and Football-Data.org.
+        Supports current or historical season (e.g. season=2025).
         Ensures strict row count cap (~132 rows) with zero cost risk to Supabase Free Tier (<30 KB).
         """
         if log_events is None:
@@ -28,14 +29,15 @@ class StandingsService:
 
         now_utc = datetime.now(UTC)
         provider = settings.standings_provider.lower()
-        append_event(log_events, f"[STANDINGS] Starting league standings sync via provider: {provider.upper()}...", "INFO", "STANDINGS", "START")
-        logger.info(f"[StandingsService] Starting league standings sync via provider: {provider}...")
+        season_label = f" (Season {season})" if season else ""
+        append_event(log_events, f"[STANDINGS] Starting league standings sync via provider: {provider.upper()}{season_label}...", "INFO", "STANDINGS", "START")
+        logger.info(f"[StandingsService] Starting league standings sync via provider: {provider}{season_label}...")
 
         all_standings_rows = []
 
         if provider == "espn":
             async with httpx.AsyncClient(timeout=15.0, headers=espn_client.headers) as client:
-                tasks = [espn_client.get_standings(comp_code, client) for comp_code in self.STANDINGS_COMPETITIONS]
+                tasks = [espn_client.get_standings(comp_code, season=season, client=client) for comp_code in self.STANDINGS_COMPETITIONS]
                 results = await asyncio.gather(*tasks, return_exceptions=True)
 
                 for comp_code, res in zip(self.STANDINGS_COMPETITIONS, results, strict=False):

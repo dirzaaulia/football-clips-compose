@@ -1,7 +1,12 @@
 import argparse
 import asyncio
+import os
+import sys
 from datetime import UTC, datetime
 from typing import Any
+
+# Ensure project root is in sys.path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import httpx
 from loguru import logger
@@ -292,9 +297,17 @@ async def backfill_competition(
         try:
             supabase_client.table("matches").upsert(batch, on_conflict="id").execute()
             total_upserted += len(batch)
-            logger.info(f"[{comp_code}] Upserted batch {i // batch_size + 1}: {len(batch)} matches ({total_upserted}/{len(all_matches)})")
         except Exception as e:
             logger.error(f"[{comp_code}] Failed to upsert batch {i // batch_size + 1}: {e}")
+
+    # Also backfill final league standings for this season
+    try:
+        standings_rows = await espn_client.get_standings(comp_code, season=season_year, client=client)
+        if standings_rows and not dry_run:
+            supabase_client.table("standings").upsert(standings_rows, on_conflict="id").execute()
+            logger.info(f"[{comp_code}] Upserted {len(standings_rows)} standings rows for season {season_year}/{season_year + 1}.")
+    except Exception as e:
+        logger.warning(f"[{comp_code}] Failed to backfill standings for season {season_year}: {e}")
 
     return total_upserted
 

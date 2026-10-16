@@ -221,6 +221,7 @@ class ESPNClient:
                 "id": event_id,
                 "competition_id": league_info["code"],
                 "competition_name": league_info["name"],
+                "season": int(event.get("season", {}).get("year", 2026)),
                 "utc_date": utc_date,
                 "status": status,
                 "matchday": matchday,
@@ -311,9 +312,10 @@ class ESPNClient:
         )
         return all_matches
 
-    async def get_standings(self, competition_code: str, client: httpx.AsyncClient | None = None) -> list[dict[str, Any]]:
+    async def get_standings(self, competition_code: str, season: int | None = None, client: httpx.AsyncClient | None = None) -> list[dict[str, Any]]:
         """
         Fetch league standings for a competition from ESPN.
+        Supports current or historical season (e.g. season=2025).
         Returns parsed rows matching Supabase standings table schema.
         Zero quota cost, zero API keys, real-time table rankings.
         """
@@ -325,6 +327,8 @@ class ESPNClient:
         slug = info["slug"]
         comp_name = info["name"]
         url = f"https://site.api.espn.com/apis/v2/sports/soccer/{slug}/standings"
+        if season:
+            url += f"?season={season}"
 
         try:
             should_close = False
@@ -343,7 +347,7 @@ class ESPNClient:
                     await client.aclose()
 
             season_info = data.get("season", {})
-            season_year = season_info.get("year", datetime.now(UTC).year)
+            season_year = int(season or season_info.get("year", 2026))
 
             children = data.get("children", [])
             entries = []
@@ -387,10 +391,12 @@ class ESPNClient:
                     if s.get("type") == "total" or s.get("name") == "overall":
                         form = s.get("summary")
 
-                row_id = f"{competition_code}_{team_id}"
+                # Season 2026 retains standard ID for backward compatibility; historical uses season in ID
+                row_id = f"{competition_code}_{team_id}" if season_year == 2026 else f"{competition_code}_{season_year}_{team_id}"
                 standings_rows.append({
                     "id": row_id,
                     "competition_code": competition_code,
+                    "season": season_year,
                     "position": position,
                     "team_id": team_id,
                     "team_name": team_name,
@@ -404,6 +410,7 @@ class ESPNClient:
                     "goals_for": goals_for,
                     "goals_against": goals_against,
                     "goal_difference": goal_diff,
+                    "form": form,
                     "updated_at": now_iso
                 })
 
@@ -411,6 +418,83 @@ class ESPNClient:
         except Exception as e:
             logger.error(f"[ESPN Standings] Failed to fetch standings for {competition_code}: {e}")
             return []
+
+    async def get_match_summary(
+        self,
+        event_id: int,
+        competition_code: str,
+        client: httpx.AsyncClient | None = None
+    ) -> dict[str, Any]:
+        """
+        Fetch full match summary from ESPN (formations, real stats, real journalistic recap).
+        Zero quota cost, 100% authentic accredited data.
+        """
+        info = self.COMPETITION_MAP.get(competition_code)
+        slug = info["slug"] if info else "eng.1"
+        url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/summary?event={event_id}"
+
+        try:
+            should_close = False
+            if client is None:
+                client = httpx.AsyncClient(timeout=15.0, headers=self.headers)
+                should_close = True
+
+            try:
+                resp = await client.get(url)
+                if resp.status_code != 200:
+                    return {}
+                data = resp.json()
+            finally:
+                if should_close:
+                    await client.aclose()
+
+            # 1. Rosters & Formations
+            formations = {}
+            rosters = data.get("rosters", [])
+            for r in rosters:
+                side = "home" if r.get("homeAway") == "home" else "away"
+                formation_str = r.get("formation")
+                starters = []
+                for p in r.get("roster", []):
+                    if p.get("starter"):
+                        starters.append({
+                            "name": p.get("athlete", {}).get("displayName", "Player"),
+                            "jersey": p.get("jersey"),
+                            "position": p.get("position", {}).get("abbreviation")
+                        })
+                formations[side] = {
+                    "formation": formation_str,
+                    "starters": starters
+                }
+
+            # 2. Boxscore / Match Statistics
+            statistics = {}
+            boxscore = data.get("boxscore", {})
+            for t in boxscore.get("teams", []):
+                side = "home" if t.get("homeAway") == "home" else "away"
+                stats_dict = {s.get("name"): s.get("displayValue") for s in t.get("statistics", [])}
+                statistics[side] = stats_dict
+
+            # 3. Journalistic Editorial Recap
+            article = data.get("article", {})
+            editorial_headline = article.get("headline")
+            editorial_story = article.get("story")
+            editorial_source = article.get("source") or "ESPN"
+
+            # 4. Last Five Games Form
+            last_five = data.get("lastFiveGames", [])
+
+            return {
+                "formations": formations if formations else None,
+                "statistics": statistics if statistics else None,
+                "editorial_headline": editorial_headline,
+                "editorial_story": editorial_story,
+                "editorial_source": editorial_source if editorial_headline else None,
+                "last_five_games": last_five if last_five else None
+            }
+        except Exception as e:
+            logger.error(f"[ESPN Summary] Failed to fetch summary for {event_id}: {e}")
+            return {}
 
 
 espn_client = ESPNClient()
