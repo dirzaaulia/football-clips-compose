@@ -59,14 +59,14 @@ fun TelemetryNotificationsView(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = "Automated Club Notifications & Audience Telemetry",
+                    text = "Club Push Notifications & Favorite Audience",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = StitchTextPrimary,
                     fontFamily = FontFamily.Monospace
                 )
                 Text(
-                    text = "Real-time push fanout monitoring, distinct recipient audience, and multi-device distribution.",
+                    text = "Telemetry logs of users who saved favorite clubs and real-time push alerts sent when highlights and matches are linked.",
                     fontSize = 10.sp,
                     color = StitchTextMuted
                 )
@@ -96,6 +96,9 @@ fun TelemetryNotificationsView(
 
         // Top KPI Cards
         NotificationKpiHeader(payload = payload, audienceState = audienceState)
+
+        // Saved Favorite Clubs Audience Section (Who saved which clubs)
+        FavoriteClubsAudienceSection(audienceState = audienceState)
 
         // Search & Filter
         NotificationFilterBar(

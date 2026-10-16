@@ -19,7 +19,7 @@ class FootballClipsFirebaseMessagingService : FirebaseMessagingService() {
         super.onMessageReceived(remoteMessage)
 
         val data = remoteMessage.data
-        val title = remoteMessage.notification?.title ?: data["title"] ?: "Football Clips"
+        val title = remoteMessage.notification?.title ?: data["title"] ?: "Football Highlights & Clips"
         val body = remoteMessage.notification?.body ?: data["body"] ?: ""
         val eventType = data["event_type"] ?: "score"
         val matchId = data["match_id"] ?: ""

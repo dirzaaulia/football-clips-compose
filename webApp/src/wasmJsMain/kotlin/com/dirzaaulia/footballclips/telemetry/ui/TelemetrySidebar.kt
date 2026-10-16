@@ -106,7 +106,7 @@ fun TelemetrySidebar(
                     onClick = { onSectionSelected(TelemetryNavSection.STANDINGS_AUDIT) }
                 )
                 SidebarNavItem(
-                    title = "Club Alerts",
+                    title = "Club Notifications Log",
                     icon = Icons.Default.Notifications,
                     isSelected = selectedSection == TelemetryNavSection.NOTIFICATIONS,
                     onClick = { onSectionSelected(TelemetryNavSection.NOTIFICATIONS) }

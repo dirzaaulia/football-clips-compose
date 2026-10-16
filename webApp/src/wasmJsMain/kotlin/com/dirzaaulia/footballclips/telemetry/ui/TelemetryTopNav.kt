@@ -1,9 +1,12 @@
 package com.dirzaaulia.footballclips.telemetry.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,18 +37,21 @@ fun TelemetryTopNav(
     actionMessage: String? = null,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(StitchSidebar)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(StitchSidebar)
-                .border(1.dp, StitchBorder)
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left Status Summary (Clean & Minimalist)
+            // Left Status Summary (Clean, Flexible & Minimalist)
             Row(
+                modifier = Modifier.weight(1f, fill = false),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -75,12 +81,15 @@ fun TelemetryTopNav(
                     Text("•", style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted))
                     Text("CF Edge Proxy", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
                     Text("•", style = TelemetryTypography.bodySmall.copy(color = StitchTextMuted))
-                    Text("Cloud Run Worker", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
+                    Text("Autonomous Worker", style = TelemetryTypography.bodySmall.copy(color = StitchTextSecondary))
                 }
             }
 
-            // Right Operational Controls
+            Spacer(Modifier.width(12.dp))
+
+            // Right Operational Controls (Horizontal Scrollable so buttons never get clipped on any screen width)
             Row(
+                modifier = Modifier.horizontalScroll(rememberScrollState()),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -92,7 +101,7 @@ fun TelemetryTopNav(
                     shape = RoundedCornerShape(4.dp),
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = StitchSuccess),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, StitchSuccess.copy(alpha = 0.4f))
+                    border = BorderStroke(1.dp, StitchSuccess.copy(alpha = 0.4f))
                 ) {
                     Icon(Icons.Default.Dashboard, contentDescription = null, modifier = Modifier.size(13.dp))
                     Spacer(Modifier.width(4.dp))
@@ -166,6 +175,14 @@ fun TelemetryTopNav(
                 }
             }
         }
+
+        // Clean Bottom Border Divider (prevents clashing side/top borders)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(StitchBorder)
+        )
 
         // Live Action Notification Banner (if any action dispatched)
         if (!actionMessage.isNullOrBlank()) {

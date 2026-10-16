@@ -3,7 +3,9 @@ package com.dirzaaulia.footballclips.telemetry.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -140,6 +142,86 @@ fun NotificationFilterBar(
 }
 
 @Composable
+fun FavoriteClubsAudienceSection(
+    audienceState: AudienceStatePayload,
+    modifier: Modifier = Modifier
+) {
+    val clubs = audienceState.clubs.values.toList()
+    if (clubs.isEmpty()) return
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(StitchSurface)
+            .border(1.dp, StitchBorder, RoundedCornerShape(8.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.Favorite, contentDescription = null, tint = StitchSecondary, modifier = Modifier.size(15.dp))
+                Text(
+                    text = "Users Who Saved Favorite Clubs (${clubs.size} Clubs Tracked)",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = StitchTextPrimary,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+            Text(
+                text = "${audienceState.globalMetrics.distinctUsers} Total Fans • ${audienceState.globalMetrics.totalDevices} Devices",
+                fontSize = 10.sp,
+                color = StitchTextMuted,
+                fontFamily = FontFamily.Monospace
+            )
+        }
+
+        // Horizontal scrollable club cards
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            clubs.forEach { c ->
+                Column(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(StitchSurfaceContainer)
+                        .border(1.dp, StitchBorder, RoundedCornerShape(6.dp))
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Text(
+                        text = "Club #${c.clubId}",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = StitchTextPrimary,
+                        fontFamily = FontFamily.Monospace
+                    )
+                    Text(
+                        text = "${c.distinctUsers} fans • ${c.totalDevices} devices",
+                        fontSize = 9.sp,
+                        color = StitchTextSecondary
+                    )
+                    Text(
+                        text = "${c.platformBreakdown.android} Android / ${c.platformBreakdown.web} Web",
+                        fontSize = 8.5.sp,
+                        color = StitchTextMuted,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun NotificationItemCard(
     item: NotificationLogItem,
     onClick: () -> Unit,
@@ -179,6 +261,28 @@ fun NotificationItemCard(
                 Text(item.title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = StitchTextPrimary)
             }
             Text(item.body, fontSize = 11.sp, color = StitchTextSecondary)
+
+            if (item.eventType.equals("highlight", ignoreCase = true)) {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(StitchPurple.copy(alpha = 0.12f))
+                        .border(1.dp, StitchPurple.copy(alpha = 0.35f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(Icons.Default.PlayCircle, null, tint = StitchPurple, modifier = Modifier.size(13.dp))
+                    Text(
+                        "HIGHLIGHT READY: Notification sent to ${item.audience.distinctUsers} fans who saved this club as favorite",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = StitchPurple,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
+
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 MetricPill(Icons.Default.People, "${item.audience.distinctUsers} Users", StitchPrimary)
                 MetricPill(Icons.Default.Devices, "${item.audience.totalDevices} Devices (${item.audience.platformBreakdown.android} A / ${item.audience.platformBreakdown.web} W)", StitchPurple)
