@@ -263,8 +263,17 @@ internal fun VideoMetadata(
                 }
             }
         }
+
+        // Tactical Boxscore (Formations, Dual-meter Statistics, Accredited Journalistic Report)
+        if (item is HighlightUiItem.SupabaseMatch) {
+            MatchTacticalBoxscore(
+                match = item.match,
+                isSpoilerFree = isSpoilerFree
+            )
+        }
     }
 }
+
 
 @Composable
 internal fun RelatedHighlightItem(item: HighlightUiItem, onClick: () -> Unit) {

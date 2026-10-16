@@ -18,6 +18,12 @@ class MatchPayload(BaseModel):
     away_score: int | None = None
     highlight_video_id: str | None = None
     updated_at: str | None = None
+    season: int = 2026
+    formations: dict | None = None
+    statistics: dict | None = None
+    editorial_headline: str | None = None
+    editorial_story: str | None = None
+    editorial_source: str | None = None
 
 class MatchDbRecord(BaseModel):
     id: int
@@ -26,3 +32,9 @@ class MatchDbRecord(BaseModel):
     away_score: int | None = None
     highlight_video_id: str | None = None
     last_youtube_check: str | None = None
+    season: int = 2026
+    formations: dict | None = None
+    statistics: dict | None = None
+    editorial_headline: str | None = None
+    editorial_story: str | None = None
+    editorial_source: str | None = None

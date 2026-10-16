@@ -23,7 +23,13 @@ data class Match(
     val highlightVideoId: String?,
     val recapAnalysis: String? = null,
     val roundName: String? = null,
-    val displayClock: String? = null
+    val displayClock: String? = null,
+    val season: Int = 2026,
+    val formations: Formations? = null,
+    val statistics: Map<String, Map<String, String>>? = null,
+    val editorialHeadline: String? = null,
+    val editorialStory: String? = null,
+    val editorialSource: String? = null
 ) {
     val displayRound: String
         get() = roundName ?: matchday?.let { "Matchweek $it" } ?: competitionName
@@ -98,6 +104,38 @@ data class Match(
         }
 }
 
+data class StarterPlayer(
+    val name: String,
+    val jersey: String = "",
+    val position: String = ""
+)
+
+data class TeamFormation(
+    val formation: String? = null,
+    val starters: List<StarterPlayer> = emptyList()
+)
+
+data class Formations(
+    val home: TeamFormation? = null,
+    val away: TeamFormation? = null
+)
+
+fun com.dirzaaulia.footballclips.data.model.remote.StarterPlayerDto.toDomain() = StarterPlayer(
+    name = name,
+    jersey = jersey,
+    position = position
+)
+
+fun com.dirzaaulia.footballclips.data.model.remote.TeamFormationDto.toDomain() = TeamFormation(
+    formation = formation,
+    starters = starters.map { it.toDomain() }
+)
+
+fun com.dirzaaulia.footballclips.data.model.remote.FormationsDto.toDomain() = Formations(
+    home = home?.toDomain(),
+    away = away?.toDomain()
+)
+
 fun MatchDto.toMatch(): Match {
     return Match(
         id = id,
@@ -115,6 +153,13 @@ fun MatchDto.toMatch(): Match {
         highlightVideoId = highlightVideoId,
         recapAnalysis = recapAnalysis,
         roundName = roundName,
-        displayClock = displayClock
+        displayClock = displayClock,
+        season = season,
+        formations = formations?.toDomain(),
+        statistics = statistics,
+        editorialHeadline = editorialHeadline,
+        editorialStory = editorialStory,
+        editorialSource = editorialSource
     )
 }
+

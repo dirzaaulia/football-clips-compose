@@ -9,6 +9,7 @@ import MatchCentreHeader from '@/components/match/MatchCentreHeader';
 import MatchSidebar from '@/components/match/MatchSidebar';
 import MatchScoreSection from '@/components/match/MatchScoreSection';
 import MatchRecapSection from '@/components/match/MatchRecapSection';
+import MatchTacticalBoxscore from '@/components/match/MatchTacticalBoxscore';
 import { Trophy, Calendar } from 'lucide-react';
 
 interface MatchPageProps {
@@ -207,6 +208,9 @@ export default async function MatchDetailPage({ params, searchParams }: MatchPag
           </div>
 
           <AdSenseBanner slotId="5616816386" format="horizontal" />
+
+          {/* Authentic Match Centre & Tactical Data (Boxscore, Lineups & Editorial Report) */}
+          <MatchTacticalBoxscore match={match} />
 
           {/* AI Tactical Breakdown & Match Report (Spoiler Guarded) */}
           <MatchRecapSection recapAnalysis={recapAnalysis} />

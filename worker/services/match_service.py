@@ -135,7 +135,7 @@ class MatchService:
         try:
             old_data_map = {}
             for i in range(0, len(api_match_ids), 50):
-                res_db = supabase_client.table("matches").select("id, status, home_score, away_score").in_("id", api_match_ids[i:i+50]).execute()
+                res_db = supabase_client.table("matches").select("id, status, home_score, away_score, formations, statistics, editorial_headline").in_("id", api_match_ids[i:i+50]).execute()
                 for row in res_db.data:
                     old_data_map[row["id"]] = row
 
@@ -148,6 +148,14 @@ class MatchService:
                 m_date = str(p.get("utc_date", ""))[:10]
 
                 if old:
+                    # Retain existing tactical data if already present and not overwritten
+                    if not p.get("formations") and old.get("formations"):
+                        p["formations"] = old["formations"]
+                    if not p.get("statistics") and old.get("statistics"):
+                        p["statistics"] = old["statistics"]
+                    if not p.get("editorial_headline") and old.get("editorial_headline"):
+                        p["editorial_headline"] = old["editorial_headline"]
+
                     # Protection against regression from FINISHED back to IN_PLAY/TIMED
                     is_regression = False
                     if old["status"] in ["FINISHED", "AWARDED"] and p["status"] not in ["FINISHED", "AWARDED"] or old["status"] in ["IN_PLAY", "PAUSED"] and p["status"] in ["TIMED", "SCHEDULED"]:
@@ -188,13 +196,46 @@ class MatchService:
                     else:
                         append_event(log_events, f"[NEW FIXTURE] [{comp_name}] ({m_date}) Inserted fixture: {h_team} vs {a_team} (Status: {p['status']})", "INFO", "MATCH_SYNC", "NEW_MATCH")
 
-            if not changes_found:
+            # 3. Enrich live and newly finished matches with real tactical data (Formations & Stats)
+            enriched_count = 0
+            max_enrich_per_cycle = 5
+            for p in unique_payloads:
+                p.setdefault("season", 2026)
+                if provider != "espn":
+                    continue
+                is_live = p.get("status") in ["IN_PLAY", "PAUSED"]
+                old = old_data_map.get(p["id"])
+                is_newly_finished = old and old.get("status") != p.get("status") and p.get("status") in ["FINISHED", "AWARDED"]
+                needs_stats = p.get("status") in ["FINISHED", "AWARDED"] and (not old or not old.get("statistics") or not old.get("formations"))
+
+                if is_live or is_newly_finished or (needs_stats and enriched_count < max_enrich_per_cycle):
+                    try:
+                        summary = await espn_client.get_match_summary(p["id"], p.get("competition_id", "PL"))
+                        if summary:
+                            if summary.get("formations"):
+                                p["formations"] = summary["formations"]
+                            if summary.get("statistics"):
+                                p["statistics"] = summary["statistics"]
+                            if summary.get("editorial_headline"):
+                                p["editorial_headline"] = summary["editorial_headline"]
+                            if summary.get("editorial_story"):
+                                p["editorial_story"] = summary["editorial_story"]
+                            if summary.get("editorial_source"):
+                                p["editorial_source"] = summary["editorial_source"]
+                            enriched_count += 1
+                            h_team, a_team = p.get("home_team_name", "Home"), p.get("away_team_name", "Away")
+                            comp_name = p.get("competition_name") or p.get("competition_id") or "League"
+                            append_event(log_events, f"[TACTICAL DATA] [{comp_name}] Enriched formations & boxscore stats for {h_team} vs {a_team}", "INFO", "MATCH_SYNC", "TACTICAL_SYNC")
+                    except Exception as ex:
+                        logger.debug(f"[TACTICAL DATA] Could not fetch summary for {p['id']}: {ex}")
+
+            if not changes_found and enriched_count == 0:
                 append_event(log_events, "No fixture score or status changes detected.", "INFO", "MATCH_SYNC", "NO_CHANGE")
 
             notification_service.check_upcoming_fixtures(unique_payloads, log_events)
 
             supabase_client.table("matches").upsert(unique_payloads, on_conflict="id").execute()
-            msg_upsert = f"Successfully synced {len(unique_payloads)} fixtures to Supabase database."
+            msg_upsert = f"Successfully synced {len(unique_payloads)} fixtures to Supabase database (Enriched {enriched_count} tactical profiles)."
             logger.info(msg_upsert)
             append_event(log_events, msg_upsert, "SUCCESS", "MATCH_SYNC", "DB_UPSERT")
             return unique_payloads

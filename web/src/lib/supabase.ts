@@ -5,6 +5,22 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOi
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+export interface StarterPlayer {
+  name: string;
+  jersey?: string;
+  position?: string;
+}
+
+export interface TeamFormation {
+  formation?: string;
+  starters?: StarterPlayer[];
+}
+
+export interface MatchFormations {
+  home?: TeamFormation;
+  away?: TeamFormation;
+}
+
 export interface MatchRecord {
   id: string;
   competition_id: string;
@@ -26,6 +42,12 @@ export interface MatchRecord {
   stage?: string;
   country_name?: string | null;
   country_logo?: string | null;
+  season?: number;
+  formations?: MatchFormations | null;
+  statistics?: Record<'home' | 'away', Record<string, string>> | null;
+  editorial_headline?: string | null;
+  editorial_story?: string | null;
+  editorial_source?: string | null;
 }
 
 export interface StandingRecord {
