@@ -35,6 +35,16 @@ function isPostgresRoute(pathname: string): boolean {
   return POSTGRES_TABLES.some(table => clean === table || clean.startsWith(`${table}?`) || clean.startsWith(`${table}/`));
 }
 
+function applySecurityHeaders(headers: Headers) {
+  headers.set("Access-Control-Allow-Origin", "*");
+  headers.set("Access-Control-Expose-Headers", "Content-Range, Range, Content-Length, X-FC-Cache");
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("X-Frame-Options", "DENY");
+  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  headers.set("Permissions-Policy", "geolocation=(), camera=(), microphone=()");
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -42,15 +52,13 @@ export default {
     // 1. Handle CORS Preflight
     if (request.method === "OPTIONS") {
       const requestedHeaders = request.headers.get("Access-Control-Request-Headers") || "*";
-      return new Response(null, {
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS",
-          "Access-Control-Allow-Headers": requestedHeaders,
-          "Access-Control-Expose-Headers": "Content-Range, Range, Content-Length, X-FC-Cache",
-          "Access-Control-Max-Age": "86400",
-        },
+      const headers = new Headers({
+        "Access-Control-Allow-Methods": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": requestedHeaders,
+        "Access-Control-Max-Age": "86400",
       });
+      applySecurityHeaders(headers);
+      return new Response(null, { headers });
     }
 
     // 2. Cache Purge Hook
@@ -64,13 +72,15 @@ export default {
         const target = body.target_url || `${url.origin}/rest/v1/matches?status=eq.FINISHED`;
         const cache = caches.default;
         await cache.delete(new Request(target, { method: "GET" }));
-        return new Response(JSON.stringify({ status: "Purged", target }), {
-          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-        });
+        const headers = new Headers({ "Content-Type": "application/json" });
+        applySecurityHeaders(headers);
+        return new Response(JSON.stringify({ status: "Purged", target }), { headers });
       } catch (e) {
-        return new Response(JSON.stringify({ status: "Purge error", error: String(e) }), {
+        const headers = new Headers({ "Content-Type": "application/json" });
+        applySecurityHeaders(headers);
+        return new Response(JSON.stringify({ status: "Purged error", error: String(e) }), {
           status: 500,
-          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+          headers,
         });
       }
     }
@@ -82,8 +92,7 @@ export default {
     if (request.method !== "GET" && request.method !== "HEAD" || cacheTtl === 0) {
       const resp = await forwardRequest(request, env, url, 0);
       const headers = new Headers(resp.headers);
-      headers.set("Access-Control-Allow-Origin", "*");
-      headers.set("Access-Control-Expose-Headers", "Content-Range, Range, Content-Length, X-FC-Cache");
+      applySecurityHeaders(headers);
       if (cacheTtl === 0) {
         headers.set("X-FC-Cache", "BYPASS");
       }
@@ -102,8 +111,7 @@ export default {
     if (cachedResponse) {
       const newHeaders = new Headers(cachedResponse.headers);
       newHeaders.set("X-FC-Cache", "HIT");
-      newHeaders.set("Access-Control-Allow-Origin", "*");
-      newHeaders.set("Access-Control-Expose-Headers", "Content-Range, Range, Content-Length, X-FC-Cache");
+      applySecurityHeaders(newHeaders);
       return new Response(cachedResponse.body, {
         status: cachedResponse.status,
         statusText: cachedResponse.statusText,
@@ -119,8 +127,7 @@ export default {
       const responseHeaders = new Headers(originResponse.headers);
       responseHeaders.delete("set-cookie");
       responseHeaders.set("X-FC-Cache", "MISS");
-      responseHeaders.set("Access-Control-Allow-Origin", "*");
-      responseHeaders.set("Access-Control-Expose-Headers", "Content-Range, Range, Content-Length, X-FC-Cache");
+      applySecurityHeaders(responseHeaders);
       responseHeaders.set(
         "Cache-Control",
         `public, max-age=${cacheTtl}, s-maxage=${cacheTtl}, stale-while-revalidate=60`
@@ -142,10 +149,9 @@ export default {
       });
     }
 
-    // Errors (4xx, 5xx): return with CORS headers so client receives readable error
+    // Errors (4xx, 5xx): return with CORS & security headers
     const errorHeaders = new Headers(originResponse.headers);
-    errorHeaders.set("Access-Control-Allow-Origin", "*");
-    errorHeaders.set("Access-Control-Expose-Headers", "Content-Range, Range, Content-Length, X-FC-Cache");
+    applySecurityHeaders(errorHeaders);
     return new Response(originResponse.body, {
       status: originResponse.status,
       statusText: originResponse.statusText,
