@@ -37,7 +37,7 @@ internal suspend fun fetchSupabaseMatches(
         }
         if (attempt < 3) delay(500L * attempt)
     }
-    return Pair(emptyList(), true)
+    return Pair(emptyList(), false)
 }
 
 internal suspend fun fetchExternalHighlightsData(
@@ -80,8 +80,10 @@ internal suspend fun HomeViewModel.getSupabaseHighlights(isRefresh: Boolean = tr
     if (!hasMoreSupabase) return
     val (newM, hasMore) = fetchSupabaseMatches(scoreRepository, _selectedCompetitionId.value, supabaseLimit, supabaseOffset)
     val exIds = supabaseMatches.map { it.id }.toSet()
-    supabaseMatches.addAll(newM.filter { it.id !in exIds })
-    hasMoreSupabase = hasMore
+    val exVideos = supabaseMatches.mapNotNull { it.highlightVideoId }.toSet()
+    val deduplicated = newM.filter { it.id !in exIds && (it.highlightVideoId == null || it.highlightVideoId !in exVideos) }
+    supabaseMatches.addAll(deduplicated)
+    hasMoreSupabase = hasMore && newM.isNotEmpty()
     supabaseOffset += supabaseLimit
 }
 

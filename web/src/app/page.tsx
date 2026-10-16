@@ -17,7 +17,7 @@ import MyClubsModal from '@/components/clubs/MyClubsModal';
 import FilterSideSheet from '@/components/filter/FilterSideSheet';
 import SpoilerEducationDialog from '@/components/spoiler/SpoilerEducationDialog';
 import FloatingActionControls from '@/components/feed/FloatingActionControls';
-import { Trophy, Star, SlidersHorizontal, Loader2 } from 'lucide-react';
+import { Trophy, Star, SlidersHorizontal, Loader2, CheckCircle2 } from 'lucide-react';
 import Image from 'next/image';
 
 export default function HomePage() {
@@ -247,14 +247,28 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Infinite Scroll Sentinel */}
+      {/* Infinite Scroll Loading Skeleton */}
+      {loading.more && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 my-6 animate-pulse">
+          {[...Array(3)].map((_, i) => (
+            <HighlightCardSkeleton key={`more-skeleton-${i}`} />
+          ))}
+        </div>
+      )}
+
+      {/* Infinite Scroll Sentinel & End State */}
       <div ref={sentinelRef} className="py-6 flex flex-col items-center justify-center">
-        {loading.more && (
+        {loading.more ? (
           <div className="flex items-center gap-2 text-xs text-[#7098F8] font-bold">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Fetching more highlights...</span>
           </div>
-        )}
+        ) : !loading.hasMore && displayedMatches.length > 0 && !loading.initial ? (
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#181C20] border border-[#334155]/60 text-xs text-[#94A3B8] font-medium shadow-sm">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#4ADE80]" />
+            <span>You&apos;re all caught up with recent highlights</span>
+          </div>
+        ) : null}
       </div>
 
       {/* Side Sheets & Modals */}
