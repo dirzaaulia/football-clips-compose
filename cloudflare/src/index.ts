@@ -24,11 +24,13 @@ export default {
 
     // 1. Handle CORS Preflight
     if (request.method === "OPTIONS") {
+      const requestedHeaders = request.headers.get("Access-Control-Request-Headers") || "*";
       return new Response(null, {
         headers: {
           "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, HEAD, POST, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization, apikey, Prefer, Range",
+          "Access-Control-Allow-Methods": "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": requestedHeaders,
+          "Access-Control-Expose-Headers": "Content-Range, Range, Content-Length, X-FC-Cache",
           "Access-Control-Max-Age": "86400",
         },
       });
@@ -58,7 +60,15 @@ export default {
 
     // Only cache GET and HEAD requests
     if (request.method !== "GET" && request.method !== "HEAD") {
-      return forwardToSupabase(request, env, url);
+      const resp = await forwardToSupabase(request, env, url);
+      const headers = new Headers(resp.headers);
+      headers.set("Access-Control-Allow-Origin", "*");
+      headers.set("Access-Control-Expose-Headers", "Content-Range, Range, Content-Length, X-FC-Cache");
+      return new Response(resp.body, {
+        status: resp.status,
+        statusText: resp.statusText,
+        headers,
+      });
     }
 
     // 3. Inspect request for Cache TTL Rules
@@ -73,6 +83,7 @@ export default {
       const newHeaders = new Headers(cachedResponse.headers);
       newHeaders.set("X-FC-Cache", "HIT");
       newHeaders.set("Access-Control-Allow-Origin", "*");
+      newHeaders.set("Access-Control-Expose-Headers", "Content-Range, Range, Content-Length, X-FC-Cache");
       return new Response(cachedResponse.body, {
         status: cachedResponse.status,
         statusText: cachedResponse.statusText,
@@ -89,6 +100,7 @@ export default {
       responseHeaders.delete("set-cookie");
       responseHeaders.set("X-FC-Cache", "MISS");
       responseHeaders.set("Access-Control-Allow-Origin", "*");
+      responseHeaders.set("Access-Control-Expose-Headers", "Content-Range, Range, Content-Length, X-FC-Cache");
       responseHeaders.set(
         "Cache-Control",
         `public, max-age=${cacheTtl}, s-maxage=${cacheTtl}, stale-while-revalidate=60`
@@ -110,7 +122,15 @@ export default {
       });
     }
 
-    return originResponse;
+    // Even for errors (4xx, 5xx), return with CORS headers so client gets json error instead of opaque CORS failure
+    const errorHeaders = new Headers(originResponse.headers);
+    errorHeaders.set("Access-Control-Allow-Origin", "*");
+    errorHeaders.set("Access-Control-Expose-Headers", "Content-Range, Range, Content-Length, X-FC-Cache");
+    return new Response(originResponse.body, {
+      status: originResponse.status,
+      statusText: originResponse.statusText,
+      headers: errorHeaders,
+    });
   },
 };
 
