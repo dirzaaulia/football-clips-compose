@@ -61,6 +61,8 @@ import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.filter.SeasonDropdownSelector
+import com.dirzaaulia.footballclips.ui.score.ArchiveSeasonIndicator
 import com.dirzaaulia.footballclips.ui.score.DateOption
 import com.dirzaaulia.footballclips.ui.score.ScoreState
 import com.dirzaaulia.footballclips.ui.score.ScoreViewModel
@@ -86,6 +88,7 @@ fun FixturesLandscapeContent(
     viewModel: ScoreViewModel
 ) {
     val isFiltersExpanded by viewModel.isFiltersExpanded.collectAsState()
+    val selectedSeason by viewModel.selectedSeason.collectAsState()
     val dateGridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
 
     LaunchedEffect(selectedDate) {
@@ -110,12 +113,23 @@ fun FixturesLandscapeContent(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Top
         ) {
-            Text(
-                text = "Fixtures",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Black,
-                modifier = Modifier.padding(bottom = 6.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 6.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Fixtures",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Black
+                )
+                SeasonDropdownSelector(
+                    selectedSeason = selectedSeason,
+                    onSeasonSelected = viewModel::setSeason
+                )
+            }
 
             AnimatedVisibility(
                 visible = isFiltersExpanded,
@@ -129,22 +143,39 @@ fun FixturesLandscapeContent(
                     modifier = Modifier.fillMaxSize(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Sub-Column 1: Calendar Dates 2-Column Vertical Grid
-                    LazyVerticalGrid(
-                        state = dateGridState,
-                        columns = GridCells.Fixed(2),
-                        modifier = Modifier
-                            .weight(0.52f)
-                            .fillMaxHeight(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        contentPadding = PaddingValues(bottom = 8.dp)
-                    ) {
-                        items(dates) { dateOption ->
-                            LandscapeDateChip(
-                                option = dateOption,
-                                isSelected = dateOption.date == selectedDate,
-                                onClick = { onDateSelected(dateOption.date) }
+                    // Sub-Column 1: Calendar Dates 2-Column Vertical Grid or Archive Indicator
+                    if (selectedSeason == 2026) {
+                        LazyVerticalGrid(
+                            state = dateGridState,
+                            columns = GridCells.Fixed(2),
+                            modifier = Modifier
+                                .weight(0.52f)
+                                .fillMaxHeight(),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            contentPadding = PaddingValues(bottom = 8.dp)
+                        ) {
+                            items(dates) { dateOption ->
+                                LandscapeDateChip(
+                                    option = dateOption,
+                                    isSelected = dateOption.date == selectedDate,
+                                    onClick = { onDateSelected(dateOption.date) }
+                                )
+                            }
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .weight(0.52f)
+                                .fillMaxHeight()
+                                .padding(vertical = 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            ArchiveSeasonIndicator(season = selectedSeason)
+                            Text(
+                                text = "Viewing archive fixtures and verified highlights.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -157,33 +188,35 @@ fun FixturesLandscapeContent(
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                         contentPadding = PaddingValues(bottom = 8.dp)
                     ) {
-                        item {
-                            val isLiveOnly by viewModel.isLiveOnlyFilterActive.collectAsState()
-                            val liveCount by viewModel.liveMatchCount.collectAsState()
-                            FilterChip(
-                                selected = isLiveOnly,
-                                onClick = { viewModel.toggleLiveOnlyFilter() },
-                                leadingIcon = {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(8.dp)
-                                            .background(
-                                                if (isLiveOnly || liveCount > 0) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                CircleShape
-                                            )
-                                    )
-                                },
-                                label = {
-                                    Text(
-                                        text = if (liveCount > 0) "Live ($liveCount)" else "Live",
-                                        fontWeight = if (isLiveOnly) FontWeight.Bold else FontWeight.Medium,
-                                        fontSize = 11.sp,
-                                        color = if (isLiveOnly) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface
-                                    )
-                                },
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                        if (selectedSeason == 2026) {
+                            item {
+                                val isLiveOnly by viewModel.isLiveOnlyFilterActive.collectAsState()
+                                val liveCount by viewModel.liveMatchCount.collectAsState()
+                                FilterChip(
+                                    selected = isLiveOnly,
+                                    onClick = { viewModel.toggleLiveOnlyFilter() },
+                                    leadingIcon = {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(8.dp)
+                                                .background(
+                                                    if (isLiveOnly || liveCount > 0) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    CircleShape
+                                                )
+                                        )
+                                    },
+                                    label = {
+                                        Text(
+                                            text = if (liveCount > 0) "Live ($liveCount)" else "Live",
+                                            fontWeight = if (isLiveOnly) FontWeight.Bold else FontWeight.Medium,
+                                            fontSize = 11.sp,
+                                            color = if (isLiveOnly) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface
+                                        )
+                                    },
+                                    shape = RoundedCornerShape(20.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
 
                         item {

@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { getFixturesByDate, getLiveMatches, MatchRecord } from '@/lib/supabase';
+import { getFixturesByDate, getLiveMatches, getMatchesBySeason, MatchRecord } from '@/lib/supabase';
 import { BIG_LEAGUES, isLeagueMatch } from '@/lib/constants';
 import { isMatchForFavoriteClubs } from '@/lib/clubs';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import { useDragScroll } from '@/hooks/useDragScroll';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, CheckCircle2, Clock, Star, Radio, Trophy } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, CheckCircle2, Clock, Star, Radio, Trophy, Film } from 'lucide-react';
 import Image from 'next/image';
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
 import FixtureItemCard from '@/components/fixtures/FixtureItemCard';
@@ -16,6 +16,8 @@ import MyClubsModal from '@/components/clubs/MyClubsModal';
 type FixtureTab = 'ALL' | 'LIVE' | 'RESULTS' | 'UPCOMING';
 
 export default function FixturesPage() {
+  const [selectedSeason, setSelectedSeason] = useState<number>(2026);
+  const [archiveFilter, setArchiveFilter] = useState<'ALL' | 'HIGHLIGHTS'>('ALL');
   const [selectedDate, setSelectedDate] = useState('2026-10-08');
   const [activeTab, setActiveTab] = useState<FixtureTab>('ALL');
   const [selectedComp, setSelectedComp] = useState('ALL');
@@ -42,28 +44,47 @@ export default function FixturesPage() {
     let isCancelled = false;
 
     async function load() {
-      const [fixData, liveData] = await Promise.all([
-        getFixturesByDate(selectedDate),
-        getLiveMatches(),
-      ]);
-      if (!isCancelled) {
-        setFixtures(fixData);
-        setLiveMatches(liveData);
-        setIsLoading(false);
+      if (selectedSeason === 2026) {
+        const [fixData, liveData] = await Promise.all([
+          getFixturesByDate(selectedDate),
+          getLiveMatches(),
+        ]);
+        if (!isCancelled) {
+          setFixtures(fixData);
+          setLiveMatches(liveData);
+          setIsLoading(false);
+        }
+      } else {
+        const archiveData = await getMatchesBySeason(
+          selectedSeason,
+          selectedComp !== 'ALL' ? selectedComp : undefined,
+          undefined,
+          100
+        );
+        if (!isCancelled) {
+          setFixtures(archiveData);
+          setLiveMatches([]);
+          setIsLoading(false);
+        }
       }
     }
 
     setIsLoading(true);
     load();
 
-    // Auto-refresh every 30s to keep live scores and match statuses semi-live
-    const interval = setInterval(load, 30_000);
-
-    return () => {
-      isCancelled = true;
-      clearInterval(interval);
-    };
-  }, [selectedDate]);
+    if (selectedSeason === 2026) {
+      // Auto-refresh every 30s to keep live scores and match statuses semi-live
+      const interval = setInterval(load, 30_000);
+      return () => {
+        isCancelled = true;
+        clearInterval(interval);
+      };
+    } else {
+      return () => {
+        isCancelled = true;
+      };
+    }
+  }, [selectedDate, selectedSeason, selectedComp]);
 
   const changeDay = (days: number) => {
     const d = new Date(selectedDate);
@@ -82,6 +103,13 @@ export default function FixturesPage() {
 
   // Filter based on activeTab (status), competition (league), and My Clubs
   const allCandidateMatches = useMemo(() => {
+    if (selectedSeason !== 2026) {
+      if (archiveFilter === 'HIGHLIGHTS') {
+        return fixtures.filter((m) => !!m.highlight_video_id);
+      }
+      return fixtures;
+    }
+
     if (activeTab === 'LIVE') return liveMatches;
 
     const seen = new Set<string>();
@@ -103,16 +131,18 @@ export default function FixturesPage() {
     });
 
     return list;
-  }, [activeTab, liveMatches, fixtures]);
+  }, [activeTab, liveMatches, fixtures, selectedSeason, archiveFilter]);
 
   const filteredFixtures = useMemo(() => {
     return allCandidateMatches.filter((m) => {
-      const isFinished = m.status === 'FINISHED';
-      const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE';
+      if (selectedSeason === 2026) {
+        const isFinished = m.status === 'FINISHED';
+        const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE';
 
-      if (activeTab === 'LIVE' && !isLive) return false;
-      if (activeTab === 'RESULTS' && !isFinished) return false;
-      if (activeTab === 'UPCOMING' && (isFinished || isLive)) return false;
+        if (activeTab === 'LIVE' && !isLive) return false;
+        if (activeTab === 'RESULTS' && !isFinished) return false;
+        if (activeTab === 'UPCOMING' && (isFinished || isLive)) return false;
+      }
 
       if (isMyClubsActive && favoriteClubs.size > 0) {
         if (!isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs)) return false;
@@ -123,88 +153,147 @@ export default function FixturesPage() {
 
       return true;
     });
-  }, [allCandidateMatches, activeTab, isMyClubsActive, favoriteClubs, selectedComp, bigLeague]);
+  }, [allCandidateMatches, activeTab, isMyClubsActive, favoriteClubs, selectedComp, bigLeague, selectedSeason]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
-      <header className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Scores & Match Schedules</h1>
-        <p className="text-xs sm:text-sm text-[#94A3B8] mt-1">Live scores, scheduled fixtures, and verified results.</p>
+      <header className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Scores & Match Schedules</h1>
+          <p className="text-xs sm:text-sm text-[#94A3B8] mt-1">Live scores, scheduled fixtures, and verified results.</p>
+        </div>
+
+        {/* Season Switcher Pill */}
+        <div className="flex items-center bg-[#181C20] border border-[#334155] p-1 rounded-xl shadow-sm self-start sm:self-auto">
+          <button
+            onClick={() => setSelectedSeason(2026)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              selectedSeason === 2026
+                ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white shadow-sm'
+                : 'text-[#94A3B8] hover:text-white'
+            }`}
+          >
+            2026/27 (Current)
+          </button>
+          <button
+            onClick={() => setSelectedSeason(2025)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              selectedSeason === 2025
+                ? 'bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-sm'
+                : 'text-[#94A3B8] hover:text-white'
+            }`}
+          >
+            2025/26 (Archive)
+          </button>
+        </div>
       </header>
 
-      {/* Sleek Integrated Control Deck (Row 1: Status & Date Stepper) */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#181C20] border border-[#334155] rounded-2xl p-2 mb-3">
-        {/* Status Segmented Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-          <button
-            onClick={() => setActiveTab('ALL')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'ALL'
-                ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
-                : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
-            }`}
-          >
-            All ({allCandidateMatches.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('LIVE')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'LIVE'
-                ? 'bg-gradient-to-r from-red-700 to-red-500 text-white border border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.35)]'
-                : liveMatches.length > 0
-                ? 'text-red-400 hover:text-white hover:bg-[#1E2227] border border-red-500/30'
-                : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
-            }`}
-          >
-            <span className={`w-2 h-2 rounded-full ${liveMatches.length > 0 ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`} />
-            <span>Live {liveMatches.length > 0 ? `(${liveMatches.length})` : ''}</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('RESULTS')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'RESULTS'
-                ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
-                : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
-            }`}
-          >
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Results</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('UPCOMING')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'UPCOMING'
-                ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
-                : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5 text-[#4FC3F7]" />
-            <span>Upcoming</span>
-          </button>
-        </div>
-
-        {/* Compact Date Stepper */}
-        <div className="flex items-center justify-between sm:justify-end gap-1.5 bg-[#1E2227]/80 rounded-xl px-2 py-1 border border-[#334155]/60">
-          <button
-            onClick={() => changeDay(-1)}
-            aria-label="Previous day"
-            className="p-1 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#252B33] transition-all cursor-pointer"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-          </button>
-          <div className="flex items-center gap-1.5 px-2 text-xs font-bold text-white">
-            <CalendarIcon className="w-3.5 h-3.5 text-[#7098F8]" />
-            <span>{formattedDate}</span>
+      {/* Control Deck */}
+      {selectedSeason === 2026 ? (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#181C20] border border-[#334155] rounded-2xl p-2 mb-3">
+          {/* Status Segmented Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+            <button
+              onClick={() => setActiveTab('ALL')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'ALL'
+                  ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
+                  : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
+              }`}
+            >
+              All ({allCandidateMatches.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('LIVE')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'LIVE'
+                  ? 'bg-gradient-to-r from-red-700 to-red-500 text-white border border-red-500 shadow-[0_0_12px_rgba(239,68,68,0.35)]'
+                  : liveMatches.length > 0
+                  ? 'text-red-400 hover:text-white hover:bg-[#1E2227] border border-red-500/30'
+                  : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${liveMatches.length > 0 ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`} />
+              <span>Live {liveMatches.length > 0 ? `(${liveMatches.length})` : ''}</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('RESULTS')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'RESULTS'
+                  ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
+                  : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
+              }`}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Results</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('UPCOMING')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'UPCOMING'
+                  ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
+                  : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5 text-[#4FC3F7]" />
+              <span>Upcoming</span>
+            </button>
           </div>
-          <button
-            onClick={() => changeDay(1)}
-            aria-label="Next day"
-            className="p-1 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#252B33] transition-all cursor-pointer"
-          >
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+
+          {/* Compact Date Stepper */}
+          <div className="flex items-center justify-between sm:justify-end gap-1.5 bg-[#1E2227]/80 rounded-xl px-2 py-1 border border-[#334155]/60">
+            <button
+              onClick={() => changeDay(-1)}
+              aria-label="Previous day"
+              className="p-1 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#252B33] transition-all cursor-pointer"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <div className="flex items-center gap-1.5 px-2 text-xs font-bold text-white">
+              <CalendarIcon className="w-3.5 h-3.5 text-[#7098F8]" />
+              <span>{formattedDate}</span>
+            </div>
+            <button
+              onClick={() => changeDay(1)}
+              aria-label="Next day"
+              className="p-1 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#252B33] transition-all cursor-pointer"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#181C20] border border-amber-500/30 rounded-2xl p-2 mb-3">
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+            <button
+              onClick={() => setArchiveFilter('ALL')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                archiveFilter === 'ALL'
+                  ? 'bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-sm'
+                  : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
+              }`}
+            >
+              All Matches ({fixtures.length})
+            </button>
+            <button
+              onClick={() => setArchiveFilter('HIGHLIGHTS')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                archiveFilter === 'HIGHLIGHTS'
+                  ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-sm'
+                  : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
+              }`}
+            >
+              <Film className="w-3.5 h-3.5 text-red-400" />
+              <span>With Highlights ({fixtures.filter((m) => !!m.highlight_video_id).length})</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-1.5 text-xs font-bold text-amber-400">
+            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <span>Archive Season 2025/26 &bull; {fixtures.length} Fixtures Loaded</span>
+          </div>
+        </div>
+      )}
 
       {/* Row 2: Competition Dropdown & My Clubs Quick Toggle (Compact & Space Efficient) */}
       <div className="flex flex-wrap items-center justify-between gap-2.5 mb-5">

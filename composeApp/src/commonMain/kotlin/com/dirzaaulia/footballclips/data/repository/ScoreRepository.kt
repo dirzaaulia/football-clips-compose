@@ -13,6 +13,8 @@ interface ScoreRepository {
         hasHighlight: Boolean = false,
         ascending: Boolean = false,
         limit: Int = 20,
-        offset: Int = 0
+        offset: Int = 0,
+        season: Int? = null
     ): NetworkResult<List<MatchDto>>
 }
+

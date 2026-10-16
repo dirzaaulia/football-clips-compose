@@ -6,7 +6,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,6 +23,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.ui.components.filter.LeagueDropdownSelector
+import com.dirzaaulia.footballclips.ui.components.filter.SeasonDropdownSelector
+import com.dirzaaulia.footballclips.ui.score.ArchiveSeasonIndicator
 import com.dirzaaulia.footballclips.ui.score.DateOption
 import com.dirzaaulia.footballclips.ui.score.WebDateSelectorCard
 
@@ -42,6 +46,8 @@ internal fun MatchesTopBarFilters(
     liveMatchCount: Int = 0,
     selectedCompetitionId: String?,
     onLeagueSelected: (Int?, String?) -> Unit,
+    selectedSeason: Int = 2026,
+    onSeasonSelected: (Int) -> Unit = {},
 ) {
     AnimatedVisibility(
         visible = isFiltersExpanded,
@@ -61,35 +67,44 @@ internal fun MatchesTopBarFilters(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        WebDateSelectorCard(
-                            dates = dates,
-                            selectedDate = selectedDate,
-                            onDateSelected = onDateSelected,
+                        SeasonDropdownSelector(
+                            selectedSeason = selectedSeason,
+                            onSeasonSelected = onSeasonSelected,
                         )
 
-                        FilterChip(
-                            selected = isLiveOnlyActive,
-                            onClick = onToggleLiveOnly,
-                            leadingIcon = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .background(
-                                            if (isLiveOnlyActive || liveMatchCount > 0) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            CircleShape
-                                        )
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = if (liveMatchCount > 0) "Live ($liveMatchCount)" else "Live",
-                                    fontWeight = if (isLiveOnlyActive) FontWeight.Bold else FontWeight.Medium,
-                                    fontSize = 12.sp,
-                                    color = if (isLiveOnlyActive) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface
-                                )
-                            },
-                            shape = RoundedCornerShape(20.dp),
-                        )
+                        if (selectedSeason == 2026) {
+                            WebDateSelectorCard(
+                                dates = dates,
+                                selectedDate = selectedDate,
+                                onDateSelected = onDateSelected,
+                            )
+
+                            FilterChip(
+                                selected = isLiveOnlyActive,
+                                onClick = onToggleLiveOnly,
+                                leadingIcon = {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .background(
+                                                if (isLiveOnlyActive || liveMatchCount > 0) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                CircleShape
+                                            )
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        text = if (liveMatchCount > 0) "Live ($liveMatchCount)" else "Live",
+                                        fontWeight = if (isLiveOnlyActive) FontWeight.Bold else FontWeight.Medium,
+                                        fontSize = 12.sp,
+                                        color = if (isLiveOnlyActive) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface
+                                    )
+                                },
+                                shape = RoundedCornerShape(20.dp),
+                            )
+                        } else {
+                            ArchiveSeasonIndicator(season = selectedSeason)
+                        }
 
                         FilterChip(
                             selected = isMyClubsActive,
@@ -135,43 +150,56 @@ internal fun MatchesTopBarFilters(
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        WebDateSelectorCard(
-                            dates = dates,
-                            selectedDate = selectedDate,
-                            onDateSelected = onDateSelected,
+                        SeasonDropdownSelector(
+                            selectedSeason = selectedSeason,
+                            onSeasonSelected = onSeasonSelected,
                         )
 
-                        FilterChip(
-                            selected = isLiveOnlyActive,
-                            onClick = onToggleLiveOnly,
-                            leadingIcon = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .background(
-                                            if (isLiveOnlyActive || liveMatchCount > 0) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            CircleShape
-                                        )
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = if (liveMatchCount > 0) "Live ($liveMatchCount)" else "Live",
-                                    fontWeight = if (isLiveOnlyActive) FontWeight.Bold else FontWeight.Medium,
-                                    fontSize = 12.sp,
-                                    color = if (isLiveOnlyActive) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface
-                                )
-                            },
-                            shape = RoundedCornerShape(20.dp),
-                        )
+                        if (selectedSeason == 2026) {
+                            WebDateSelectorCard(
+                                dates = dates,
+                                selectedDate = selectedDate,
+                                onDateSelected = onDateSelected,
+                            )
+
+                            FilterChip(
+                                selected = isLiveOnlyActive,
+                                onClick = onToggleLiveOnly,
+                                leadingIcon = {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .background(
+                                                if (isLiveOnlyActive || liveMatchCount > 0) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                CircleShape
+                                            )
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        text = if (liveMatchCount > 0) "Live ($liveMatchCount)" else "Live",
+                                        fontWeight = if (isLiveOnlyActive) FontWeight.Bold else FontWeight.Medium,
+                                        fontSize = 12.sp,
+                                        color = if (isLiveOnlyActive) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface
+                                    )
+                                },
+                                shape = RoundedCornerShape(20.dp),
+                            )
+                        } else {
+                            ArchiveSeasonIndicator(season = selectedSeason)
+                        }
                     }
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {

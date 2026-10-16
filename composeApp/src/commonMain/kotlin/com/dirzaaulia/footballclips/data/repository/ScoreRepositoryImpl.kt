@@ -22,7 +22,8 @@ class ScoreRepositoryImpl(private val client: HttpClient) : ScoreRepository {
         hasHighlight: Boolean,
         ascending: Boolean,
         limit: Int,
-        offset: Int
+        offset: Int,
+        season: Int?
     ): NetworkResult<List<MatchDto>> {
         return try {
             val order = if (ascending) "utc_date.asc,id.asc" else "utc_date.desc,id.desc"
@@ -36,6 +37,10 @@ class ScoreRepositoryImpl(private val client: HttpClient) : ScoreRepository {
                     parameters.append("order", order)
                     parameters.append("limit", effectiveLimit.toString())
                     parameters.append("offset", offset.toString())
+                    
+                    season?.let {
+                        parameters.append("season", "eq.$it")
+                    }
                     
                     competitionId?.let { 
                         if (it.isNotBlank()) {
@@ -69,6 +74,7 @@ class ScoreRepositoryImpl(private val client: HttpClient) : ScoreRepository {
                     }
                 }
             }
+
             
             if (response.status.value in 200..299) {
                 NetworkResult.Success(response.body())

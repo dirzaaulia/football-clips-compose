@@ -32,6 +32,8 @@ fun MatchesTopBar(
     onDateSelected: (String?) -> Unit,
     selectedCompetitionId: String?,
     onLeagueSelected: (Int?, String?) -> Unit,
+    selectedSeason: Int = 2026,
+    onSeasonSelected: (Int) -> Unit = {},
     isFiltersExpanded: Boolean = true,
     onToggleFilterExpanded: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -157,7 +159,9 @@ fun MatchesTopBar(
                 onToggleLiveOnly = onToggleLiveOnly,
                 liveMatchCount = liveMatchCount,
                 selectedCompetitionId = selectedCompetitionId,
-                onLeagueSelected = onLeagueSelected
+                onLeagueSelected = onLeagueSelected,
+                selectedSeason = selectedSeason,
+                onSeasonSelected = onSeasonSelected
             )
         }
     }

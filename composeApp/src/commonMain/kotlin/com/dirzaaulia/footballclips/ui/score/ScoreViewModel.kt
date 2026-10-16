@@ -135,8 +135,10 @@ class ScoreViewModel(
     fun setSeason(season: Int) {
         if (_selectedSeason.value == season) return
         _selectedSeason.value = season
+        getMatches()
         getStandings()
     }
+
 
     init {
         viewModelScope.launch { clubRepository.refreshClubs() }

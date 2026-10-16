@@ -52,6 +52,7 @@ fun MatchesAndHighlightsScreen(
     val isMyClubsActive by viewModel.isMyClubsFilterActive.collectAsState()
     val isLiveOnlyActive by viewModel.isLiveOnlyFilterActive.collectAsState()
     val liveMatchCount by viewModel.liveMatchCount.collectAsState()
+    val selectedSeason by viewModel.selectedSeason.collectAsState()
     val isFiltersExpanded by viewModel.isFiltersExpanded.collectAsState()
     val isMyClubsSheetVisible by viewModel.showMyClubsSheet.collectAsState()
     var showMyClubsSheet by remember { mutableStateOf(false) }
@@ -114,6 +115,8 @@ fun MatchesAndHighlightsScreen(
                         onDateSelected = viewModel::selectDate,
                         selectedCompetitionId = selectedCompetitionId,
                         onLeagueSelected = { _, competitionId -> viewModel.selectCompetition(competitionId) },
+                        selectedSeason = selectedSeason,
+                        onSeasonSelected = viewModel::setSeason,
                         isFiltersExpanded = isFiltersExpanded,
                         onToggleFilterExpanded = { viewModel.toggleFiltersExpanded() }
                     )

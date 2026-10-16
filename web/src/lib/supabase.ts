@@ -79,7 +79,7 @@ export interface SupportedClubRecord {
   crest_url: string;
 }
 
-export async function getRecentHighlights(limit = 24, offset = 0, competitionId?: string): Promise<MatchRecord[]> {
+export async function getRecentHighlights(limit = 24, offset = 0, competitionId?: string, season?: number): Promise<MatchRecord[]> {
   let query = supabase
     .from('matches')
     .select('*')
@@ -92,9 +92,44 @@ export async function getRecentHighlights(limit = 24, offset = 0, competitionId?
     query = query.ilike('competition_id', competitionId);
   }
 
+  if (season) {
+    query = query.eq('season', season);
+  }
+
   const { data, error } = await query;
   if (error) {
     console.error('Error fetching highlights:', error);
+    return [];
+  }
+  return (data as unknown as MatchRecord[]) || [];
+}
+
+export async function getMatchesBySeason(
+  season: number,
+  competitionId?: string,
+  matchday?: number,
+  limit = 50,
+  offset = 0
+): Promise<MatchRecord[]> {
+  let query = supabase
+    .from('matches')
+    .select('*')
+    .eq('season', season)
+    .order('utc_date', { ascending: false })
+    .order('id', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (competitionId && competitionId !== 'ALL') {
+    query = query.ilike('competition_id', competitionId);
+  }
+
+  if (matchday && matchday > 0) {
+    query = query.eq('matchday', matchday);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('Error fetching matches by season:', error);
     return [];
   }
   return (data as unknown as MatchRecord[]) || [];

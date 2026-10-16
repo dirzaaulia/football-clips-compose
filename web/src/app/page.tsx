@@ -19,6 +19,7 @@ import SpoilerEducationDialog from '@/components/spoiler/SpoilerEducationDialog'
 import FloatingActionControls from '@/components/feed/FloatingActionControls';
 import { Trophy, Star, SlidersHorizontal, Loader2, CheckCircle2 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function HomePage() {
   const [matches, setMatches] = useState<MatchRecord[]>([]);
@@ -174,7 +175,16 @@ export default function HomePage() {
             <Trophy className="w-4 h-4 text-[#7098F8]" />
             <h2 className="text-base font-extrabold text-white tracking-tight">Recent Highlights</h2>
           </div>
-          <span className="text-xs text-[#94A3B8] font-medium">Verified Official Broadcasts</span>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/fixtures"
+              className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-bold bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 px-2.5 py-1 rounded-lg transition-all"
+            >
+              <Trophy className="w-3.5 h-3.5" />
+              <span>Archive 2025/26 Rewind</span>
+            </Link>
+            <span className="hidden sm:inline text-xs text-[#94A3B8] font-medium">Verified Official Broadcasts</span>
+          </div>
         </div>
 
         <div ref={scrollRef} className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none touch-pan-x overscroll-x-contain py-1 select-none">
