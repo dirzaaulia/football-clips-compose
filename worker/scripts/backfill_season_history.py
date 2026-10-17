@@ -366,8 +366,8 @@ def main():
     parser.add_argument(
         "--competitions",
         type=str,
-        default="PL,PD,SA,BL1,FL1,CL",
-        help="Comma-separated competition codes or 'all'. Default: PL,PD,SA,BL1,FL1,CL"
+        default="all",
+        help="Comma-separated competition codes or 'all' for all supported competitions. Default: all"
     )
     parser.add_argument(
         "--dry-run",
@@ -396,7 +396,7 @@ def main():
     args = parser.parse_args()
 
     if args.competitions.lower() == "all":
-        target_comps = ["PL", "PD", "SA", "BL1", "FL1", "CL", "EL", "FAC", "EFL", "CDR", "DFB", "CIT"]
+        target_comps = list(espn_client.COMPETITION_MAP.keys())
     else:
         target_comps = [c.strip().upper() for c in args.competitions.split(",") if c.strip()]
 

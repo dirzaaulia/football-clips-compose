@@ -88,7 +88,7 @@ android {
 
         versionCode = buildNumber
         versionName = when (targetTrack.lowercase()) {
-            "production", "prod" -> "$major.$minor.$patch"
+            "production", "prod" -> "$major.$minor.$patch ($buildNumber)"
             "beta" -> "$major.$minor.$patch-beta.$buildNumber"
             "alpha" -> "$major.$minor.$patch-alpha.$buildNumber"
             else -> "$major.$minor.$patch-internal.$buildNumber"
