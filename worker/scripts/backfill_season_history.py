@@ -360,8 +360,8 @@ def main():
     parser.add_argument(
         "--season",
         type=int,
-        default=2024,
-        help="Season start year (e.g. 2024 for 2024/2025, 2025 for 2025/2026). Default: 2024"
+        default=2025,
+        help="Season start year (e.g. 2025 for 2025/2026 archive, 2026 for 2026/2027 active). Default: 2025"
     )
     parser.add_argument(
         "--competitions",
