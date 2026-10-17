@@ -35,7 +35,7 @@ export default function CustomDropdown<T extends string | number>({
   variant = 'default',
   align = 'left',
   className = '',
-  menuWidth = 'w-56',
+  menuWidth = 'min-w-full w-max max-w-[90vw]',
   ariaLabel = 'Select option',
 }: CustomDropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
@@ -90,7 +90,7 @@ export default function CustomDropdown<T extends string | number>({
             : 'border-[#334155] hover:border-[#7098F8]/60 hover:bg-[#1E232B]'
         }`}
       >
-        <div className="flex items-center gap-2 truncate">
+        <div className="flex items-center gap-2 whitespace-nowrap">
           {leadingIcon && (
             <span
               className={`shrink-0 transition-transform duration-200 group-hover:scale-105 ${
@@ -106,7 +106,7 @@ export default function CustomDropdown<T extends string | number>({
             </span>
           )}
           <span
-            className={`font-bold truncate ${
+            className={`font-bold whitespace-nowrap ${
               isAmber ? 'text-amber-300' : 'text-white'
             }`}
           >
@@ -145,7 +145,7 @@ export default function CustomDropdown<T extends string | number>({
                     onChange(item.value);
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl text-left text-xs sm:text-sm transition-all duration-150 cursor-pointer ${
+                  className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-left text-xs sm:text-sm transition-all duration-150 cursor-pointer whitespace-nowrap ${
                     isSelected
                       ? isItemAmber
                         ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold'
@@ -153,7 +153,7 @@ export default function CustomDropdown<T extends string | number>({
                       : 'text-[#94A3B8] hover:bg-white/5 hover:text-white font-medium border border-transparent'
                   }`}
                 >
-                  <div className="flex items-center gap-2 truncate">
+                  <div className="flex items-center gap-2 whitespace-nowrap">
                     {item.icon && (
                       <span
                         className={`shrink-0 ${
@@ -167,13 +167,13 @@ export default function CustomDropdown<T extends string | number>({
                         {item.icon}
                       </span>
                     )}
-                    <span className="truncate">{item.label}</span>
+                    <span className="whitespace-nowrap">{item.label}</span>
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
                     {item.badge && (
                       <span
-                        className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${
                           item.badgeVariant === 'amber'
                             ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                             : item.badgeVariant === 'emerald'

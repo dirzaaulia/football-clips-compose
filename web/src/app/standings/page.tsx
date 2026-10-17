@@ -137,7 +137,6 @@ export default function StandingsPage() {
             leadingIcon={<Trophy className="w-4 h-4 text-[#7098F8]" />}
             prefix="League"
             className="w-auto"
-            menuWidth="w-56"
             ariaLabel="Select competition standings"
           />
         </div>

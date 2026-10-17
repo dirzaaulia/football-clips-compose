@@ -296,7 +296,6 @@ export default function FixturesPage() {
             leadingIcon={<Trophy className="w-3.5 h-3.5 text-[#7098F8]" />}
             prefix="League"
             variant="compact"
-            menuWidth="w-56"
             ariaLabel="Filter fixtures by competition"
           />
 

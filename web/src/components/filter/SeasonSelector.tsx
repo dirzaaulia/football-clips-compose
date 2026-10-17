@@ -47,9 +47,9 @@ export default function SeasonSelector({
 
   const dropdownItems: DropdownItem<number>[] = AVAILABLE_SEASONS.map((s) => ({
     value: s.year,
-    label: s.label,
+    label: s.shortLabel,
     shortLabel: s.shortLabel,
-    badge: s.isCurrent ? 'Active' : 'Archive',
+    badge: s.isCurrent ? 'Current' : 'Archive',
     badgeVariant: s.isCurrent ? 'primary' : 'amber',
     icon: s.isCurrent ? (
       <Calendar className="w-3.5 h-3.5" />
@@ -74,7 +74,6 @@ export default function SeasonSelector({
         }
         align={align}
         className={className}
-        menuWidth="w-56"
         ariaLabel="Select season"
       />
     );
@@ -97,7 +96,6 @@ export default function SeasonSelector({
       }
       align={align}
       className={className}
-      menuWidth="w-64"
       ariaLabel="Select season"
     />
   );
