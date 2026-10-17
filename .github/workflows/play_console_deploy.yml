@@ -56,6 +56,17 @@ jobs:
             echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
           fi
 
+      - name: Determine Target Track
+        id: target_track
+        run: |
+          if [ -n "${{ inputs.track }}" ]; then
+            echo "track=${{ inputs.track }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "track=production" >> $GITHUB_OUTPUT
+          else
+            echo "track=internal" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build Release Bundle (AAB)
         env:
           KEYSTORE_FILE: ${{ github.workspace }}/keystore.jks
@@ -70,8 +81,9 @@ jobs:
           ADMOB_BANNER_ID: ${{ secrets.ADMOB_BANNER_ID }}
           ADMOB_NATIVE_ID: ${{ secrets.ADMOB_NATIVE_ID }}
           ADMOB_INTERSTITIAL_ID: ${{ secrets.ADMOB_INTERSTITIAL_ID }}
+          TRACK: ${{ steps.target_track.outputs.track }}
         run: |
-          ./gradlew :androidApp:bundleRelease --stacktrace
+          ./gradlew :androidApp:bundleRelease -Ptrack=${{ steps.target_track.outputs.track }} --stacktrace
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
@@ -87,7 +99,7 @@ jobs:
           packageName: com.dirzaaulia.footballclips
           releaseFiles: androidApp/build/outputs/bundle/release/androidApp-release.aab
           mappingFile: androidApp/build/outputs/mapping/release/mapping.txt
-          track: ${{ inputs.track || 'internal' }}
+          track: ${{ steps.target_track.outputs.track }}
           status: ${{ inputs.status || 'completed' }}
 
       - name: Cleanup Keystore

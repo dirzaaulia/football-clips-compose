@@ -272,23 +272,30 @@ async def backfill_competition(
 
     now_iso = datetime.now(UTC).isoformat()
     for m in all_matches:
+        m["season"] = season_year
         m["updated_at"] = now_iso
         if m["id"] in existing_highlights:
             m["highlight_video_id"] = existing_highlights[m["id"]]
 
-    # Optional 0-Quota Historical Highlight Search & Linking
+    # Optional 0-Quota Historical Highlight Search & Linking (Concurrent)
     if link_highlights:
-        logger.info(f"[{comp_code}] Searching and linking historical highlights via 0-quota YouTube engine...")
-        linked_count = 0
-        for m in all_matches:
-            if m.get("highlight_video_id") or m.get("status") not in ["FINISHED", "AWARDED"]:
-                continue
-            vid = await find_historical_highlight(client, m)
-            if vid:
-                m["highlight_video_id"] = vid
-                linked_count += 1
-                logger.info(f"[{comp_code}] [0-QUOTA LINKED] {m['home_team_name']} vs {m['away_team_name']} -> https://youtu.be/{vid}")
-        logger.info(f"[{comp_code}] Successfully linked {linked_count} official highlights with 0 quota units.")
+        logger.info(f"[{comp_code}] Searching and linking historical highlights via 0-quota YouTube engine (concurrency=6)...")
+        highlight_sem = asyncio.Semaphore(6)
+        linked_counter = 0
+
+        async def check_match_highlight(m_item: dict):
+            nonlocal linked_counter
+            if m_item.get("highlight_video_id") or m_item.get("status") not in ["FINISHED", "AWARDED"]:
+                return
+            async with highlight_sem:
+                vid = await find_historical_highlight(client, m_item)
+                if vid:
+                    m_item["highlight_video_id"] = vid
+                    linked_counter += 1
+                    logger.info(f"[{comp_code}] [0-QUOTA LINKED #{linked_counter}] {m_item['home_team_name']} vs {m_item['away_team_name']} -> https://youtu.be/{vid}")
+
+        await asyncio.gather(*[check_match_highlight(m) for m in all_matches], return_exceptions=True)
+        logger.info(f"[{comp_code}] Successfully linked {linked_counter} official highlights with 0 quota units.")
 
     # Batch upsert to Supabase
     total_upserted = 0

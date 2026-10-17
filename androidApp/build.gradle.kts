@@ -38,8 +38,9 @@ val minor = versionProps.getProperty("VERSION_MINOR", "0").toInt()
 val patch = versionProps.getProperty("VERSION_PATCH", "0").toInt()
 val buildNumber = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()
     ?: versionProps.getProperty("VERSION_BUILD", "1").toInt())
-
-val targetTrack = providers.gradleProperty("track").getOrElse("internal")
+val targetTrack = providers.gradleProperty("track").orNull
+    ?: System.getenv("TRACK")
+    ?: if (System.getenv("GITHUB_REF")?.startsWith("refs/tags/v") == true) "production" else "internal"
 
 play {
     val playKeyPath = localProperties.getProperty("PLAY_SERVICE_ACCOUNT")
