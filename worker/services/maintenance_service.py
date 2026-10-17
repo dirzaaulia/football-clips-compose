@@ -21,6 +21,7 @@ class MaintenanceService:
             res = (
                 supabase_client.table("matches")
                 .delete()
+                .eq("season", 2026)
                 .lt("utc_date", cutoff_date)
                 .execute()
             )
