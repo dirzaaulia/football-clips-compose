@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Mail, Globe, Send, CheckCircle2, ShieldCheck, Clock } from 'lucide-react';
+import CustomDropdown from '@/components/common/CustomDropdown';
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -121,18 +122,21 @@ export default function ContactPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-zinc-300 font-semibold block">Inquiry Category</label>
-              <select
+              <label className="text-zinc-300 font-semibold block text-sm">Inquiry Category</label>
+              <CustomDropdown<string>
+                items={[
+                  { value: 'Editorial Feedback', label: 'Editorial Feedback & Match Debriefs' },
+                  { value: 'Corrections', label: 'Score or Video Highlight Correction' },
+                  { value: 'Advertising', label: 'Advertising & Sponsorship' },
+                  { value: 'Copyright', label: 'DMCA / Copyright Inquiries' },
+                  { value: 'Technical', label: 'Technical & Account Support' },
+                ]}
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#101418] border border-[#334155] focus:border-[#7098F8] text-white outline-none cursor-pointer"
-              >
-                <option value="Editorial Feedback">Editorial Feedback &amp; Match Debriefs</option>
-                <option value="Corrections">Score or Video Highlight Correction</option>
-                <option value="Advertising">Advertising &amp; Sponsorship</option>
-                <option value="Copyright">DMCA / Copyright Inquiries</option>
-                <option value="Technical">Technical &amp; Account Support</option>
-              </select>
+                onChange={(cat) => setFormData({ ...formData, category: cat })}
+                className="w-full"
+                menuWidth="w-full"
+                ariaLabel="Select inquiry category"
+              />
             </div>
 
             <div className="space-y-1.5">

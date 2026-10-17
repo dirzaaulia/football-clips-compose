@@ -6,6 +6,7 @@ import { Search, Star, Sparkles, Check, X, Bell, Trophy } from 'lucide-react';
 import { SUPPORTED_CLUBS } from '@/lib/clubs';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import ModalSideSheet from '@/components/common/ModalSideSheet';
+import CustomDropdown from '@/components/common/CustomDropdown';
 import NotificationOptInModal from './NotificationOptInModal';
 import { requestWebNotificationPermission } from '@/lib/firebase/messaging';
 
@@ -134,20 +135,20 @@ export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
         </div>
 
         {/* Clean League Dropdown Filter */}
-        <div className="flex items-center gap-2 bg-[#181C20] border border-[#334155] hover:border-[#7098F8]/50 rounded-xl px-3 py-2 transition-all shadow-inner">
-          <Trophy className="w-4 h-4 text-[#7098F8] shrink-0" />
-          <select
-            value={selectedLeague}
-            onChange={(e) => setSelectedLeague(e.target.value)}
-            className="w-full bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer pr-1"
-          >
-            {LEAGUE_TABS.map((tab) => (
-              <option key={tab.code} value={tab.code} className="bg-[#181C20] text-white">
-                {tab.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <CustomDropdown<string>
+          items={LEAGUE_TABS.map((tab) => ({
+            value: tab.code,
+            label: tab.name,
+            icon: <Trophy className="w-3.5 h-3.5 text-[#7098F8]" />,
+          }))}
+          value={selectedLeague}
+          onChange={setSelectedLeague}
+          leadingIcon={<Trophy className="w-4 h-4 text-[#7098F8]" />}
+          prefix="League"
+          className="w-full"
+          menuWidth="w-full"
+          ariaLabel="Filter clubs by league"
+        />
       </div>
 
       {/* Clubs List */}

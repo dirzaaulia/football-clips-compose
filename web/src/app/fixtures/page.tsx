@@ -14,6 +14,7 @@ import LiveMatchSection from '@/components/live/LiveMatchSection';
 import MyClubsModal from '@/components/clubs/MyClubsModal';
 
 import SeasonSelector from '@/components/filter/SeasonSelector';
+import CustomDropdown from '@/components/common/CustomDropdown';
 import { useSeason } from '@/hooks/useSeason';
 
 type FixtureTab = 'ALL' | 'LIVE' | 'RESULTS' | 'UPCOMING';
@@ -281,23 +282,23 @@ export default function FixturesPage() {
       <div className="flex flex-wrap items-center justify-between gap-2.5 mb-5">
         <div className="flex items-center gap-2">
           {/* League Dropdown Selector */}
-          <div className="flex items-center gap-2 bg-[#181C20] border border-[#334155] hover:border-[#7098F8]/50 rounded-xl px-3 py-1.5 transition-all shadow-sm">
-            <Trophy className="w-3.5 h-3.5 text-[#7098F8]" />
-            <select
-              value={isMyClubsActive ? '' : selectedComp}
-              onChange={(e) => {
-                setIsMyClubsActive(false);
-                setSelectedComp(e.target.value);
-              }}
-              className="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer pr-1"
-            >
-              {BIG_LEAGUES.map((c) => (
-                <option key={c.competitionId || c.name} value={c.competitionId || 'ALL'} className="bg-[#181C20] text-white">
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomDropdown<string>
+            items={BIG_LEAGUES.map((c) => ({
+              value: c.competitionId || 'ALL',
+              label: c.name,
+              icon: <Trophy className="w-3.5 h-3.5 text-[#7098F8]" />,
+            }))}
+            value={isMyClubsActive ? '' : selectedComp}
+            onChange={(val) => {
+              setIsMyClubsActive(false);
+              setSelectedComp(val);
+            }}
+            leadingIcon={<Trophy className="w-3.5 h-3.5 text-[#7098F8]" />}
+            prefix="League"
+            variant="compact"
+            menuWidth="w-56"
+            ariaLabel="Filter fixtures by competition"
+          />
 
           {/* My Clubs Chip */}
           <button

@@ -20,6 +20,7 @@ const LEAGUES = [
 ];
 
 import SeasonSelector from '@/components/filter/SeasonSelector';
+import CustomDropdown from '@/components/common/CustomDropdown';
 import { useSeason } from '@/hooks/useSeason';
 
 function normalizeTeamNameForDeduplication(name: string): string {
@@ -125,20 +126,20 @@ export default function StandingsPage() {
           <SeasonSelector variant="select" />
 
           {/* League Selector */}
-          <div className="flex items-center gap-2 bg-[#181C20] border border-[#334155] hover:border-[#7098F8]/50 rounded-2xl px-3.5 py-2 transition-all shadow-md">
-            <Trophy className="w-4 h-4 text-[#7098F8]" />
-            <select
-              value={selectedComp}
-              onChange={(e) => setSelectedComp(e.target.value)}
-              className="bg-transparent text-white text-xs sm:text-sm font-bold focus:outline-none cursor-pointer pr-1"
-            >
-              {LEAGUES.map((l) => (
-                <option key={l.code} value={l.code} className="bg-[#181C20] text-white">
-                  {l.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomDropdown<string>
+            items={LEAGUES.map((l) => ({
+              value: l.code,
+              label: l.name,
+              icon: <Trophy className="w-4 h-4 text-[#7098F8]" />,
+            }))}
+            value={selectedComp}
+            onChange={setSelectedComp}
+            leadingIcon={<Trophy className="w-4 h-4 text-[#7098F8]" />}
+            prefix="League"
+            className="w-auto"
+            menuWidth="w-56"
+            ariaLabel="Select competition standings"
+          />
         </div>
       </header>
 
