@@ -186,9 +186,38 @@ export async function fetchMergedHighlightsPage(
   offsetSupabase: number,
   offsetMw: number,
   limitSupabase = 20,
-  limitMw = 30
+  limitMw = 30,
+  season?: number
 ): Promise<MergedHighlightsResult> {
   const bigLeague = BIG_LEAGUES.find((b) => b.competitionId === selectedComp);
+
+  // If viewing historical archive season (e.g. 2025), fetch exclusively from Supabase archive
+  if (season && season !== 2026) {
+    if (offsetSupabase < 0) {
+      return {
+        matches: [],
+        hasMore: false,
+        hasMoreSupabase: false,
+        hasMoreMw: false,
+        nextOffsetSupabase: -1,
+        nextOffsetMw: 0,
+      };
+    }
+    const supabaseData = await getRecentHighlights(limitSupabase, offsetSupabase, selectedComp, season);
+    const hasMore = supabaseData.length >= limitSupabase;
+    const enriched = supabaseData
+      .map(enrichSupabaseMatch)
+      .sort((a, b) => (new Date(b.utc_date).getTime() || 0) - (new Date(a.utc_date).getTime() || 0));
+
+    return {
+      matches: enriched,
+      hasMore,
+      hasMoreSupabase: hasMore,
+      hasMoreMw: false,
+      nextOffsetSupabase: hasMore ? offsetSupabase + supabaseData.length : -1,
+      nextOffsetMw: 0,
+    };
+  }
 
   let enrichedSupa: MatchRecord[] = [];
   let mwRecords: MatchRecord[] = [];
@@ -199,7 +228,7 @@ export async function fetchMergedHighlightsPage(
 
   // 1. Priority: Fetch Supabase items first (newest available) until exhausted
   if (offsetSupabase >= 0) {
-    const supabaseData = await getRecentHighlights(limitSupabase, offsetSupabase, selectedComp);
+    const supabaseData = await getRecentHighlights(limitSupabase, offsetSupabase, selectedComp, season);
     hasMoreSupabase = supabaseData.length >= limitSupabase;
     enrichedSupa = supabaseData
       .map(enrichSupabaseMatch)

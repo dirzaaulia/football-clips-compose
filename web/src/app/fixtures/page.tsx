@@ -13,10 +13,13 @@ import FixtureItemCard from '@/components/fixtures/FixtureItemCard';
 import LiveMatchSection from '@/components/live/LiveMatchSection';
 import MyClubsModal from '@/components/clubs/MyClubsModal';
 
+import SeasonSelector from '@/components/filter/SeasonSelector';
+import { useSeason } from '@/hooks/useSeason';
+
 type FixtureTab = 'ALL' | 'LIVE' | 'RESULTS' | 'UPCOMING';
 
 export default function FixturesPage() {
-  const [selectedSeason, setSelectedSeason] = useState<number>(2026);
+  const { selectedSeason, setSeason } = useSeason();
   const [archiveFilter, setArchiveFilter] = useState<'ALL' | 'HIGHLIGHTS'>('ALL');
   const [selectedDate, setSelectedDate] = useState('2026-10-08');
   const [activeTab, setActiveTab] = useState<FixtureTab>('ALL');
@@ -163,29 +166,8 @@ export default function FixturesPage() {
           <p className="text-xs sm:text-sm text-[#94A3B8] mt-1">Live scores, scheduled fixtures, and verified results.</p>
         </div>
 
-        {/* Season Switcher Pill */}
-        <div className="flex items-center bg-[#181C20] border border-[#334155] p-1 rounded-xl shadow-sm self-start sm:self-auto">
-          <button
-            onClick={() => setSelectedSeason(2026)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              selectedSeason === 2026
-                ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white shadow-sm'
-                : 'text-[#94A3B8] hover:text-white'
-            }`}
-          >
-            2026/27 (Current)
-          </button>
-          <button
-            onClick={() => setSelectedSeason(2025)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              selectedSeason === 2025
-                ? 'bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-sm'
-                : 'text-[#94A3B8] hover:text-white'
-            }`}
-          >
-            2025/26 (Archive)
-          </button>
-        </div>
+        {/* Global Synchronized Season Switcher */}
+        <SeasonSelector variant="pill" className="self-start sm:self-auto" />
       </header>
 
       {/* Control Deck */}

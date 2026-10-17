@@ -19,10 +19,8 @@ const LEAGUES = [
   { code: 'PPL', name: 'Liga Portugal' },
 ];
 
-const SEASONS = [
-  { year: 2026, label: '2026/27 (Current)' },
-  { year: 2025, label: '2025/26 (Archive)' },
-];
+import SeasonSelector from '@/components/filter/SeasonSelector';
+import { useSeason } from '@/hooks/useSeason';
 
 function normalizeTeamNameForDeduplication(name: string): string {
   return name
@@ -90,7 +88,7 @@ function deduplicateStandings(standings: StandingRecord[]): StandingRecord[] {
 
 export default function StandingsPage() {
   const [selectedComp, setSelectedComp] = useState('PL');
-  const [selectedSeason, setSelectedSeason] = useState(2026);
+  const { selectedSeason, setSeason } = useSeason();
   const [standings, setStandings] = useState<StandingRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -123,21 +121,8 @@ export default function StandingsPage() {
 
         {/* Compact, Intuitive Selectors */}
         <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-          {/* Season Selector */}
-          <div className="flex items-center gap-2 bg-[#181C20] border border-[#334155] hover:border-[#7098F8]/50 rounded-2xl px-3.5 py-2 transition-all shadow-md">
-            <span className="text-xs text-[#94A3B8] font-medium">Season:</span>
-            <select
-              value={selectedSeason}
-              onChange={(e) => setSelectedSeason(Number(e.target.value))}
-              className="bg-transparent text-white text-xs sm:text-sm font-bold focus:outline-none cursor-pointer pr-1"
-            >
-              {SEASONS.map((s) => (
-                <option key={s.year} value={s.year} className="bg-[#181C20] text-white">
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Global Synchronized Season Selector */}
+          <SeasonSelector variant="select" />
 
           {/* League Selector */}
           <div className="flex items-center gap-2 bg-[#181C20] border border-[#334155] hover:border-[#7098F8]/50 rounded-2xl px-3.5 py-2 transition-all shadow-md">

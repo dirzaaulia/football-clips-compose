@@ -8,6 +8,7 @@ import SidebarNav from './SidebarNav';
 import SidebarBottomControls from './SidebarBottomControls';
 import PaywallModal from '../billing/PaywallModal';
 import MyClubsModal from '../clubs/MyClubsModal';
+import SeasonSelector from '../filter/SeasonSelector';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 import { useProStatus } from '@/hooks/useProStatus';
 import { useMyClubs } from '@/hooks/useMyClubs';
@@ -97,6 +98,15 @@ export default function Sidebar() {
             )}
           </button>
         </div>
+
+        {/* Global Season Selector (Android Parity) */}
+        <div className="pt-1 w-full">
+          {!isCollapsed ? (
+            <SeasonSelector variant="select" className="w-full justify-between" />
+          ) : (
+            <SeasonSelector variant="compact" className="w-full justify-center px-1" />
+          )}
+        </div>
       </div>
 
       {/* Bottom Controls: Spoiler-Free & Paddle PRO */}
@@ -153,7 +163,8 @@ export default function Sidebar() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <SeasonSelector variant="compact" />
           <button
             onClick={() => setIsPaywallOpen(true)}
             className={`p-1.5 rounded-xl transition-all cursor-pointer ${

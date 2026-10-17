@@ -17,11 +17,14 @@ import MyClubsModal from '@/components/clubs/MyClubsModal';
 import FilterSideSheet from '@/components/filter/FilterSideSheet';
 import SpoilerEducationDialog from '@/components/spoiler/SpoilerEducationDialog';
 import FloatingActionControls from '@/components/feed/FloatingActionControls';
-import { Trophy, Star, SlidersHorizontal, Loader2, CheckCircle2 } from 'lucide-react';
+import SeasonSelector from '@/components/filter/SeasonSelector';
+import { useSeason } from '@/hooks/useSeason';
+import { Trophy, Star, SlidersHorizontal, Loader2, CheckCircle2, Archive } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function HomePage() {
+  const { selectedSeason, setSeason, isArchiveSeason, currentOption } = useSeason();
   const [matches, setMatches] = useState<MatchRecord[]>([]);
   const [liveMatches, setLiveMatches] = useState<MatchRecord[]>([]);
   const [selectedComp, setSelectedComp] = useState('ALL');
@@ -76,12 +79,12 @@ export default function HomePage() {
     };
   }, []);
 
-  // Reset and load initial page when competition changes
+  // Reset and load initial page when competition or season changes
   useEffect(() => {
     let isCancelled = false;
     async function loadInitial() {
       setLoading((prev) => ({ ...prev, initial: true }));
-      const res = await fetchMergedHighlightsPage(selectedComp, 0, 0, 24, 30);
+      const res = await fetchMergedHighlightsPage(selectedComp, 0, 0, 24, 30, selectedSeason);
       if (!isCancelled) {
         startTransition(() => {
           setMatches(res.matches);
@@ -92,13 +95,13 @@ export default function HomePage() {
     }
     loadInitial();
     return () => { isCancelled = true; };
-  }, [selectedComp]);
+  }, [selectedComp, selectedSeason]);
 
   // Infinite scroll load more handler
   const handleLoadMore = useCallback(async () => {
     if (loading.more || !loading.hasMore) return;
     setLoading((prev) => ({ ...prev, more: true }));
-    const res = await fetchMergedHighlightsPage(selectedComp, offsets.supa, offsets.mw, 20, 30);
+    const res = await fetchMergedHighlightsPage(selectedComp, offsets.supa, offsets.mw, 20, 30, selectedSeason);
     startTransition(() => {
       setMatches((prev) => {
         const seen = new Set(prev.map((m) => m.highlight_video_id || m.id));
@@ -107,7 +110,7 @@ export default function HomePage() {
       setOffsets({ supa: res.nextOffsetSupabase, mw: res.nextOffsetMw });
       setLoading((prev) => ({ ...prev, more: false, hasMore: res.hasMore }));
     });
-  }, [loading.more, loading.hasMore, selectedComp, offsets]);
+  }, [loading.more, loading.hasMore, selectedComp, offsets, selectedSeason]);
 
   // Infinite scroll intersection observer
   useEffect(() => {
@@ -176,13 +179,7 @@ export default function HomePage() {
             <h2 className="text-base font-extrabold text-white tracking-tight">Recent Highlights</h2>
           </div>
           <div className="flex items-center gap-3">
-            <Link
-              href="/fixtures"
-              className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-bold bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 px-2.5 py-1 rounded-lg transition-all"
-            >
-              <Trophy className="w-3.5 h-3.5" />
-              <span>Archive 2025/26 Rewind</span>
-            </Link>
+            <SeasonSelector variant="compact" />
             <span className="hidden sm:inline text-xs text-[#94A3B8] font-medium">Verified Official Broadcasts</span>
           </div>
         </div>
@@ -228,6 +225,34 @@ export default function HomePage() {
           })}
         </div>
       </section>
+
+      {/* Archive Season Alert Banner */}
+      {isArchiveSeason && (
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 shadow-sm animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 shrink-0">
+              <Archive className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-sm font-black flex items-center gap-2">
+                <span>Archive Season {currentOption.label}</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 border border-amber-500/40 text-amber-300 uppercase">
+                  Archive
+                </span>
+              </div>
+              <p className="text-xs text-amber-300/80 mt-0.5">
+                Displaying verified archive match highlights and historical scorelines.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setSeason(2026)}
+            className="self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-xs font-bold text-amber-200 transition-all cursor-pointer whitespace-nowrap"
+          >
+            Switch to Current Season
+          </button>
+        </div>
+      )}
 
       {/* Highlights Grid */}
       {loading.initial ? (
