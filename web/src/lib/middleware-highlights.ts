@@ -1,30 +1,13 @@
-import { MatchRecord, getRecentHighlights } from './supabase';
+import { MatchRecord, getRecentHighlights } from './database';
 import { BIG_LEAGUES, isLeagueMatch } from './constants';
+import {
+  MiddlewareHighlight,
+  MiddlewareFetchResult,
+  MiddlewareResponse,
+  MiddlewareMatch,
+} from './middleware-types';
 
-export interface MiddlewareTeam { id: number; name: string; logo: string | null; }
-export interface MiddlewareLeague { id: number; name: string; logo: string | null; season?: number; }
-export interface MiddlewareCountry { code: string; name: string; logo: string | null; }
-export interface MiddlewareMatch {
-  id: number; date: string; round?: string;
-  homeTeam: MiddlewareTeam; awayTeam: MiddlewareTeam;
-  league: MiddlewareLeague; country: MiddlewareCountry;
-}
-export interface MiddlewareHighlight {
-  id: number; title: string; category: string; channel: string;
-  url: string; embedUrl: string; imgUrl: string; source: string; type: string;
-  match?: MiddlewareMatch;
-}
-export interface MiddlewareResponse {
-  status: string; total_verified: number;
-  pagination: { limit: number; offset: number; totalCount: number; };
-  data: MiddlewareHighlight[];
-}
-
-export interface MiddlewareFetchResult {
-  items: MiddlewareHighlight[];
-  hasMore: boolean;
-  totalCount: number;
-}
+export * from './middleware-types';
 
 const MIDDLEWARE_URL = 'https://football-clips-middleware.dirzaaulia11.workers.dev';
 
@@ -71,26 +54,30 @@ export interface FilterOption {
 export interface MergedHighlightsResult {
   matches: MatchRecord[];
   hasMore: boolean;
-  hasMoreSupabase: boolean;
+  hasMoreDb: boolean;
+  hasMoreSupabase: boolean; // Backward compatibility alias
   hasMoreMw: boolean;
-  nextOffsetSupabase: number;
+  nextOffsetDb: number;
+  nextOffsetSupabase: number; // Backward compatibility alias
   nextOffsetMw: number;
 }
 
 const COMP_COUNTRY_MAP: Record<string, { country: string; flag: string }> = {
-  PL: { country: 'England', flag: 'https://crests.football-data.org/770.svg' },
-  PD: { country: 'Spain', flag: 'https://crests.football-data.org/760.svg' },
-  BL1: { country: 'Germany', flag: 'https://crests.football-data.org/759.svg' },
-  SA: { country: 'Italy', flag: 'https://crests.football-data.org/784.svg' },
-  FL1: { country: 'France', flag: 'https://crests.football-data.org/773.svg' },
-  DED: { country: 'Netherlands', flag: 'https://crests.football-data.org/8601.svg' },
-  PPL: { country: 'Portugal', flag: 'https://crests.football-data.org/765.svg' },
-  BSA: { country: 'Brazil', flag: 'https://crests.football-data.org/764.svg' },
-  CL: { country: 'Europe', flag: 'https://crests.football-data.org/EUR.svg' },
-  EC: { country: 'Europe', flag: 'https://crests.football-data.org/EUR.svg' },
+  PL: { country: 'England', flag: 'https://flagcdn.com/w40/gb-eng.png' },
+  PD: { country: 'Spain', flag: 'https://flagcdn.com/w40/es.png' },
+  BL1: { country: 'Germany', flag: 'https://flagcdn.com/w40/de.png' },
+  SA: { country: 'Italy', flag: 'https://flagcdn.com/w40/it.png' },
+  FL1: { country: 'France', flag: 'https://flagcdn.com/w40/fr.png' },
+  DED: { country: 'Netherlands', flag: 'https://flagcdn.com/w40/nl.png' },
+  PPL: { country: 'Portugal', flag: 'https://flagcdn.com/w40/pt.png' },
+  BSA: { country: 'Brazil', flag: 'https://flagcdn.com/w40/br.png' },
+  CL: { country: 'Europe', flag: 'https://flagcdn.com/w40/eu.png' },
+  EC: { country: 'Europe', flag: 'https://flagcdn.com/w40/eu.png' },
+  SPL: { country: 'Saudi Arabia', flag: 'https://flagcdn.com/w40/sa.png' },
+  MLS: { country: 'USA', flag: 'https://flagcdn.com/w40/us.png' },
 };
 
-function enrichSupabaseMatch(m: MatchRecord): MatchRecord {
+function enrichDatabaseMatch(m: MatchRecord): MatchRecord {
   const comp = COMP_COUNTRY_MAP[m.competition_id];
   return {
     ...m,
@@ -98,6 +85,7 @@ function enrichSupabaseMatch(m: MatchRecord): MatchRecord {
     country_logo: comp?.flag || m.country_logo || null,
   };
 }
+const enrichSupabaseMatch = enrichDatabaseMatch;
 
 export function middlewareHighlightToMatchRecord(item: MiddlewareHighlight): MatchRecord {
   const videoId = extractYouTubeId(item.embedUrl || item.url);
@@ -110,16 +98,12 @@ export function middlewareHighlightToMatchRecord(item: MiddlewareHighlight): Mat
     competition_name: item.match?.league?.name || item.channel || 'Official Highlight',
     utc_date: item.match?.date || new Date().toISOString(),
     status: 'FINISHED',
-    home_team: homeTeam,
-    away_team: awayTeam,
-    home_team_name: homeTeam,
-    away_team_name: awayTeam,
+    home_team: homeTeam, away_team: awayTeam,
+    home_team_name: homeTeam, away_team_name: awayTeam,
     home_team_crest: item.match?.homeTeam?.logo || null,
     away_team_crest: item.match?.awayTeam?.logo || null,
-    home_score: null,
-    away_score: null,
-    highlight_video_id: videoId,
-    recap_analysis: null,
+    home_score: null, away_score: null,
+    highlight_video_id: videoId, recap_analysis: null,
     country_name: item.match?.country?.name || null,
     country_logo: item.match?.country?.logo || null,
   };
@@ -197,8 +181,10 @@ export async function fetchMergedHighlightsPage(
       return {
         matches: [],
         hasMore: false,
+        hasMoreDb: false,
         hasMoreSupabase: false,
         hasMoreMw: false,
+        nextOffsetDb: -1,
         nextOffsetSupabase: -1,
         nextOffsetMw: 0,
       };
@@ -206,15 +192,18 @@ export async function fetchMergedHighlightsPage(
     const supabaseData = await getRecentHighlights(limitSupabase, offsetSupabase, selectedComp, season);
     const hasMore = supabaseData.length >= limitSupabase;
     const enriched = supabaseData
-      .map(enrichSupabaseMatch)
+      .map(enrichDatabaseMatch)
       .sort((a, b) => (new Date(b.utc_date).getTime() || 0) - (new Date(a.utc_date).getTime() || 0));
 
+    const nextDb = hasMore ? offsetSupabase + supabaseData.length : -1;
     return {
       matches: enriched,
       hasMore,
+      hasMoreDb: hasMore,
       hasMoreSupabase: hasMore,
       hasMoreMw: false,
-      nextOffsetSupabase: hasMore ? offsetSupabase + supabaseData.length : -1,
+      nextOffsetDb: nextDb,
+      nextOffsetSupabase: nextDb,
       nextOffsetMw: 0,
     };
   }
@@ -269,8 +258,10 @@ export async function fetchMergedHighlightsPage(
   return {
     matches: combined,
     hasMore: overallHasMore,
+    hasMoreDb: hasMoreSupabase,
     hasMoreSupabase,
     hasMoreMw,
+    nextOffsetDb: nextOffsetSupabase,
     nextOffsetSupabase,
     nextOffsetMw,
   };

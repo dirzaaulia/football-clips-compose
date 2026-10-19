@@ -63,6 +63,9 @@ Here are the official high-resolution marketing banners featured on the Google P
 
 - 🎥 **HD Official Match Highlights**: Curated, decisive goals, and extended match highlights from official club channels and authorized broadcast partners without clickbait.
 - ⚡ **Live Scores & Real-Time Match Events**: Live scoreboards with interactive status indicators (`LIVE`, `FINISHED`, `SCHEDULED`), team crests, and kickoff schedules.
+- 📜 **Multi-Season Historical Archive**: Full cross-platform archive browsing for Season 2025/26 with over 3,420+ historical fixtures and video highlights, protected by database-level immutability triggers.
+- 📊 **Tactical Match Debrief & Boxscore Statistics**: In-depth match intelligence including authentic ESPN statistics (possession, shots, passes, corners, tackles), starting formations, upcoming match previews, and full-time journalistic summaries.
+- 📰 **Multi-Source Football Journalistic Hub**: Accredited football news streams from Tier-1 sports journalism providers (BBC Sport, The Guardian) with real-time editorial feeds.
 - 🔔 **Real-Time Club Push Notifications ($0.00 Cost Architecture)**:
   - Broadcasts across 5 critical match phases: **Highlight Available**, **Going to Play (Countdown)**, **In Play (Kickoff)**, **Score Updated (Live Goals)**, and **Finish Match (Full Time)**.
   - Delivered via **Firebase Cloud Messaging (FCM) Topics** (`club_{club_id}`) with zero database polling overhead or per-user token storage.
@@ -99,14 +102,14 @@ Here are the official high-resolution marketing banners featured on the Google P
 
 | Layer / Tier | Technology Stack | Responsibilities & Capabilities |
 | :--- | :--- | :--- |
-| **Presentation: Android** | Compose Multiplatform 1.12.1<br/>Jetpack Compose, SDK 37 | Material 3 Expressive UI, Hardware-accelerated YouTube player, FCM messaging service (`FootballClipsFirebaseMessagingService`), RevenueCat Google Play billing, NextGen AdMob. |
-| **Presentation: Web Portal** | Next.js 16, React 19, TypeScript<br/>Tailwind CSS, Turbopack | Primary public web portal (`fc.dirzaaulia.com`), SSG/ISR static export, Web Push background Service Worker (`firebase-messaging-sw.js`), Google AdSense ads, contextual notification modal. |
+| **Presentation: Android** | Compose Multiplatform 1.12.1<br/>Jetpack Compose, SDK 37 | Material 3 Expressive UI, Hardware-accelerated YouTube player, FCM messaging service (`FootballClipsFirebaseMessagingService`), RevenueCat Google Play billing, NextGen AdMob. Dynamic track-based version naming (`3.0.1 (run_number)`). |
+| **Presentation: Web Portal** | Next.js 16, React 19, TypeScript<br/>Tailwind CSS, Turbopack | Primary public web portal (`fc.dirzaaulia.com`), SSG/ISR static export, Web Push background Service Worker (`firebase-messaging-sw.js`), Google AdSense ads, custom glassmorphic dropdowns, and global season selector. |
 | **Presentation: APM Command Center** | Kotlin/Wasm (WebAssembly)<br/>Compose Web Multiplatform | Real-time observability dashboard (`/telemetry`), live OpenMetrics stream (`/metrics`), interactive cycle dispatcher, instant Cloudflare cache invalidation, and edge benchmark tester. |
-| **Global Edge Proxy Tier** | Cloudflare Workers (`fc-edge-proxy`)<br/>Edge Cache API | Sub-15ms edge caching layer (`fc-edge-proxy.dirzaaulia11.workers.dev`), multi-tier TTL (30s live, 24h finished, 6h standings), instant purge API (`/api/purge-cache`), and Supabase connection pool protection. |
-| **Cloud Backend & Database** | Supabase Cloud (PostgreSQL 15)<br/>Supabase Auth & Postgrest | Normalized tables (`matches`, `highlights`, `supported_clubs`, `profiles`), worker telemetry logs (`worker_cycles`, `worker_events`), Google OAuth authentication. |
+| **Global Edge Proxy & Dual Router** | Cloudflare Workers (`fc-edge-proxy`)<br/>Domain: `edge.fc.dirzaaulia.com` | Sub-15ms edge caching layer with dual-origin routing: routes high-volume match/standings data to Oracle Super-Node PostgreSQL (0 egress limits) and user auth to Supabase. Enforces enterprise security headers (HSTS, CSP, X-Frame-Options, Nosniff) and instant cache purge API (`/api/purge-cache`). |
+| **Cloud Backend & Database** | Supabase Cloud (PostgreSQL 15)<br/>Supabase Auth & Postgrest | GoTrue Google OAuth authentication, user profiles (`profiles` table), in-app purchase entitlements, and real-time sync. |
+| **Autonomous Super-Node Datastore** | Oracle Always Free (Ampere ARM64)<br/>PostgreSQL 16, PostgREST, Caddy | Dedicated 4-core, 24GB RAM super-node (`168.110.196.30`) hosting production PostgreSQL 16 datastore with `protect_archive_matches` immutability trigger preserving 3,420+ archive matches, Caddy auto-TLS reverse proxy, FileBrowser Quantum, and automated Backblaze B2 sync. |
 | **Push Notification Network** | Firebase Cloud Messaging (FCM)<br/>Topic Architecture: `club_{id}` | Global edge fanout delivering goal alerts, match schedules, and highlight releases to millions of Android devices and Web browsers at **$0 infrastructure cost**. |
 | **Serverless AI Worker Engine** | Python 3.12/3.13, FastAPI, Asyncio<br/>Google Cloud Run (`fc-worker`) | Containerized serverless worker on Cloud Run with automated scale-to-zero, real-time YouTube WebSub push receiver, ESPN sports engine, and Gemini 3.8 Flash AI re-ranking. |
-| **Autonomous Super-Node** | Oracle Always Free (Ampere ARM64)<br/>PostgreSQL 16, PostgREST, Caddy | Dedicated 4-core, 24GB RAM super-node (`168.110.196.30`) with Caddy TLS reverse proxy, FileBrowser Quantum, PostgreSQL 16, Ollama, Whisper, and n8n. |
 | **Offsite Backup & Cloud Storage** | Backblaze B2 + Rclone Sync<br/>Automated Cron Engine | Nightly automated synchronization from Backblaze B2 to the super-node cloud vault with encrypted storage and automated retention. |
 | **Cron Scheduling Fleet** | Google Cloud Scheduler<br/>3 Perpetual Free Jobs | Drives worker execution cadences (5m standard, 1m weekend peak live, weekly WebSub renewal) strictly within the 100% free perpetual tier. |
 
@@ -125,9 +128,9 @@ Here are the official high-resolution marketing banners featured on the Google P
 | **Networking** | **Ktor Client** | `3.6.0` | HTTP client with OkHttp engine on Android and Fetch on Wasm |
 | **Image Loading** | **Coil** | `3.6.3` | `coil-compose`, `coil-network-ktor3`, `coil-svg` |
 | **Global Edge Proxy** | **Cloudflare Workers** | Edge | Sub-15ms edge caching proxy (`fc-edge-proxy`) with instant cache purge |
-| **Cloud Database** | **Supabase Cloud** | `3.8.0` | Managed PostgreSQL 15, Postgrest REST API, GoTrue Auth, Realtime |
+| **Primary Datastore** | **PostgreSQL 16 (Oracle VM)** | `16.4` | Enterprise PostgreSQL 16 on Oracle Super-Node with PostgREST 3000 (0 egress limits) |
 | **Dedicated Super-Node** | **Oracle Always Free ARM64** | Ubuntu 24.04 | 4 OCPUs, 24GB RAM, PostgreSQL 16, PostgREST API, Anti-Idle Shield |
-| **Web File Manager** | **FileBrowser Quantum** | `v2.0.1` | Modern web file manager behind Caddy TLS (`files.168.110.196.30.sslip.io`) |
+| **Legacy Auth Bridge** | **Supabase GoTrue** | `3.8.0` | Temporary auth bridge during transition to Direct Google Sign-In |
 | **Offsite Cloud Sync** | **Backblaze B2 & Rclone** | `1.60.1` | Automated disaster recovery synchronization to super-node cloud vault |
 | **Push Notifications** | **Firebase Messaging (FCM)** | `35.0.0` / `7.7.0` | Android FCM SDK, Web Push Worker, Python `firebase-admin` |
 | **In-App Billing** | **RevenueCat Purchases** | `10.26.0` | Google Play Store lifetime non-consumable billing |
@@ -171,7 +174,7 @@ Match fixtures, live scores, and verified video highlights are synchronized auto
    - Prevents status and score regressions on delayed upstream updates.
 2. **Event-Driven YouTube WebSub & RSS Discovery (`highlight_service.py`)**:
    - Ingests real-time upload webhooks via Google PubSubHubbub (`POST /websub`) for $<100\text{ms}$ instant match linking.
-   - Scans official club and league YouTube RSS feeds with **0 YouTube API quota spent**.
+   - Scans official club and league YouTube RSS feeds with **0 YouTube API quota spent**. For complete technical architecture, worldwide audience guarantees, and multi-tier quota maximizer, see **[`worker/PIPELINE.md`](./worker/PIPELINE.md)**.
 3. **AI Semantic Reconciliation (`gemini_client.py`)**:
    - Employs **Gemini 3.8 Flash** with structured JSON output and a 12 RPM sliding-window token bucket.
    - Seamless rule-based heuristic scoring fallback if AI quota hits rate limits.
@@ -181,6 +184,23 @@ Match fixtures, live scores, and verified video highlights are synchronized auto
 5. **Self-Healing & Automated Maintenance (`maintenance_service.py`)**:
    - Recovers matches stuck in `IN_PLAY` beyond 180 minutes and rolls forward stale fixtures.
    - Continuously purges matches, highlights, and telemetry events older than 30 days.
+
+---
+
+## 🛡️ Multi-Tier Android Backward Compatibility & Active Version Telemetry
+
+As of October 2026, because users update at different paces across Google Play, the system strictly mandates **100% backward compatibility** across all 3 historical endpoint tiers:
+
+| Tier | Target URL | Underlying Datastore | Status & Guardrails |
+| :--- | :--- | :--- | :--- |
+| **Legacy (Pre-migration)** | `https://eiomktvavndorazreyba.supabase.co` | Supabase Cloud | Synchronized with latest highlights to ensure un-upgraded devices view fresh matches |
+| **Transitional (v3.0.0)** | `https://fc-edge-proxy.dirzaaulia11.workers.dev` | PostgreSQL 16 (Oracle VM) | Sub-15ms Cloudflare Anycast edge caching with automatic cache invalidation |
+| **Modern (v3.0.1+)** | `https://edge.fc.dirzaaulia.com` | PostgreSQL 16 (Oracle VM) | Caddy TLS reverse proxy stripping JWT headers (`header_up -Authorization`) for `web_anon` |
+
+### Effortless Active Version Tracking (Zero Play Console Overhead)
+To track what version number users are actively running without navigating the Google Play Console:
+1. **Lightweight App Session Telemetry**: Android clients send a fire-and-forget ping to `${SUPABASE_URL}/rest/v1/app_sessions` containing `app_version`, `version_code`, and `platform`.
+2. **Real-Time Distribution View**: The Mission Control / WASM Telemetry Dashboard (`control.168.110.196.30.sslip.io` / `/telemetry`) displays a live 7-day version distribution (e.g. `v3.0.1: 82%`, `v3.0.0: 12%`, `v2.x: 6%`), enabling safe, data-driven decisions before retiring legacy bridges.
 
 ---
 

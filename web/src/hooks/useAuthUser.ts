@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import { getCurrentUser, syncUserPremiumStatus } from '@/lib/auth';
-import type { User } from '@supabase/supabase-js';
+import type { AuthUser } from '@/lib/auth';
 
 export function useAuthUser() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,32 +31,17 @@ export function useAuthUser() {
 
     load();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const authUser = session?.user ?? null;
-      if (isMounted) {
-        setUser(authUser);
-        if (authUser) {
-          await syncUserPremiumStatus(authUser);
-          if (typeof window !== 'undefined' && sessionStorage.getItem('fc-open-paywall-after-auth') === 'true') {
-            sessionStorage.removeItem('fc-open-paywall-after-auth');
-            window.dispatchEvent(new CustomEvent('fc-open-paywall'));
-          }
-        }
-      }
-    });
-
     const onCustomAuthChange = () => {
       load();
     };
 
     window.addEventListener('fc-auth-state-changed', onCustomAuthChange);
+    window.addEventListener('storage', onCustomAuthChange);
 
     return () => {
       isMounted = false;
-      subscription.unsubscribe();
       window.removeEventListener('fc-auth-state-changed', onCustomAuthChange);
+      window.removeEventListener('storage', onCustomAuthChange);
     };
   }, []);
 

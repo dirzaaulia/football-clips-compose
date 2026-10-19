@@ -26,6 +26,7 @@ const POSTGRES_TABLES = [
   "matches",
   "standings",
   "supported_clubs",
+  "competitions",
   "worker_cycles",
   "worker_events",
 ];
@@ -35,14 +36,20 @@ function isPostgresRoute(pathname: string): boolean {
   return POSTGRES_TABLES.some(table => clean === table || clean.startsWith(`${table}?`) || clean.startsWith(`${table}/`));
 }
 
-function applySecurityHeaders(headers: Headers) {
+function applySecurityHeaders(headers: Headers, request?: Request) {
   headers.set("Access-Control-Allow-Origin", "*");
-  headers.set("Access-Control-Expose-Headers", "Content-Range, Range, Content-Length, X-FC-Cache");
+  headers.set("Access-Control-Expose-Headers", "Content-Range, Range, Content-Length, X-FC-Cache, X-User-Country");
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("X-Frame-Options", "DENY");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
   headers.set("Permissions-Policy", "geolocation=(), camera=(), microphone=()");
+  if (request) {
+    const cfCountry = request.headers.get("cf-ipcountry");
+    if (cfCountry) {
+      headers.set("X-User-Country", cfCountry);
+    }
+  }
 }
 
 export default {
@@ -57,11 +64,20 @@ export default {
         "Access-Control-Allow-Headers": requestedHeaders,
         "Access-Control-Max-Age": "86400",
       });
-      applySecurityHeaders(headers);
+      applySecurityHeaders(headers, request);
       return new Response(null, { headers });
     }
 
-    // 2. Cache Purge Hook
+    // 2. User Geo-Detection Endpoint (Zero latency, 0 quota, Cloudflare Edge IP Country)
+    if (url.pathname === "/api/geo" && (request.method === "GET" || request.method === "HEAD")) {
+      const country = request.headers.get("cf-ipcountry") || "US";
+      const headers = new Headers({ "Content-Type": "application/json" });
+      applySecurityHeaders(headers, request);
+      headers.set("Cache-Control", "public, max-age=3600");
+      return new Response(JSON.stringify({ country }), { headers });
+    }
+
+    // 3. Cache Purge Hook
     if (url.pathname === "/api/purge-cache" && request.method === "POST") {
       const authHeader = request.headers.get("Authorization");
       if (env.PURGE_SECRET && authHeader !== `Bearer ${env.PURGE_SECRET}`) {
@@ -92,7 +108,7 @@ export default {
     if (request.method !== "GET" && request.method !== "HEAD" || cacheTtl === 0) {
       const resp = await forwardRequest(request, env, url, 0);
       const headers = new Headers(resp.headers);
-      applySecurityHeaders(headers);
+      applySecurityHeaders(headers, request);
       if (cacheTtl === 0) {
         headers.set("X-FC-Cache", "BYPASS");
       }
@@ -111,7 +127,7 @@ export default {
     if (cachedResponse) {
       const newHeaders = new Headers(cachedResponse.headers);
       newHeaders.set("X-FC-Cache", "HIT");
-      applySecurityHeaders(newHeaders);
+      applySecurityHeaders(newHeaders, request);
       return new Response(cachedResponse.body, {
         status: cachedResponse.status,
         statusText: cachedResponse.statusText,
@@ -127,7 +143,7 @@ export default {
       const responseHeaders = new Headers(originResponse.headers);
       responseHeaders.delete("set-cookie");
       responseHeaders.set("X-FC-Cache", "MISS");
-      applySecurityHeaders(responseHeaders);
+      applySecurityHeaders(responseHeaders, request);
       responseHeaders.set(
         "Cache-Control",
         `public, max-age=${cacheTtl}, s-maxage=${cacheTtl}, stale-while-revalidate=60`
@@ -151,7 +167,7 @@ export default {
 
     // Errors (4xx, 5xx): return with CORS & security headers
     const errorHeaders = new Headers(originResponse.headers);
-    applySecurityHeaders(errorHeaders);
+    applySecurityHeaders(errorHeaders, request);
     return new Response(originResponse.body, {
       status: originResponse.status,
       statusText: originResponse.statusText,

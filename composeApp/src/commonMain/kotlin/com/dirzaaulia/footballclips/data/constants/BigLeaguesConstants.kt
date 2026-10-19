@@ -22,56 +22,56 @@ object BigLeaguesConstants {
             leagueId = 2486,
             countryCode = "EU",
             competitionId = "CL",
-            logo = "https://crests.football-data.org/CL.png"
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/2.png"
         ),
         BigLeague(
             name = "Europa League",
             leagueId = 3337,
             countryCode = "EU",
             competitionId = "EL",
-            logo = "https://crests.football-data.org/EL.png"
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/2487.png"
         ),
         BigLeague(
             name = "Conference League",
             leagueId = null,
             countryCode = "EU",
             competitionId = "ECL",
-            logo = "https://crests.football-data.org/ECL.png"
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/20349.png"
         ),
         BigLeague(
             name = "Premier League",
             leagueId = 33973,
             countryCode = "GB-ENG",
             competitionId = "PL",
-            logo = "https://crests.football-data.org/PL.png"
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/23.png"
         ),
         BigLeague(
             name = "La Liga",
             leagueId = 119924,
             countryCode = "ES",
             competitionId = "PD",
-            logo = "https://crests.football-data.org/PD.png"
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/15.png"
         ),
         BigLeague(
             name = "Serie A",
             leagueId = 115669,
             countryCode = "IT",
             competitionId = "SA",
-            logo = "https://crests.football-data.org/SA.png"
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/12.png"
         ),
         BigLeague(
             name = "Bundesliga",
             leagueId = 67162,
             countryCode = "DE",
             competitionId = "BL1",
-            logo = "https://crests.football-data.org/BL1.png"
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/10.png"
         ),
         BigLeague(
             name = "Ligue 1",
             leagueId = 52695,
             countryCode = "FR",
             competitionId = "FL1",
-            logo = "https://crests.football-data.org/FL1.png"
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/9.png"
         ),
         BigLeague(
             name = "Saudi Pro League",
@@ -92,14 +92,56 @@ object BigLeaguesConstants {
             leagueId = null,
             countryCode = "NL",
             competitionId = "DED",
-            logo = "https://crests.football-data.org/ED.png"
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/11.png"
         ),
         BigLeague(
             name = "Liga Portugal",
             leagueId = null,
             countryCode = "PT",
             competitionId = "PPL",
-            logo = "https://crests.football-data.org/PPL.png"
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/14.png"
+        ),
+        BigLeague(
+            name = "FA Cup",
+            leagueId = null,
+            countryCode = "GB-ENG",
+            competitionId = "FAC",
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/38.png"
+        ),
+        BigLeague(
+            name = "Carabao Cup",
+            leagueId = null,
+            countryCode = "GB-ENG",
+            competitionId = "EFL",
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/37.png"
+        ),
+        BigLeague(
+            name = "Copa del Rey",
+            leagueId = null,
+            countryCode = "ES",
+            competitionId = "CDR",
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/274.png"
+        ),
+        BigLeague(
+            name = "DFB-Pokal",
+            leagueId = null,
+            countryCode = "DE",
+            competitionId = "DFB",
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/2061.png"
+        ),
+        BigLeague(
+            name = "Coppa Italia",
+            leagueId = null,
+            countryCode = "IT",
+            competitionId = "CIT",
+            logo = "https://a.espncdn.com/i/leaguelogos/soccer/500/270.png"
         )
     )
+
+    fun isEuropeanHybrid(competitionId: String?): Boolean =
+        competitionId in listOf("CL", "EL", "ECL")
+
+    fun isKnockoutCup(competitionId: String?): Boolean =
+        competitionId in listOf("FAC", "EFL", "CDR", "DFB", "CIT")
 }
+

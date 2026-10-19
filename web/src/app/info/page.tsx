@@ -56,37 +56,10 @@ export default function InfoPage() {
       >
         <div className="space-y-2 pt-1">
           <p>
-            All football highlights are provided by official league and team YouTube accounts,{' '}
-            <a
-              href="https://highlightly.net"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#7098F8] font-bold hover:underline"
-            >
-              highlightly.net
-            </a>
-            , matches and fixtures are provided by{' '}
-            <a
-              href="https://www.football-data.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#7098F8] font-bold hover:underline"
-            >
-              football-data.org
-            </a>
-            . We aggregate content from these official and trusted sources to bring you the best football experience.
+            All match highlights are embedded strictly from verified, official league and club channels on YouTube in full compliance with the official YouTube IFrame Player API. Live match fixtures, scores, and schedules are provided by the ESPN Live Sports Engine and official league feeds.
           </p>
           <p>
-            All team and league crests are retrieved from the{' '}
-            <a
-              href="https://www.football-data.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#7098F8] font-bold hover:underline"
-            >
-              football-data.org CDN
-            </a>
-            . Match tactical debriefs are powered by advanced AI sports intelligence.
+            All team and league crests are retrieved from verified official club assets and sports media networks. Match tactical debriefs are powered by advanced AI sports intelligence.
           </p>
         </div>
       </CollapsibleCard>

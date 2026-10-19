@@ -7,8 +7,11 @@ The official web platform for **Football Highlights & Clips**, built with **Next
 ## ✨ Features & Architecture
 
 - **Next.js 16 App Router & Turbopack**: High-performance rendering with Static Site Generation (SSG) and Incremental Static Regeneration (ISR).
-- **Match Explorer & Live Scores**: Real-time scoreboards, match statuses (`LIVE`, `FINISHED`, `SCHEDULED`), league filters, and team crests.
-- **Match Details & Video Highlights**: Dedicated match pages (`/match/[id]`) with responsive official highlight video player, lineups, and match stats.
+- **Match Explorer & Live Scores**: Real-time scoreboards, match statuses (`LIVE`, `FINISHED`, `SCHEDULED`), centered scorelines, league filters, and team crests.
+- **Historical Season Archive (2025/26 & 2026/27)**: Cross-page synchronized season selector (`useSeason` hook) allowing instant exploration of current fixtures and over 3,420+ historical archive matches.
+- **Match Details & Tactical Debrief**: Dedicated match pages (`/match/[id]`) with responsive official highlight video player, ESPN authentic boxscore statistics (possession, shots, passes, corners, tackles, fouls), formations, upcoming match previews, and full-time summaries.
+- **Multi-Source Journalistic Feed**: Curated football news articles streamed from accredited sports journalism providers (BBC Sport, The Guardian) with real-time editorial feeds.
+- **Modern Glassmorphic UI**: Custom interactive dropdown components (`CustomDropdown.tsx`), drawer side sheets, and zero-clipping typography.
 - **Web Push Notifications (FCM)**:
   - Background Service Worker (`public/firebase-messaging-sw.js`) handling real-time goal alerts, kickoff reminders, and highlight releases.
   - Subscribes to zero-cost FCM topics (`club_{club_id}`) in sync with user favorites.

@@ -8,6 +8,7 @@ import com.dirzaaulia.footballclips.data.local.PreferenceManager
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.remote.HighlightUiModel
 import com.dirzaaulia.footballclips.data.model.remote.Profile
+import com.dirzaaulia.footballclips.data.repository.CompetitionRepository
 import com.dirzaaulia.footballclips.data.repository.HighlightRepository
 import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
 import com.dirzaaulia.footballclips.data.repository.ScoreRepository
@@ -30,7 +31,10 @@ class HomeViewModel(
     internal val billingManager: BillingManager,
     internal val adMobManager: AdMobManager,
     internal val profilesRepository: ProfilesRepository,
+    private val competitionRepository: CompetitionRepository,
 ) : ViewModel() {
+
+    val competitions = competitionRepository.competitions
 
     internal val _uiState = MutableStateFlow<HomeState>(HomeState.Loading)
     val uiState: StateFlow<HomeState> = _uiState.asStateFlow()
@@ -140,6 +144,9 @@ class HomeViewModel(
         observeBillingErrors()
         observeAdsRemoved()
         observeProfileForBilling()
+        viewModelScope.launch {
+            competitionRepository.refreshCompetitions()
+        }
         viewModelScope.launch {
             preferenceManager.selectedSeason.collect {
                 refreshData()

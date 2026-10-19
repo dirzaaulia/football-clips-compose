@@ -30,6 +30,7 @@ class Settings(BaseSettings):
 
     # YouTube Quota & Durations
     max_quota_per_day: int = 10000
+    youtube_target_daily_quota: int = 8500
     min_duration_seconds: int = 45
     max_duration_seconds: int = 1500
 

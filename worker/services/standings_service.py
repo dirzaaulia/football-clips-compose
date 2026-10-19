@@ -6,6 +6,7 @@ from loguru import logger
 from worker.clients.espn_client import espn_client
 from worker.clients.football_data_client import football_data_client
 from worker.clients.supabase_client import supabase_client
+from worker.clients.supabase_cloud_client import supabase_cloud_client
 from worker.config.settings import settings
 from worker.utils.telemetry_logger import append_event
 
@@ -191,6 +192,10 @@ class StandingsService:
             msg = f"[STANDINGS] Successfully upserted {len(unique_standings)} standings rows to Supabase ({provider.upper()})."
             append_event(log_events, msg, "SUCCESS", "STANDINGS", "DB_UPSERT")
             logger.info(msg)
+
+            # Dual-write to Legacy Supabase Cloud for backward compatibility
+            supabase_cloud_client.sync_standings(unique_standings)
+
             return unique_standings
         except Exception as e:
             err_msg = f"[STANDINGS] Database error during standings upsert: {e}"

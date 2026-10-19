@@ -47,7 +47,7 @@ class ClubService:
                             .replace(" 1909", "")
                             .replace(" 1913", "")[:15]
                         )
-                        crest_url = crest or f"https://crests.football-data.org/{tid}.png"
+                        crest_url = crest or f"https://a.espncdn.com/i/teamlogos/soccer/500/{tid}.png"
 
                         clubs_map[slug] = {
                             "id": slug,

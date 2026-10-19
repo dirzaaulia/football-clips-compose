@@ -1,6 +1,6 @@
 package com.dirzaaulia.footballclips.data.repository
 
-import com.dirzaaulia.footballclips.data.constants.SupabaseConstants
+import com.dirzaaulia.footballclips.data.constants.DatabaseConstants
 import com.dirzaaulia.footballclips.data.constants.SupportedClub
 import com.dirzaaulia.footballclips.data.constants.SupportedClubsConstants
 import com.dirzaaulia.footballclips.data.model.remote.ClubDto
@@ -14,8 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class ClubRepositoryImpl(private val client: HttpClient) : ClubRepository {
 
-    private val baseUrl = "${SupabaseConstants.SUPABASE_URL}/rest/v1/supported_clubs"
-    private val supabaseKey = SupabaseConstants.SUPABASE_ANON_KEY
+    private val baseUrl = "${DatabaseConstants.DATABASE_URL}/rest/v1/supported_clubs"
+    private val databaseApiKey = DatabaseConstants.DATABASE_ANON_KEY
 
     private val _supportedClubs = MutableStateFlow<List<SupportedClub>>(SupportedClubsConstants.allClubs)
     override val supportedClubs: StateFlow<List<SupportedClub>> = _supportedClubs.asStateFlow()
@@ -23,8 +23,8 @@ class ClubRepositoryImpl(private val client: HttpClient) : ClubRepository {
     override suspend fun refreshClubs() {
         try {
             val response = client.get(baseUrl) {
-                header("apikey", supabaseKey)
-                header("Authorization", "Bearer $supabaseKey")
+                header("apikey", databaseApiKey)
+                header("Authorization", "Bearer $databaseApiKey")
                 url {
                     parameters.append("is_active", "eq.true")
                     parameters.append("order", "name.asc")
@@ -39,7 +39,7 @@ class ClubRepositoryImpl(private val client: HttpClient) : ClubRepository {
                         shortName = dto.shortName ?: dto.name.take(15),
                         leagueCode = dto.competitionCode,
                         leagueName = dto.competitionName,
-                        crestUrl = dto.crestUrl ?: "https://crests.football-data.org/${dto.teamId}.png",
+                        crestUrl = dto.crestUrl ?: "https://a.espncdn.com/i/teamlogos/soccer/500/${dto.teamId}.png",
                         aliases = dto.aliases
                     )
                 }

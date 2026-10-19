@@ -6,9 +6,9 @@ import { useSeason, AVAILABLE_SEASONS } from '@/hooks/useSeason';
 import CustomDropdown, { DropdownItem } from '@/components/common/CustomDropdown';
 
 interface SeasonSelectorProps {
-  variant?: 'pill' | 'select' | 'compact';
+  variant?: 'pill' | 'select' | 'compact' | 'icon';
   className?: string;
-  align?: 'left' | 'right';
+  align?: 'left' | 'right' | 'popout';
 }
 
 export default function SeasonSelector({
@@ -57,6 +57,27 @@ export default function SeasonSelector({
       <Archive className="w-3.5 h-3.5" />
     ),
   }));
+
+  if (variant === 'icon') {
+    return (
+      <CustomDropdown<number>
+        items={dropdownItems}
+        value={selectedSeason}
+        onChange={setSeason}
+        variant="icon"
+        leadingIcon={
+          isArchiveSeason ? (
+            <Archive className="w-4 h-4 text-amber-400" />
+          ) : (
+            <Calendar className="w-4 h-4 text-[#7098F8]" />
+          )
+        }
+        align={align === 'popout' ? 'popout' : 'left'}
+        className={className}
+        ariaLabel="Change season"
+      />
+    );
+  }
 
   if (variant === 'compact') {
     return (

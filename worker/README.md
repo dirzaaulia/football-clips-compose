@@ -37,7 +37,7 @@ The worker operates both as a **continuous orchestrator** and as an **event-driv
 
 ### 2. Core Service Pipelines (`worker/services/`)
 - **`match_service.py`**: Fixture and live score synchronization. Detects kickoffs (`IN_PLAY`), live goal updates, half-time, and full-time (`FINISHED`), with monotonic score regression protection.
-- **`highlight_service.py`**: Scans official club/league feeds, filters noise (shorts, press conferences, fan reactions), scores candidates via Gemini 3.8 Flash, and verifies global embed playability. Supports instant event-driven match linking (`link_websub_video`) via WebSub push notifications in $<100\text{ms}$.
+- **`highlight_service.py`**: Scans official club/league feeds, filters noise (shorts, press conferences, fan reactions), scores candidates via Gemini 3.8 Flash, and verifies global embed playability. Supports instant event-driven match linking (`link_websub_video`) via WebSub push notifications in $<100\text{ms}$. For the full technical breakdown, worldwide audience architecture, and multi-tier quota maximizer, see **[`PIPELINE.md`](./PIPELINE.md)**.
 - **`notification_service.py`**: Dispatches real-time alerts across 5 match phases to Firebase Cloud Messaging (FCM) topics (`club_{club_id}`) with an in-memory 24-hour deduplication cache.
 - **`standings_service.py`**: Synchronizes official league tables, goal differentials, and rankings.
 - **`maintenance_service.py`**: Self-healing service that recovers matches stuck in `IN_PLAY` beyond 180 minutes and purges records older than 30 days.

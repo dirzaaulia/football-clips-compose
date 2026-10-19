@@ -39,6 +39,7 @@ data class MatchDto(
     @SerialName("home_score") val homeScore: Int? = null,
     @SerialName("away_score") val awayScore: Int? = null,
     @SerialName("highlight_video_id") val highlightVideoId: String? = null,
+    @SerialName("backup_highlight_video_id") val backupHighlightVideoId: String? = null,
     @SerialName("recap_analysis") val recapAnalysis: String? = null,
     @SerialName("round_name") val roundName: String? = null,
     @SerialName("display_clock") val displayClock: String? = null,
@@ -48,6 +49,29 @@ data class MatchDto(
     @SerialName("statistics") val statistics: Map<String, Map<String, String>>? = null,
     @SerialName("editorial_headline") val editorialHeadline: String? = null,
     @SerialName("editorial_story") val editorialStory: String? = null,
-    @SerialName("editorial_source") val editorialSource: String? = null
+    @SerialName("editorial_source") val editorialSource: String? = null,
+    @SerialName("events") val events: List<MatchEventDto>? = null,
+    @SerialName("youtube_region_info") val youtubeRegionInfo: RegionRestrictionDto? = null,
+    @SerialName("backup_youtube_region_info") val backupYoutubeRegionInfo: RegionRestrictionDto? = null
+)
+
+@Serializable
+data class MatchEventDto(
+    @SerialName("id") val id: String? = null,
+    @SerialName("type") val type: String? = null,
+    @SerialName("type_text") val typeText: String? = null,
+    @SerialName("clock") val clock: String? = null,
+    @SerialName("period") val period: Int? = null,
+    @SerialName("side") val side: String? = null,
+    @SerialName("scoring_play") val scoringPlay: Boolean = false,
+    @SerialName("player") val player: String = "",
+    @SerialName("assist") val assist: String? = null,
+    @SerialName("text") val text: String = ""
+)
+
+@Serializable
+data class RegionRestrictionDto(
+    @SerialName("allowed") val allowed: List<String>? = null,
+    @SerialName("blocked") val blocked: List<String>? = null
 )
 

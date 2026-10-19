@@ -16,7 +16,7 @@ if sys.platform == "win32":
 
 def run_command(cmd, cwd=None):
     print(f"\n🚀 Running: {' '.join(cmd) if isinstance(cmd, list) else cmd}")
-    res = subprocess.run(cmd, cwd=cwd, shell=True)
+    res = subprocess.run(cmd, cwd=cwd, shell=True, stdin=subprocess.DEVNULL)
     if res.returncode != 0:
         print(f"❌ Command failed with return code {res.returncode}")
         sys.exit(res.returncode)
@@ -49,11 +49,10 @@ def main():
 
     public_telemetry_dir = os.path.join(web_dir, "public", "telemetry")
 
-    # 2. Copy WASM telemetry build into Next.js static export & public folder for /telemetry route
-    if not os.path.exists(wasm_dir):
-        print("\n⚠️ WASM Telemetry build not found. Building with Gradle...")
-        gradle_cmd = "gradlew.bat" if sys.platform == "win32" else "./gradlew"
-        run_command(f"{gradle_cmd} :webApp:wasmJsBrowserDistribution", cwd=root_dir)
+    # 2. Build WASM telemetry distribution
+    print("\n📦 Building WASM Telemetry with Gradle...")
+    gradle_cmd = "gradlew.bat" if sys.platform == "win32" else "./gradlew"
+    run_command(f"{gradle_cmd} :webApp:wasmJsBrowserDistribution", cwd=root_dir)
 
     print(f"\n📋 Syncing WASM Telemetry assets to {out_telemetry_dir} & {public_telemetry_dir}...")
     for target_dir in [out_telemetry_dir, public_telemetry_dir]:

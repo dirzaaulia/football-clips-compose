@@ -17,9 +17,12 @@ The node operates a unified Docker Compose multi-service topology under a zero-t
    - Local directory mounts for `Cloud Storage`, `Backblaze B2`, and `Automated Backups`.
 3. **Enterprise PostgreSQL 16 (`jarvis-postgres`)**:
    - Core production datastore running on Alpine Linux with high-concurrency tuning.
+   - Hosts 3,420+ Season 2025/26 archive matches and active Season 2026/27 matches.
+   - Enforces `protect_archive_matches` immutability trigger preventing unintended retention deletion of historical archives.
    - Nightly database dumps via `scripts/backup_postgres.sh`.
 4. **PostgREST Universal REST API (`jarvis-postgrest`)**:
    - Direct, high-throughput REST API layer mirroring Supabase endpoints.
+   - Directly queried by Cloudflare Edge Proxy (`edge.fc.dirzaaulia.com`) for all match, standing, and fixture queries.
    - Secured behind Caddy reverse proxy at `https://168.110.196.30.sslip.io`.
 5. **Backblaze B2 Sync Subsystem (`scripts/sync_backblaze.sh`)**:
    - Automated offsite disaster recovery and cloud file synchronization via `rclone`.

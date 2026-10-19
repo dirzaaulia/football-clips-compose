@@ -190,6 +190,7 @@ fun WebMatchesScreen(
                     }
                     composable(NavDestination.Standings.route) {
                         val standingsState by scoreViewModel.standingsState.collectAsState()
+                        val dynamicCompetitions by scoreViewModel.competitions.collectAsState()
                         val selectedCompetitionId by scoreViewModel.selectedCompetitionId.collectAsState()
                         val selectedSeason by scoreViewModel.selectedSeason.collectAsState()
                         val isPremium by scoreViewModel.isPremium.collectAsState()
@@ -197,6 +198,7 @@ fun WebMatchesScreen(
                             state = standingsState,
                             isPremium = isPremium,
                             selectedCompetitionId = selectedCompetitionId,
+                            dynamicCompetitions = dynamicCompetitions,
                             selectedSeason = selectedSeason,
                             onLeagueSelected = { _, competitionId ->
                                 scoreViewModel.selectCompetition(competitionId ?: "PL")

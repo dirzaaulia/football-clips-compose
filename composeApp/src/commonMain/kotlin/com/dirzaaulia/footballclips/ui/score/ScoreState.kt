@@ -14,7 +14,10 @@ sealed interface ScoreState {
 
 sealed interface StandingsState {
     data object Loading : StandingsState
-    data class Success(val standings: List<StandingDto>) : StandingsState
+    data class Success(
+        val standings: List<StandingDto>,
+        val knockoutMatches: List<com.dirzaaulia.footballclips.domain.model.Match> = emptyList()
+    ) : StandingsState
     data class Error(val message: String) : StandingsState
 }
 

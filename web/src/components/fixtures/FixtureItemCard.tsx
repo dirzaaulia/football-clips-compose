@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Play, Radio, Film, Clock, EyeOff } from 'lucide-react';
-import { MatchRecord } from '@/lib/supabase';
+import { MatchRecord } from '@/lib/database';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
+import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 
 interface FixtureItemCardProps {
   match: MatchRecord;
@@ -11,6 +12,7 @@ interface FixtureItemCardProps {
 
 export default function FixtureItemCard({ match }: FixtureItemCardProps) {
   const { isSpoilerFree } = useSpoilerFree();
+  const { playVideo } = useVideoPlayer();
   const [isRevealed, setIsRevealed] = useState(false);
   const isFinished = match.status === 'FINISHED';
   const isLive = match.status === 'IN_PLAY' || match.status === 'PAUSED' || match.status === 'LIVE';
@@ -25,7 +27,8 @@ export default function FixtureItemCard({ match }: FixtureItemCardProps) {
     minute: '2-digit',
   });
 
-  const shouldHideScore = isSpoilerFree && !isRevealed && (isFinished || isLive);
+  // Live matches never hide score; spoiler shielding only applies to finished matches
+  const shouldHideScore = isSpoilerFree && !isRevealed && isFinished;
 
   return (
     <div
@@ -122,35 +125,35 @@ export default function FixtureItemCard({ match }: FixtureItemCardProps) {
       {/* Right: Contextual Action CTA */}
       <div className="flex items-center justify-center sm:justify-end w-full sm:w-auto">
         {isLive ? (
-          <Link
-            href={`/match/${match.id}`}
+          <button
+            onClick={() => playVideo(match)}
             className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-xs font-black shadow-[0_0_12px_rgba(239,68,68,0.35)] transition-all cursor-pointer w-full sm:w-auto"
           >
             <Radio className="w-3.5 h-3.5 animate-pulse" />
             <span>Match Centre</span>
-          </Link>
+          </button>
         ) : hasHighlight ? (
-          <Link
-            href={`/match/${match.id}`}
+          <button
+            onClick={() => playVideo(match)}
             className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white text-xs font-bold shadow-[0_0_12px_rgba(112,152,248,0.35)] hover:brightness-110 transition-all cursor-pointer w-full sm:w-auto"
           >
             <Play className="w-3.5 h-3.5 fill-current" />
             <span>Watch Highlight</span>
-          </Link>
+          </button>
         ) : isFinished ? (
-          <Link
-            href={`/match/${match.id}`}
+          <button
+            onClick={() => playVideo(match)}
             className="flex items-center justify-center gap-1 px-3.5 py-1.5 text-xs text-[#94A3B8] hover:text-white font-semibold bg-[#101418] rounded-xl border border-[#334155]/70 hover:border-[#7098F8]/50 transition-all cursor-pointer w-full sm:w-auto"
           >
             <span>Match Centre</span>
-          </Link>
+          </button>
         ) : (
-          <Link
-            href={`/match/${match.id}`}
+          <button
+            onClick={() => playVideo(match)}
             className="flex items-center justify-center gap-1 px-3.5 py-1.5 text-xs text-[#94A3B8] hover:text-white font-semibold bg-[#101418] rounded-xl border border-[#334155]/70 hover:border-[#7098F8]/50 transition-all cursor-pointer w-full sm:w-auto"
           >
             <span>Match Preview</span>
-          </Link>
+          </button>
         )}
       </div>
     </div>

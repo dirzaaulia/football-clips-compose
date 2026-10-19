@@ -57,7 +57,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <Database className="w-3.5 h-3.5 text-[#4FC3F7] shrink-0" />
-                <span>Football-Data.org Real-time Sports API</span>
+                <span>ESPN FC &amp; Official Live Sports Telemetry</span>
               </li>
               <li className="flex items-center gap-2">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -74,7 +74,9 @@ export default function Footer() {
               </h3>
             </div>
             <div className="flex flex-col space-y-2 text-xs">
+              <Link href="/about" className="text-white font-bold hover:underline">About Us &amp; Masthead</Link>
               <Link href="/articles" className="text-[#4FC3F7] font-bold hover:underline">Analysis Hub &amp; News</Link>
+              <Link href="/editorial-standards" className="text-emerald-400 font-bold hover:underline">Editorial Standards &amp; Verification</Link>
               <Link href="/info" className="text-[#7098F8] font-bold hover:underline">Info, Data Sources &amp; Support</Link>
               <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy &amp; Cookies</Link>
               <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>

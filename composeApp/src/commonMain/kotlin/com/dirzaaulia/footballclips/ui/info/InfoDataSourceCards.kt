@@ -58,19 +58,7 @@ internal fun DataSourceCard(
                     append("ESPN Live Engine")
                 }
             }
-            append(". We aggregate content from these official and trusted sources to bring you the best football experience. All team and league logos are retrieved from the ")
-            withLink(LinkAnnotation.Url("https://www.football-data.org")) {
-                withStyle(
-                    style = SpanStyle(
-                        color = linkColor,
-                        fontWeight = FontWeight.ExtraBold,
-                        textDecoration = TextDecoration.Underline
-                    )
-                ) {
-                    append("football-data.org CDN")
-                }
-            }
-            append(".")
+            append(". We aggregate content from these official and trusted sources to bring you the best football experience. All team and league crests are verified and hosted via official media assets and public CDN services.")
         }
 
         Text(

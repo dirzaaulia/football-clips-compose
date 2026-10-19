@@ -39,14 +39,7 @@ fun HeroCarousel(
     val isWasmWeb = isWasmTarget
     
     val carouselPages = remember(items, isAdsRemoved, isWasmWeb) {
-        val featuredItem = items.firstOrNull { it !is HighlightUiItem.BannerAd }
-        if (featuredItem == null) {
-            emptyList()
-        } else if (isAdsRemoved || isWasmWeb) {
-            listOf(featuredItem)
-        } else {
-            listOf(featuredItem, HighlightUiItem.BannerAd("hero-ad-0"))
-        }
+        arrangeExcitementCarouselPages(items, isAdsRemoved, isWasmWeb)
     }
 
     if (carouselPages.isEmpty()) return
@@ -72,7 +65,7 @@ fun HeroCarousel(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                val featuredItem = carouselPages.firstOrNull() ?: return@Row
+                val (featuredItem, featuredTag) = carouselPages.firstOrNull() ?: return@Row
                 
                 Box(modifier = Modifier.weight(0.6f)) {
                     val itemUniqueId = featuredItem.uniqueId
@@ -83,6 +76,7 @@ fun HeroCarousel(
                         isSpoilerFree = isSpoilerFreeMode,
                         isRevealed = revealedItemIds.contains(itemUniqueId),
                         onRevealClick = { onRevealItem?.invoke(itemUniqueId) },
+                        excitementTag = featuredTag.ifEmpty { null },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -100,7 +94,7 @@ fun HeroCarousel(
                 modifier = Modifier.fillMaxWidth(),
                 pageSpacing = 16.dp
             ) { page ->
-                val pageItem = carouselPages[page]
+                val (pageItem, excitementTag) = carouselPages[page]
                 when (pageItem) {
                     is HighlightUiItem.BannerAd -> {
                         HeroAdCard(
@@ -117,6 +111,7 @@ fun HeroCarousel(
                             isSpoilerFree = isSpoilerFreeMode,
                             isRevealed = revealedItemIds.contains(itemUniqueId),
                             onRevealClick = { onRevealItem?.invoke(itemUniqueId) },
+                            excitementTag = excitementTag.ifEmpty { null },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }

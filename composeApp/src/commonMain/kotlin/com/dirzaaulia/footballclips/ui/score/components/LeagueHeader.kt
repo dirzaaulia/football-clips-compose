@@ -30,8 +30,8 @@ fun LeagueHeader(
 ) {
     val isDarkTheme = isSystemInDarkTheme()
     val logo = BigLeaguesConstants.leagues.find { 
-        it.competitionId == competitionId || it.name == competitionName 
-    }?.logo ?: "https://crests.football-data.org/${competitionId.uppercase()}.png"
+        it.competitionId?.equals(competitionId, ignoreCase = true) == true || it.name.equals(competitionName, ignoreCase = true) 
+    }?.logo ?: "https://a.espncdn.com/i/leaguelogos/soccer/500/23.png"
 
     val useDarkStyle = isDark || isDarkTheme
 

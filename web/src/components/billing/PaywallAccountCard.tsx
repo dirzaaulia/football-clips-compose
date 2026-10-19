@@ -3,7 +3,7 @@
 import React from 'react';
 import { LogOut, Info, User as UserIcon } from 'lucide-react';
 import { signOutUser } from '@/lib/auth';
-import type { User } from '@supabase/supabase-js';
+import type { User } from '@/lib/auth';
 
 interface PaywallAccountCardProps {
   user: User | null;

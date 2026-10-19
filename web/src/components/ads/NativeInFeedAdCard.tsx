@@ -5,10 +5,14 @@ import { useProStatus } from '@/hooks/useProStatus';
 
 interface NativeInFeedAdCardProps {
   slotId?: string;
+  variant?: 'feed' | 'carousel';
+  className?: string;
 }
 
 export default function NativeInFeedAdCard({
   slotId = '5616816386',
+  variant = 'feed',
+  className = '',
 }: NativeInFeedAdCardProps) {
   const hasPro = useProStatus();
   const clientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-6717632447198427';
@@ -38,21 +42,29 @@ export default function NativeInFeedAdCard({
 
   if (hasPro) return null;
 
+  const isCarousel = variant === 'carousel';
+
   return (
-    <div className="relative bg-[#1E2227] border border-[#334155] rounded-2xl overflow-hidden p-4 flex flex-col justify-between transition-all duration-300 min-h-[310px]">
+    <div
+      className={`relative bg-[#1E2227] border border-[#334155] rounded-3xl overflow-hidden p-4 flex flex-col justify-between transition-all duration-300 select-none ${
+        isCarousel
+          ? 'w-[310px] sm:w-[360px] h-[310px] sm:h-[330px] shrink-0'
+          : 'min-h-[310px] w-full'
+      } ${className}`}
+    >
       {/* Top Header Pill */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#334155]/60 mb-3">
+      <div className="flex items-center justify-between pb-2 border-b border-[#334155]/60 mb-2">
         <span className="text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">
           Advertisement
         </span>
       </div>
 
       {/* Ad Body */}
-      <div className="flex-1 flex flex-col items-center justify-center my-2 overflow-hidden">
+      <div className="flex-1 flex flex-col items-center justify-center my-1 overflow-hidden">
         <ins
           ref={insRef}
           className="adsbygoogle"
-          style={{ display: 'block', width: '100%', minHeight: '180px' }}
+          style={{ display: 'block', width: '100%', height: '100%', minHeight: isCarousel ? '170px' : '180px', maxHeight: isCarousel ? '190px' : undefined }}
           data-ad-client={clientId}
           data-ad-slot={slotId}
           data-ad-format="rectangle"
@@ -61,9 +73,8 @@ export default function NativeInFeedAdCard({
       </div>
 
       {/* Bottom Label */}
-      <div className="pt-3 border-t border-[#334155]/50 flex items-center justify-between text-[11px] text-[#94A3B8]">
-        <span>Sponsored Content</span>
-        <span className="text-[10px] text-[#7098F8] font-bold">Ad</span>
+      <div className="pt-2 border-t border-[#334155]/40 flex items-center justify-end text-[10px] text-[#64748B]">
+        <span>Google AdSense</span>
       </div>
     </div>
   );

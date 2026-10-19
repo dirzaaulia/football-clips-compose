@@ -20,6 +20,17 @@ fun getBuildConfigString(fieldName: String, defaultValue: String = ""): String {
     }
 }
 
+fun getBuildConfigLong(fieldName: String, defaultValue: Long = 0L): Long {
+    return try {
+        val clazz = Class.forName("com.dirzaaulia.footballclips.BuildConfig")
+        val field = clazz.getField(fieldName)
+        val value = field.get(null)
+        if (value is Number) value.toLong() else defaultValue
+    } catch (_: Throwable) {
+        defaultValue
+    }
+}
+
 fun getBuildConfigBoolean(fieldName: String, fallback: () -> Boolean = { false }): Boolean {
     return try {
         val clazz = Class.forName("com.dirzaaulia.footballclips.BuildConfig")

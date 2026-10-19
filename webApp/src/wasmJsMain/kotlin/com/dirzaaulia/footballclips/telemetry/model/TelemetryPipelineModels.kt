@@ -1,5 +1,7 @@
 package com.dirzaaulia.footballclips.telemetry.model
 
+
+
 enum class PipelineCategory(val label: String) {
     ALL("All Activity"),
     HIGHLIGHTS("Highlight Pipeline"),

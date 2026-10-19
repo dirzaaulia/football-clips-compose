@@ -2,6 +2,8 @@ package com.dirzaaulia.footballclips.di
 
 import com.dirzaaulia.footballclips.data.repository.ClubRepository
 import com.dirzaaulia.footballclips.data.repository.ClubRepositoryImpl
+import com.dirzaaulia.footballclips.data.repository.CompetitionRepository
+import com.dirzaaulia.footballclips.data.repository.CompetitionRepositoryImpl
 import com.dirzaaulia.footballclips.data.repository.HighlightRepository
 import com.dirzaaulia.footballclips.data.repository.HighlightRepositoryImpl
 import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
@@ -12,7 +14,7 @@ import com.dirzaaulia.footballclips.data.repository.StandingRepository
 import com.dirzaaulia.footballclips.data.repository.StandingRepositoryImpl
 import com.dirzaaulia.footballclips.ui.home.HomeViewModel
 import com.dirzaaulia.footballclips.ui.score.ScoreViewModel
-import com.dirzaaulia.footballclips.data.constants.SupabaseConstants
+import com.dirzaaulia.footballclips.data.constants.DatabaseConstants
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
@@ -30,16 +32,16 @@ import com.dirzaaulia.footballclips.data.telemetry.DeviceTelemetrySync
 
 expect val platformModule: Module
 
-val supabaseModule = module {
+val databaseModule = module {
     single<SupabaseClient> {
         createSupabaseClient(
-            supabaseUrl = SupabaseConstants.SUPABASE_URL,
-            supabaseKey = SupabaseConstants.SUPABASE_ANON_KEY
+            supabaseUrl = DatabaseConstants.DATABASE_URL,
+            supabaseKey = DatabaseConstants.DATABASE_ANON_KEY
         ) {
             install(Auth)
             install(Postgrest)
             install(ComposeAuth) {
-                googleNativeLogin(serverClientId = SupabaseConstants.GOOGLE_WEB_CLIENT_ID)
+                googleNativeLogin(serverClientId = DatabaseConstants.GOOGLE_WEB_CLIENT_ID)
             }
         }
     }
@@ -53,6 +55,7 @@ val dataModule = module {
     single<HighlightRepository> { HighlightRepositoryImpl(get()) }
     single<ScoreRepository> { ScoreRepositoryImpl(get()) }
     single<ClubRepository> { ClubRepositoryImpl(get()) }
+    single<CompetitionRepository> { CompetitionRepositoryImpl(get()) }
     single<ProfilesRepository> { ProfilesRepositoryImpl(get(), get()) }
     single<StandingRepository> { StandingRepositoryImpl(get()) }
 }
@@ -65,7 +68,8 @@ val viewModelModule = module {
             preferenceManager = get(),
             billingManager = get(),
             adMobManager = get(),
-            profilesRepository = get()
+            profilesRepository = get(),
+            competitionRepository = get()
         )
     }
     viewModel {
@@ -75,9 +79,10 @@ val viewModelModule = module {
             billingManager = get(),
             profilesRepository = get(),
             clubRepository = get(),
-            standingRepository = get()
+            standingRepository = get(),
+            competitionRepository = get()
         )
     }
 }
 
-val appModules = listOf(platformModule, supabaseModule, dataModule, viewModelModule)
+val appModules = listOf(platformModule, databaseModule, dataModule, viewModelModule)

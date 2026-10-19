@@ -12,6 +12,8 @@ import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
 
+import com.dirzaaulia.footballclips.data.constants.BigLeaguesConstants
+
 fun ScoreViewModel.getStandings(
     competitionId: String? = selectedCompetitionId.value,
     season: Int = selectedSeason.value
@@ -19,13 +21,61 @@ fun ScoreViewModel.getStandings(
     val compId = competitionId ?: "PL"
     viewModelScope.launch {
         _standingsState.value = StandingsState.Loading
-        when (val res = standingRepository.getStandings(compId, season)) {
-            is NetworkResult.Success -> {
-                val deduplicated = deduplicateStandings(res.data)
-                _standingsState.value = StandingsState.Success(deduplicated)
+
+        if (BigLeaguesConstants.isKnockoutCup(compId)) {
+            when (val matchRes = repository.getMatches(
+                competitionId = compId,
+                limit = 100,
+                ascending = true,
+                season = season
+            )) {
+                is NetworkResult.Success -> {
+                    val matches = matchRes.data.map { it.toMatch() }
+                    _standingsState.value = StandingsState.Success(
+                        standings = emptyList(),
+                        knockoutMatches = matches
+                    )
+                }
+                is NetworkResult.Error -> _standingsState.value = StandingsState.Error("Error ${matchRes.code}: ${matchRes.message}")
+                is NetworkResult.Exception -> _standingsState.value = StandingsState.Error(matchRes.e.message ?: "Failed to load cup matches")
             }
-            is NetworkResult.Error -> _standingsState.value = StandingsState.Error("Error ${res.code}: ${res.message}")
-            is NetworkResult.Exception -> _standingsState.value = StandingsState.Error(res.e.message ?: "Failed to load standings")
+        } else if (BigLeaguesConstants.isEuropeanHybrid(compId)) {
+            val standingsRes = standingRepository.getStandings(compId, season)
+            val matchRes = repository.getMatches(
+                competitionId = compId,
+                limit = 100,
+                ascending = true,
+                season = season
+            )
+
+            val standings = if (standingsRes is NetworkResult.Success) {
+                deduplicateStandings(standingsRes.data)
+            } else emptyList()
+
+            val knockoutMatches = if (matchRes is NetworkResult.Success) {
+                matchRes.data.map { it.toMatch() }
+            } else emptyList()
+
+            if (standings.isEmpty() && knockoutMatches.isEmpty() && standingsRes is NetworkResult.Error) {
+                _standingsState.value = StandingsState.Error("Error ${standingsRes.code}: ${standingsRes.message}")
+            } else {
+                _standingsState.value = StandingsState.Success(
+                    standings = standings,
+                    knockoutMatches = knockoutMatches
+                )
+            }
+        } else {
+            when (val res = standingRepository.getStandings(compId, season)) {
+                is NetworkResult.Success -> {
+                    val deduplicated = deduplicateStandings(res.data)
+                    _standingsState.value = StandingsState.Success(
+                        standings = deduplicated,
+                        knockoutMatches = emptyList()
+                    )
+                }
+                is NetworkResult.Error -> _standingsState.value = StandingsState.Error("Error ${res.code}: ${res.message}")
+                is NetworkResult.Exception -> _standingsState.value = StandingsState.Error(res.e.message ?: "Failed to load standings")
+            }
         }
     }
 }
@@ -197,7 +247,7 @@ private fun scoreMatchQuality(match: Match): Int {
     else if (match.isFinished) score += 500
     else if (match.isScheduled) score += 100
 
-    // ESPN IDs are 9 digits (> 100_000_000), football-data are 6 digits
+    // ESPN IDs are 9 digits (> 100_000_000), legacy archive IDs are smaller
     if (match.id > 100_000_000L) score += 100
     if (!match.highlightVideoId.isNullOrBlank()) score += 50
     if (match.homeScore != null && match.awayScore != null) score += 25

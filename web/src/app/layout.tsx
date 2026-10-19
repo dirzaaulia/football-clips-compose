@@ -1,12 +1,12 @@
 import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import Sidebar from '@/components/layout/Sidebar';
 import BottomNav from '@/components/layout/BottomNav';
 import Footer from '@/components/layout/Footer';
 import SplashScreen from '@/components/common/SplashScreen';
 import CookieConsentBanner from '@/components/common/CookieConsentBanner';
 import PlayStoreInstallBanner from '@/components/common/PlayStoreInstallBanner';
+import FloatingMiniPlayer from '@/components/player/FloatingMiniPlayer';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -63,17 +63,16 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        {/* Google AdSense Official Script */}
-        <Script
+        {/* Google AdSense Official Verification Snippet */}
+        <script
           async
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
           crossOrigin="anonymous"
-          strategy="afterInteractive"
         />
         {/* Google Identity Services (Client-side in-app login) */}
-        <Script
+        <script
+          async
           src="https://accounts.google.com/gsi/client"
-          strategy="afterInteractive"
         />
       </head>
       <body className="min-h-screen bg-[#101418] text-[#F1F5F9] antialiased flex flex-col md:flex-row selection:bg-[#7098F8]/30 selection:text-white">
@@ -92,6 +91,9 @@ export default function RootLayout({
           {/* Google Play Store Android App Install Prompt */}
           <PlayStoreInstallBanner />
         </div>
+
+        {/* Floating Docked Mini-Player (Bottom-Right) */}
+        <FloatingMiniPlayer />
 
         {/* Mobile Navigation Dock */}
         <BottomNav />

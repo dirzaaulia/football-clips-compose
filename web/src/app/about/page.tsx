@@ -82,11 +82,7 @@ export default function AboutPage() {
               <span>Real-Time Sports Telemetry</span>
             </h3>
             <p className="text-[#94A3B8]">
-              Live match scores, schedules, and standings tables are ingested through verified sports data providers including{' '}
-              <a href="https://www.football-data.org" target="_blank" rel="noopener noreferrer" className="text-[#7098F8] hover:underline">
-                Football-Data.org
-              </a>
-              , ensuring factual scoreline accuracy and prompt match updates.
+              Live match scores, schedules, and standings tables are ingested through verified public sports data feeds and official league telemetry, ensuring factual scoreline accuracy and prompt match updates.
             </p>
           </div>
         </div>

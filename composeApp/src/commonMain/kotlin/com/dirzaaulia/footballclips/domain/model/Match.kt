@@ -21,6 +21,7 @@ data class Match(
     val homeScore: Int?,
     val awayScore: Int?,
     val highlightVideoId: String?,
+    val backupHighlightVideoId: String? = null,
     val recapAnalysis: String? = null,
     val roundName: String? = null,
     val displayClock: String? = null,
@@ -29,19 +30,34 @@ data class Match(
     val statistics: Map<String, Map<String, String>>? = null,
     val editorialHeadline: String? = null,
     val editorialStory: String? = null,
-    val editorialSource: String? = null
+    val editorialSource: String? = null,
+    val events: List<MatchEvent>? = null,
+    val youtubeRegionInfo: RegionRestriction? = null,
+    val backupYoutubeRegionInfo: RegionRestriction? = null
 ) {
     val displayRound: String
         get() = roundName ?: matchday?.let { "Matchweek $it" } ?: competitionName
 
     val leagueEmblemUrl: String
         get() = when (competitionId.uppercase()) {
+            "CL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2.png"
+            "EL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2487.png"
+            "ECL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/20349.png"
+            "PL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/23.png"
+            "PD" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/15.png"
+            "SA" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/12.png"
+            "BL1" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/10.png"
+            "FL1" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/9.png"
             "SPL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2488.png"
             "MLS" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/19.png"
-            "DED" -> "https://crests.football-data.org/ED.png"
-            "FAC" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/40.png"
-            "CDR" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/80.png"
-            else -> "https://crests.football-data.org/${competitionId.uppercase()}.png"
+            "DED" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/11.png"
+            "PPL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/14.png"
+            "FAC" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/38.png"
+            "EFL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/37.png"
+            "CDR" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/274.png"
+            "DFB" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2061.png"
+            "CIT" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/270.png"
+            else -> "https://a.espncdn.com/i/leaguelogos/soccer/500/23.png"
         }
 
     private val localDateTime by lazy {
@@ -102,6 +118,9 @@ data class Match(
             val normalizedStatus = status.uppercase().replace(" ", "_")
             return normalizedStatus in listOf("TIMED", "SCHEDULED")
         }
+
+    val hasHighlight: Boolean
+        get() = !highlightVideoId.isNullOrBlank()
 }
 
 data class StarterPlayer(
@@ -136,6 +155,32 @@ fun com.dirzaaulia.footballclips.data.model.remote.FormationsDto.toDomain() = Fo
     away = away?.toDomain()
 )
 
+data class MatchEvent(
+    val id: String?,
+    val type: String?,
+    val typeText: String?,
+    val clock: String?,
+    val period: Int?,
+    val side: String?,
+    val scoringPlay: Boolean,
+    val player: String,
+    val assist: String?,
+    val text: String
+)
+
+fun com.dirzaaulia.footballclips.data.model.remote.MatchEventDto.toDomain() = MatchEvent(
+    id = id,
+    type = type,
+    typeText = typeText,
+    clock = clock,
+    period = period,
+    side = side,
+    scoringPlay = scoringPlay,
+    player = player,
+    assist = assist,
+    text = text
+)
+
 fun MatchDto.toMatch(): Match {
     return Match(
         id = id,
@@ -151,6 +196,7 @@ fun MatchDto.toMatch(): Match {
         homeScore = homeScore,
         awayScore = awayScore,
         highlightVideoId = highlightVideoId,
+        backupHighlightVideoId = backupHighlightVideoId,
         recapAnalysis = recapAnalysis,
         roundName = roundName,
         displayClock = displayClock,
@@ -159,7 +205,29 @@ fun MatchDto.toMatch(): Match {
         statistics = statistics,
         editorialHeadline = editorialHeadline,
         editorialStory = editorialStory,
-        editorialSource = editorialSource
+        editorialSource = editorialSource,
+        events = events?.map { it.toDomain() },
+        youtubeRegionInfo = youtubeRegionInfo?.let { RegionRestriction(it.allowed, it.blocked) },
+        backupYoutubeRegionInfo = backupYoutubeRegionInfo?.let { RegionRestriction(it.allowed, it.blocked) }
     )
+}
+
+data class RegionRestriction(
+    val allowed: List<String>? = null,
+    val blocked: List<String>? = null
+) {
+    fun isSupportedIn(countryCode: String?): Boolean {
+        if (countryCode.isNullOrBlank()) return true
+        val upper = countryCode.uppercase().trim()
+        val all = allowed
+        if (!all.isNullOrEmpty()) {
+            return all.any { it.equals(upper, ignoreCase = true) }
+        }
+        val blk = blocked
+        if (!blk.isNullOrEmpty()) {
+            return !blk.any { it.equals(upper, ignoreCase = true) }
+        }
+        return true
+    }
 }
 

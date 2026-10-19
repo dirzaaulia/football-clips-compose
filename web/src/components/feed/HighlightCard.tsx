@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Play, Sparkles, Trophy } from 'lucide-react';
-import { MatchRecord } from '@/lib/supabase';
+import { MatchRecord } from '@/lib/database';
 import Link from 'next/link';
 import SpoilerThumbnailBox from '../player/SpoilerThumbnailBox';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
@@ -162,13 +162,13 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
               Watch
             </button>
             {match.id && !String(match.id).startsWith('mw-') ? (
-              <Link
-                href={`/match/${match.id}`}
-                className="text-[#94A3B8] hover:text-white flex items-center gap-1 transition-colors text-[11px] font-medium"
+              <button
+                onClick={() => onPlay(match)}
+                className="text-[#94A3B8] hover:text-white flex items-center gap-1 transition-colors text-[11px] font-medium cursor-pointer"
               >
                 <Sparkles className="w-3 h-3 text-[#4FC3F7]" />
                 <span>Match Centre</span>
-              </Link>
+              </button>
             ) : null}
           </div>
         </div>

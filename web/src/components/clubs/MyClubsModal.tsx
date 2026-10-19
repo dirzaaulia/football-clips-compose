@@ -3,28 +3,23 @@
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Search, Star, Sparkles, Check, X, Bell, Trophy } from 'lucide-react';
-import { SUPPORTED_CLUBS } from '@/lib/clubs';
 import { useMyClubs } from '@/hooks/useMyClubs';
+import { useSupportedClubs } from '@/hooks/useSupportedClubs';
+import { useCompetitions } from '@/hooks/useCompetitions';
 import ModalSideSheet from '@/components/common/ModalSideSheet';
 import CustomDropdown from '@/components/common/CustomDropdown';
 import NotificationOptInModal from './NotificationOptInModal';
-import { requestWebNotificationPermission } from '@/lib/firebase/messaging';
+import { requestWebNotificationPermission, syncWebPushSubscription, getStoredWebPushToken } from '@/lib/firebase/messaging';
 
 interface MyClubsModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const LEAGUE_TABS = [
-  { code: 'ALL', name: 'All Leagues' }, { code: 'PL', name: 'Premier League' },
-  { code: 'PD', name: 'La Liga' }, { code: 'SA', name: 'Serie A' },
-  { code: 'BL1', name: 'Bundesliga' }, { code: 'FL1', name: 'Ligue 1' },
-  { code: 'SPL', name: 'Saudi Pro League' }, { code: 'MLS', name: 'Major League Soccer' },
-  { code: 'DED', name: 'Eredivisie' }, { code: 'PPL', name: 'Liga Portugal' }
-];
-
 export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
   const { favoriteClubs, toggleClub, clearAll, favoriteCount } = useMyClubs();
+  const allSupportedClubs = useSupportedClubs();
+  const competitions = useCompetitions();
   const [search, setSearch] = useState('');
   const [selectedLeague, setSelectedLeague] = useState('ALL');
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
@@ -50,6 +45,9 @@ export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
     if (result.granted) {
       setNotificationsEnabled(true);
       setIsNotificationModalOpen(false);
+      if (result.token && favoriteClubs.size > 0) {
+        await syncWebPushSubscription(result.token, Array.from(favoriteClubs), 'subscribe');
+      }
     } else if (result.status === 'denied') {
       setIsDenied(true);
     }
@@ -58,24 +56,37 @@ export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
   const handleToggleClub = (clubId: string) => {
     const isAdding = !favoriteClubs.has(clubId);
     toggleClub(clubId);
+    const token = getStoredWebPushToken();
+    if (notificationsEnabled && token) {
+      syncWebPushSubscription(token, [clubId], isAdding ? 'subscribe' : 'unsubscribe');
+    }
     if (isAdding && !notificationsEnabled && typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
       setIsDenied(false);
       setIsNotificationModalOpen(true);
     }
   };
 
+  const leagueTabs = useMemo(() => {
+    return [
+      { code: 'ALL', name: 'All Leagues' },
+      ...competitions
+        .filter((c) => c.competitionId !== 'ALL')
+        .map((c) => ({ code: c.competitionId || '', name: c.name })),
+    ];
+  }, [competitions]);
+
   const filteredClubs = useMemo(() => {
-    return SUPPORTED_CLUBS.filter((club) => {
+    return allSupportedClubs.filter((club) => {
       const matchesLeague = selectedLeague === 'ALL' || club.leagueCode === selectedLeague;
       const s = search.toLowerCase().trim();
       const matchesSearch =
         !s ||
         club.name.toLowerCase().includes(s) ||
         club.shortName.toLowerCase().includes(s) ||
-        club.aliases.some((a) => a.toLowerCase().includes(s));
+        (club.aliases && club.aliases.some((a) => a.toLowerCase().includes(s)));
       return matchesLeague && matchesSearch;
     });
-  }, [search, selectedLeague]);
+  }, [allSupportedClubs, search, selectedLeague]);
 
   const titleHeader = (
     <div className="flex items-center justify-between w-full pr-3 gap-6">
@@ -136,7 +147,7 @@ export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
 
         {/* Clean League Dropdown Filter */}
         <CustomDropdown<string>
-          items={LEAGUE_TABS.map((tab) => ({
+          items={leagueTabs.map((tab) => ({
             value: tab.code,
             label: tab.name,
             icon: <Trophy className="w-3.5 h-3.5 text-[#7098F8]" />,

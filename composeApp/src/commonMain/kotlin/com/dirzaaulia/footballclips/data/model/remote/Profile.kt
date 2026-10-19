@@ -10,5 +10,9 @@ data class Profile(
     @SerialName("is_premium")
     val isPremium: Boolean = false,
     @SerialName("email")
-    val email: String? = null
+    val email: String? = null,
+    @SerialName("display_name")
+    val displayName: String? = null,
+    @SerialName("avatar_url")
+    val avatarUrl: String? = null
 )

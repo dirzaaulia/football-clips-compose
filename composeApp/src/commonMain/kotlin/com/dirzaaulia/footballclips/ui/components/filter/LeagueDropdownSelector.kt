@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.dirzaaulia.footballclips.data.constants.BigLeague
 import com.dirzaaulia.footballclips.data.constants.BigLeaguesConstants
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
@@ -32,13 +33,31 @@ fun LeagueDropdownSelector(
     selectedCompetitionId: String? = null,
     onLeagueSelected: (Int?, String?) -> Unit,
     modifier: Modifier = Modifier,
+    dynamicCompetitions: List<BigLeague>? = null,
     showAll: Boolean = true,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    val leagues = remember(showAll) {
-        if (showAll) BigLeaguesConstants.leagues
-        else BigLeaguesConstants.leagues.filter { it.leagueId != null || it.competitionId != null }
+    val leagues = remember(dynamicCompetitions, showAll) {
+        if (dynamicCompetitions != null && dynamicCompetitions.isNotEmpty()) {
+            val list = mutableListOf<BigLeague>()
+            if (showAll && dynamicCompetitions.none { it.leagueId == null && it.competitionId == null }) {
+                list.add(
+                    BigLeague(
+                        name = "All Leagues",
+                        leagueId = null,
+                        countryCode = null,
+                        competitionId = null,
+                        logo = ""
+                    )
+                )
+            }
+            list.addAll(dynamicCompetitions.filter { if (showAll) true else (it.leagueId != null || it.competitionId != null) })
+            list
+        } else {
+            if (showAll) BigLeaguesConstants.leagues
+            else BigLeaguesConstants.leagues.filter { it.leagueId != null || it.competitionId != null }
+        }
     }
 
     val currentLeague = remember(leagues, selectedLeagueId, selectedCompetitionId) {

@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { MatchRecord } from './supabase';
+import { MatchRecord } from './database';
 import { findVerifiedMatchReport, generateAlgorithmicTacticalRecap } from './match-analysis';
 
 const apiKey = process.env.GEMINI_API_KEY || '';

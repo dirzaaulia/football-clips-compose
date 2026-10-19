@@ -14,7 +14,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import com.google.firebase.messaging.FirebaseMessaging
 import com.dirzaaulia.footballclips.data.telemetry.DeviceTelemetrySync
+import com.dirzaaulia.footballclips.util.getBuildConfigString
+import com.dirzaaulia.footballclips.util.getBuildConfigLong
 import io.github.jan.supabase.auth.Auth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
@@ -24,6 +29,16 @@ actual class PreferenceManager(
     private val deviceTelemetrySync: DeviceTelemetrySync? = null,
     private val auth: Auth? = null
 ) {
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val currentClubs = context.dataStore.data.first()[favoriteClubsKey] ?: emptySet()
+                syncTelemetry(currentClubs)
+            } catch (_: Exception) {
+            }
+        }
+    }
 
     private val adsRemovedKey = booleanPreferencesKey("is_ads_removed")
     private val darkModeKey = booleanPreferencesKey("is_dark_mode")
@@ -182,11 +197,15 @@ actual class PreferenceManager(
             }
             val clubIds = clubs.mapNotNull { it.toIntOrNull() }
             val devName = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}"
+            val appVer = getBuildConfigString("VERSION_NAME", "3.0.1")
+            val verCode = getBuildConfigLong("VERSION_CODE", 89832569L)
             deviceTelemetrySync.syncDevice(
                 deviceId = devId,
                 userId = userId,
                 clubs = clubIds,
-                deviceName = devName
+                deviceName = devName,
+                appVersion = appVer,
+                versionCode = verCode
             )
         } catch (_: Exception) {
         }

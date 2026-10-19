@@ -41,10 +41,5 @@ class FootballClipsFirebaseMessagingService : FirebaseMessagingService() {
             eventType = eventType
         )
     }
-
-    @Deprecated("Deprecated in Java")
-    override fun onNewToken(token: String) {
-        super.onNewToken(token)
-    }
 }
 

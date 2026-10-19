@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Play, Calendar, Trophy } from 'lucide-react';
-import { MatchRecord } from '@/lib/supabase';
+import { MatchRecord } from '@/lib/database';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 
 interface MatchSidebarProps {
@@ -111,6 +111,7 @@ export default function MatchSidebar({
               const home = m.home_team_name || m.home_team;
               const away = m.away_team_name || m.away_team;
               const isFinished = m.status === 'FINISHED';
+              const isLive = ['IN_PLAY', 'PAUSED', 'LIVE'].includes(m.status);
 
               return (
                 <Link
@@ -123,14 +124,25 @@ export default function MatchSidebar({
                       <Calendar className="w-2.5 h-2.5" />
                       {new Date(m.utc_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                     </span>
-                    <span className={isFinished ? 'text-emerald-400 font-bold' : 'text-[#4FC3F7]'}>
-                      {isFinished ? 'Finished' : 'Upcoming'}
+                    <span
+                      className={
+                        isLive
+                          ? 'text-red-400 font-black animate-pulse flex items-center gap-1'
+                          : isFinished
+                          ? 'text-emerald-400 font-bold'
+                          : 'text-[#4FC3F7]'
+                      }
+                    >
+                      {isLive && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />}
+                      {isLive ? 'LIVE' : isFinished ? 'Finished' : 'Upcoming'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between font-bold text-white">
                     <span className="truncate flex-1">{home}</span>
                     <span className="px-2 text-center text-[#7098F8]">
-                      {isFinished && !isSpoilerFree ? `${m.home_score ?? 0} - ${m.away_score ?? 0}` : 'vs'}
+                      {isLive || (isFinished && !isSpoilerFree)
+                        ? `${m.home_score ?? 0} - ${m.away_score ?? 0}`
+                        : 'vs'}
                     </span>
                     <span className="truncate flex-1 text-right">{away}</span>
                   </div>

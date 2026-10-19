@@ -1,30 +1,30 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useTransition, useRef, useCallback } from 'react';
-import { MatchRecord, getLiveMatches } from '@/lib/supabase';
+import { MatchRecord, getLiveMatches } from '@/lib/database';
 import { fetchMergedHighlightsPage, extractFilterOptions } from '@/lib/middleware-highlights';
 import { BIG_LEAGUES, isLeagueMatch } from '@/lib/constants';
 import { isMatchForFavoriteClubs } from '@/lib/clubs';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import { useDragScroll } from '@/hooks/useDragScroll';
-import HeroCarousel from '@/components/hero/HeroCarousel';
+import ExcitementCarousel from '@/components/hero/ExcitementCarousel';
 import LiveMatchSection from '@/components/live/LiveMatchSection';
 import HighlightCard from '@/components/feed/HighlightCard';
 import HighlightCardSkeleton from '@/components/feed/HighlightCardSkeleton';
-import VideoPlayerSideSheet from '@/components/player/VideoPlayerSideSheet';
 import NativeInFeedAdCard from '@/components/ads/NativeInFeedAdCard';
-import MyClubsModal from '@/components/clubs/MyClubsModal';
-import FilterSideSheet from '@/components/filter/FilterSideSheet';
-import SpoilerEducationDialog from '@/components/spoiler/SpoilerEducationDialog';
-import FloatingActionControls from '@/components/feed/FloatingActionControls';
+import HomeModalsAndOverlays from '@/components/feed/HomeModalsAndOverlays';
 import SeasonSelector from '@/components/filter/SeasonSelector';
+import CompetitionFilterBar from '@/components/feed/CompetitionFilterBar';
+import InfiniteScrollSentinel from '@/components/feed/InfiniteScrollSentinel';
 import { useSeason } from '@/hooks/useSeason';
-import { Trophy, Star, SlidersHorizontal, Loader2, CheckCircle2, Archive } from 'lucide-react';
+import { useVideoPlayer } from '@/hooks/useVideoPlayer';
+import { Trophy, Loader2, CheckCircle2, Archive } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export default function HomePage() {
   const { selectedSeason, setSeason, isArchiveSeason, currentOption } = useSeason();
+  const { playVideo, closePlayer, isSideSheetOpen, activeMatch } = useVideoPlayer();
   const [matches, setMatches] = useState<MatchRecord[]>([]);
   const [liveMatches, setLiveMatches] = useState<MatchRecord[]>([]);
   const [selectedComp, setSelectedComp] = useState('ALL');
@@ -63,20 +63,14 @@ export default function HomePage() {
     async function fetchLive() {
       try {
         const live = await getLiveMatches();
-        if (!isCancelled) {
-          setLiveMatches(live);
-        }
+        if (!isCancelled) setLiveMatches(live);
       } catch (err) {
         console.error('Failed to fetch live matches:', err);
       }
     }
-
     fetchLive();
-    const interval = setInterval(fetchLive, 30_000);
-    return () => {
-      isCancelled = true;
-      clearInterval(interval);
-    };
+    const interval = setInterval(fetchLive, 10_000);
+    return () => { isCancelled = true; clearInterval(interval); };
   }, []);
 
   // Reset and load initial page when competition or season changes
@@ -88,7 +82,7 @@ export default function HomePage() {
       if (!isCancelled) {
         startTransition(() => {
           setMatches(res.matches);
-          setOffsets({ supa: res.nextOffsetSupabase, mw: res.nextOffsetMw });
+          setOffsets({ supa: res.nextOffsetDb, mw: res.nextOffsetMw });
           setLoading({ initial: false, more: false, hasMore: res.hasMore });
         });
       }
@@ -107,7 +101,7 @@ export default function HomePage() {
         const seen = new Set(prev.map((m) => m.highlight_video_id || m.id));
         return [...prev, ...res.matches.filter((m) => !seen.has(m.highlight_video_id || m.id))];
       });
-      setOffsets({ supa: res.nextOffsetSupabase, mw: res.nextOffsetMw });
+      setOffsets({ supa: res.nextOffsetDb, mw: res.nextOffsetMw });
       setLoading((prev) => ({ ...prev, more: false, hasMore: res.hasMore }));
     });
   }, [loading.more, loading.hasMore, selectedComp, offsets, selectedSeason]);
@@ -155,16 +149,16 @@ export default function HomePage() {
   }, [liveMatches, isMyClubsActive, favoriteClubs, selectedComp, bigLeague]);
 
   const activeFilterCount = (searchQuery ? 1 : 0) + selectedCountries.length + selectedLeagues.length;
-  const featuredMatch = displayedMatches[0] || null;
-  const trendingMatches = displayedMatches.slice(1, 3);
-  const feedMatches = displayedMatches.length > 3 ? displayedMatches.slice(3) : displayedMatches.slice(1);
+  const feedMatches = displayedMatches;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-      <HeroCarousel
-        featuredMatch={featuredMatch}
-        trendingMatches={trendingMatches}
-        onPlay={setActiveVideoMatch}
+    <div className="max-w-[1600px] w-full mx-auto px-3.5 sm:px-6 lg:px-8 2xl:px-10 py-4">
+      <ExcitementCarousel
+        matches={matches}
+        onPlay={(m) => {
+          setActiveVideoMatch(m);
+          playVideo(m);
+        }}
         isLoading={loading.initial}
       />
 
@@ -184,46 +178,17 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div ref={scrollRef} className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none touch-pan-x overscroll-x-contain py-1 select-none">
-          <button
-            onClick={() => setIsFilterOpen(true)}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
-              activeFilterCount > 0 ? 'bg-[#1E3A8A]/60 text-[#4FC3F7] border border-[#7098F8]' : 'bg-[#181C20] text-[#94A3B8] hover:text-white border border-[#334155]'
-            }`}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-[#7098F8]" />
-            <span>Filter</span>
-            {activeFilterCount > 0 && (
-              <span className="px-1.5 py-0.2 bg-[#7098F8] text-[#101418] rounded-full text-[10px] font-black">{activeFilterCount}</span>
-            )}
-          </button>
-
-          <button
-            onClick={() => favoriteCount === 0 ? setIsMyClubsModalOpen(true) : setIsMyClubsActive(!isMyClubsActive)}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
-              isMyClubsActive && favoriteCount > 0 ? 'bg-[#1E3A8A]/50 text-[#7098F8] border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]' : 'bg-[#181C20] text-[#94A3B8] hover:text-white border border-[#334155]'
-            }`}
-          >
-            <Star className={`w-3.5 h-3.5 ${isMyClubsActive && mounted && favoriteCount > 0 ? 'text-[#7098F8] fill-[#7098F8]' : 'text-[#7098F8]'}`} />
-            <span>My Clubs {mounted && favoriteCount > 0 ? `(${favoriteCount})` : ''}</span>
-          </button>
-
-          {BIG_LEAGUES.map((c) => {
-            const isSelected = !isMyClubsActive && selectedComp === c.competitionId;
-            return (
-              <button
-                key={c.competitionId || c.name}
-                onClick={() => { setIsMyClubsActive(false); setSelectedComp(c.competitionId || 'ALL'); }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer ${
-                  isSelected ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]' : 'bg-[#181C20] text-[#94A3B8] hover:text-white border border-[#334155]'
-                }`}
-              >
-                {c.logo && <div className="relative w-4 h-4 shrink-0"><Image src={c.logo} alt={c.name} fill className="object-contain" unoptimized /></div>}
-                <span>{c.name}</span>
-              </button>
-            );
-          })}
-        </div>
+        <CompetitionFilterBar
+          selectedComp={selectedComp}
+          onSelectComp={(comp) => { setIsMyClubsActive(false); setSelectedComp(comp); }}
+          isMyClubsActive={isMyClubsActive}
+          onToggleMyClubs={() => favoriteCount === 0 ? setIsMyClubsModalOpen(true) : setIsMyClubsActive(!isMyClubsActive)}
+          favoriteCount={favoriteCount}
+          mounted={mounted}
+          onOpenFilter={() => setIsFilterOpen(true)}
+          activeFilterCount={activeFilterCount}
+          scrollRef={scrollRef}
+        />
       </section>
 
       {/* Archive Season Alert Banner */}
@@ -275,48 +240,37 @@ export default function HomePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 my-6">
           {feedMatches.map((m, idx) => (
             <React.Fragment key={m.id}>
-              <HighlightCard match={m} onPlay={setActiveVideoMatch} />
+              <HighlightCard
+                match={m}
+                onPlay={(selected) => {
+                  setActiveVideoMatch(selected);
+                  playVideo(selected);
+                }}
+              />
               {idx > 0 && idx % 6 === 0 && <NativeInFeedAdCard slotId="5616816386" />}
             </React.Fragment>
           ))}
         </div>
       )}
 
-      {/* Infinite Scroll Loading Skeleton */}
-      {loading.more && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 my-6 animate-pulse">
-          {[...Array(3)].map((_, i) => (
-            <HighlightCardSkeleton key={`more-skeleton-${i}`} />
-          ))}
-        </div>
-      )}
-
-      {/* Infinite Scroll Sentinel & End State */}
-      <div ref={sentinelRef} className="py-6 flex flex-col items-center justify-center">
-        {loading.more ? (
-          <div className="flex items-center gap-2 text-xs text-[#7098F8] font-bold">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span>Fetching more highlights...</span>
-          </div>
-        ) : !loading.hasMore && displayedMatches.length > 0 && !loading.initial ? (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#181C20] border border-[#334155]/60 text-xs text-[#94A3B8] font-medium shadow-sm">
-            <CheckCircle2 className="w-3.5 h-3.5 text-[#4ADE80]" />
-            <span>You&apos;re all caught up with recent highlights</span>
-          </div>
-        ) : null}
-      </div>
+      <InfiniteScrollSentinel
+        sentinelRef={sentinelRef}
+        loadingMore={loading.more}
+        hasMore={loading.hasMore}
+        hasMatches={displayedMatches.length > 0}
+        initialLoading={loading.initial}
+      />
 
       {/* Side Sheets & Modals */}
-      <VideoPlayerSideSheet
-        match={activeVideoMatch}
-        isOpen={Boolean(activeVideoMatch)}
-        onClose={() => setActiveVideoMatch(null)}
-        relatedMatches={matches.filter((m) => m.id !== activeVideoMatch?.id)}
-        onSelectMatch={setActiveVideoMatch}
-      />
-      <FilterSideSheet
-        isOpen={isFilterOpen}
-        onClose={() => setIsFilterOpen(false)}
+      <HomeModalsAndOverlays
+        activeVideoMatch={activeVideoMatch}
+        activeMatch={activeMatch}
+        isSideSheetOpen={isSideSheetOpen}
+        onClosePlayer={() => { setActiveVideoMatch(null); closePlayer(); }}
+        matches={matches}
+        onSelectMatch={(sel) => { setActiveVideoMatch(sel); playVideo(sel); }}
+        isFilterOpen={isFilterOpen}
+        onCloseFilter={() => setIsFilterOpen(false)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         availableCountries={countries}
@@ -325,15 +279,18 @@ export default function HomePage() {
         availableLeagues={leagues}
         selectedLeagues={selectedLeagues}
         onToggleLeague={(l) => setSelectedLeagues((prev) => prev.includes(l) ? prev.filter((x) => x !== l) : [...prev, l])}
-        onReset={() => { setSearchQuery(''); setSelectedCountries([]); setSelectedLeagues([]); }}
-        matchesFound={displayedMatches.length}
+        onResetFilters={() => { setSearchQuery(''); setSelectedCountries([]); setSelectedLeagues([]); }}
+        displayedMatchesCount={displayedMatches.length}
         hasMore={loading.hasMore}
         isLoadingMore={loading.more}
         onLoadMore={handleLoadMore}
+        isMyClubsModalOpen={isMyClubsModalOpen}
+        onCloseMyClubs={() => setIsMyClubsModalOpen(false)}
+        showEducation={showEducation}
+        onCloseEducation={() => setShowEducation(false)}
+        activeFilterCount={activeFilterCount}
+        onOpenFilter={() => setIsFilterOpen(true)}
       />
-      <MyClubsModal isOpen={isMyClubsModalOpen} onClose={() => setIsMyClubsModalOpen(false)} />
-      <SpoilerEducationDialog isOpen={showEducation} onClose={() => setShowEducation(false)} />
-      <FloatingActionControls activeFilterCount={activeFilterCount} onOpenFilter={() => setIsFilterOpen(true)} />
     </div>
   );
 }

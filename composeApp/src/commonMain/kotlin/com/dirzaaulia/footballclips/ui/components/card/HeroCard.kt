@@ -49,7 +49,8 @@ fun HeroCard(
     isCinematic: Boolean = false,
     isSpoilerFree: Boolean = false,
     isRevealed: Boolean = false,
-    onRevealClick: (() -> Unit)? = null
+    onRevealClick: (() -> Unit)? = null,
+    excitementTag: String? = null
 ) {
     val shape = RoundedCornerShape(14.dp)
     val isDarkTheme = isSystemInDarkTheme()
@@ -152,7 +153,7 @@ fun HeroCard(
                 modifier = Modifier.align(Alignment.TopEnd)
             ) {
                 Text(
-                    text = "FEATURED",
+                    text = excitementTag?.uppercase() ?: "FEATURED",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onPrimary,
                     fontWeight = FontWeight.Black,

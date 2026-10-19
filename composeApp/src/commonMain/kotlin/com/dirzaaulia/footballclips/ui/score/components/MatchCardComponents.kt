@@ -196,7 +196,8 @@ fun ScoreDisplay(
     isRevealed: Boolean = false,
     onRevealClick: (() -> Unit)? = null
 ) {
-    if (isSpoilerFree && !isRevealed) {
+    // Live matches never hide score; spoiler shielding is strictly for finished matches
+    if (isSpoilerFree && !isRevealed && !isLive) {
         Text(
             text = "? - ?",
             modifier = Modifier

@@ -4,7 +4,8 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Radio, ArrowRight, Shield } from 'lucide-react';
-import { MatchRecord } from '@/lib/supabase';
+import { MatchRecord } from '@/lib/database';
+import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 
 interface LiveMatchSectionProps {
   liveMatches: MatchRecord[];
@@ -12,6 +13,7 @@ interface LiveMatchSectionProps {
 }
 
 export default function LiveMatchSection({ liveMatches, className = '' }: LiveMatchSectionProps) {
+  const { playVideo } = useVideoPlayer();
   if (!liveMatches || liveMatches.length === 0) return null;
 
   return (
@@ -129,13 +131,13 @@ export default function LiveMatchSection({ liveMatches, className = '' }: LiveMa
                 <span className="text-[11px] text-[#94A3B8] font-medium">
                   {isPaused ? 'Half-time interval' : 'Match in progress'}
                 </span>
-                <Link
-                  href={`/match/${m.id}`}
+                <button
+                  onClick={() => playVideo(m)}
                   className="flex items-center gap-1 px-3 py-1 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-xs font-bold shadow-[0_0_12px_rgba(239,68,68,0.35)] transition-all cursor-pointer"
                 >
                   <span>Match Centre</span>
                   <ArrowRight className="w-3 h-3" />
-                </Link>
+                </button>
               </div>
             </div>
           );

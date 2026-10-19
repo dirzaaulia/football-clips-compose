@@ -49,10 +49,48 @@ export async function requestWebNotificationPermission(): Promise<{
       serviceWorkerRegistration: registration
     });
 
+    if (token && typeof window !== 'undefined') {
+      localStorage.setItem('fc_fcm_web_token', token);
+    }
+
     return { granted: true, token, status: 'granted' };
   } catch (err) {
     console.warn('[FCM Web] Failed to acquire token:', err);
     return { granted: true, token: null, status: 'granted' };
+  }
+}
+
+export function getStoredWebPushToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('fc_fcm_web_token');
+}
+
+const WORKER_SUBSCRIPTION_URL = 'https://fc-worker-519310318914.us-central1.run.app/notifications/subscribe';
+
+export async function syncWebPushSubscription(
+  token: string,
+  clubIds: (string | number)[],
+  action: 'subscribe' | 'unsubscribe' = 'subscribe'
+): Promise<boolean> {
+  if (!token || clubIds.length === 0) return false;
+  try {
+    const res = await fetch(WORKER_SUBSCRIPTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        token,
+        club_ids: clubIds,
+        action,
+        platform: 'web',
+        device_name: typeof navigator !== 'undefined' ? `${navigator.userAgent.slice(0, 50)}` : 'Web Browser'
+      })
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('[FCM Web] Failed to sync subscription with worker:', err);
+    return false;
   }
 }
 

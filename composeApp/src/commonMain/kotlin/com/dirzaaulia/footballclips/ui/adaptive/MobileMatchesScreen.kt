@@ -91,6 +91,7 @@ fun MobileMatchesScreen() {
     val standingsContent: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit = remember {
         {
             val standingsState by scoreViewModel.standingsState.collectAsState()
+            val dynamicCompetitions by scoreViewModel.competitions.collectAsState()
             val selectedCompetitionId by scoreViewModel.selectedCompetitionId.collectAsState()
             val selectedSeason by scoreViewModel.selectedSeason.collectAsState()
             val isPremium by scoreViewModel.isPremium.collectAsState()
@@ -98,6 +99,7 @@ fun MobileMatchesScreen() {
                 state = standingsState,
                 isPremium = isPremium,
                 selectedCompetitionId = selectedCompetitionId,
+                dynamicCompetitions = dynamicCompetitions,
                 selectedSeason = selectedSeason,
                 onLeagueSelected = { _, competitionId ->
                     scoreViewModel.selectCompetition(competitionId ?: "PL")
@@ -220,49 +222,69 @@ fun MobileMatchesScreen() {
                 }
             }
 
-            if (videoState.showVideoPlayer && videoState.selectedVideoHtml != null) {
-                val selectedItem = videoState.selectedItem
-                val relatedItems = remember(selectedItem) {
-                    if (selectedItem == null) return@remember emptyList()
-                    val leagueName = when(selectedItem) {
-                        is HighlightUiItem.SupabaseMatch -> selectedItem.match.competitionName
-                        is HighlightUiItem.Highlight -> selectedItem.highlight.leagueName
-                        else -> ""
-                    }
-                    val h = (homeViewModel.uiState.value as? HomeState.Success)?.items ?: emptyList()
-                    val s = (scoreViewModel.uiState.value as? ScoreState.Success)?.matches ?: emptyList()
-                    val allItems: List<HighlightUiItem> = h + s
-                    allItems.distinctBy { 
-                        when (it) {
-                            is HighlightUiItem.SupabaseMatch -> it.match.id.toString()
-                            is HighlightUiItem.Highlight -> it.highlight.title
-                            is HighlightUiItem.BannerAd -> it.id
-                        }
-                    }.filter { 
-                        it != selectedItem && 
-                        (it is HighlightUiItem.SupabaseMatch && it.match.competitionName == leagueName ||
-                         it is HighlightUiItem.Highlight && it.highlight.leagueName == leagueName) &&
-                        (it is HighlightUiItem.SupabaseMatch && it.match.highlightVideoId != null ||
-                         it is HighlightUiItem.Highlight && it.highlight.embedHtml.isNotEmpty())
-                    }.take(10)
-                }
-
+            if (videoState.showVideoPlayer && videoState.selectedItem != null) {
                 val isSpoilerFreeMode by scoreViewModel.isSpoilerFreeMode.collectAsState()
 
-                VideoPlayerSheet(
-                    item = selectedItem,
-                    html = videoState.selectedVideoHtml!!,
-                    relatedHighlights = relatedHighlights,
-                    relatedFixturesFinished = relatedFixturesFinished,
-                    relatedFixturesUpcoming = relatedFixturesUpcoming,
-                    relatedItems = relatedItems,
-                    isSpoilerFree = isSpoilerFreeMode,
-                    onItemClick = { item ->
-                        homeViewModel.selectVideo(item)
-                        videoState.onVideoClick(item) {}
-                    },
-                    onDismiss = { isExternal -> videoState.onDismiss(isExternal) }
-                )
+                if (videoState.isMinimized && videoState.selectedVideoHtml != null) {
+                    val miniVideoId = com.dirzaaulia.footballclips.util.extractVideoId(videoState.selectedVideoHtml!!)
+                    if (miniVideoId != null) {
+                        com.dirzaaulia.footballclips.ui.components.player.FloatingMiniPlayer(
+                            item = videoState.selectedItem,
+                            videoId = miniVideoId,
+                            isSpoilerFree = isSpoilerFreeMode,
+                            onRestore = { videoState.restore() },
+                            onClose = { videoState.onDismiss(false) },
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(
+                                    end = 16.dp,
+                                    bottom = if (isLandscape) 16.dp else innerPadding.calculateBottomPadding() + 80.dp
+                                )
+                        )
+                    }
+                } else {
+                    val selectedItem = videoState.selectedItem
+                    val relatedItems = remember(selectedItem) {
+                        if (selectedItem == null) return@remember emptyList()
+                        val leagueName = when(selectedItem) {
+                            is HighlightUiItem.SupabaseMatch -> selectedItem.match.competitionName
+                            is HighlightUiItem.Highlight -> selectedItem.highlight.leagueName
+                            else -> ""
+                        }
+                        val h = (homeViewModel.uiState.value as? HomeState.Success)?.items ?: emptyList()
+                        val s = (scoreViewModel.uiState.value as? ScoreState.Success)?.matches ?: emptyList()
+                        val allItems: List<HighlightUiItem> = h + s
+                        allItems.distinctBy { 
+                            when (it) {
+                                is HighlightUiItem.SupabaseMatch -> it.match.id.toString()
+                                is HighlightUiItem.Highlight -> it.highlight.title
+                                is HighlightUiItem.BannerAd -> it.id
+                            }
+                        }.filter { 
+                            it != selectedItem && 
+                            (it is HighlightUiItem.SupabaseMatch && it.match.competitionName == leagueName ||
+                             it is HighlightUiItem.Highlight && it.highlight.leagueName == leagueName) &&
+                            (it is HighlightUiItem.SupabaseMatch && it.match.highlightVideoId != null ||
+                             it is HighlightUiItem.Highlight && it.highlight.embedHtml.isNotEmpty())
+                        }.take(10)
+                    }
+
+                    VideoPlayerSheet(
+                        item = selectedItem,
+                        html = videoState.selectedVideoHtml,
+                        relatedHighlights = relatedHighlights,
+                        relatedFixturesFinished = relatedFixturesFinished,
+                        relatedFixturesUpcoming = relatedFixturesUpcoming,
+                        relatedItems = relatedItems,
+                        isSpoilerFree = isSpoilerFreeMode,
+                        onItemClick = { item ->
+                            homeViewModel.selectVideo(item)
+                            videoState.onVideoClick(item) {}
+                        },
+                        onMinimize = { videoState.minimize() },
+                        onDismiss = { isExternal -> videoState.onDismiss(isExternal) }
+                    )
+                }
             }
         }
     }

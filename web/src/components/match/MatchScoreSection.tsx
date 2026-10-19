@@ -22,7 +22,8 @@ export default function MatchScoreSection({
   const isFinished = status === 'FINISHED';
   const hasScore = homeScore != null && awayScore != null;
 
-  const shouldHideScore = isSpoilerFree && !isRevealed && (isFinished || isLive);
+  // Spoiler mode only applies to finished matches; live matches remain directly visible
+  const shouldHideScore = isSpoilerFree && !isRevealed && isFinished;
 
   const statusLabel =
     status === 'PAUSED'

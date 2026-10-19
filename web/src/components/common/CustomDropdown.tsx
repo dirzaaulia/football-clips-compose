@@ -19,8 +19,8 @@ interface CustomDropdownProps<T = string | number> {
   onChange: (value: T) => void;
   leadingIcon?: React.ReactNode;
   prefix?: string;
-  variant?: 'default' | 'amber' | 'compact';
-  align?: 'left' | 'right';
+  variant?: 'default' | 'amber' | 'compact' | 'icon';
+  align?: 'left' | 'right' | 'popout';
   className?: string;
   menuWidth?: string;
   ariaLabel?: string;
@@ -39,9 +39,21 @@ export default function CustomDropdown<T extends string | number>({
   ariaLabel = 'Select option',
 }: CustomDropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
+  const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedItem = items.find((item) => item.value === value) || items[0];
+
+  const handleToggle = () => {
+    if (!isOpen && align === 'popout' && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setCoords({
+        top: Math.max(12, Math.min(rect.top, window.innerHeight - 200)),
+        left: rect.right + 10,
+      });
+    }
+    setIsOpen((prev) => !prev);
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent | TouchEvent) {
@@ -70,6 +82,11 @@ export default function CustomDropdown<T extends string | number>({
   }, [isOpen]);
 
   const isAmber = variant === 'amber' || selectedItem?.badgeVariant === 'amber';
+  const isIcon = variant === 'icon';
+
+  const triggerTitle = selectedItem?.label
+    ? `${prefix ? `${prefix}: ` : ''}${selectedItem.label}`
+    : ariaLabel;
 
   return (
     <div ref={containerRef} className={`relative inline-block text-left ${className}`}>
@@ -79,14 +96,17 @@ export default function CustomDropdown<T extends string | number>({
         aria-label={ariaLabel}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className={`group flex items-center justify-between gap-2 bg-[#181C20] border transition-all duration-200 cursor-pointer shadow-md select-none ${
-          variant === 'compact'
-            ? 'px-2.5 py-1.5 rounded-xl text-xs'
-            : 'px-3.5 py-2 rounded-2xl text-xs sm:text-sm'
+        title={isIcon ? triggerTitle : undefined}
+        onClick={handleToggle}
+        className={`group flex items-center justify-between transition-all duration-200 cursor-pointer shadow-md select-none ${
+          isIcon
+            ? 'w-10 h-10 rounded-xl justify-center bg-[#181C20] border'
+            : variant === 'compact'
+            ? 'px-2.5 py-1.5 rounded-xl text-xs gap-2 bg-[#181C20] border'
+            : 'px-3.5 py-2 rounded-2xl text-xs sm:text-sm gap-2 bg-[#181C20] border'
         } ${
           isAmber
-            ? 'border-amber-500/50 bg-amber-500/5 shadow-[0_0_12px_rgba(245,158,11,0.12)] hover:border-amber-400'
+            ? 'border-amber-500/50 bg-amber-500/10 shadow-[0_0_12px_rgba(245,158,11,0.15)] hover:border-amber-400'
             : 'border-[#334155] hover:border-[#7098F8]/60 hover:bg-[#1E232B]'
         }`}
       >
@@ -100,35 +120,56 @@ export default function CustomDropdown<T extends string | number>({
               {leadingIcon}
             </span>
           )}
-          {prefix && (
+          {!isIcon && prefix && (
             <span className="text-[#94A3B8] font-medium hidden sm:inline text-xs">
               {prefix}:
             </span>
           )}
-          <span
-            className={`font-bold whitespace-nowrap ${
-              isAmber ? 'text-amber-300' : 'text-white'
-            }`}
-          >
-            {selectedItem?.shortLabel || selectedItem?.label || 'Select'}
-          </span>
+          {!isIcon && (
+            <span
+              className={`font-bold whitespace-nowrap ${
+                isAmber ? 'text-amber-300' : 'text-white'
+              }`}
+            >
+              {selectedItem?.shortLabel || selectedItem?.label || 'Select'}
+            </span>
+          )}
         </div>
 
-        <ChevronDown
-          className={`w-3.5 h-3.5 shrink-0 text-[#94A3B8] transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-white' : 'group-hover:text-white'
-          }`}
-        />
+        {!isIcon && (
+          <ChevronDown
+            className={`w-3.5 h-3.5 shrink-0 text-[#94A3B8] transition-transform duration-200 ${
+              isOpen ? 'rotate-180 text-white' : 'group-hover:text-white'
+            }`}
+          />
+        )}
       </button>
+
+      {/* Popout transparent backdrop for outside clicks */}
+      {isOpen && align === 'popout' && (
+        <div
+          className="fixed inset-0 z-[9998] bg-black/20"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
 
       {/* Modern Glassmorphic Dropdown Menu */}
       {isOpen && (
         <div
           role="listbox"
           aria-label={ariaLabel}
-          className={`absolute ${
-            align === 'right' ? 'right-0' : 'left-0'
-          } mt-2 ${menuWidth} z-50 bg-[#181C20]/95 backdrop-blur-xl border border-[#334155] rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.55)] p-1.5 focus:outline-none transition-all duration-150 origin-top animate-in fade-in-0 zoom-in-95`}
+          style={
+            align === 'popout'
+              ? { position: 'fixed', top: `${coords.top}px`, left: `${coords.left}px`, zIndex: 9999 }
+              : undefined
+          }
+          className={`${
+            align === 'popout'
+              ? ''
+              : align === 'right'
+              ? 'absolute right-0 mt-2 z-50'
+              : 'absolute left-0 mt-2 z-50'
+          } ${menuWidth} bg-[#181C20]/95 backdrop-blur-xl border border-[#334155] rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.55)] p-1.5 focus:outline-none transition-all duration-150 origin-top animate-in fade-in-0 zoom-in-95`}
         >
           <div className="max-h-64 overflow-y-auto space-y-1 overscroll-contain">
             {items.map((item) => {

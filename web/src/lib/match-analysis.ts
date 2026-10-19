@@ -1,4 +1,4 @@
-import { MatchRecord } from './supabase';
+import { MatchRecord } from './database';
 import { getVerifiedFootballNews, FeedArticle } from './articles';
 
 /**
@@ -67,41 +67,49 @@ ${home} host ${away} in what promises to be a high-stakes ${comp} encounter. Bot
 
   let narrative = '';
   let tacticalBreakdown = '';
+  let adjustments = '';
   let impact = '';
 
   if (isLive) {
-    narrative = `The match between ${home} and ${away} is currently live with the scoreline standing at **${home} ${homeScore} - ${awayScore} ${away}**. Both sides are engaged in intense spatial battles across midfield channels, with high-intensity pressing shaping transition moments.`;
-    tacticalBreakdown = `Tactical observation reveals ${home} actively seeking width to bypass central midfield traps, while ${away} maintains a compact defensive block looking to spring counter-pressing situations.`;
-    impact = `With points on the line in ${comp}, current in-game score movements represent crucial swings in table positioning and qualification momentum.`;
+    narrative = `The contest between ${home} and ${away} is in active progress with the live scoreline standing at **${home} ${homeScore} - ${awayScore} ${away}** in ${comp}. Both squads are engaged in high-stakes tactical duels across central midfield channels, with counter-pressing efficiency determining attacking momentum.`;
+    tacticalBreakdown = `Tactical observation reveals ${home} actively seeking flank overloads to bypass central midfield traps, while ${away} maintains a disciplined mid-block looking to exploit transitional spaces. Half-space rotations and quick switches of play have created dangerous scoring situations.`;
+    adjustments = `As the match develops, both managers will look toward tactical substitutions to reinforce defensive balance or introduce dynamic width against tiring backlines.`;
+    impact = `With vital points on the line in ${comp}, current in-game score movements represent crucial swings in table positioning and continental qualification momentum.`;
   } else if (homeScore > awayScore) {
     const goalDiff = homeScore - awayScore;
     const isCleanSheet = awayScore === 0;
-    narrative = `${home} secured a commanding victory over ${away} with a final scoreline of **${homeScore} - ${awayScore}** in ${comp}. ${home} dictated match tempo through dominant possession, aggressive counter-pressing, and sharp execution in the final third${isCleanSheet ? ', keeping a disciplined clean sheet' : ''}.`;
-    tacticalBreakdown = `${home}'s positional play created consistent overloads in the half-spaces, destabilizing ${away}'s defensive line. ${away} struggled to establish sustained possession under relentless pressure, leaving their defensive structure vulnerable during rapid transitional breaks.`;
-    impact = `The 3 points represent a vital boost for ${home} in their ${comp} campaign, strengthening their table position, while ${away} will need tactical adjustments to address defensive transitions ahead of their next fixture.`;
+    narrative = `${home} delivered a commanding performance to overcome ${away} with a final score of **${homeScore} - ${awayScore}** in ${comp}. Dictating tempo from the opening whistle, the hosts applied aggressive counter-pressing triggers and clinical finishing in the final third${isCleanSheet ? ', securing a flawless clean sheet for their defensive unit' : ''}.`;
+    tacticalBreakdown = `${home}'s positional play created consistent spatial overloads between ${away}'s defensive and midfield lines. By committing full-backs forward and maintaining rest-defense stability, they isolated opposition center-backs. Conversely, ${away} struggled to bypass the initial pressing line, resulting in turnovers in high-leverage areas.`;
+    adjustments = `Key managerial adjustments during the second half preserved structural balance, allowing ${home} to absorb late pressure and seal the victory through controlled possession and tactical fouls in defensive transition.`;
+    impact = `Securing all 3 points provides ${home} with significant momentum in their ${comp} campaign, improving their goal differential and establishing authority in the table standings. For ${away}, tactical reorganization is paramount ahead of the next round.`;
   } else if (awayScore > homeScore) {
     const isCleanSheet = homeScore === 0;
-    narrative = `${away} claimed an impressive away victory, defeating ${home} **${awayScore} - ${homeScore}** in an intense ${comp} clash. ${away} executed their game plan with clinical efficiency, absorbing sustained phases of pressure before striking decisive blows on the counter-attack${isCleanSheet ? ' while denying the hosts a single goal' : ''}.`;
-    tacticalBreakdown = `${away}'s tactical discipline in a compact mid-block successfully neutralized ${home}'s central playmakers. By forcing ${home} into wide areas and winning second balls in their defensive third, ${away} exploited open channels behind the advanced home fullbacks.`;
-    impact = `A massive away result for ${away}, securing all 3 points on rival territory in ${comp}. For ${home}, the setback highlights areas for defensive reorganization and attacking precision in upcoming matchdays.`;
+    narrative = `${away} achieved a tactical triumph away from home, securing a decisive **${awayScore} - ${homeScore}** victory over ${home} in an intense ${comp} showdown. Executing their game plan with disciplined precision, the visitors absorbed sustained phases of possession before executing clinical transition counters${isCleanSheet ? ' while shutting down the hosts completely' : ''}.`;
+    tacticalBreakdown = `${away}'s compact 4-4-2 / 5-3-2 defensive shell effectively suffocated ${home}'s central playmakers. By forcing play into wide zones and winning aerial duels in their defensive box, ${away} launched swift vertical breaks into the space vacated by advanced full-backs.`;
+    adjustments = `The decisive tactical intervention came through vertical counter-attacking sequences and targeted substitutions that introduced fresh pressing legs in the final 30 minutes, denying ${home} any rhythm.`;
+    impact = `A massive away haul for ${away}, collecting all 3 points on hostile territory in ${comp} to propel their league ambitions forward. ${home} will need to evaluate defensive transition vulnerability ahead of upcoming fixtures.`;
   } else {
     // Draw
     const isGoalless = homeScore === 0 && awayScore === 0;
     narrative = isGoalless
-      ? `${home} and ${away} shared the spoils in a hard-fought **0 - 0** stalemate in ${comp}. Both defensive units remained impenetrable, prioritizing organizational structure and shutting down dangerous scoring avenues throughout 90 minutes.`
-      : `${home} and ${away} delivered an electrifying contest ending in a **${homeScore} - ${awayScore}** draw in ${comp}. An end-to-end spectacle featuring momentum swings, tactical parity, and clinical attacking responses from both managers.`;
-    tacticalBreakdown = `The tactical duel was defined by midfield equilibrium. Neither side surrendered positional discipline, with defensive lines holding high-line discipline and goalkeepers making key interventions during decisive counter-attacking sequences.`;
-    impact = `A point apiece ensures both ${home} and ${away} stay within touching distance of their season targets in ${comp}, demonstrating tactical resilience against quality opposition.`;
+      ? `${home} and ${away} shared the spoils in a hard-fought **0 - 0** stalemate in ${comp}. Both defensive lines demonstrated elite organization and spatial discipline, neutralizing attacking avenues over 90 minutes of tactical combat.`
+      : `${home} and ${away} played out an exhilarating **${homeScore} - ${awayScore}** draw in ${comp}. An end-to-end clash characterized by momentum shifts, individual brilliance, and tactical adjustments from both benches.`;
+    tacticalBreakdown = `The tactical duel was decided in the midfield engine room. Neither manager allowed their side to be caught out in transition, maintaining compact spacing between lines. Goalkeepers and central defenders produced crucial interventions at key moments to deny clear-cut chances.`;
+    adjustments = `Second-half tactical adjustments saw subtle shifts in build-up structures, with inverted wide players searching for half-space pockets, but neither side could break the deadlock in the final third.`;
+    impact = `A point apiece ensures both ${home} and ${away} maintain steady progress toward their ${comp} objectives, reflecting two evenly matched squads with sound tactical foundations.`;
   }
 
-  return `### Match Overview & Decisive Moments
+  return `### Match Narrative & Decisive Moments
 ${narrative}
 
-### Tactical Architecture & Spatial Duels
+### Tactical Architecture, Formations & Spatial Duels
 ${tacticalBreakdown}
 
-### Standings & Season Impact
+### Managerial Adjustments & In-Game Dynamics
+${adjustments}
+
+### Standings Trajectory & Continental Impact
 ${impact}
 
-*Verified Match Analysis by Football Highlights & Clips Tactical Engine.*`;
+*Verified Match Analysis by Football Highlights & Clips Tactical Editorial Desk.*`;
 }

@@ -116,7 +116,8 @@ fun WebFixtureCard(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     ) {
                         if (match.isFinished || match.isLive) {
-                            if (isSpoilerFree && !isRevealed) {
+                            // Live matches never hide score; spoiler shielding is strictly for finished matches
+                            if (isSpoilerFree && !isRevealed && !match.isLive) {
                                 Surface(
                                     onClick = { onRevealClick?.invoke() },
                                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),

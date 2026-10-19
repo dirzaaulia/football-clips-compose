@@ -4,48 +4,29 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from loguru import logger
+from worker.clients.supabase_client import supabase_client
 from worker.clients.youtube_client import youtube_client
 from worker.config.settings import settings
 
-try:
-    from google.cloud import storage
-except ImportError:
-    storage = None
-
-BUCKET_NAME = "highlightdata-telemetry"
-BLOB_PATH = "telemetry.json"
 LOCAL_CACHE_PATH = "telemetry_cache.json"
 
 
 class TelemetryService:
 
-    def __init__(self, bucket_name: str = BUCKET_NAME, blob_path: str = BLOB_PATH):
-        self.bucket_name = bucket_name
-        self.blob_path = blob_path
-        self._storage_client = None
-        self._init_storage()
-
-    def _init_storage(self):
-        if not storage:
-            return
-        try:
-            self._storage_client = storage.Client(project="highlightdata")
-        except Exception as e:
-            logger.debug(f"[TelemetryService] Storage client init deferred: {e}")
+    def __init__(self):
+        pass
 
     def _load_history(self) -> dict:
-        """Loads existing telemetry history from GCS or local disk cache."""
-        if self._storage_client:
+        """Loads existing telemetry history from Oracle VM PostgREST or local disk cache."""
+        if supabase_client:
             try:
-                bucket = self._storage_client.bucket(self.bucket_name)
-                blob = bucket.blob(self.blob_path)
-                if blob.exists():
-                    content = blob.download_as_text()
-                    data = json.loads(content)
-                    if isinstance(data, dict) and "cycles" in data:
-                        return data
+                res = supabase_client.table("telemetry_state").select("payload").eq("key", "telemetry").execute()
+                if res.data and len(res.data) > 0:
+                    payload = res.data[0].get("payload", {})
+                    if isinstance(payload, dict) and "cycles" in payload:
+                        return payload
             except Exception as e:
-                logger.debug(f"[TelemetryService] Failed to load remote telemetry: {e}")
+                logger.debug(f"[TelemetryService] Failed to load remote telemetry from PostgREST: {e}")
 
         # Fallback to local cache file
         if os.path.exists(LOCAL_CACHE_PATH):
@@ -62,7 +43,9 @@ class TelemetryService:
         mode: str,
         next_sleep_str: str,
         cycle_index: int,
-        steps_log: list[dict]
+        steps_log: list[dict],
+        pipeline_type: str = "FIXTURE_SYNC",
+        pipeline_cycle_index: int | None = None,
     ):
         now_utc = datetime.now(UTC)
         now_wib = datetime.now(settings.wib_tz)
@@ -72,15 +55,21 @@ class TelemetryService:
         history = self._load_history()
         existing_cycles = history.get("cycles", [])
         existing_events = history.get("events", [])
+        existing_pipelines = history.get("pipelines", {})
+
+        # Compute unique ID to avoid collision between pipelines
+        unique_cycle_id = cycle_index if pipeline_type == "FIXTURE_SYNC" else (cycle_index + 100000)
 
         # 2. Build new cycle object
         new_cycle = {
-            "id": cycle_index,
+            "id": unique_cycle_id,
             "cycle_index": cycle_index,
             "timestamp": ts_str,
             "mode": mode,
             "next_sleep": next_sleep_str,
             "created_at": now_utc.isoformat(),
+            "pipeline": pipeline_type,
+            "pipeline_cycle_index": pipeline_cycle_index or cycle_index,
         }
 
         # 3. Build new events list
@@ -101,7 +90,7 @@ class TelemetryService:
 
                 new_events.append({
                     "id": curr_id,
-                    "cycle_id": cycle_index,
+                    "cycle_id": unique_cycle_id,
                     "step_title": title,
                     "step_status": status,
                     "event_text": line,
@@ -113,28 +102,14 @@ class TelemetryService:
                 curr_id += 1
                 order += 1
 
-        # 4. Merge and retain 7 full days of detailed traces (168 hours)
-        cutoff_dt = now_utc - timedelta(days=7)
-        combined_cycles = [new_cycle] + [c for c in existing_cycles if c.get("id") != cycle_index]
-
-        # Prune cycles older than 7 days
-        pruned_cycles = []
-        retained_cycle_ids = set()
-        for c in combined_cycles:
-            c_time_str = c.get("created_at")
-            if c_time_str:
-                try:
-                    c_dt = datetime.fromisoformat(c_time_str.replace("Z", "+00:00"))
-                    if c_dt >= cutoff_dt:
-                        pruned_cycles.append(c)
-                        retained_cycle_ids.add(c.get("id"))
-                        continue
-                except Exception:
-                    pass
-            # If no created_at or recent, keep at least the last 50 cycles
-            if len(pruned_cycles) < 50:
-                pruned_cycles.append(c)
-                retained_cycle_ids.add(c.get("id"))
+        # 4. Merge and retain recent execution cycles (max 50 latest cycles)
+        combined_cycles = [new_cycle] + [c for c in existing_cycles if c.get("id") != unique_cycle_id]
+        combined_cycles.sort(
+            key=lambda c: c.get("created_at") or c.get("timestamp") or "",
+            reverse=True
+        )
+        pruned_cycles = combined_cycles[:50]
+        retained_cycle_ids = {c.get("id") for c in pruned_cycles if c.get("id") is not None}
 
         # Prune events to only those belonging to retained cycles
         combined_events = new_events + existing_events
@@ -143,10 +118,31 @@ class TelemetryService:
         # 5. Live Quota Metrics
         quota_status = youtube_client.get_quota_status()
 
+        # Update structured pipeline status
+        if pipeline_type == "FIXTURE_SYNC":
+            existing_pipelines["fixture_engine"] = {
+                "cycle_index": pipeline_cycle_index or cycle_index,
+                "cadence": next_sleep_str,
+                "status": "LIVE_ACTIVE" if "60s" in next_sleep_str else "IDLE",
+                "last_sync": now_utc.isoformat(),
+                "mode": mode,
+            }
+        elif pipeline_type == "YOUTUBE_SCRAPER":
+            existing_pipelines["highlight_engine"] = {
+                "sweep_index": pipeline_cycle_index or cycle_index,
+                "cadence": next_sleep_str,
+                "status": "AUTONOMOUS_SWEEP",
+                "quota_hits": quota_status.get("hits_today", 0),
+                "quota_target": 8500,
+                "last_sweep": now_utc.isoformat(),
+                "mode": mode,
+            }
+
         payload = {
             "updated_at": now_utc.isoformat(),
             "cycle_count": len(pruned_cycles),
             "quota": quota_status,
+            "pipelines": existing_pipelines,
             "cycles": pruned_cycles,
             "events": pruned_events,
         }
@@ -158,19 +154,20 @@ class TelemetryService:
         except Exception as e:
             logger.debug(f"[TelemetryService] Failed to save local cache: {e}")
 
-        # 7. Upload to Google Cloud Storage
-        if self._storage_client:
+        # 7. Persist to Oracle VM PostgreSQL via PostgREST
+        if supabase_client:
             try:
-                bucket = self._storage_client.bucket(self.bucket_name)
-                blob = bucket.blob(self.blob_path)
-                blob.cache_control = "public, max-age=10, s-maxage=10"
-                blob.upload_from_string(
-                    json.dumps(payload, ensure_ascii=False),
-                    content_type="application/json"
-                )
-                logger.info(f"[TelemetryService] Published {len(pruned_cycles)} cycles & {len(pruned_events)} events to GCS.")
+                supabase_client.table("telemetry_state").upsert(
+                    {
+                        "key": "telemetry",
+                        "payload": payload,
+                        "updated_at": now_utc.isoformat(),
+                    },
+                    on_conflict="key",
+                ).execute()
+                logger.info(f"[TelemetryService] Published {len(pruned_cycles)} cycles & {len(pruned_events)} events to Oracle VM PostgREST.")
             except Exception as e:
-                logger.warning(f"[TelemetryService] GCS upload failed: {e}")
+                logger.warning(f"[TelemetryService] PostgREST telemetry_state upsert failed: {e}")
 
 
 telemetry_service = TelemetryService()

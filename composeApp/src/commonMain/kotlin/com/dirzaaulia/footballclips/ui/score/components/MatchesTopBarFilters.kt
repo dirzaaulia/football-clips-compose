@@ -53,6 +53,7 @@ internal fun MatchesTopBarFilters(
     liveMatchCount: Int = 0,
     selectedCompetitionId: String?,
     onLeagueSelected: (Int?, String?) -> Unit,
+    dynamicCompetitions: List<com.dirzaaulia.footballclips.data.constants.BigLeague>? = null,
     selectedSeason: Int = 2026,
     onSeasonSelected: (Int) -> Unit = {},
     selectedStatusFilter: MatchStatusFilter = MatchStatusFilter.ALL,
@@ -160,6 +161,7 @@ internal fun MatchesTopBarFilters(
 
                     LeagueDropdownSelector(
                         selectedCompetitionId = if (isMyClubsActive) null else selectedCompetitionId,
+                        dynamicCompetitions = dynamicCompetitions,
                         onLeagueSelected = { leagueId, competitionId ->
                             if (isMyClubsActive) onToggleMyClubs()
                             onLeagueSelected(leagueId, competitionId)
@@ -191,6 +193,7 @@ internal fun MatchesTopBarFilters(
 
                         LeagueDropdownSelector(
                             selectedCompetitionId = if (isMyClubsActive) null else selectedCompetitionId,
+                            dynamicCompetitions = dynamicCompetitions,
                             onLeagueSelected = { leagueId, competitionId ->
                                 if (isMyClubsActive) onToggleMyClubs()
                                 onLeagueSelected(leagueId, competitionId)

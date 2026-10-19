@@ -37,7 +37,7 @@ internal fun buildYouTubeHtml(videoId: String): String {
                         },
                         events: {
                             'onReady': function(event) { event.target.playVideo(); },
-                            'onError': function(event) { window.location.href = "fc-error://playback"; }
+                            'onError': function(event) { window.location.href = "fc-error://" + event.data; }
                         }
                     });
                 }

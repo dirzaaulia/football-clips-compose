@@ -96,7 +96,8 @@ fun StandardMatchCard(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     if (match.isLive || match.isFinished) {
-                        if (isSpoilerFree && !isRevealed) {
+                        // Live matches never hide score; spoiler shielding is strictly for finished matches
+                        if (isSpoilerFree && !isRevealed && !match.isLive) {
                             Text(
                                 text = "? - ?",
                                 modifier = Modifier

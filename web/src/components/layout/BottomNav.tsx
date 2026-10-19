@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Play, Calendar, Trophy, Info } from 'lucide-react';
+import { Play, Calendar, Trophy, Newspaper, Info } from 'lucide-react';
 
 interface NavItem {
   href: string;
@@ -14,6 +14,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: '/', label: 'Highlights', icon: Play },
   { href: '/fixtures', label: 'Fixtures', icon: Calendar },
+  { href: '/articles', label: 'Analysis', icon: Newspaper },
   { href: '/standings', label: 'Standings', icon: Trophy },
   { href: '/info', label: 'Info', icon: Info },
 ];
@@ -39,7 +40,7 @@ export default function BottomNav() {
             href={item.href}
             aria-label={item.label}
             aria-current={isActive ? 'page' : undefined}
-            className={`relative flex flex-col items-center justify-center min-w-[56px] h-12 px-2.5 rounded-2xl transition-all duration-300 select-none ${
+            className={`relative flex flex-col items-center justify-center min-w-[48px] sm:min-w-[54px] h-12 px-1.5 sm:px-2.5 rounded-2xl transition-all duration-300 select-none ${
               isActive
                 ? 'scale-110 text-[#7098F8] bg-[#1E3A8A]/30'
                 : 'text-[#94A3B8] hover:text-white active:scale-95'

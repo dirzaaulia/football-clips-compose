@@ -11,6 +11,7 @@ import coil3.SingletonImageLoader
 import coil3.svg.SvgDecoder
 import com.dirzaaulia.footballclips.di.appModules
 import com.dirzaaulia.footballclips.data.admob.AdMobInitializer
+import com.dirzaaulia.footballclips.data.telemetry.AppCrashReporter
 import com.revenuecat.purchases.LogLevel
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesConfiguration
@@ -43,6 +44,13 @@ class FootballClipsApplication : Application(), SingletonImageLoader.Factory, Co
 
     override fun onCreate() {
         super.onCreate()
+
+        // Install real-time Crashlytics telemetry stream to PostgreSQL 16
+        try {
+            AppCrashReporter.install(this)
+        } catch (t: Throwable) {
+            Log.w("FootballClipsApp", "AppCrashReporter setup failed: ${t.message}")
+        }
 
         // Safeguard check to clean up empty or corrupted WorkDatabase files
         try {

@@ -4,6 +4,7 @@ from loguru import logger
 from worker.clients.espn_client import espn_client
 from worker.clients.football_data_client import football_data_client
 from worker.clients.supabase_client import supabase_client
+from worker.clients.supabase_cloud_client import supabase_cloud_client
 from worker.config.settings import settings
 from worker.services.club_service import club_service
 from worker.services.editorial_rss_service import editorial_rss_service
@@ -80,6 +81,24 @@ class MatchService:
         logger.info(msg_fetch)
         append_event(log_events, msg_fetch, "INFO", "MATCH_SYNC", "API_FETCH")
 
+        # Granular Competition Breakdown
+        from collections import Counter
+        comp_counts = Counter(m.get("competition_id") or m.get("competition", {}).get("code") or "OTHER" for m in matches_raw)
+        breakdown_str = ", ".join(f"{k}: {v}" for k, v in sorted(comp_counts.items()))
+        append_event(log_events, f"[INGEST BREAKDOWN] {breakdown_str}", "INFO", "MATCH_SYNC", "BREAKDOWN")
+
+        # Proximity alert for upcoming kickoffs within 45 mins
+        upcoming_near = []
+        for m in matches_raw:
+            m_date = self.safe_parse_iso(m.get("utc_date") or m.get("utcDate"))
+            diff_min = (m_date - now_utc).total_seconds() / 60
+            if 0 <= diff_min <= 45 and m.get("status") in ["TIMED", "SCHEDULED"]:
+                h_name = m.get("home_team_name") or m.get("homeTeam", {}).get("name", "Home")
+                a_name = m.get("away_team_name") or m.get("awayTeam", {}).get("name", "Away")
+                upcoming_near.append(f"{h_name} vs {a_name} ({int(diff_min)}m)")
+        if upcoming_near:
+            append_event(log_events, f"[KICKOFF UPCOMING] Starting soon: {', '.join(upcoming_near)}", "INFO", "MATCH_SYNC", "KICKOFF_NEAR")
+
         # 1. Auto-sync supported clubs dari 5 liga besar (Zero Maintenance across seasons)
         club_service.sync_clubs_from_matches(matches_raw, log_events)
 
@@ -135,8 +154,16 @@ class MatchService:
         # 2. Status & Score Regression Protection
         try:
             old_data_map = {}
+            select_cols = "id, status, home_score, away_score, formations, statistics, editorial_headline, events"
             for i in range(0, len(api_match_ids), 50):
-                res_db = supabase_client.table("matches").select("id, status, home_score, away_score, formations, statistics, editorial_headline").in_("id", api_match_ids[i:i+50]).execute()
+                try:
+                    res_db = supabase_client.table("matches").select(select_cols).in_("id", api_match_ids[i:i+50]).execute()
+                except Exception as sel_err:
+                    if "events" in str(sel_err).lower():
+                        select_cols = "id, status, home_score, away_score, formations, statistics, editorial_headline"
+                        res_db = supabase_client.table("matches").select(select_cols).in_("id", api_match_ids[i:i+50]).execute()
+                    else:
+                        raise sel_err
                 for row in res_db.data:
                     old_data_map[row["id"]] = row
 
@@ -156,6 +183,8 @@ class MatchService:
                         p["statistics"] = old["statistics"]
                     if not p.get("editorial_headline") and old.get("editorial_headline"):
                         p["editorial_headline"] = old["editorial_headline"]
+                    if not p.get("events") and old.get("events"):
+                        p["events"] = old["events"]
 
                     # Protection against regression from FINISHED back to IN_PLAY/TIMED
                     is_regression = False
@@ -175,8 +204,13 @@ class MatchService:
                             append_event(log_events, f"[FULL TIME] [{comp_name}] ({m_date}) {h_team} vs {a_team} finished: {p.get('home_score') or 0} - {p.get('away_score') or 0}", "INFO", "MATCH_SYNC", "FULL_TIME")
                             notification_service.notify_match_event(p, "fulltime", log_events)
                         elif p["status"] == "IN_PLAY":
-                            append_event(log_events, f"[KICKOFF] [{comp_name}] ({m_date}) {h_team} vs {a_team} kicked off (Status: IN_PLAY)", "INFO", "MATCH_SYNC", "KICKOFF")
-                            notification_service.notify_match_event(p, "kickoff", log_events)
+                            if old["status"] == "PAUSED":
+                                append_event(log_events, f"[SECOND HALF] [{comp_name}] ({m_date}) 2nd half underway for {h_team} vs {a_team}", "INFO", "MATCH_SYNC", "SECOND_HALF")
+                            else:
+                                append_event(log_events, f"[KICKOFF] [{comp_name}] ({m_date}) {h_team} vs {a_team} kicked off (Status: IN_PLAY)", "INFO", "MATCH_SYNC", "KICKOFF")
+                                notification_service.notify_match_event(p, "kickoff", log_events)
+                        elif p["status"] == "PAUSED":
+                            append_event(log_events, f"[HALF TIME] [{comp_name}] ({m_date}) Half time break: {h_team} {p.get('home_score') or 0} - {p.get('away_score') or 0} {a_team}", "INFO", "MATCH_SYNC", "HALF_TIME")
                         else:
                             append_event(log_events, f"[STATUS UPDATE] [{comp_name}] ({m_date}) {h_team} vs {a_team} status changed: {old['status']} -> {p['status']}", "INFO", "MATCH_SYNC", "STATUS_CHANGE")
                         changes_found = True
@@ -223,10 +257,13 @@ class MatchService:
                                 p["editorial_story"] = summary["editorial_story"]
                             if summary.get("editorial_source"):
                                 p["editorial_source"] = summary["editorial_source"]
+                            if summary.get("events"):
+                                p["events"] = summary["events"]
                             enriched_count += 1
-                            h_team, a_team = p.get("home_team_name", "Home"), p.get("away_team_name", "Away")
-                            comp_name = p.get("competition_name") or p.get("competition_id") or "League"
-                            append_event(log_events, f"[TACTICAL DATA] [{comp_name}] Enriched formations & boxscore stats for {h_team} vs {a_team}", "INFO", "MATCH_SYNC", "TACTICAL_SYNC")
+                            f_home = summary.get("formations", {}).get("home", "")
+                            f_away = summary.get("formations", {}).get("away", "")
+                            form_str = f" ({f_home} vs {f_away})" if f_home and f_away else ""
+                            append_event(log_events, f"[TACTICAL DATA] [{comp_name}] Enriched formations{form_str} & boxscore stats for {h_team} vs {a_team}", "INFO", "MATCH_SYNC", "TACTICAL_SYNC")
                     except Exception as ex:
                         logger.debug(f"[TACTICAL DATA] Could not fetch summary for {p['id']}: {ex}")
 
@@ -254,10 +291,24 @@ class MatchService:
 
             notification_service.check_upcoming_fixtures(unique_payloads, log_events)
 
-            supabase_client.table("matches").upsert(unique_payloads, on_conflict="id").execute()
+            try:
+                supabase_client.table("matches").upsert(unique_payloads, on_conflict="id").execute()
+            except Exception as upsert_err:
+                err_str = str(upsert_err).lower()
+                if "events" in err_str and ("column" in err_str or "exist" in err_str or "schema" in err_str or "pgrst204" in err_str):
+                    logger.warning("[MATCH SYNC] matches.events column not present on target schema; retrying upsert without events payload...")
+                    stripped = [{k: v for k, v in p.items() if k != "events"} for p in unique_payloads]
+                    supabase_client.table("matches").upsert(stripped, on_conflict="id").execute()
+                else:
+                    raise upsert_err
+
             msg_upsert = f"Successfully synced {len(unique_payloads)} fixtures to Supabase database (Enriched {enriched_count} tactical profiles)."
             logger.info(msg_upsert)
             append_event(log_events, msg_upsert, "SUCCESS", "MATCH_SYNC", "DB_UPSERT")
+
+            # Dual-write to Legacy Supabase Cloud for backward compatibility
+            supabase_cloud_client.sync_matches(unique_payloads)
+
             return unique_payloads
         except Exception as e:
             append_event(log_events, f"Database error during fixture upsert: {e}", "ERROR", "MATCH_SYNC", "ERROR")

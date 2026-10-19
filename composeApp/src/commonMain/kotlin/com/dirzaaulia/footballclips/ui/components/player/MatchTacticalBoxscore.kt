@@ -28,25 +28,29 @@ fun MatchTacticalBoxscore(
     isSpoilerFree: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val isLive = match.isLive
+    val hasEvents = !match.events.isNullOrEmpty()
     val hasStats = !match.statistics.isNullOrEmpty()
     val hasLineups = match.formations?.home?.starters?.isNotEmpty() == true ||
         match.formations?.away?.starters?.isNotEmpty() == true
     val hasStory = !match.editorialStory.isNullOrBlank()
 
-    if (!hasStats && !hasLineups && !hasStory) return
+    if (!hasEvents && !hasStats && !hasLineups && !hasStory && !isLive) return
 
-    var isRevealed by remember { mutableStateOf(!isSpoilerFree) }
+    var isRevealed by remember { mutableStateOf(!isSpoilerFree || isLive) }
     var selectedTabIndex by remember { mutableStateOf(0) }
 
-    val tabs = remember(hasStats, hasLineups, hasStory) {
+    val tabs = remember(hasEvents, hasStats, hasLineups, hasStory, isLive) {
         buildList {
+            if (hasEvents) add("TIMELINE")
             if (hasStats) add("STATISTICS")
             if (hasLineups) add("LINEUPS")
             if (hasStory) add("REPORT")
+            if (isEmpty() && isLive) add("LIVE TELEMETRY")
         }
     }
 
-    if (isSpoilerFree && !isRevealed) {
+    if (isSpoilerFree && !isRevealed && !isLive) {
         Card(
             onClick = { isRevealed = true },
             colors = CardDefaults.cardColors(
@@ -150,6 +154,14 @@ fun MatchTacticalBoxscore(
             val currentTab = tabs.getOrNull(selectedTabIndex) ?: tabs.firstOrNull()
 
             when (currentTab) {
+                "TIMELINE" -> {
+                    MatchEventsTimeline(
+                        events = match.events,
+                        homeName = match.homeTeamName,
+                        awayName = match.awayTeamName,
+                        isSpoilerFree = false
+                    )
+                }
                 "STATISTICS" -> {
                     TacticalStatisticsTab(match = match)
                 }
@@ -159,7 +171,55 @@ fun MatchTacticalBoxscore(
                 "REPORT" -> {
                     TacticalReportTab(match = match)
                 }
+                "LIVE TELEMETRY" -> {
+                    LiveMatchTelemetryTab(match = match)
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun LiveMatchTelemetryTab(match: Match) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = RoundedCornerShape(10.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFEF4444))
+                )
+                Text(
+                    text = "MATCH IN PROGRESS • ${match.displayClock ?: "LIVE"}",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFFEF4444)
+                )
+            }
+            Text(
+                text = "${match.homeScore ?: 0} - ${match.awayScore ?: 0}",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = "Live telemetry streaming from ESPN API. Key events, boxscore dual-meters, and tactical formations update in real-time as match progresses.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

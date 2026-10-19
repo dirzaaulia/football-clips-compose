@@ -1,8 +1,17 @@
 'use client';
 
-import { supabase } from './supabase';
+import { supabase } from './database';
 import { setProUser, getRevenueCatClient, isProUser, REVENUECAT_API_KEY } from './revenuecat';
-import type { User } from '@supabase/supabase-js';
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  display_name?: string;
+  avatar_url?: string;
+  is_premium?: boolean;
+}
+
+export type User = AuthUser;
 
 export interface UserProfile {
   id: string;
@@ -14,51 +23,86 @@ export const GOOGLE_CLIENT_ID =
   process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
   '519310318914-pushb78f44ug1a28m2oggunpck5annl8.apps.googleusercontent.com';
 
+const STORAGE_KEY = 'fc-auth-user';
+
 /**
- * Signs in with Google ID Token (Google Identity Services) without redirect
+ * Safely decodes a Google JWT ID Token without external dependencies
  */
-export async function signInWithGoogleIdToken(idToken: string): Promise<User | null> {
-  if (typeof window === 'undefined') return null;
-
-  const { data, error } = await supabase.auth.signInWithIdToken({
-    provider: 'google',
-    token: idToken,
-  });
-
-  if (error) {
-    console.error('Supabase signInWithIdToken error:', error.message);
-    throw error;
+export function decodeGoogleJwt(token: string): {
+  sub: string;
+  email: string;
+  name?: string;
+  picture?: string;
+} | null {
+  try {
+    const base64Url = token.split('.')[1];
+    if (!base64Url) return null;
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (err) {
+    console.error('Failed to decode Google ID Token:', err);
+    return null;
   }
-
-  if (data?.user) {
-    await syncUserPremiumStatus(data.user);
-  }
-
-  window.dispatchEvent(new Event('fc-auth-state-changed'));
-  return data?.user ?? null;
 }
 
 /**
- * Initiates Google OAuth login via Supabase fallback
+ * Signs in with Google ID Token (Google Identity Services) directly to self-hosted PostgreSQL
+ */
+export async function signInWithGoogleIdToken(idToken: string): Promise<AuthUser | null> {
+  if (typeof window === 'undefined') return null;
+
+  const payload = decodeGoogleJwt(idToken);
+  if (!payload || !payload.sub) {
+    throw new Error('Invalid Google credential token received.');
+  }
+
+  const user: AuthUser = {
+    id: payload.sub,
+    email: payload.email || '',
+    display_name: payload.name || '',
+    avatar_url: payload.picture || '',
+  };
+
+  // Persist session locally
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+
+  // Upsert profile in self-hosted PostgreSQL 16 via PostgREST
+  try {
+    await supabase.from('profiles').upsert(
+      {
+        id: user.id,
+        email: user.email,
+        display_name: user.display_name,
+        avatar_url: user.avatar_url,
+      },
+      { onConflict: 'id' }
+    );
+  } catch (err) {
+    console.warn('Failed to upsert profile in PostgreSQL 16:', err);
+  }
+
+  // Sync RevenueCat subscription
+  await syncUserPremiumStatus(user);
+
+  window.dispatchEvent(new Event('fc-auth-state-changed'));
+  return user;
+}
+
+/**
+ * Initiates Google OAuth login via Google Identity Services One Tap prompt
  */
 export async function signInWithGoogle() {
   if (typeof window === 'undefined') return;
-  sessionStorage.setItem('fc-open-paywall-after-auth', 'true');
-  const redirectTo = window.location.href;
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo,
-      queryParams: {
-        access_type: 'offline',
-        prompt: 'consent',
-      },
-    },
-  });
-  if (error) {
-    sessionStorage.removeItem('fc-open-paywall-after-auth');
-    console.error('Supabase Google Sign-In error:', error.message);
-    throw error;
+  // @ts-expect-error Google Identity Services global
+  if (window.google?.accounts?.id?.prompt) {
+    // @ts-expect-error Google Identity Services global
+    window.google.accounts.id.prompt();
   }
 }
 
@@ -67,27 +111,32 @@ export async function signInWithGoogle() {
  */
 export async function signOutUser() {
   if (typeof window === 'undefined') return;
-  await supabase.auth.signOut();
+  localStorage.removeItem(STORAGE_KEY);
   setProUser(false);
   window.dispatchEvent(new Event('fc-auth-state-changed'));
 }
 
 /**
- * Gets current authenticated user if session exists
+ * Gets current authenticated user from local storage
  */
-export async function getCurrentUser(): Promise<User | null> {
+export async function getCurrentUser(): Promise<AuthUser | null> {
   if (typeof window === 'undefined') return null;
-  const { data } = await supabase.auth.getUser();
-  return data?.user ?? null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as AuthUser;
+  } catch {
+    return null;
+  }
 }
 
 /**
- * Syncs premium status across Supabase profile and RevenueCat
- * 1. Checks Supabase `profiles` table (e.g., if bought via Google Play in Android app)
+ * Syncs premium status across self-hosted PostgreSQL profile and RevenueCat
+ * 1. Checks PostgreSQL `profiles` table (e.g., if bought via Google Play in Android app)
  * 2. Checks RevenueCat Web SDK (if bought via Paddle Web Checkout)
  * 3. Bidirectionally syncs entitlement between both sources and updates app state
  */
-export async function syncUserPremiumStatus(customUser?: User | null): Promise<boolean> {
+export async function syncUserPremiumStatus(customUser?: AuthUser | null): Promise<boolean> {
   if (typeof window === 'undefined') return false;
 
   const user = customUser !== undefined ? customUser : await getCurrentUser();
@@ -96,20 +145,20 @@ export async function syncUserPremiumStatus(customUser?: User | null): Promise<b
     return isProUser();
   }
 
-  // 1. Query Supabase profiles table (Tier 2 fast cache)
+  // 1. Query PostgreSQL profiles table on Oracle VM
   let cachedPremium = false;
   try {
     const { data: dbProfile, error } = await supabase
       .from('profiles')
       .select('id, is_premium, email')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (!error && dbProfile?.is_premium) {
       cachedPremium = true;
     }
   } catch (err) {
-    console.warn('Error reading Supabase profile:', err);
+    console.warn('Error reading PostgreSQL profile:', err);
   }
 
   // 2. Query RevenueCat (Tier 1 Single Source of Truth)
@@ -145,19 +194,21 @@ export async function syncUserPremiumStatus(customUser?: User | null): Promise<b
   }
 
   // 3. Determine final status:
-  // RevenueCat is Tier 1 truth (both active & expired). If unreachable, fallback to Tier 2 cache.
   const finalPremium = rcVerified !== null ? rcVerified : cachedPremium;
 
-  // 4. Bidirectional Sync: update Supabase cache if mismatch detected (grant or revoke)
+  // 4. Bidirectional Sync: update PostgreSQL cache if mismatch detected (grant or revoke)
   if (rcVerified !== null && rcVerified !== cachedPremium) {
     try {
-      await supabase.from('profiles').upsert({
-        id: user.id,
-        email: user.email,
-        is_premium: rcVerified,
-      });
+      await supabase.from('profiles').upsert(
+        {
+          id: user.id,
+          email: user.email,
+          is_premium: rcVerified,
+        },
+        { onConflict: 'id' }
+      );
     } catch (e) {
-      console.warn('Error syncing Supabase profiles cache:', e);
+      console.warn('Error syncing PostgreSQL profiles cache:', e);
     }
   }
 

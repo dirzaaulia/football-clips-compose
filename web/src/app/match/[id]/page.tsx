@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getMatchById, getRelatedMatches, MatchRecord, supabase } from '@/lib/supabase';
+import { getMatchById, getRelatedMatches, MatchRecord, supabase } from '@/lib/database';
 import { generateMatchRecap } from '@/lib/gemini';
 import { fetchEspnMatchSummary } from '@/lib/espn';
 import MatchDetailClient from '@/components/match/MatchDetailClient';
@@ -14,21 +14,27 @@ async function resolveMatch(id: string): Promise<MatchRecord | null> {
   const match = await getMatchById(id);
   if (!match) return null;
 
-  // Enrich with ESPN live statistics & lineups if not yet in Supabase
+  // Enrich with ESPN live statistics & lineups
   const isFinished = match.status === 'FINISHED';
   const isLive = match.status === 'IN_PLAY' || match.status === 'PAUSED' || match.status === 'LIVE';
+  const isNotFinished = !isFinished;
 
-  if (!match.statistics && (isFinished || isLive)) {
+  if (isNotFinished || !match.statistics) {
     try {
-      const espnData = await fetchEspnMatchSummary(match.id, match.competition_id);
+      const espnData = await fetchEspnMatchSummary(match.id, match.competition_id, isLive);
       if (espnData) {
         return {
           ...match,
+          status: espnData.status || match.status,
+          home_score: espnData.home_score != null ? espnData.home_score : match.home_score,
+          away_score: espnData.away_score != null ? espnData.away_score : match.away_score,
+          display_clock: espnData.display_clock || match.display_clock,
           statistics: espnData.statistics || match.statistics,
           formations: espnData.formations || match.formations,
           editorial_headline: espnData.editorial_headline || match.editorial_headline,
           editorial_story: espnData.editorial_story || match.editorial_story,
           editorial_source: espnData.editorial_source || match.editorial_source,
+          events: espnData.events || match.events,
         };
       }
     } catch {
@@ -45,11 +51,14 @@ export async function generateStaticParams() {
       .from('matches')
       .select('id')
       .order('utc_date', { ascending: false })
-      .limit(1000);
-    return (data || []).map((m) => ({ id: String(m.id) }));
+      .limit(500);
+    if (data && data.length > 0) {
+      return data.map((m) => ({ id: String(m.id) }));
+    }
   } catch {
-    return [];
+    // fallback
   }
+  return [{ id: '401885401' }, { id: '401885397' }, { id: '401882816' }];
 }
 
 export async function generateMetadata({ params }: MatchPageProps): Promise<Metadata> {

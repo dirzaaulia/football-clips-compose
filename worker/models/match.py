@@ -24,6 +24,7 @@ class MatchPayload(BaseModel):
     editorial_headline: str | None = None
     editorial_story: str | None = None
     editorial_source: str | None = None
+    events: list | None = None
 
 class MatchDbRecord(BaseModel):
     id: int
@@ -38,3 +39,4 @@ class MatchDbRecord(BaseModel):
     editorial_headline: str | None = None
     editorial_story: str | None = None
     editorial_source: str | None = None
+    events: list | None = None

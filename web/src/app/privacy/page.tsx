@@ -43,7 +43,7 @@ export default function PrivacyPage() {
         </p>
         <ul className="list-disc list-inside space-y-2 text-sm pl-2">
           <li>
-            <strong className="text-white">Account &amp; Sign-In Data:</strong> If you choose to sign in with Google (via Google Credential Manager or OAuth), we receive basic public profile information (such as your email address, display name, and unique user ID) provided by Google. This data is handled securely via <strong className="text-white">Supabase Auth</strong>. Signing in is strictly used to link and sync your lifetime or active Premium (&quot;Remove Ads&quot;) purchase across multiple devices.
+            <strong className="text-white">Account &amp; Sign-In Data:</strong> If you choose to sign in with Google (via Google Credential Manager or Google Sign-In), we receive basic public profile information (such as your email address, display name, and unique user ID) provided by Google. This data is handled securely via <strong className="text-white">Direct Google Sign-In &amp; self-hosted PostgreSQL</strong>. Signing in is strictly used to link and sync your lifetime or active Premium (&quot;Remove Ads&quot;) purchase across multiple devices.
           </li>
           <li>
             <strong className="text-white">Purchase Data:</strong> When you purchase &quot;Remove Ads&quot; via Google Play Billing or our Web platform, transaction and receipt validation data are processed securely via <strong className="text-white">RevenueCat</strong>. We do not store or process your credit card or financial details directly.
@@ -85,16 +85,35 @@ export default function PrivacyPage() {
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">
+          <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-3">
             <h3 className="text-base font-semibold text-white flex items-center gap-2">
               <span>📢</span> Advertising (Google AdMob &amp; Google AdSense)
             </h3>
             <p className="text-sm leading-relaxed">
-              We use Google AdMob (on mobile) and Google AdSense (on web) to display advertisements. Google may use advertising IDs and cookies to serve personalized or non-personalized ads. You can opt out of personalized ads at any time by visiting{' '}
-              <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:underline">
-                Google Ads Settings
-              </a>.
+              We display advertisements served by Google AdMob (on our Android mobile application) and Google AdSense (on our website) to provide a free service to supporters:
             </p>
+            <ul className="list-disc list-inside space-y-1.5 text-xs text-zinc-300 pl-2">
+              <li>
+                <strong className="text-white">Third-Party Cookie Usage:</strong> Third-party vendors, including Google, use cookies to serve ads based on a user&apos;s prior visits to this website or other websites on the Internet.
+              </li>
+              <li>
+                <strong className="text-white">Personalized Advertising:</strong> Google&apos;s use of advertising cookies enables it and its partners to serve personalized ads to users based on their visits to our site and/or other sites across the World Wide Web.
+              </li>
+              <li>
+                <strong className="text-white">Opt-Out Mechanisms:</strong> Users may opt out of personalized advertising by visiting{' '}
+                <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:underline">
+                  Google Ads Settings
+                </a>
+                . Alternatively, users can opt out of third-party vendors&apos; use of cookies for personalized advertising by visiting{' '}
+                <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:underline">
+                  www.aboutads.info
+                </a>{' '}
+                or the Network Advertising Initiative at{' '}
+                <a href="https://optout.networkadvertising.org/" target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:underline">
+                  optout.networkadvertising.org
+                </a>.
+              </li>
+            </ul>
           </div>
 
           <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">

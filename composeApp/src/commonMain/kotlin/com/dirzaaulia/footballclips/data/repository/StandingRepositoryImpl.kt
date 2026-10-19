@@ -1,6 +1,6 @@
 package com.dirzaaulia.footballclips.data.repository
 
-import com.dirzaaulia.footballclips.data.constants.SupabaseConstants
+import com.dirzaaulia.footballclips.data.constants.DatabaseConstants
 import com.dirzaaulia.footballclips.data.model.NetworkResult
 import com.dirzaaulia.footballclips.data.model.remote.StandingDto
 import io.ktor.client.HttpClient
@@ -10,14 +10,14 @@ import io.ktor.client.request.header
 
 class StandingRepositoryImpl(private val client: HttpClient) : StandingRepository {
 
-    private val baseUrl = "${SupabaseConstants.SUPABASE_URL}/rest/v1/standings"
-    private val supabaseKey = SupabaseConstants.SUPABASE_ANON_KEY
+    private val baseUrl = "${DatabaseConstants.DATABASE_URL}/rest/v1/standings"
+    private val databaseApiKey = DatabaseConstants.DATABASE_ANON_KEY
 
     override suspend fun getStandings(competitionId: String, season: Int): NetworkResult<List<StandingDto>> {
         return try {
             val response = client.get(baseUrl) {
-                header("apikey", supabaseKey)
-                header("Authorization", "Bearer $supabaseKey")
+                header("apikey", databaseApiKey)
+                header("Authorization", "Bearer $databaseApiKey")
                 url {
                     parameters.append("select", "*")
                     if (competitionId.isNotBlank()) {

@@ -3,8 +3,8 @@ package com.dirzaaulia.footballclips
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import com.dirzaaulia.footballclips.telemetry.data.TelemetryRepository
-import com.dirzaaulia.footballclips.telemetry.ui.TelemetryScreen
-import com.dirzaaulia.footballclips.telemetry.ui.TelemetryTheme
+import com.dirzaaulia.footballclips.telemetry.ui.dashboard.TelemetryScreen
+import com.dirzaaulia.footballclips.telemetry.ui.theme.TelemetryTheme
 import kotlinx.browser.document
 
 @OptIn(ExperimentalComposeUiApi::class)

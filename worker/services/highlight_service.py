@@ -8,6 +8,7 @@ from loguru import logger
 from worker.clients.edge_cache_client import edge_cache_client
 from worker.clients.gemini_client import gemini_client
 from worker.clients.supabase_client import supabase_client
+from worker.clients.supabase_cloud_client import supabase_cloud_client
 from worker.clients.youtube_client import youtube_client
 from worker.clients.youtube_rss_client import youtube_rss_client
 from worker.config.constants import (
@@ -295,8 +296,9 @@ class HighlightService:
         self,
         match: dict,
         log_events: list | None = None,
-        claimed_video_ids: set[str] | None = None
-    ) -> tuple[str | None, dict | None]:
+        claimed_video_ids: set[str] | None = None,
+        allow_search_api: bool = False,
+    ) -> tuple[str | None, dict | None, str | None, dict | None]:
         if log_events is None:
             log_events = []
 
@@ -319,7 +321,7 @@ class HighlightService:
                 "YOUTUBE",
                 "UEFA_EMBARGO"
             )
-            return None, None
+            return None, None, None, None
 
         pub_after = (match_start - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ")
         pub_before = (match_start + timedelta(hours=96)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -338,7 +340,7 @@ class HighlightService:
 
         if not target_handles:
             append_event(log_events, f"[SKIP] [{comp}] ({m_date}) No official YouTube handles mapped for: {home} vs {away}", "DEBUG", "YOUTUBE", "NO_HANDLE")
-            return None, None
+            return None, None, None, None
 
         h_search = self.clean_team_name_for_search(home)
         a_search = self.clean_team_name_for_search(away)
@@ -429,9 +431,14 @@ class HighlightService:
                 # Guardrails: Max 3 searches per cycle, only if remaining quota >= 2,500 units, and match age >= 4h
                 if (
                     not matched_items
-                    and self.cycle_search_api_calls < 3
-                    and self.get_safe_quota_remaining() >= 2500
-                    and match_age_hours >= 4.0
+                    and (
+                        allow_search_api
+                        or (
+                            self.cycle_search_api_calls < 3
+                            and self.get_safe_quota_remaining() >= 2500
+                            and match_age_hours >= 4.0
+                        )
+                    )
                 ):
                     self.cycle_search_api_calls += 1
                     append_event(
@@ -493,13 +500,13 @@ class HighlightService:
                     append_event(log_events, f"   [ERROR] Channel scan failed for {handle}: {err_msg[:80]}", "ERROR", "YOUTUBE", "API_ERROR")
 
         if not candidates:
-            return None, None
+            return None, None, None, None
 
         if claimed_video_ids:
             candidates = [c for c in candidates if c.get("id") not in claimed_video_ids]
             if not candidates:
                 append_event(log_events, f"   [ALL CLAIMED] All detected candidates ({home} vs {away}) are already linked to other matches in Supabase.", "INFO", "YOUTUBE", "CLAIMED")
-                return None, None
+                return None, None, None, None
 
         append_event(log_events, f"   [CANDIDATES] Found {len(candidates)} official highlight candidate(s) for {home} vs {away}:", "INFO", "YOUTUBE", "CANDIDATES")
         for idx, c in enumerate(candidates, 1):
@@ -562,6 +569,13 @@ class HighlightService:
         runner_up_score = selected_pool[1]["heuristic_score"] if len(selected_pool) > 1 else -999
         margin = top_score - runner_up_score
 
+        def find_backup_candidate(primary_id: str, pool: list[dict]) -> tuple[str | None, dict | None]:
+            for cand in pool:
+                c_id = cand.get("id")
+                if c_id and c_id != primary_id and cand.get("heuristic_score", 0) >= 35 and is_valid_highlight_candidate(cand.get("title", "")):
+                    return c_id, cand.get("region")
+            return None, None
+
         # High Confidence Auto-Select Threshold:
         # If top candidate is official, has strong score (>= 50), and is dominant over runner-up (margin >= 15 or single candidate),
         # auto-select immediately with 0 latency, 0 quota spent, and 0 risk of AI 503 errors!
@@ -569,14 +583,15 @@ class HighlightService:
         is_dominant_winner = (top_score >= 50 and margin >= 15)
 
         if (is_single_strong or is_dominant_winner) and is_valid_highlight_candidate(top_cand["title"]):
+            backup_vid, backup_reg = find_backup_candidate(top_cand["id"], selected_pool)
             append_event(
                 log_events,
-                f"   [HIGH CONFIDENCE AUTO-SELECT] Deterministic scorer selected {top_cand['channel']} ({top_score}pts, margin +{margin}): '{top_cand['title']}' -> https://youtu.be/{top_cand['id']}",
+                f"   [HIGH CONFIDENCE AUTO-SELECT] Deterministic scorer selected {top_cand['channel']} ({top_score}pts, margin +{margin}): '{top_cand['title']}' -> https://youtu.be/{top_cand['id']}" + (f" (Backup stream: https://youtu.be/{backup_vid})" if backup_vid else ""),
                 "SUCCESS",
                 "YOUTUBE",
                 "LINKED"
             )
-            return top_cand["id"], top_cand["region"]
+            return top_cand["id"], top_cand["region"], backup_vid, backup_reg
 
         # 2. Evaluate with Gemini AI when multiple candidates are close or ambiguous
         append_event(log_events, f"   [AI GEMINI] Evaluating {len(selected_pool)} candidate(s) with Gemini AI (top score: {top_score}pts, margin: {margin}pts)...", "INFO", "AI_GEMINI", "AI_EVAL")
@@ -584,18 +599,20 @@ class HighlightService:
         best_idx = gemini_client.rerank_highlights(home, away, comp_display, selected_pool)
         if best_idx is not None and 0 <= best_idx < len(selected_pool):
             best = selected_pool[best_idx]
-            append_event(log_events, f"   [AI MATCH] Gemini selected candidate #{best_idx + 1} ({best.get('heuristic_score', 0)}pts): '{best['title']}' ({best['channel']}) -> https://youtu.be/{best['id']}", "SUCCESS", "AI_GEMINI", "LINKED")
-            return best["id"], best["region"]
+            backup_vid, backup_reg = find_backup_candidate(best["id"], selected_pool)
+            append_event(log_events, f"   [AI MATCH] Gemini selected candidate #{best_idx + 1} ({best.get('heuristic_score', 0)}pts): '{best['title']}' ({best['channel']}) -> https://youtu.be/{best['id']}" + (f" (Backup: {backup_vid})" if backup_vid else ""), "SUCCESS", "AI_GEMINI", "LINKED")
+            return best["id"], best["region"], backup_vid, backup_reg
 
         # 3. Deterministic Heuristic Fallback: Select candidate with highest mathematical score (> 0)
         valid_candidates = [c for c in selected_pool if c["heuristic_score"] > 0 and is_valid_highlight_candidate(c["title"])]
         if valid_candidates:
             best = valid_candidates[0]
-            append_event(log_events, f"   [FALLBACK SELECT] Weighted Heuristic selected #{best['heuristic_score']}pts from {best['channel']}: '{best['title']}' -> https://youtu.be/{best['id']}", "SUCCESS", "YOUTUBE", "LINKED")
-            return best["id"], best["region"]
+            backup_vid, backup_reg = find_backup_candidate(best["id"], selected_pool)
+            append_event(log_events, f"   [FALLBACK SELECT] Weighted Heuristic selected #{best['heuristic_score']}pts from {best['channel']}: '{best['title']}' -> https://youtu.be/{best['id']}" + (f" (Backup: {backup_vid})" if backup_vid else ""), "SUCCESS", "YOUTUBE", "LINKED")
+            return best["id"], best["region"], backup_vid, backup_reg
 
         append_event(log_events, f"   [VALIDATION FAILED] Candidates do not match both {home} and {away} with verified highlight keywords. Skipped linking.", "WARN", "YOUTUBE", "REJECTED")
-        return None, None
+        return None, None, None, None
 
 
 
@@ -672,12 +689,18 @@ class HighlightService:
                 age_hours = 999999.0
                 m_timestamp = 0.0
 
-            if age_hours < 24.0:
+            # Tier 0: Prime embargo release zone (1.5h to 4.0h post-kickoff)
+            if 1.5 <= age_hours <= 4.0:
                 tier_rank = 0
-            elif age_hours <= 72.0:
+            # Tier 1: Fresh matches (< 24h)
+            elif age_hours < 24.0:
                 tier_rank = 1
-            else:
+            # Tier 2: Recent matches (24h - 72h)
+            elif age_hours <= 72.0:
                 tier_rank = 2
+            # Tier 3: Historical matches (> 72h)
+            else:
+                tier_rank = 3
 
             never_checked = 0 if not m.get("last_youtube_check") else 1
             return (tier_rank, never_checked, -m_timestamp)
@@ -695,6 +718,17 @@ class HighlightService:
         self.cycle_search_api_calls = 0
         now_utc = datetime.now(UTC)
         thirty_days_ago = (now_utc - timedelta(days=30)).isoformat()
+
+        quota_status = youtube_client.get_quota_status()
+        quota_hits = quota_status.get("hits_today", 0)
+        quota_rem = quota_status.get("remaining", 10000)
+        append_event(
+            log_events,
+            f"[QUOTA STATUS] Daily API Hits: {quota_hits} / 10,000 (Remaining: {quota_rem}, Target: {settings.youtube_target_daily_quota})",
+            "INFO",
+            "YOUTUBE",
+            "QUOTA_STATUS"
+        )
 
         res = (
             supabase_client.table("matches")
@@ -721,6 +755,14 @@ class HighlightService:
             else:
                 cooldown_skipped.append((m, reason))
 
+        append_event(
+            log_events,
+            f"[UNLINKED SWEEP] Identified {len(unlinked)} finished fixtures without highlights ({len(eligible_matches)} active for sweep, {len(cooldown_skipped)} protected by tier cooldown).",
+            "INFO",
+            "YOUTUBE",
+            "SWEEP_INSPECT"
+        )
+
         if cooldown_skipped:
             from collections import Counter
             tier_counter = Counter()
@@ -729,62 +771,18 @@ class HighlightService:
                 tier_counter[t_match] += 1
 
             tier_summary = ", ".join(f"{cnt} in {t}" for t, cnt in tier_counter.items())
-            formatted_fixtures = "\n".join(
-                f"  • {m.get('home_team_name', 'Home')} vs {m.get('away_team_name', 'Away')}"
-                for m, _ in cooldown_skipped
+            sample_fixtures = ", ".join(
+                f"{m.get('home_team_name', 'Home')} vs {m.get('away_team_name', 'Away')}"
+                for m, _ in cooldown_skipped[:3]
             )
+            extra = f" (+{len(cooldown_skipped) - 3} more)" if len(cooldown_skipped) > 3 else ""
             append_event(
                 log_events,
-                f"[COOLDOWN PROTECTED] {len(cooldown_skipped)} fixture(s) in cooldown guardrail ({tier_summary}):\n{formatted_fixtures}",
+                f"[COOLDOWN PROTECTED] {len(cooldown_skipped)} fixture(s) in cooldown guardrail ({tier_summary}) [e.g. {sample_fixtures}{extra}]. Next retry after tier cooldown.",
                 "INFO",
                 "YOUTUBE",
                 "COOLDOWN_PROTECTED"
             )
-
-        if not eligible_matches:
-            append_event(
-                log_events,
-                f"All {len(unlinked)} unlinked fixtures are protected under quota tiering cooldowns (T1: 30m, T2: 2h, T3: 6h, T4: 24h). Skipping YouTube API calls.",
-                "INFO",
-                "YOUTUBE",
-                "TIER_COOLDOWN"
-            )
-            return 0
-
-        # Prioritize newest matches first: Tier 1 (<24h) -> Tier 2 (24-72h) -> Tier 3 (>72h); never-checked first; newest kickoff first
-        sorted_matches = self.sort_unlinked_matches_by_priority(eligible_matches, now_utc)
-
-        # Quota guardrails for historical searches (>72h):
-        # Only allow up to 5 historical searches per cycle and ONLY if estimated quota >= 1000.
-        filtered_batch = []
-        historical_count = 0
-        quota_remaining = self.get_safe_quota_remaining()
-
-        for m in sorted_matches:
-            try:
-                m_time = datetime.fromisoformat(str(m.get("utc_date", "")).replace("Z", "+00:00"))
-                age_h = (now_utc - m_time).total_seconds() / 3600.0
-            except Exception:
-                age_h = 999.0
-
-            if age_h > 72.0:
-                if quota_remaining < 1000 or historical_count >= 5:
-                    continue
-                historical_count += 1
-
-            filtered_batch.append(m)
-            if len(filtered_batch) >= max_batch:
-                break
-
-        if not filtered_batch:
-            append_event(
-                log_events,
-                f"No eligible fixtures to scan this cycle (Historical quota guardrail active: remaining quota={quota_remaining}).",
-                "INFO",
-                "YOUTUBE",
-                "QUOTA_GUARD"
-            )
-            return 0
 
         linked_count = 0
         now_iso = now_utc.isoformat()
@@ -796,6 +794,50 @@ class HighlightService:
         except Exception:
             claimed_video_ids = set()
 
+        if not eligible_matches:
+            append_event(
+                log_events,
+                f"All {len(unlinked)} recent unlinked fixtures are protected under quota tiering cooldowns. Advancing to Daily Quota Maximizer for archive enrichment.",
+                "INFO",
+                "YOUTUBE",
+                "TIER_COOLDOWN"
+            )
+            filtered_batch = []
+        else:
+            # Prioritize newest matches first: Tier 1 (<24h) -> Tier 2 (24-72h) -> Tier 3 (>72h); never-checked first; newest kickoff first
+            sorted_matches = self.sort_unlinked_matches_by_priority(eligible_matches, now_utc)
+
+            # Quota guardrails for historical searches (>72h):
+            # Only allow up to 5 historical searches per cycle and ONLY if estimated quota >= 1000.
+            filtered_batch = []
+            historical_count = 0
+            quota_remaining = self.get_safe_quota_remaining()
+
+            for m in sorted_matches:
+                try:
+                    m_time = datetime.fromisoformat(str(m.get("utc_date", "")).replace("Z", "+00:00"))
+                    age_h = (now_utc - m_time).total_seconds() / 3600.0
+                except Exception:
+                    age_h = 999.0
+
+                if age_h > 72.0:
+                    if quota_remaining < 1000 or historical_count >= 5:
+                        continue
+                    historical_count += 1
+
+                filtered_batch.append(m)
+                if len(filtered_batch) >= max_batch:
+                    break
+
+            if not filtered_batch:
+                append_event(
+                    log_events,
+                    f"No eligible fixtures to scan this cycle (Historical quota guardrail active: remaining quota={quota_remaining}). Advancing to archive maximizer.",
+                    "INFO",
+                    "YOUTUBE",
+                    "QUOTA_GUARD"
+                )
+
         for match in filtered_batch:
             home = match.get("home_team_name", "Home")
             away = match.get("away_team_name", "Away")
@@ -803,7 +845,7 @@ class HighlightService:
             m_date = str(match.get("utc_date", ""))[:10]
             append_event(log_events, f"[SEARCH] Searching official highlights for: {home} vs {away} ({m_date})", "INFO", "YOUTUBE", "SEARCH_START")
             try:
-                vid, reg = self.search_highlight_for_match(match, log_events, claimed_video_ids)
+                vid, reg, backup_vid, backup_reg = self.search_highlight_for_match(match, log_events, claimed_video_ids)
                 if vid:
                     if vid in claimed_video_ids:
                         append_event(log_events, f"   [DUPLICATE DETECTED] Video {vid} already assigned to another fixture. Entering cooldown.", "WARN", "YOUTUBE", "DUPLICATE_CLAIM")
@@ -816,8 +858,12 @@ class HighlightService:
                         "highlight_video_id": vid,
                         "last_youtube_check": now_iso
                     }
+                    if backup_vid:
+                        update_data["backup_highlight_video_id"] = backup_vid
                     if reg is not None:
                         update_data["youtube_region_info"] = reg
+                    if backup_reg is not None:
+                        update_data["backup_youtube_region_info"] = backup_reg
 
                     try:
                         supabase_client.table("matches").update(update_data).eq("id", match["id"]).execute()
@@ -833,6 +879,8 @@ class HighlightService:
                             continue
                         elif "youtube_region_info" in err_msg and "youtube_region_info" in update_data:
                             del update_data["youtube_region_info"]
+                            if "backup_youtube_region_info" in update_data:
+                                del update_data["backup_youtube_region_info"]
                             supabase_client.table("matches").update(update_data).eq("id", match["id"]).execute()
                             claimed_video_ids.add(vid)
                         else:
@@ -840,6 +888,10 @@ class HighlightService:
 
                     linked_count += 1
                     append_event(log_events, f"   [LINKED] {home} vs {away} -> https://youtu.be/{vid} saved to Supabase.", "SUCCESS", "YOUTUBE", "DB_LINKED")
+
+                    # Dual-write to Legacy Supabase Cloud for backward compatibility
+                    supabase_cloud_client.update_match_highlight(match["id"], vid, reg, now_iso)
+
                     notification_service.notify_highlight_ready(match, vid, "Official Highlights", log_events)
                 else:
                     _, next_tier_info = self.should_check_youtube_for_match({**match, "last_youtube_check": now_iso}, now_utc)
@@ -858,10 +910,252 @@ class HighlightService:
                     append_event(log_events, f"   [ERROR] Match highlight search error for {home} vs {away}: {err_str}", "ERROR", "YOUTUBE", "SEARCH_ERROR")
                     append_event(log_events, f"   [SKIP COOLDOWN] Network/API error ({err_str}). Cooldown not recorded for {home} vs {away} to allow retry next cycle.", "DEBUG", "YOUTUBE", "SKIP_COOLDOWN")
 
-        if linked_count > 0:
+        # Step 3b: Quota Maximizer - Utilize remaining daily quota up to target (e.g. 8,500 units)
+        # by scanning unlinked historical/archive matches to build high historical utilization proof for Google
+        maximizer_linked = 0
+        try:
+            maximizer_linked = self.maximize_daily_quota_usage(
+                max_batch=10,
+                log_events=log_events,
+                claimed_video_ids=claimed_video_ids
+            )
+        except Exception as e:
+            append_event(log_events, f"[QUOTA MAXIMIZER] Execution notice: {e}", "INFO", "QUOTA", "EXCEPTION")
+
+        total_linked = linked_count + maximizer_linked
+        if total_linked > 0:
             edge_cache_client.purge_matches_cache()
 
-        append_event(log_events, f"Highlight scanning complete. Successfully linked {linked_count} new video highlights.", "SUCCESS", "YOUTUBE", "SUMMARY")
+        append_event(log_events, f"Highlight scanning complete. Successfully linked {total_linked} new video highlights (Fresh: {linked_count}, Archive Quota Maximizer: {maximizer_linked}).", "SUCCESS", "YOUTUBE", "SUMMARY")
+        return total_linked
+
+    def maximize_daily_quota_usage(
+        self,
+        max_batch: int = 10,
+        log_events: list | None = None,
+        claimed_video_ids: set | None = None,
+    ) -> int:
+        """
+        Autonomous Daily YouTube Quota Maximizer & Archive Enrichment Engine.
+        Maintains steady ~7,000–9,000 units/day consumption to establish strong historical
+        API utilization proof in Google Cloud Console for quota increase requests.
+        Scans unlinked archive and historical matches across seasons, linking any found
+        official highlights and advancing cooldown timestamps.
+        """
+        if log_events is None:
+            log_events = []
+
+        quota_status = youtube_client.get_quota_status()
+        hits_today = quota_status.get("hits_today", 0)
+        remaining = quota_status.get("remaining", 0)
+        target = getattr(settings, "youtube_target_daily_quota", 8500)
+
+        if hits_today >= target:
+            append_event(
+                log_events,
+                f"[QUOTA MAXIMIZER STANDBY] Daily target achieved ({hits_today}/{target} units consumed). Preserving {remaining} units buffer.",
+                "INFO",
+                "QUOTA",
+                "TARGET_MET"
+            )
+            return 0
+
+        if remaining < 500:
+            append_event(
+                log_events,
+                f"[QUOTA BUFFER LOCK] Quota remaining ({remaining} units) below safety threshold (500 units). Standing by.",
+                "INFO",
+                "QUOTA",
+                "SAFETY_LOCK"
+            )
+            return 0
+
+        deficit = target - hits_today
+        budget_calls = min(max_batch, deficit // 100, remaining // 100)
+        if budget_calls <= 0:
+            return 0
+
+        now_utc = datetime.now(UTC)
+        now_iso = now_utc.isoformat()
+
+        try:
+            res = (
+                supabase_client.table("matches")
+                .select("id, home_team_name, away_team_name, competition_id, competition_name, utc_date, last_youtube_check, season, home_score, away_score")
+                .eq("status", "FINISHED")
+                .is_("highlight_video_id", "null")
+                .order("last_youtube_check", nullsfirst=True)
+                .order("utc_date", desc=True)
+                .limit(budget_calls * 8)
+                .execute()
+            )
+            candidates = res.data or []
+        except Exception as e:
+            append_event(log_events, f"[QUOTA MAXIMIZER ERROR] Failed to fetch archive candidates: {e}", "ERROR", "QUOTA", "QUERY_ERROR")
+            return 0
+
+        if not candidates:
+            append_event(log_events, "[QUOTA MAXIMIZER] No unlinked historical fixtures available in database.", "INFO", "QUOTA", "NO_CANDIDATES")
+            return 0
+
+        # Efficiency & Accuracy Filter:
+        # Strictly reject fixtures that do NOT map to official league or club YouTube channels.
+        # This prevents burning quota on obscure/unsupported matches that would fail scoring.
+        def has_official_targets(m: dict) -> bool:
+            c_id = (m.get("competition_id") or "").upper()
+            c_name = (m.get("competition_name") or "").upper()
+            if c_id in OFFICIAL_LEAGUE_CHANNELS or c_name in OFFICIAL_LEAGUE_CHANNELS:
+                return True
+            h = self.get_club_handle(m.get("home_team_name", ""))
+            a = self.get_club_handle(m.get("away_team_name", ""))
+            return bool(h or a)
+
+        big_clubs = {
+            "real madrid", "barcelona", "atletico madrid",
+            "manchester city", "man city", "arsenal", "liverpool",
+            "manchester united", "man utd", "chelsea", "tottenham",
+            "newcastle", "bayern", "dortmund", "leverkusen",
+            "juventus", "inter", "milan", "napoli", "roma", "psg", "paris"
+        }
+        def is_big(name: str) -> bool:
+            t = (name or "").lower()
+            return any(b in t for b in big_clubs)
+
+        def enrichment_priority(m: dict) -> tuple:
+            h = m.get("home_team_name", "")
+            a = m.get("away_team_name", "")
+            h_score = m.get("home_score") or 0
+            a_score = m.get("away_score") or 0
+            total_goals = h_score + a_score
+            h_big = is_big(h)
+            a_big = is_big(a)
+            is_never = 0 if not m.get("last_youtube_check") else 1
+
+            # Priority tier:
+            # 0: Clash of Titans or High-scoring big match (total_goals >= 4)
+            # 1: Single big club or thriller (total_goals >= 3)
+            # 2: Standard official fixture
+            if (h_big and a_big) or (h_big and total_goals >= 4):
+                tier = 0
+            elif h_big or a_big or total_goals >= 3:
+                tier = 1
+            else:
+                tier = 2
+
+            return (tier, is_never, -total_goals)
+
+        valid_targets = [m for m in candidates if has_official_targets(m)]
+        if not valid_targets:
+            append_event(log_events, "[QUOTA MAXIMIZER] None of the current unlinked fixtures have mapped official channels. Skipping API calls to preserve quota.", "INFO", "QUOTA", "NO_TARGET_HANDLES")
+            return 0
+
+        # Sort valid candidates by enrichment priority
+        valid_targets.sort(key=enrichment_priority)
+
+        eligible = []
+        for m in valid_targets:
+            last_chk = m.get("last_youtube_check")
+            if not last_chk:
+                eligible.append(m)
+            else:
+                try:
+                    chk_dt = datetime.fromisoformat(str(last_chk).replace("Z", "+00:00"))
+                    if (now_utc - chk_dt).total_seconds() >= 7 * 86400:
+                        eligible.append(m)
+                except Exception:
+                    eligible.append(m)
+            if len(eligible) >= budget_calls:
+                break
+
+        if not eligible:
+            append_event(log_events, "[QUOTA MAXIMIZER] All official archive fixtures are in 7-day cooldown rotation.", "INFO", "QUOTA", "ROTATION_COOLDOWN")
+            return 0
+
+        if claimed_video_ids is None:
+            try:
+                res_claimed = supabase_client.table("matches").select("highlight_video_id").not_.is_("highlight_video_id", "null").execute()
+                claimed_video_ids = {r["highlight_video_id"] for r in (res_claimed.data or []) if r.get("highlight_video_id")}
+            except Exception:
+                claimed_video_ids = set()
+
+        append_event(
+            log_events,
+            f"[QUOTA MAXIMIZER ACTIVE] Running {len(eligible)} verified official enrichment search(es) to maintain quota utilization ({hits_today}/{target} units consumed today).",
+            "INFO",
+            "QUOTA",
+            "BATCH_START"
+        )
+
+        linked_count = 0
+        for match in eligible:
+            home = match.get("home_team_name", "Home")
+            away = match.get("away_team_name", "Away")
+            m_date = str(match.get("utc_date", ""))[:10]
+            try:
+                vid, reg, backup_vid, backup_reg = self.search_highlight_for_match(match, log_events, claimed_video_ids, allow_search_api=True)
+                if vid:
+                    if vid in claimed_video_ids:
+                        supabase_client.table("matches").update({"last_youtube_check": now_iso}).eq("id", match["id"]).execute()
+                        continue
+
+                    update_data = {
+                        "highlight_video_id": vid,
+                        "last_youtube_check": now_iso
+                    }
+                    if backup_vid:
+                        update_data["backup_highlight_video_id"] = backup_vid
+                    if reg is not None:
+                        update_data["youtube_region_info"] = reg
+                    if backup_reg is not None:
+                        update_data["backup_youtube_region_info"] = backup_reg
+
+                    try:
+                        supabase_client.table("matches").update(update_data).eq("id", match["id"]).execute()
+                        claimed_video_ids.add(vid)
+                        linked_count += 1
+                        supabase_cloud_client.update_match_highlight(match["id"], vid, reg, now_iso)
+                        append_event(
+                            log_events,
+                            f"   [QUOTA MAXIMIZER LINKED] {home} vs {away} ({m_date}) -> https://youtu.be/{vid} saved to archive!",
+                            "SUCCESS",
+                            "QUOTA",
+                            "ARCHIVE_LINKED"
+                        )
+                    except Exception as e:
+                        if "23505" in str(e) or "uq_matches_highlight_video_id" in str(e):
+                            claimed_video_ids.add(vid)
+                            supabase_client.table("matches").update({"last_youtube_check": now_iso}).eq("id", match["id"]).execute()
+                        elif "youtube_region_info" in str(e) and "youtube_region_info" in update_data:
+                            del update_data["youtube_region_info"]
+                            if "backup_youtube_region_info" in update_data:
+                                del update_data["backup_youtube_region_info"]
+                            supabase_client.table("matches").update(update_data).eq("id", match["id"]).execute()
+                            claimed_video_ids.add(vid)
+                            linked_count += 1
+                            supabase_cloud_client.update_match_highlight(match["id"], vid, None, now_iso)
+                        else:
+                            raise e
+                else:
+                    supabase_client.table("matches").update({"last_youtube_check": now_iso}).eq("id", match["id"]).execute()
+                    append_event(
+                        log_events,
+                        f"   [QUOTA MAXIMIZER CHECKED] No highlight found for {home} vs {away} ({m_date}). 7-day cooldown recorded.",
+                        "DEBUG",
+                        "QUOTA",
+                        "NOT_FOUND"
+                    )
+            except Exception as e:
+                append_event(log_events, f"   [QUOTA MAXIMIZER ERROR] Error searching {home} vs {away}: {e}", "ERROR", "QUOTA", "SEARCH_ERROR")
+                supabase_client.table("matches").update({"last_youtube_check": now_iso}).eq("id", match["id"]).execute()
+
+        new_status = youtube_client.get_quota_status()
+        append_event(
+            log_events,
+            f"[QUOTA MAXIMIZER SUMMARY] Cycle complete. Linked {linked_count} highlights. Today's usage: {new_status['hits_today']}/{settings.max_quota_per_day} units ({round(new_status['hits_today'] / settings.max_quota_per_day * 100, 1)}%).",
+            "SUCCESS",
+            "QUOTA",
+            "UTILIZATION_REPORT"
+        )
         return linked_count
 
     def link_websub_video(
@@ -982,6 +1276,9 @@ class HighlightService:
                 msg = f"[WEBSUB INSTANT LINK] Successfully linked video {video_id} ('{title}') -> {home_name} vs {away_name} (Score: {best_score}, Playable: {status_msg})"
                 append_event(log_events, msg, "SUCCESS", "WEBSUB", "INSTANT_LINK")
                 logger.info(msg)
+
+                # Dual-write to Legacy Supabase Cloud for backward compatibility
+                supabase_cloud_client.update_match_highlight(best_match["id"], video_id, None, now_iso)
 
                 # Send notifications
                 notification_service.notify_highlight_ready(best_match, video_id, "Official Highlights", log_events)

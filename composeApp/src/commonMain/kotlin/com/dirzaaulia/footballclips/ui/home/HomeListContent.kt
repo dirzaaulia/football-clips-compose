@@ -21,6 +21,8 @@ import com.dirzaaulia.footballclips.ui.components.card.HeroCarousel
 import com.dirzaaulia.footballclips.ui.components.card.VerticalHighlightCard
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.dirzaaulia.footballclips.ui.components.filter.BigLeaguesQuickFilterBar
 import com.dirzaaulia.footballclips.ui.score.components.MatchCard
 
@@ -71,8 +73,10 @@ internal fun HomeListContent(
         }
 
         item {
+            val competitions by viewModel.competitions.collectAsState()
             BigLeaguesQuickFilterBar(
                 selectedLeagueId = selectedLeagueId,
+                dynamicCompetitions = competitions,
                 onLeagueSelected = onLeagueSelected
             )
         }

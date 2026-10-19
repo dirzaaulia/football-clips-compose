@@ -1,201 +1,191 @@
 package com.dirzaaulia.footballclips.telemetry.data
 
 import com.dirzaaulia.footballclips.telemetry.model.ApmLiveMetrics
+import com.dirzaaulia.footballclips.telemetry.model.AppCrashRecord
+import com.dirzaaulia.footballclips.telemetry.model.AppSessionRecord
 import com.dirzaaulia.footballclips.telemetry.model.AudienceStatePayload
 import com.dirzaaulia.footballclips.telemetry.model.CloudRunHealth
 import com.dirzaaulia.footballclips.telemetry.model.CloudRunStatus
+import com.dirzaaulia.footballclips.telemetry.model.DatabaseMatchRecord
 import com.dirzaaulia.footballclips.telemetry.model.NotificationTelemetryPayload
-import com.dirzaaulia.footballclips.telemetry.model.SupabaseMatchRecord
+import com.dirzaaulia.footballclips.telemetry.model.TelemetryStandingRecord
 import com.dirzaaulia.footballclips.telemetry.model.TelemetryStreamPayload
 import com.dirzaaulia.footballclips.telemetry.model.WorkerCycle
 import com.dirzaaulia.footballclips.telemetry.model.WorkerEvent
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.js.Js
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
 import kotlin.time.TimeSource
-
-object TelemetryConstants {
-    const val SUPABASE_URL = "https://edge.fc.dirzaaulia.com"
-    const val SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpb21rdHZhdm5kb3JhenJleWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1OTQ4ODcsImV4cCI6MjEwMzE3MDg4N30.GhP7TJXMeAEpG8F-9pB_SLNwaXLjIrOJ2LAiPC1kCk4"
-    const val GCS_TELEMETRY_URL = "https://storage.googleapis.com/highlightdata-telemetry/telemetry.json"
-    const val CLOUD_RUN_URL = "https://fc-worker-519310318914.us-central1.run.app"
-    const val EDGE_PROXY_URL = "https://edge.fc.dirzaaulia.com"
-}
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
 
 class TelemetryRepository(
     private val client: HttpClient = HttpClient(Js) {
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true; isLenient = true })
         }
-    }
+        install(HttpTimeout) {
+            requestTimeoutMillis = 30_000
+            connectTimeoutMillis = 15_000
+        }
+    },
 ) {
-    private val baseUrl = "${TelemetryConstants.SUPABASE_URL}/rest/v1"
-    private val key = TelemetryConstants.SUPABASE_ANON_KEY
+    private val jsonSerializer = Json { ignoreUnknownKeys = true; isLenient = true }
+    private val baseUrl = "${TelemetrySecurityConfig.getDatabaseUrl()}/rest/v1"
+    private val key = TelemetrySecurityConfig.getDatabaseAnonKey()
     private var cachedPayload: TelemetryStreamPayload? = null
 
-    suspend fun getTelemetryStream(): Result<TelemetryStreamPayload> {
-        return runCatching {
-            val response = client.get(TelemetryConstants.GCS_TELEMETRY_URL)
-            val payload = response.body<TelemetryStreamPayload>()
-            cachedPayload = payload
-            payload
-        }
-    }
-
-    suspend fun getRecentCycles(limit: Int = 500): Result<List<WorkerCycle>> {
-        return runCatching {
-            val stream = getTelemetryStream().getOrThrow()
-            stream.cycles.sortedByDescending { it.cycleIndex ?: it.id }.take(limit)
-        }
-    }
-
-    suspend fun getEventsForCycles(cycleIds: List<Long>): Result<List<WorkerEvent>> {
-        return runCatching {
-            val stream = cachedPayload ?: getTelemetryStream().getOrThrow()
-            val events = if (cycleIds.isEmpty()) {
-                stream.events
-            } else {
-                val idSet = cycleIds.toSet()
-                stream.events.filter { it.cycleId in idSet }
+    private inline fun <reified T> parseFlexiblePayload(rawText: String): T {
+        val trimmed = rawText.trim()
+        val jsonElement = jsonSerializer.parseToJsonElement(trimmed)
+        val targetElement = when {
+            jsonElement is JsonArray && jsonElement.isNotEmpty() -> {
+                val first = jsonElement.first()
+                if (first is JsonObject && first.containsKey("payload")) {
+                    first["payload"] ?: first
+                } else {
+                    jsonElement
+                }
             }
-            events.sortedByDescending { it.id }
+            jsonElement is JsonObject && jsonElement.containsKey("payload") -> {
+                jsonElement["payload"] ?: jsonElement
+            }
+            else -> jsonElement
         }
+        return jsonSerializer.decodeFromJsonElement(targetElement)
     }
 
-    suspend fun getNotificationsTelemetry(): Result<NotificationTelemetryPayload> {
-        return runCatching {
-            val response = client.get("https://storage.googleapis.com/highlightdata-telemetry/notifications.json")
-            response.body<NotificationTelemetryPayload>()
+    suspend fun getTelemetryStream(): Result<TelemetryStreamPayload> = runCatching {
+        val response = client.get(TelemetrySecurityConfig.getTelemetryStreamUrl()) {
+            header("Accept", "application/json")
         }
+        val payload = parseFlexiblePayload<TelemetryStreamPayload>(response.bodyAsText())
+        cachedPayload = payload
+        payload
     }
 
-    suspend fun getAudienceState(): Result<AudienceStatePayload> {
-        return runCatching {
-            val response = client.get("https://storage.googleapis.com/highlightdata-telemetry/audience/audience_state.json")
-            response.body<AudienceStatePayload>()
+    suspend fun getRecentCycles(limit: Int = 500): Result<List<WorkerCycle>> = runCatching {
+        val stream = getTelemetryStream().getOrThrow()
+        stream.cycles.sortedByDescending { it.createdAt ?: it.timestamp }.take(limit)
+    }
+
+    suspend fun getEventsForCycles(cycleIds: List<Long>): Result<List<WorkerEvent>> = runCatching {
+        val stream = cachedPayload ?: getTelemetryStream().getOrThrow()
+        val events = if (cycleIds.isEmpty()) {
+            stream.events
+        } else {
+            val idSet = cycleIds.toSet()
+            stream.events.filter { it.cycleId in idSet }
         }
+        events.sortedBy { it.id }
+    }
+
+    suspend fun getNotificationsTelemetry(): Result<NotificationTelemetryPayload> = runCatching {
+        val response = client.get(TelemetrySecurityConfig.getNotificationsStreamUrl()) {
+            header("Accept", "application/json")
+        }
+        parseFlexiblePayload<NotificationTelemetryPayload>(response.bodyAsText())
+    }
+
+    suspend fun getAudienceState(): Result<AudienceStatePayload> = runCatching {
+        val response = client.get(TelemetrySecurityConfig.getAudienceStreamUrl()) {
+            header("Accept", "application/json")
+        }
+        parseFlexiblePayload<AudienceStatePayload>(response.bodyAsText())
     }
 
     suspend fun getSyncedMatches(
         limit: Int = 150,
         hasHighlight: Boolean? = null,
-        status: String? = null
-    ): Result<List<SupabaseMatchRecord>> {
+        status: String? = null,
+    ): Result<List<DatabaseMatchRecord>> = runCatching {
         val selectFields = "id,home_team_name,away_team_name,home_team_crest,away_team_crest,competition_name,competition_id,utc_date,status,home_score,away_score,highlight_video_id,provider,display_clock,round_name,updated_at"
-        return runCatching {
-            try {
-                val edgeResponse = client.get("${TelemetryConstants.EDGE_PROXY_URL}/rest/v1/matches") {
-                    header("apikey", key)
-                    header("Authorization", "Bearer $key")
-                    url {
-                        parameters.append("select", selectFields)
-                        if (hasHighlight == true) {
-                            parameters.append("highlight_video_id", "not.is.null")
-                        } else if (hasHighlight == false) {
-                            parameters.append("highlight_video_id", "is.null")
-                        }
-                        if (status != null) {
-                            parameters.append("status", "eq.$status")
-                        }
-                        parameters.append("order", "utc_date.desc")
-                        parameters.append("limit", limit.toString())
-                    }
-                }
-                edgeResponse.body<List<SupabaseMatchRecord>>()
-            } catch (_: Throwable) {
-                val directResponse = client.get("$baseUrl/matches") {
-                    header("apikey", key)
-                    header("Authorization", "Bearer $key")
-                    url {
-                        parameters.append("select", selectFields)
-                        if (hasHighlight == true) {
-                            parameters.append("highlight_video_id", "not.is.null")
-                        } else if (hasHighlight == false) {
-                            parameters.append("highlight_video_id", "is.null")
-                        }
-                        if (status != null) {
-                            parameters.append("status", "eq.$status")
-                        }
-                        parameters.append("order", "utc_date.desc")
-                        parameters.append("limit", limit.toString())
-                    }
-                }
-                directResponse.body<List<SupabaseMatchRecord>>()
-            }
-        }
-    }
-
-    suspend fun getStandings(competitionCode: String = "PL"): Result<List<com.dirzaaulia.footballclips.telemetry.model.TelemetryStandingRecord>> {
-        return runCatching {
-            val response = client.get("${TelemetryConstants.EDGE_PROXY_URL}/rest/v1/standings") {
+        try {
+            val edgeResponse = client.get("${TelemetrySecurityConfig.getEdgeProxyUrl()}/rest/v1/matches") {
                 header("apikey", key)
                 header("Authorization", "Bearer $key")
                 url {
-                    parameters.append("select", "*")
-                    parameters.append("competition_code", "ilike.$competitionCode")
-                    parameters.append("order", "position.asc")
+                    parameters.append("select", selectFields)
+                    if (hasHighlight == true) parameters.append("highlight_video_id", "not.is.null")
+                    if (hasHighlight == false) parameters.append("highlight_video_id", "is.null")
+                    if (status != null) parameters.append("status", "eq.$status")
+                    parameters.append("order", "utc_date.desc")
+                    parameters.append("limit", limit.toString())
                 }
             }
-            response.body<List<com.dirzaaulia.footballclips.telemetry.model.TelemetryStandingRecord>>()
+            edgeResponse.body<List<DatabaseMatchRecord>>()
+        } catch (_: Throwable) {
+            val directResponse = client.get("$baseUrl/matches") {
+                header("apikey", key)
+                header("Authorization", "Bearer $key")
+                url {
+                    parameters.append("select", selectFields)
+                    if (hasHighlight == true) parameters.append("highlight_video_id", "not.is.null")
+                    if (hasHighlight == false) parameters.append("highlight_video_id", "is.null")
+                    if (status != null) parameters.append("status", "eq.$status")
+                    parameters.append("order", "utc_date.desc")
+                    parameters.append("limit", limit.toString())
+                }
+            }
+            directResponse.body<List<DatabaseMatchRecord>>()
         }
     }
 
-    suspend fun getLiveApmMetrics(): Result<ApmLiveMetrics> {
-        return runCatching {
-            val mark = TimeSource.Monotonic.markNow()
-            val response = client.get("${TelemetryConstants.CLOUD_RUN_URL}/metrics")
-            val elapsedMs = mark.elapsedNow().inWholeMilliseconds
-            val rawText = response.bodyAsText()
-            parseOpenMetrics(rawText, elapsedMs)
+    suspend fun getStandings(competitionCode: String = "PL", season: Int = 2026): Result<List<TelemetryStandingRecord>> = runCatching {
+        val response = client.get("${TelemetrySecurityConfig.getEdgeProxyUrl()}/rest/v1/standings") {
+            header("apikey", key)
+            header("Authorization", "Bearer $key")
+            url {
+                parameters.append("select", "*")
+                parameters.append("competition_code", "ilike.$competitionCode")
+                parameters.append("season", "eq.$season")
+                parameters.append("order", "position.asc")
+            }
         }
+        response.body<List<TelemetryStandingRecord>>()
     }
 
-    suspend fun getCloudRunHealth(): Result<CloudRunHealth> {
-        return runCatching {
-            val response = client.get("${TelemetryConstants.CLOUD_RUN_URL}/health")
-            response.body<CloudRunHealth>()
-        }
+    suspend fun getLiveApmMetrics(): Result<ApmLiveMetrics> = runCatching {
+        val mark = TimeSource.Monotonic.markNow()
+        val response = client.get("${TelemetrySecurityConfig.getCloudRunUrl()}/metrics")
+        val elapsedMs = mark.elapsedNow().inWholeMilliseconds
+        OpenMetricsParser.parse(response.bodyAsText(), elapsedMs)
     }
 
-    suspend fun getCloudRunStatus(): Result<CloudRunStatus> {
-        return runCatching {
-            val response = client.get("${TelemetryConstants.CLOUD_RUN_URL}/status")
-            response.body<CloudRunStatus>()
-        }
+    suspend fun getCloudRunHealth(): Result<CloudRunHealth> = runCatching {
+        client.get("${TelemetrySecurityConfig.getCloudRunUrl()}/health").body<CloudRunHealth>()
     }
 
-    suspend fun triggerRunCycle(forceFull: Boolean = false): Result<String> {
-        return runCatching {
-            val response = client.post("${TelemetryConstants.CLOUD_RUN_URL}/run-cycle?async_execution=true&force_full=$forceFull")
-            response.bodyAsText()
-        }
+    suspend fun getCloudRunStatus(): Result<CloudRunStatus> = runCatching {
+        client.get("${TelemetrySecurityConfig.getCloudRunUrl()}/status").body<CloudRunStatus>()
     }
 
-    suspend fun purgeEdgeCache(): Result<String> {
-        return runCatching {
-            val response = client.post("${TelemetryConstants.EDGE_PROXY_URL}/api/purge-cache")
-            response.bodyAsText()
-        }
+    suspend fun triggerRunCycle(forceFull: Boolean = false): Result<String> = runCatching {
+        val response = client.post("${TelemetrySecurityConfig.getCloudRunUrl()}/run-cycle?async_execution=true&force_full=$forceFull")
+        response.bodyAsText()
     }
 
-    suspend fun renewWebSubSubscriptions(): Result<String> {
-        return runCatching {
-            val response = client.post("${TelemetryConstants.CLOUD_RUN_URL}/websub/renew")
-            response.bodyAsText()
-        }
+    suspend fun purgeEdgeCache(): Result<String> = runCatching {
+        client.post("${TelemetrySecurityConfig.getEdgeProxyUrl()}/api/purge-cache").bodyAsText()
+    }
+
+    suspend fun renewWebSubSubscriptions(): Result<String> = runCatching {
+        client.post("${TelemetrySecurityConfig.getCloudRunUrl()}/websub/renew").bodyAsText()
     }
 
     suspend fun benchmarkLatencies(): Pair<Long, Long> {
         val edgeMs = runCatching {
             val mark = TimeSource.Monotonic.markNow()
-            client.get("${TelemetryConstants.EDGE_PROXY_URL}/rest/v1/matches?limit=1") {
+            client.get("${TelemetrySecurityConfig.getEdgeProxyUrl()}/rest/v1/matches?limit=1") {
                 header("apikey", key)
             }
             mark.elapsedNow().inWholeMilliseconds
@@ -212,49 +202,26 @@ class TelemetryRepository(
         return Pair(edgeMs, directMs)
     }
 
-    private fun parseOpenMetrics(rawText: String, latencyMs: Long): ApmLiveMetrics {
-        var cycleIndex = 0L
-        var isRunning = true
-        var totalMatches = 793
-        var liveMatches = 0
-        var finishedMatches = 0
-        var highlightsLinked = 0
-        var highlightsUnlinked = 0
-
-        rawText.lineSequence().forEach { line ->
-            val trimmed = line.trim()
-            if (trimmed.isNotEmpty() && !trimmed.startsWith("#")) {
-                val parts = trimmed.split("\\s+".toRegex())
-                if (parts.size >= 2) {
-                    val key = parts[0]
-                    val value = parts[1]
-                    when (key) {
-                        "footballclips_worker_cycle_index" -> cycleIndex = value.toLongOrNull() ?: cycleIndex
-                        "footballclips_worker_is_running" -> isRunning = (value == "1" || value == "1.0")
-                        "footballclips_matches_total" -> totalMatches = value.toIntOrNull() ?: totalMatches
-                        "footballclips_matches_live" -> liveMatches = value.toIntOrNull() ?: liveMatches
-                        "footballclips_matches_finished" -> finishedMatches = value.toIntOrNull() ?: finishedMatches
-                        "footballclips_highlights_linked" -> highlightsLinked = value.toIntOrNull() ?: highlightsLinked
-                        "footballclips_highlights_unlinked" -> highlightsUnlinked = value.toIntOrNull() ?: highlightsUnlinked
-                    }
-                }
+    suspend fun getAppSessions(): Result<List<AppSessionRecord>> = runCatching {
+        val response = client.get("${TelemetrySecurityConfig.getDatabaseUrl()}/rest/v1/app_sessions") {
+            header("Accept", "application/json")
+            url {
+                parameters.append("select", "*")
+                parameters.append("order", "last_active.desc")
             }
         }
+        response.body<List<AppSessionRecord>>()
+    }
 
-        val coverage = if (finishedMatches > 0) (highlightsLinked.toDouble() / finishedMatches.toDouble()) * 100.0 else 0.0
-
-        return ApmLiveMetrics(
-            cycleIndex = cycleIndex,
-            isWorkerRunning = isRunning,
-            totalMatches = totalMatches,
-            liveMatches = liveMatches,
-            finishedMatches = finishedMatches,
-            highlightsLinked = highlightsLinked,
-            highlightsUnlinked = highlightsUnlinked,
-            highlightCoveragePercent = (coverage * 10.0).toInt() / 10.0,
-            roundTripLatencyMs = latencyMs,
-            edgeProxyStatus = "ONLINE (Cloudflare Edge)",
-            lastUpdated = "Live Stream"
-        )
+    suspend fun getAppCrashes(): Result<List<AppCrashRecord>> = runCatching {
+        val response = client.get("${TelemetrySecurityConfig.getDatabaseUrl()}/rest/v1/app_crashes") {
+            header("Accept", "application/json")
+            url {
+                parameters.append("select", "*")
+                parameters.append("order", "created_at.desc")
+                parameters.append("limit", "100")
+            }
+        }
+        response.body<List<AppCrashRecord>>()
     }
 }

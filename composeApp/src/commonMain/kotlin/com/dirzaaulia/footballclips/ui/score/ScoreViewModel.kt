@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.dirzaaulia.footballclips.data.billing.BillingManager
 import com.dirzaaulia.footballclips.data.local.PreferenceManager
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
+import com.dirzaaulia.footballclips.data.constants.BigLeague
 import com.dirzaaulia.footballclips.data.repository.ClubRepository
+import com.dirzaaulia.footballclips.data.repository.CompetitionRepository
 import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
 import com.dirzaaulia.footballclips.data.repository.ScoreRepository
 import com.dirzaaulia.footballclips.data.repository.StandingRepository
@@ -28,9 +30,11 @@ class ScoreViewModel(
     private val profilesRepository: ProfilesRepository,
     private val clubRepository: ClubRepository,
     internal val standingRepository: StandingRepository,
+    private val competitionRepository: CompetitionRepository,
 ) : ViewModel() {
 
     val supportedClubs = clubRepository.supportedClubs
+    val competitions: StateFlow<List<BigLeague>> = competitionRepository.competitions
 
     internal val _uiState = MutableStateFlow<ScoreState>(ScoreState.Loading)
     val uiState: StateFlow<ScoreState> = _uiState.asStateFlow()
@@ -152,7 +156,10 @@ class ScoreViewModel(
     }
 
     init {
-        viewModelScope.launch { clubRepository.refreshClubs() }
+        viewModelScope.launch { 
+            clubRepository.refreshClubs()
+            competitionRepository.refreshCompetitions()
+        }
         _selectedDate.value = availableDates.firstOrNull { it.isToday }?.date
         viewModelScope.launch {
             preferenceManager.selectedSeason.collect {

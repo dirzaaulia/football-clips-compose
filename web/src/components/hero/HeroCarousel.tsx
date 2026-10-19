@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Play, Sparkles, Trophy, Flame, EyeOff } from 'lucide-react';
 import Link from 'next/link';
-import { MatchRecord } from '@/lib/supabase';
+import { MatchRecord } from '@/lib/database';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 import AdSenseBanner from '../ads/AdSenseBanner';
 import HeroCarouselSkeleton from './HeroCarouselSkeleton';
@@ -197,13 +197,13 @@ export default function HeroCarousel({
               </button>
 
               {featuredMatch.id && !String(featuredMatch.id).startsWith('mw-') && (
-                <Link
-                  href={`/match/${featuredMatch.id}`}
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#181C20]/90 hover:bg-[#1E2227] text-white font-semibold text-xs border border-[#334155] hover:border-[#7098F8]/50 transition-all"
+                <button
+                  onClick={() => onPlay(featuredMatch)}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#181C20]/90 hover:bg-[#1E2227] text-white font-semibold text-xs border border-[#334155] hover:border-[#7098F8]/50 transition-all cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-[#4FC3F7]" />
                   <span>Match Centre</span>
-                </Link>
+                </button>
               )}
             </div>
           </div>

@@ -16,6 +16,8 @@ import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.card.HeroCarousel
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.dirzaaulia.footballclips.ui.components.filter.BigLeaguesQuickFilterBar
 
 @Composable
@@ -77,8 +79,10 @@ internal fun HomeLandscapeContent(
                 .fillMaxHeight()
                 .padding(start = 8.dp, end = 16.dp, top = 8.dp, bottom = 16.dp)
         ) {
+            val competitions by viewModel.competitions.collectAsState()
             BigLeaguesQuickFilterBar(
                 selectedLeagueId = selectedLeagueId,
+                dynamicCompetitions = competitions,
                 onLeagueSelected = onLeagueSelected,
                 contentPadding = PaddingValues(0.dp)
             )

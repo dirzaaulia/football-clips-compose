@@ -1,11 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Sparkles, ArrowRight, Trophy, ExternalLink, Newspaper } from 'lucide-react';
+import { Sparkles, ArrowRight, Trophy, ExternalLink, Newspaper, BookOpen, Clock } from 'lucide-react';
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
-import { supabase, MatchRecord } from '@/lib/supabase';
+import { supabase, MatchRecord } from '@/lib/database';
 import { getVerifiedFootballNews, FeedArticle } from '@/lib/articles';
 import { generateAlgorithmicTacticalRecap } from '@/lib/match-analysis';
+import { getAllArticles, EditorialArticle } from '@/lib/editorial-articles';
 
 function buildMatchUrl(match: MatchRecord): string {
   const home = match.home_team_name || match.home_team;
@@ -22,7 +23,10 @@ function buildMatchUrl(match: MatchRecord): string {
 }
 
 export default async function ArticlesPage() {
-  // 1. Fetch real European matches for tactical debriefs
+  // 1. Original long-form editorial feature articles (AdSense Tier 1 Value)
+  const editorialArticles: EditorialArticle[] = getAllArticles();
+
+  // 2. Fetch real European matches for tactical debriefs
   const { data: rawMatches } = await supabase
     .from('matches')
     .select('*')
@@ -32,11 +36,11 @@ export default async function ArticlesPage() {
 
   const matches: MatchRecord[] = (rawMatches as unknown as MatchRecord[]) || [];
 
-  // 2. Fetch verified live football news from BBC Sport & Sky Sports
+  // 3. Fetch verified live football news from BBC Sport & Sky Sports
   const newsArticles: FeedArticle[] = await getVerifiedFootballNews(8);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+    <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 py-6">
       {/* Compact Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-[#334155]/60">
         <div>
@@ -57,6 +61,54 @@ export default async function ArticlesPage() {
       </header>
 
       <AdSenseBanner slotId="5616816386" format="horizontal" />
+
+      {/* Section 1: Original In-Depth Editorial Analyses */}
+      <section className="my-8">
+        <div className="flex items-center justify-between pb-3 border-b border-[#334155]/60 mb-5">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-[#7098F8]" />
+            <h2 className="text-lg font-black text-white">Original Tactical Feature Articles</h2>
+          </div>
+          <span className="text-xs text-[#4FC3F7] font-semibold">Long-Form Journalism</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {editorialArticles.map((art) => (
+            <Link
+              key={art.slug}
+              href={`/articles/${art.slug}`}
+              className="group bg-[#1E2227] hover:bg-[#23282F] border border-[#334155] hover:border-[#7098F8]/60 rounded-2xl p-5 transition-all flex flex-col justify-between cursor-pointer"
+            >
+              <div>
+                <div className="flex items-center justify-between text-xs text-[#94A3B8] mb-2.5">
+                  <span className="font-bold text-[#7098F8] uppercase tracking-wider text-[11px]">
+                    {art.category}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {art.readTime}
+                  </span>
+                </div>
+
+                <h3 className="text-base font-bold text-white group-hover:text-[#4FC3F7] transition-colors mb-2 leading-snug">
+                  {art.title}
+                </h3>
+
+                <p className="text-xs text-[#94A3B8] line-clamp-3 leading-relaxed mb-4">
+                  {art.excerpt}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-[#334155]/40 text-xs">
+                <span className="text-[#64748B] font-medium">By {art.author.name}</span>
+                <span className="text-[#7098F8] group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 font-bold">
+                  Read Analysis <ArrowRight className="w-3 h-3" />
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {/* Section 1: Tactical Match Debriefs */}
       <section className="my-8">

@@ -42,6 +42,7 @@ fun MatchesAndHighlightsScreen(
     gridState: LazyGridState = rememberLazyGridState()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val dynamicCompetitions by viewModel.competitions.collectAsState()
     val selectedCompetitionId by viewModel.selectedCompetitionId.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
     val isSpoilerFreeMode by viewModel.isSpoilerFreeMode.collectAsState()
@@ -116,6 +117,7 @@ fun MatchesAndHighlightsScreen(
                         onDateSelected = viewModel::selectDate,
                         selectedCompetitionId = selectedCompetitionId,
                         onLeagueSelected = { _, competitionId -> viewModel.selectCompetition(competitionId) },
+                        dynamicCompetitions = dynamicCompetitions,
                         selectedSeason = selectedSeason,
                         onSeasonSelected = viewModel::setSeason,
                         selectedStatusFilter = selectedStatusFilter,
@@ -177,7 +179,7 @@ fun MatchesAndHighlightsScreen(
                                                         isRevealed = revealedMatchIds.contains(item.match.id),
                                                         isFavorite = isFav,
                                                         onRevealClick = { revealedMatchIds = revealedMatchIds + item.match.id },
-                                                        onClick = { if (item.match.highlightVideoId != null) onVideoClick(item) { } }
+                                                        onClick = { onVideoClick(item) { } }
                                                     )
                                                 }
                                                 is HighlightUiItem.BannerAd -> BannerAdItem()

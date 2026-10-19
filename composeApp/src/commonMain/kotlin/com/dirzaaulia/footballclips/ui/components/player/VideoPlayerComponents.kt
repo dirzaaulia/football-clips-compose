@@ -28,6 +28,7 @@ import com.dirzaaulia.footballclips.util.toProxyUrl
 internal fun VideoMetadata(
     item: HighlightUiItem,
     isSpoilerFree: Boolean = false,
+    hasVideo: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     var isScoreRevealed by remember { mutableStateOf(!isSpoilerFree) }
@@ -113,8 +114,8 @@ internal fun VideoMetadata(
             }
         }
 
-        // Teams & Scoreline Row
-        if (scoreText != null && homeCrest != null && awayCrest != null) {
+        // Teams & Scoreline Row (only rendered when video is playing; otherwise MatchCentreHero handles it)
+        if (hasVideo && scoreText != null && homeCrest != null && awayCrest != null) {
             Card(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh

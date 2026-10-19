@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 from loguru import logger
 from worker.clients.supabase_client import supabase_client
+from worker.clients.supabase_cloud_client import supabase_cloud_client
 from worker.clients.youtube_client import youtube_client
 from worker.clients.youtube_rss_client import youtube_rss_client
 from worker.config.broadcaster_registry import GLOBAL_BROADCASTER_REGISTRY
@@ -54,11 +55,11 @@ class MaintenanceService:
             return 0
 
     def heal_stuck_matches(self, log_events: list | None = None) -> int:
-        """Heal matches stuck in IN_PLAY or PAUSED where kickoff was >180 minutes ago."""
+        """Heal matches stuck in IN_PLAY or PAUSED where kickoff was >135 minutes ago."""
         if log_events is None:
             log_events = []
         now_utc = datetime.now(UTC)
-        cutoff_stuck = (now_utc - timedelta(minutes=180)).isoformat()
+        cutoff_stuck = (now_utc - timedelta(minutes=135)).isoformat()
         try:
             res = (
                 supabase_client.table("matches")
@@ -70,11 +71,13 @@ class MaintenanceService:
             stuck_matches = res.data or []
             healed = 0
             for m in stuck_matches:
-                supabase_client.table("matches").update({
+                update_payload = {
                     "status": "FINISHED",
                     "display_clock": "FT",
                     "updated_at": now_utc.isoformat(),
-                }).eq("id", m["id"]).execute()
+                }
+                supabase_client.table("matches").update(update_payload).eq("id", m["id"]).execute()
+                supabase_cloud_client.sync_matches([{**m, **update_payload}])
                 healed += 1
                 msg = f"[HEAL STUCK MATCH] Transitioned {m.get('home_team_name')} vs {m.get('away_team_name')} ({m.get('competition_id')}) from {m.get('status')} -> FINISHED (Kickoff was {m.get('utc_date')})."
                 append_event(log_events, msg, "WARN", "MAINTENANCE", "HEAL_STUCK")

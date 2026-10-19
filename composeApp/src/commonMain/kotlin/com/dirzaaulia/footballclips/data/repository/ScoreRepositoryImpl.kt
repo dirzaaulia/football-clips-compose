@@ -1,6 +1,6 @@
 package com.dirzaaulia.footballclips.data.repository
 
-import com.dirzaaulia.footballclips.data.constants.SupabaseConstants
+import com.dirzaaulia.footballclips.data.constants.DatabaseConstants
 import com.dirzaaulia.footballclips.data.model.NetworkResult
 import com.dirzaaulia.footballclips.data.model.remote.MatchDto
 import io.ktor.client.HttpClient
@@ -10,8 +10,8 @@ import io.ktor.client.request.header
 
 class ScoreRepositoryImpl(private val client: HttpClient) : ScoreRepository {
 
-    private val baseUrl = "${SupabaseConstants.SUPABASE_URL}/rest/v1/matches"
-    private val supabaseKey = SupabaseConstants.SUPABASE_ANON_KEY
+    private val baseUrl = "${DatabaseConstants.DATABASE_URL}/rest/v1/matches"
+    private val databaseApiKey = DatabaseConstants.DATABASE_ANON_KEY
 
     override suspend fun getMatches(
         competitionId: String?,
@@ -29,8 +29,8 @@ class ScoreRepositoryImpl(private val client: HttpClient) : ScoreRepository {
             val order = if (ascending) "utc_date.asc,id.asc" else "utc_date.desc,id.desc"
             val effectiveLimit = if (limit > 0) limit else 20
             val response = client.get(baseUrl) {
-                header("apikey", supabaseKey)
-                header("Authorization", "Bearer $supabaseKey")
+                header("apikey", databaseApiKey)
+                header("Authorization", "Bearer $databaseApiKey")
                 
                 url {
                     parameters.append("select", "*")
@@ -78,6 +78,32 @@ class ScoreRepositoryImpl(private val client: HttpClient) : ScoreRepository {
             
             if (response.status.value in 200..299) {
                 NetworkResult.Success(response.body())
+            } else {
+                NetworkResult.Error(response.status.value, response.status.description)
+            }
+        } catch (t: Throwable) {
+            NetworkResult.Exception(Exception(t))
+        }
+    }
+
+    override suspend fun getMatch(id: Long): NetworkResult<MatchDto> {
+        return try {
+            val response = client.get(baseUrl) {
+                header("apikey", databaseApiKey)
+                header("Authorization", "Bearer $databaseApiKey")
+                url {
+                    parameters.append("select", "*")
+                    parameters.append("id", "eq.$id")
+                    parameters.append("limit", "1")
+                }
+            }
+            if (response.status.value in 200..299) {
+                val list: List<MatchDto> = response.body()
+                if (list.isNotEmpty()) {
+                    NetworkResult.Success(list.first())
+                } else {
+                    NetworkResult.Error(404, "Match not found")
+                }
             } else {
                 NetworkResult.Error(response.status.value, response.status.description)
             }

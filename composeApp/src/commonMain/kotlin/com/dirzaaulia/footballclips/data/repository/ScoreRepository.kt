@@ -16,5 +16,7 @@ interface ScoreRepository {
         offset: Int = 0,
         season: Int? = null
     ): NetworkResult<List<MatchDto>>
+
+    suspend fun getMatch(id: Long): NetworkResult<MatchDto>
 }
 

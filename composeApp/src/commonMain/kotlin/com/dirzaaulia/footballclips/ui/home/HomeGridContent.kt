@@ -23,6 +23,8 @@ import com.dirzaaulia.footballclips.ui.components.card.HeroCarousel
 import com.dirzaaulia.footballclips.ui.components.card.WebHighlightCard
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.dirzaaulia.footballclips.ui.components.filter.BigLeaguesQuickFilterBar
 
 @Composable
@@ -73,9 +75,11 @@ internal fun HomeGridContent(
         }
 
         item(span = { GridItemSpan(maxLineSpan) }) {
+            val competitions by viewModel.competitions.collectAsState()
             if (isAdsRemoved) {
                 BigLeaguesQuickFilterBar(
                     selectedLeagueId = selectedLeagueId,
+                    dynamicCompetitions = competitions,
                     onLeagueSelected = onLeagueSelected
                 )
             } else {
@@ -87,6 +91,7 @@ internal fun HomeGridContent(
                     Box(modifier = Modifier.weight(0.7f)) {
                         BigLeaguesQuickFilterBar(
                             selectedLeagueId = selectedLeagueId,
+                            dynamicCompetitions = competitions,
                             onLeagueSelected = onLeagueSelected
                         )
                     }

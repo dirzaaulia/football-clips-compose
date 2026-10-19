@@ -1,11 +1,20 @@
 'use client';
 
-import React from 'react';
-import Image from 'next/image';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Tv, Sparkles, ExternalLink, Play, Calendar } from 'lucide-react';
-import { MatchRecord } from '@/lib/supabase';
+import Image from 'next/image';
+import { Sparkles, Calendar, Minimize2, Eye, EyeOff, ExternalLink } from 'lucide-react';
+import { MatchRecord, isRegionSupported, getMatchById } from '@/lib/database';
+import { fetchEspnMatchSummary } from '@/lib/espn';
 import ModalSideSheet from '@/components/common/ModalSideSheet';
+import { useSpoilerFree } from '@/hooks/useSpoilerFree';
+import { useVideoPlayer } from '@/hooks/useVideoPlayer';
+import { useUserRegion } from '@/hooks/useUserRegion';
+import { PlayerErrorType } from './PlayerErrorOverlay';
+import PlayerVideoFrame from './PlayerVideoFrame';
+import MatchCentreHero from './MatchCentreHero';
+import MatchTacticalBoxscore from '@/components/match/MatchTacticalBoxscore';
+import PlayerRelatedHighlights from './PlayerRelatedHighlights';
 
 interface VideoPlayerSideSheetProps {
   match: MatchRecord | null;
@@ -15,20 +24,6 @@ interface VideoPlayerSideSheetProps {
   onSelectMatch?: (match: MatchRecord) => void;
 }
 
-function getMatchCentreUrl(m: MatchRecord): string {
-  const home = m.home_team_name || m.home_team;
-  const away = m.away_team_name || m.away_team;
-  const params = new URLSearchParams();
-  if (home) params.set('home', home);
-  if (away) params.set('away', away);
-  if (m.competition_name) params.set('comp', m.competition_name);
-  if (m.highlight_video_id) params.set('vid', m.highlight_video_id);
-  if (m.utc_date) params.set('date', m.utc_date);
-  if (m.home_team_crest) params.set('homeCrest', m.home_team_crest);
-  if (m.away_team_crest) params.set('awayCrest', m.away_team_crest);
-  return `/match/${m.id}?${params.toString()}`;
-}
-
 export default function VideoPlayerSideSheet({
   match,
   isOpen,
@@ -36,170 +31,266 @@ export default function VideoPlayerSideSheet({
   relatedMatches = [],
   onSelectMatch,
 }: VideoPlayerSideSheetProps) {
+  const { isSpoilerFree } = useSpoilerFree();
+  const { minimize } = useVideoPlayer();
+  const { country } = useUserRegion();
+  const [isScoreRevealed, setIsScoreRevealed] = useState(false);
+  const [enrichedMatch, setEnrichedMatch] = useState<MatchRecord | null>(match);
+
+  const homeName = match?.home_team_name || match?.home_team || 'Home';
+  const awayName = match?.away_team_name || match?.away_team || 'Away';
+  const primaryVideoId = match?.highlight_video_id || null;
+  const backupVideoId = match?.backup_highlight_video_id || null;
+  const isPrimaryAllowed = isRegionSupported(match?.youtube_region_info, country);
+  const isBackupAllowed = isRegionSupported(match?.backup_youtube_region_info, country);
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(primaryVideoId);
+  const [hasSwitchedToBackup, setHasSwitchedToBackup] = useState(false);
+  const [errorState, setErrorState] = useState<PlayerErrorType>('NONE');
+  const [retryNonce, setRetryNonce] = useState(0);
+
+  // Sync and enrich match data if opened with partial data
+  useEffect(() => {
+    setEnrichedMatch(match);
+    if (!match) return;
+
+    let isCancelled = false;
+    const isFinished = match.status === 'FINISHED' || match.status === 'AWARDED';
+    const isNotFinished = !isFinished;
+    const isMissingData = !match.statistics || !match.events;
+
+    if (isNotFinished || isMissingData) {
+      Promise.all([
+        getMatchById(String(match.id)).catch(() => null),
+        fetchEspnMatchSummary(match.id, match.competition_id, isNotFinished).catch(() => null),
+      ]).then(([freshMatch, data]) => {
+        if (!isCancelled && (freshMatch || data)) {
+          setEnrichedMatch((prev) => {
+            if (!prev) return null;
+            const base = freshMatch || prev;
+            return {
+              ...base,
+              status: data?.status || base.status || prev.status,
+              home_score: data?.home_score != null ? data.home_score : (base.home_score ?? prev.home_score),
+              away_score: data?.away_score != null ? data.away_score : (base.away_score ?? prev.away_score),
+              display_clock: data?.display_clock || base.display_clock || prev.display_clock,
+              statistics: data?.statistics || base.statistics || prev.statistics,
+              formations: data?.formations || base.formations || prev.formations,
+              editorial_headline: data?.editorial_headline || base.editorial_headline || prev.editorial_headline,
+              editorial_story: data?.editorial_story || base.editorial_story || prev.editorial_story,
+              editorial_source: data?.editorial_source || base.editorial_source || prev.editorial_source,
+              events: data?.events || base.events || prev.events,
+            };
+          });
+        }
+      });
+    }
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [match?.id, match?.status]);
+
+  // Real-time polling while live match SideSheet is open
+  useEffect(() => {
+    if (!isOpen || !enrichedMatch) return;
+    const isLive = ['IN_PLAY', 'PAUSED', 'LIVE'].includes(enrichedMatch.status);
+    if (!isLive) return;
+
+    let isCancelled = false;
+    const pollInterval = setInterval(async () => {
+      try {
+        const [freshMatch, data] = await Promise.all([
+          getMatchById(String(enrichedMatch.id)).catch(() => null),
+          fetchEspnMatchSummary(enrichedMatch.id, enrichedMatch.competition_id, true).catch(() => null),
+        ]);
+        if (!isCancelled && (freshMatch || data)) {
+          setEnrichedMatch((prev) => {
+            if (!prev) return null;
+            const base = freshMatch || prev;
+            return {
+              ...base,
+              status: data?.status || base.status || prev.status,
+              home_score: data?.home_score != null ? data.home_score : (base.home_score ?? prev.home_score),
+              away_score: data?.away_score != null ? data.away_score : (base.away_score ?? prev.away_score),
+              display_clock: data?.display_clock || base.display_clock || prev.display_clock,
+              statistics: data?.statistics || base.statistics || prev.statistics,
+              formations: data?.formations || base.formations || prev.formations,
+              events: data?.events || base.events || prev.events,
+            };
+          });
+        }
+      } catch {}
+    }, 8000);
+
+    return () => {
+      isCancelled = true;
+      clearInterval(pollInterval);
+    };
+  }, [isOpen, enrichedMatch?.id, enrichedMatch?.status]);
+
+  // Smart Region-Aware Stream Selection
+  useEffect(() => {
+    if (!match) return;
+    if (!primaryVideoId && !backupVideoId) {
+      setActiveVideoId(null);
+      setErrorState('NONE');
+      return;
+    }
+
+    if (!isPrimaryAllowed && isBackupAllowed && backupVideoId) {
+      setActiveVideoId(backupVideoId);
+      setHasSwitchedToBackup(true);
+      setErrorState('NONE');
+    } else if (!isPrimaryAllowed && !isBackupAllowed) {
+      setErrorState('REGION_BLOCKED');
+    } else {
+      setActiveVideoId(primaryVideoId);
+      setHasSwitchedToBackup(false);
+      setErrorState('NONE');
+    }
+  }, [match?.id, country, primaryVideoId, backupVideoId, isPrimaryAllowed, isBackupAllowed]);
+
+  // YouTube Iframe PostMessage Error Interceptor
+  useEffect(() => {
+    function handleMessage(e: MessageEvent) {
+      try {
+        const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        if (data?.event === 'onError' || data?.info === 101 || data?.info === 150) {
+          const code = Number(data?.info);
+          if (code === 101 || code === 150 || code === 100) {
+            if (backupVideoId && !hasSwitchedToBackup && backupVideoId !== activeVideoId && isBackupAllowed) {
+              setHasSwitchedToBackup(true);
+              setActiveVideoId(backupVideoId);
+              setErrorState('NONE');
+            } else {
+              setErrorState('NOT_EMBEDDABLE');
+            }
+          } else if (code === 2 || code === 5) {
+            setErrorState('USER_SIDE_ERROR');
+          }
+        }
+      } catch {
+        // Non-JSON postMessage ignored
+      }
+    }
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [activeVideoId, backupVideoId, hasSwitchedToBackup, isBackupAllowed]);
+
   if (!match) return null;
 
-  const homeName = match.home_team_name || match.home_team;
-  const awayName = match.away_team_name || match.away_team;
-  const videoId = match.highlight_video_id;
-  const matchCentreUrl = getMatchCentreUrl(match);
-
-  const titleHeader = (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black tracking-wider uppercase bg-[#1E3A8A]/50 text-[#7098F8] border border-[#7098F8]/40 shadow-[0_0_10px_rgba(112,152,248,0.2)]">
-        <Tv className="w-3 h-3 text-[#7098F8]" />
-        <span>Match Centre</span>
-      </div>
-      <span className="text-xs text-[#94A3B8] font-semibold truncate hidden sm:inline">
-        {match.competition_name}
-      </span>
-    </div>
-  );
-
-  const headerAction = (
-    <Link
-      href={matchCentreUrl}
-      onClick={onClose}
-      className="flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold bg-[#1E3A8A] hover:bg-[#7098F8] text-white border border-[#7098F8]/40 transition-all cursor-pointer shadow-sm"
-    >
-      <Sparkles className="w-3.5 h-3.5 text-[#4FC3F7]" />
-      <span>Tactical Debrief</span>
-      <ExternalLink className="w-3 h-3 ml-0.5 opacity-80" />
-    </Link>
-  );
+  const currentMatch = enrichedMatch || match;
+  const isFinished = currentMatch.status === 'FINISHED' || currentMatch.status === 'AWARDED';
+  // Live matches never hide score; spoiler mode is strictly for finished matches
+  const isHidden = isSpoilerFree && !isScoreRevealed && isFinished;
+  const hasVideo = Boolean(activeVideoId);
 
   return (
     <ModalSideSheet
       isOpen={isOpen}
       onClose={onClose}
-      title={titleHeader}
-      headerAction={headerAction}
-      widthClass="sm:max-w-[560px] md:max-w-[600px]"
-    >
-      <div className="flex flex-col space-y-4 p-4 sm:p-5">
-        {/* 16:9 YouTube Player Box */}
-        <div className="relative w-full pt-[56.25%] bg-black rounded-2xl overflow-hidden border border-[#334155] shadow-2xl">
-          {videoId ? (
-            <iframe
-              className="absolute inset-0 w-full h-full"
-              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
-              title={`${homeName} vs ${awayName} Highlights`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-xs text-[#94A3B8]">
-              Highlight video not available for this fixture.
-            </div>
+      title={`${homeName} vs ${awayName}`}
+      widthClass="w-full sm:max-w-[620px]"
+      headerAction={
+        <div className="flex items-center gap-1">
+          <Link
+            href={`/match/${currentMatch.id}`}
+            onClick={onClose}
+            className="p-2 text-[#94A3B8] hover:text-white hover:bg-[#1E2227] rounded-xl transition-colors cursor-pointer"
+            title="Open Dedicated Match Centre"
+          >
+            <ExternalLink className="w-4 h-4 text-[#7098F8]" />
+          </Link>
+          {hasVideo && (
+            <button
+              onClick={minimize}
+              className="p-2 text-[#94A3B8] hover:text-white hover:bg-[#1E2227] rounded-xl transition-colors cursor-pointer"
+              title="Minimize to Picture-in-Picture"
+            >
+              <Minimize2 className="w-4 h-4 text-[#7098F8]" />
+            </button>
           )}
         </div>
+      }
+    >
+      <div className="space-y-5 pb-8">
+        {/* Top Hero: Embedded Video or Scheduled/Live Match Hero */}
+        {hasVideo ? (
+          <div className="space-y-4">
+            <PlayerVideoFrame
+              activeVideoId={activeVideoId}
+              homeName={homeName}
+              awayName={awayName}
+              country={country}
+              errorState={errorState}
+              retryNonce={retryNonce}
+              onRetry={() => {
+                setErrorState('NONE');
+                setRetryNonce((n) => n + 1);
+              }}
+              hasSwitchedToBackup={hasSwitchedToBackup}
+            />
 
-        {/* Match Metadata & Scoreline Box */}
-        <div className="bg-[#101418] border border-[#334155] rounded-2xl p-4 space-y-3">
-          <div className="flex items-center justify-between text-xs text-[#94A3B8] pb-2 border-b border-[#334155]/60">
-            <span className="font-extrabold text-[#7098F8] uppercase tracking-wider">
-              {match.competition_name}
-            </span>
-            <div className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-[#94A3B8]" />
-              <span>
-                {new Date(match.utc_date).toLocaleDateString('en-GB', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                })}
-              </span>
-            </div>
-          </div>
-
-          {/* Teams & Score Bar */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              {match.home_team_crest && (
-                <div className="relative w-7 h-7 shrink-0">
-                  <Image src={match.home_team_crest} alt={homeName} fill className="object-contain" unoptimized />
-                </div>
-              )}
-              <span className="font-extrabold text-sm text-white leading-tight break-words">
-                {homeName}
-              </span>
-            </div>
-
-            <div className="px-3.5 py-1.5 bg-[#181C20] border border-[#7098F8]/40 rounded-xl text-center shadow-inner shrink-0">
-              <span className="font-black text-sm text-white">
-                {match.home_score ?? 0} - {match.away_score ?? 0}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 flex-1 min-w-0 text-right">
-              <span className="font-extrabold text-sm text-white leading-tight break-words">
-                {awayName}
-              </span>
-              {match.away_team_crest && (
-                <div className="relative w-7 h-7 shrink-0">
-                  <Image src={match.away_team_crest} alt={awayName} fill className="object-contain" unoptimized />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Dedicated Match Centre Navigation Link */}
-          <div className="pt-2">
-            <Link
-              href={matchCentreUrl}
-              onClick={onClose}
-              className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white font-bold text-xs shadow-[0_0_15px_rgba(112,152,248,0.25)] hover:brightness-110 transition-all cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4 text-[#4FC3F7]" />
-              <span>Open Match Centre &amp; Tactical Debrief</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Related Highlights LazyRow Parity */}
-        {relatedMatches.length > 0 && (
-          <div className="space-y-2.5 pt-1">
-            <h3 className="text-xs font-extrabold text-white tracking-wide uppercase text-[#94A3B8]">
-              More Highlights
-            </h3>
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none touch-pan-x">
-              {relatedMatches.slice(0, 6).map((rel) => {
-                const relThumb = rel.highlight_video_id
-                  ? `https://i.ytimg.com/vi/${rel.highlight_video_id}/mqdefault.jpg`
-                  : '/favicon.png';
-                const relHome = rel.home_team_name || rel.home_team;
-                const relAway = rel.away_team_name || rel.away_team;
-
-                return (
-                  <div
-                    key={rel.id}
-                    onClick={() => onSelectMatch?.(rel)}
-                    className="w-[180px] shrink-0 bg-[#101418] hover:bg-[#1E2227] border border-[#334155] hover:border-[#7098F8]/60 rounded-xl overflow-hidden p-2 cursor-pointer transition-all flex flex-col justify-between group"
-                  >
-                    <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black mb-1.5">
-                      <Image
-                        src={relThumb}
-                        alt={`${relHome} vs ${relAway}`}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform"
-                        unoptimized
-                      />
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
-                      <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/75 text-[10px] font-bold text-white flex items-center gap-0.5">
-                        <Play className="w-2.5 h-2.5 fill-white" />
-                      </div>
-                    </div>
-                    <p className="text-[11px] font-bold text-white line-clamp-1 group-hover:text-[#7098F8] transition-colors">
-                      {relHome} vs {relAway}
-                    </p>
-                    <span className="text-[10px] text-[#94A3B8] line-clamp-1 mt-0.5">
-                      {rel.competition_name}
-                    </span>
+            {/* Score & Teams Pill beneath video */}
+            <div className="bg-[#101418] border border-[#334155]/70 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-md">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                {currentMatch.home_team_crest && (
+                  <div className="relative w-6 h-6 shrink-0">
+                    <Image src={currentMatch.home_team_crest} alt={homeName} fill className="object-contain" unoptimized />
                   </div>
-                );
-              })}
+                )}
+                <span className="font-extrabold text-xs text-white truncate">{homeName}</span>
+              </div>
+
+              {isHidden ? (
+                <button
+                  onClick={() => setIsScoreRevealed(true)}
+                  className="flex items-center gap-1 px-3 py-1 bg-[#181C20] border border-[#7098F8]/40 hover:border-[#7098F8] rounded-xl text-xs font-bold text-[#4FC3F7] cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Reveal</span>
+                </button>
+              ) : (
+                <div
+                  onClick={() => isSpoilerFree && setIsScoreRevealed(false)}
+                  className={`px-3 py-1 bg-[#181C20] border border-[#7098F8]/40 rounded-xl text-xs font-black text-white ${
+                    isSpoilerFree ? 'cursor-pointer hover:border-[#7098F8]' : ''
+                  }`}
+                >
+                  {currentMatch.home_score ?? 0} - {currentMatch.away_score ?? 0}
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-2 flex-1 min-w-0 text-right">
+                <span className="font-extrabold text-xs text-white truncate">{awayName}</span>
+                {currentMatch.away_team_crest && (
+                  <div className="relative w-6 h-6 shrink-0">
+                    <Image src={currentMatch.away_team_crest} alt={awayName} fill className="object-contain" unoptimized />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+        ) : (
+          <MatchCentreHero
+            match={currentMatch}
+            homeName={homeName}
+            awayName={awayName}
+            isSpoilerFree={isSpoilerFree}
+            isScoreRevealed={isScoreRevealed}
+            onRevealScore={() => setIsScoreRevealed(true)}
+            onHideScore={() => setIsScoreRevealed(false)}
+          />
         )}
+
+        {/* Unified Tactical Boxscore (Timeline, Stats, Lineups, Report) */}
+        <MatchTacticalBoxscore match={currentMatch} />
+
+        {/* Related Highlights */}
+        <PlayerRelatedHighlights
+          relatedMatches={relatedMatches}
+          onSelectMatch={onSelectMatch}
+        />
       </div>
     </ModalSideSheet>
   );

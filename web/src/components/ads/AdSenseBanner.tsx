@@ -44,7 +44,7 @@ export default function AdSenseBanner({
 
   return (
     <div
-      className={`overflow-hidden rounded-2xl bg-[#181C20]/80 border border-[#334155]/60 p-3 text-center transition-all ${className}`}
+      className={`overflow-hidden rounded-2xl bg-[#181C20]/80 border border-[#334155]/60 p-3 text-center my-6 transition-all ${className}`}
     >
       <div className="flex items-center justify-between px-2 mb-1.5">
         <span className="text-[10px] uppercase tracking-wider text-[#94A3B8] font-bold">

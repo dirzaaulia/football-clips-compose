@@ -484,13 +484,43 @@ class ESPNClient:
             # 4. Last Five Games Form
             last_five = data.get("lastFiveGames", [])
 
+            # 5. Chronological Match Key Events (Goals, Cards, Substitutions)
+            raw_key_events = data.get("keyEvents", [])
+            header_comps = data.get("header", {}).get("competitions", [{}])
+            competitors = header_comps[0].get("competitors", []) if header_comps else []
+            home_team_id = next((str(c.get("team", {}).get("id")) for c in competitors if c.get("homeAway") == "home"), None)
+
+            parsed_events = []
+            for e in raw_key_events:
+                t_info = e.get("type", {})
+                t_type = str(t_info.get("type", "")).lower()
+                t_text = str(t_info.get("text", ""))
+                if any(k in t_type or k in t_text.lower() for k in ["goal", "card", "sub", "penalty", "var"]):
+                    team = e.get("team", {})
+                    team_id = str(team.get("id", "")) if team else None
+                    side = "home" if team_id == home_team_id else ("away" if team_id else None)
+                    participants = [p.get("athlete", {}).get("displayName", "") for p in e.get("participants", [])]
+                    parsed_events.append({
+                        "id": str(e.get("id")),
+                        "type": t_type,
+                        "type_text": t_text,
+                        "clock": e.get("clock", {}).get("displayValue", ""),
+                        "period": e.get("period", {}).get("number"),
+                        "side": side,
+                        "scoring_play": e.get("scoringPlay", False),
+                        "player": participants[0] if participants else "",
+                        "assist": participants[1] if len(participants) > 1 else None,
+                        "text": e.get("shortText") or e.get("text", "")
+                    })
+
             return {
                 "formations": formations if formations else None,
                 "statistics": statistics if statistics else None,
                 "editorial_headline": editorial_headline,
                 "editorial_story": editorial_story,
                 "editorial_source": editorial_source if editorial_headline else None,
-                "last_five_games": last_five if last_five else None
+                "last_five_games": last_five if last_five else None,
+                "events": parsed_events if parsed_events else None
             }
         except Exception as e:
             logger.error(f"[ESPN Summary] Failed to fetch summary for {event_id}: {e}")

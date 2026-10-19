@@ -52,7 +52,7 @@
         },
         {
           "source": "/match/**",
-          "destination": "/match/index.html"
+          "destination": "/match.html"
         },
         {
           "source": "**",
