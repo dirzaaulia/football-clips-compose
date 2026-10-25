@@ -36,8 +36,9 @@ val versionProps = Properties().apply {
 val major = versionProps.getProperty("VERSION_MAJOR", "3").toInt()
 val minor = versionProps.getProperty("VERSION_MINOR", "0").toInt()
 val patch = versionProps.getProperty("VERSION_PATCH", "0").toInt()
-val buildNumber = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()
-    ?: versionProps.getProperty("VERSION_BUILD", "1").toInt())
+val buildNumber = (System.getenv("BUILD_NUMBER")?.toIntOrNull()
+    ?: providers.gradleProperty("buildNumber").orNull?.toIntOrNull()
+    ?: versionProps.getProperty("VERSION_BUILD", "89832570").toInt())
 val targetTrack = providers.gradleProperty("track").orNull
     ?: System.getenv("TRACK")
     ?: if (System.getenv("GITHUB_REF")?.startsWith("refs/tags/v") == true) "production" else "internal"
