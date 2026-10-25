@@ -45,7 +45,7 @@ export default function SidebarNav({
           <Link
             href="/"
             onClick={onItemClick}
-            className="relative w-9 h-9 rounded-xl overflow-hidden border border-[#7098F8]/40 shadow-[0_0_12px_rgba(112,152,248,0.25)] hover:scale-105 transition-transform bg-[#181C20] shrink-0 flex items-center justify-center cursor-pointer"
+            className="relative w-10 h-10 rounded-2xl overflow-hidden border border-[#7098F8]/40 shadow-[0_0_12px_rgba(112,152,248,0.25)] hover:scale-105 transition-transform bg-[#181C20] shrink-0 flex items-center justify-center cursor-pointer"
             title="Football Highlights & Clips"
           >
             <Image
@@ -69,42 +69,53 @@ export default function SidebarNav({
           )}
         </div>
       ) : (
-        <div className="flex items-center justify-between px-0.5 w-full">
+        <div className="w-full p-3 rounded-2xl bg-gradient-to-b from-[#181C20] to-[#12161A] border border-[#334155]/80 hover:border-[#7098F8]/30 shadow-md transition-all">
+          {/* Top Row: App Icon + Collapse Button inside the card */}
+          <div className="flex items-center justify-between">
+            <Link
+              href="/"
+              onClick={onItemClick}
+              className="flex items-center gap-2 group cursor-pointer"
+              title="Football Highlights & Clips"
+            >
+              <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-[#7098F8]/40 shadow-[0_0_12px_rgba(112,152,248,0.3)] group-hover:scale-105 transition-transform bg-[#101418] shrink-0 flex items-center justify-center">
+                <Image
+                  src="/app_icon.png"
+                  alt="Football Highlights & Clips"
+                  width={32}
+                  height={32}
+                  className="object-cover"
+                  priority
+                />
+              </div>
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-[#7098F8]/15 text-[#7098F8] border border-[#7098F8]/30 uppercase tracking-wider">
+                Official
+              </span>
+            </Link>
+
+            {onToggleCollapse && (
+              <button
+                onClick={onToggleCollapse}
+                title="Collapse sidebar"
+                aria-label="Collapse sidebar"
+                className="p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#1E2227] border border-transparent hover:border-[#334155] transition-all cursor-pointer"
+              >
+                <PanelLeftClose className="w-4 h-4 text-[#7098F8]" />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Row: Big, Bold Title in One Single Line */}
           <Link
             href="/"
             onClick={onItemClick}
-            className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl border border-white/5 hover:border-[#7098F8]/30 bg-[#181C20]/80 hover:bg-[#1E2227] shadow-[0_2px_12px_rgba(0,0,0,0.3)] transition-all cursor-pointer group min-w-0"
+            className="block mt-2.5 group cursor-pointer"
             title="Football Highlights & Clips"
           >
-            <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-[#7098F8]/40 shadow-[0_0_12px_rgba(112,152,248,0.3)] group-hover:scale-105 transition-transform bg-[#181C20] shrink-0 flex items-center justify-center">
-              <Image
-                src="/app_icon.png"
-                alt="Football Highlights & Clips"
-                width={32}
-                height={32}
-                className="object-cover"
-                priority
-              />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="font-extrabold text-[12px] tracking-tight text-white leading-tight truncate">
-                Football Highlights
-              </span>
-              <span className="text-[10px] font-black tracking-wider uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#7098F8] via-[#60A5FA] to-[#38BDF8] leading-tight">
-                &amp; Clips
-              </span>
-            </div>
+            <h1 className="font-black text-sm lg:text-[15px] tracking-tight text-white group-hover:text-[#7098F8] transition-colors whitespace-nowrap truncate leading-none">
+              Football Highlights &amp; Clips
+            </h1>
           </Link>
-          {onToggleCollapse && (
-            <button
-              onClick={onToggleCollapse}
-              title="Collapse sidebar"
-              aria-label="Collapse sidebar"
-              className="p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#1E2227] transition-colors cursor-pointer"
-            >
-              <PanelLeftClose className="w-4 h-4" />
-            </button>
-          )}
         </div>
       )}
 
