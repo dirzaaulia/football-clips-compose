@@ -56,7 +56,7 @@ function TrendingItemCard({
           <div
             onClick={(e) => {
               e.stopPropagation();
-              setIsRevealed(true);
+              onPlay(match);
             }}
             className="absolute inset-0 bg-black/45 backdrop-blur-[2px] flex items-center justify-center p-1"
           >
@@ -140,11 +140,14 @@ export default function HeroCarousel({
           {isScoreHidden && (
             <div className="absolute top-4 right-4 z-20">
               <button
-                onClick={() => setIsRevealed(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPlay(featuredMatch);
+                }}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-[#7098F8]/40 text-[#4FC3F7] hover:text-white text-xs font-bold backdrop-blur-md transition-all cursor-pointer shadow-lg"
               >
                 <EyeOff className="w-3.5 h-3.5" />
-                <span>Spoiler Free &bull; Reveal</span>
+                <span>Spoiler Free &bull; Match Centre</span>
               </button>
             </div>
           )}
@@ -168,9 +171,12 @@ export default function HeroCarousel({
                 {homeName}{' '}
                 {isScoreHidden ? (
                   <button
-                    onClick={() => setIsRevealed(true)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPlay(featuredMatch);
+                    }}
                     className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-[#181C20]/90 border border-[#7098F8]/40 text-xs font-bold text-[#7098F8] hover:text-white cursor-pointer transition-colors align-middle shadow-sm"
-                    title="Click to reveal score"
+                    title="Open Match Centre"
                   >
                     <span>VS</span>
                   </button>

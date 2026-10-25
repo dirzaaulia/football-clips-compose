@@ -75,7 +75,7 @@ fun HeroCarousel(
                         isCinematic = isCinematic,
                         isSpoilerFree = isSpoilerFreeMode,
                         isRevealed = revealedItemIds.contains(itemUniqueId),
-                        onRevealClick = { onRevealItem?.invoke(itemUniqueId) },
+                        onRevealClick = { onVideoClick(featuredItem) },
                         excitementTag = featuredTag.ifEmpty { null },
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -110,7 +110,7 @@ fun HeroCarousel(
                             isCinematic = isCinematic,
                             isSpoilerFree = isSpoilerFreeMode,
                             isRevealed = revealedItemIds.contains(itemUniqueId),
-                            onRevealClick = { onRevealItem?.invoke(itemUniqueId) },
+                            onRevealClick = { onVideoClick(pageItem) },
                             excitementTag = excitementTag.ifEmpty { null },
                             modifier = Modifier.fillMaxWidth()
                         )

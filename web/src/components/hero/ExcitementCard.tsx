@@ -89,9 +89,10 @@ export default function ExcitementCard({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setIsRevealed(true);
+                    onPlay(match);
                   }}
                   className="flex items-center gap-1 text-[10px] font-black text-[#4FC3F7] hover:text-white"
+                  title="Open Match Centre"
                 >
                   <Eye className="w-3 h-3" />
                   <span>Score</span>

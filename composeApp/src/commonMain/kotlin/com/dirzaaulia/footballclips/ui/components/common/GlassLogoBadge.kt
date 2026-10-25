@@ -9,11 +9,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -27,14 +28,21 @@ fun GlassLogoBadge(
     contentPadding: Dp = 2.dp,
     content: @Composable BoxScope.() -> Unit,
 ) {
+    val frostedGradient = Brush.verticalGradient(
+        colors = listOf(
+            Color.White.copy(alpha = 0.22f),
+            Color.White.copy(alpha = 0.12f),
+        ),
+    )
+
     Box(
         modifier = modifier
             .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+            .background(frostedGradient)
             .border(
                 BorderStroke(
                     width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f),
+                    color = Color.White.copy(alpha = 0.25f),
                 ),
                 shape = shape,
             )

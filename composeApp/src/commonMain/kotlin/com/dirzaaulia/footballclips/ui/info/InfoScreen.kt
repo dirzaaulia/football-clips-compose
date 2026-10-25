@@ -117,11 +117,6 @@ fun InfoScreen(
                             )
                         }
                         item(span = { GridItemSpan(maxLineSpan) }) {
-                            ClubStoreEntryCard(
-                                onNavigateToStore = onNavigateToStore,
-                            )
-                        }
-                        item(span = { GridItemSpan(maxLineSpan) }) {
                             SupportDeveloperCard(
                                 initialExpanded = false,
                                 uriHandler = uriHandler,
@@ -155,10 +150,6 @@ fun InfoScreen(
                                 isPremium = isPremium,
                                 onToggle = onToggleMerchandise,
                                 onShowPaywall = { showPaywall = true },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            ClubStoreEntryCard(
-                                onNavigateToStore = onNavigateToStore,
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             SupportDeveloperCard(
@@ -214,9 +205,6 @@ fun InfoScreen(
                             isPremium = isPremium,
                             onToggle = onToggleMerchandise,
                             onShowPaywall = { showPaywall = true },
-                        )
-                        ClubStoreEntryCard(
-                            onNavigateToStore = onNavigateToStore,
                         )
                         SupportDeveloperCard(
                             initialExpanded = false,

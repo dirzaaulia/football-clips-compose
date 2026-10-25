@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.ShoppingBag
@@ -47,11 +46,7 @@ internal fun MerchandiseSettingsCard(
         ),
         border = BorderStroke(
             width = 1.dp,
-            color = if (isPremium) {
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-            } else {
-                Color(0xFFD4AF37).copy(alpha = 0.4f)
-            },
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
         ),
     ) {
         Row(
@@ -92,14 +87,6 @@ private fun MerchandiseSettingsInfo(
                 Color(0xFFD4AF37).copy(alpha = 0.15f)
             },
             shape = RoundedCornerShape(10.dp),
-            border = BorderStroke(
-                width = 1.dp,
-                color = if (isPremium) {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                } else {
-                    Color(0xFFD4AF37).copy(alpha = 0.3f)
-                },
-            ),
             modifier = Modifier.size(40.dp),
         ) {
             Icon(
@@ -125,24 +112,19 @@ private fun MerchandiseSettingsInfo(
                     Surface(
                         color = Color(0xFFD4AF37).copy(alpha = 0.2f),
                         shape = RoundedCornerShape(4.dp),
-                        border = BorderStroke(1.dp, Color(0xFFD4AF37).copy(alpha = 0.5f)),
                     ) {
                         Text(
                             text = "PRO",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
                             color = Color(0xFFD4AF37),
-                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp),
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                         )
                     }
                 }
             }
             Text(
-                text = if (isPremium) {
-                    "Show official team gear links on Amazon"
-                } else {
-                    "PRO feature: Upgrade to disable recommendations"
-                },
+                text = "Show official team gear links on Amazon",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -176,12 +158,11 @@ private fun MerchandiseSettingsControl(
     } else {
         Surface(
             onClick = onShowPaywall,
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(20.dp),
             color = Color(0xFFD4AF37).copy(alpha = 0.15f),
-            border = BorderStroke(1.dp, Color(0xFFD4AF37).copy(alpha = 0.4f)),
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
@@ -192,82 +173,12 @@ private fun MerchandiseSettingsControl(
                     modifier = Modifier.size(14.dp),
                 )
                 Text(
-                    text = "LOCKED",
+                    text = "Unlock",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFD4AF37),
                 )
             }
-        }
-    }
-}
-
-@Composable
-internal fun ClubStoreEntryCard(
-    onNavigateToStore: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        onClick = onNavigateToStore,
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
-        ),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f),
-            ) {
-                Surface(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(10.dp),
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                    ),
-                    modifier = Modifier.size(40.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ShoppingBag,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(10.dp),
-                    )
-                }
-                Spacer(Modifier.width(14.dp))
-                Column {
-                    Text(
-                        text = "Official Club Store",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = "Browse official club jerseys & Amazon fan gear",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            Spacer(Modifier.width(8.dp))
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                contentDescription = "Open Store",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(16.dp),
-            )
         }
     }
 }

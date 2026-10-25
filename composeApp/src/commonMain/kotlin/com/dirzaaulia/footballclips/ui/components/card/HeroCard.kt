@@ -108,7 +108,7 @@ fun HeroCard(
             SpoilerThumbnailBox(
                 isSpoilerFree = isSpoilerFree,
                 isRevealed = isRevealed,
-                onRevealClick = onRevealClick,
+                onRevealClick = onRevealClick ?: { onClick(videoId) },
                 badgeAlignment = Alignment.TopStart,
                 iconOnly = item is HighlightUiItem.Highlight,
                 modifier = Modifier

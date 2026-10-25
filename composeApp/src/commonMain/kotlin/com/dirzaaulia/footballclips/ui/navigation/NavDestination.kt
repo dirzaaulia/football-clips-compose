@@ -25,5 +25,7 @@ val bottomNavItems = listOf(
     NavDestination.Home,
     NavDestination.Fixtures,
     NavDestination.Standings,
-    NavDestination.Info
+    NavDestination.Store,
+    NavDestination.Info,
 )
+

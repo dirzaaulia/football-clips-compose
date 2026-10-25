@@ -27,7 +27,7 @@ export default function GlassLogoBadge({
   return (
     <div
       style={{ width: size, height: size }}
-      className={`relative rounded-xl bg-white/[0.08] backdrop-blur-md border border-white/10 shadow-sm flex items-center justify-center shrink-0 overflow-hidden ${className}`}
+      className={`relative rounded-xl bg-gradient-to-b from-white/[0.22] via-white/[0.14] to-white/[0.10] backdrop-blur-md border border-white/20 shadow-[0_2px_8px_rgba(0,0,0,0.3)] flex items-center justify-center shrink-0 overflow-hidden ${className}`}
     >
       {children ? (
         children
