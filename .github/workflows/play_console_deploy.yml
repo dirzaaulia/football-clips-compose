@@ -23,6 +23,18 @@ on:
           - draft
           - inProgress
           - halted
+      update_priority:
+        description: 'Google Play In-App Update Priority (0-5)'
+        required: true
+        default: '2'
+        type: choice
+        options:
+          - '0'
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - '5'
   push:
     tags:
       - 'v*'
@@ -56,8 +68,8 @@ jobs:
             echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
           fi
 
-      - name: Determine Target Track
-        id: target_track
+      - name: Determine Target Track & Update Priority
+        id: release_config
         run: |
           if [ -n "${{ inputs.track }}" ]; then
             echo "track=${{ inputs.track }}" >> $GITHUB_OUTPUT
@@ -65,6 +77,12 @@ jobs:
             echo "track=production" >> $GITHUB_OUTPUT
           else
             echo "track=internal" >> $GITHUB_OUTPUT
+          fi
+
+          if [ -n "${{ inputs.update_priority }}" ]; then
+            echo "priority=${{ inputs.update_priority }}" >> $GITHUB_OUTPUT
+          else
+            echo "priority=2" >> $GITHUB_OUTPUT
           fi
 
       - name: Build Release Bundle (AAB)
@@ -81,9 +99,9 @@ jobs:
           ADMOB_BANNER_ID: ${{ secrets.ADMOB_BANNER_ID }}
           ADMOB_NATIVE_ID: ${{ secrets.ADMOB_NATIVE_ID }}
           ADMOB_INTERSTITIAL_ID: ${{ secrets.ADMOB_INTERSTITIAL_ID }}
-          TRACK: ${{ steps.target_track.outputs.track }}
+          TRACK: ${{ steps.release_config.outputs.track }}
         run: |
-          ./gradlew :androidApp:bundleRelease -Ptrack=${{ steps.target_track.outputs.track }} --stacktrace
+          ./gradlew :androidApp:bundleRelease -Ptrack=${{ steps.release_config.outputs.track }} --stacktrace
 
       - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
@@ -99,8 +117,9 @@ jobs:
           packageName: com.dirzaaulia.footballclips
           releaseFiles: androidApp/build/outputs/bundle/release/androidApp-release.aab
           mappingFile: androidApp/build/outputs/mapping/release/mapping.txt
-          track: ${{ steps.target_track.outputs.track }}
+          track: ${{ steps.release_config.outputs.track }}
           status: ${{ inputs.status || 'completed' }}
+          inAppUpdatePriority: ${{ steps.release_config.outputs.priority }}
 
       - name: Cleanup Keystore
         if: always()

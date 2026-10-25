@@ -25,6 +25,7 @@ class InAppUpdateManager(private val activity: Activity) {
     private val tag = "InAppUpdateManager"
     private val appUpdateManager: AppUpdateManager = AppUpdateManagerFactory.create(activity)
     private var installStateUpdatedListener: InstallStateUpdatedListener? = null
+    var onFlexibleDownloadCompleteCallback: (() -> Unit)? = null
 
     /**
      * Checks Google Play Store for an available update and initiates either
@@ -39,6 +40,9 @@ class InAppUpdateManager(private val activity: Activity) {
         forceImmediate: Boolean = false,
         onFlexibleDownloadComplete: (() -> Unit)? = null
     ) {
+        if (onFlexibleDownloadComplete != null) {
+            this.onFlexibleDownloadCompleteCallback = onFlexibleDownloadComplete
+        }
         val appUpdateInfoTask = appUpdateManager.appUpdateInfo
 
         appUpdateInfoTask.addOnSuccessListener { appUpdateInfo: AppUpdateInfo ->
@@ -46,7 +50,7 @@ class InAppUpdateManager(private val activity: Activity) {
             val priority = appUpdateInfo.updatePriority()
             val stalenessDays = appUpdateInfo.clientVersionStalenessDays() ?: 0
 
-            Log.d(tag, "Update check result: availability=$availability, priority=$priority, stalenessDays=$stalenessDays")
+            Log.d(tag, "[IN-APP UPDATE] Check result: availability=$availability, priority=$priority, stalenessDays=$stalenessDays")
 
             if (availability == UpdateAvailability.UPDATE_AVAILABLE) {
                 // Determine update mode:
@@ -54,16 +58,19 @@ class InAppUpdateManager(private val activity: Activity) {
                 val isImmediate = forceImmediate || priority >= 4 || stalenessDays >= 14
 
                 if (isImmediate && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
-                    Log.i(tag, "Starting IMMEDIATE (Force) update flow...")
+                    Log.i(tag, "[IN-APP UPDATE] Priority $priority >= 4. Starting IMMEDIATE (Force Update) flow...")
                     startUpdateFlow(appUpdateInfo, AppUpdateType.IMMEDIATE, updateLauncher)
                 } else if (appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)) {
-                    Log.i(tag, "Starting FLEXIBLE background update flow...")
-                    registerFlexibleListener(onFlexibleDownloadComplete)
+                    Log.i(tag, "[IN-APP UPDATE] Priority $priority < 4. Starting FLEXIBLE background update flow...")
+                    registerFlexibleListener(onFlexibleDownloadCompleteCallback)
                     startUpdateFlow(appUpdateInfo, AppUpdateType.FLEXIBLE, updateLauncher)
                 }
+            } else if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                Log.i(tag, "[IN-APP UPDATE] Flexible update is already downloaded. Prompting completion...")
+                onFlexibleDownloadCompleteCallback?.invoke()
             }
         }.addOnFailureListener { e ->
-            Log.w(tag, "Failed to check for Google Play In-App updates: ${e.message}")
+            Log.w(tag, "[IN-APP UPDATE] Failed to check for Google Play In-App updates: ${e.message}")
         }
     }
 
@@ -74,10 +81,11 @@ class InAppUpdateManager(private val activity: Activity) {
     fun onResumeCheck(updateLauncher: ActivityResultLauncher<IntentSenderRequest>) {
         appUpdateManager.appUpdateInfo.addOnSuccessListener { appUpdateInfo ->
             if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
-                Log.i(tag, "Resuming active in-progress IMMEDIATE update...")
+                Log.i(tag, "[IN-APP UPDATE] Resuming active in-progress IMMEDIATE update...")
                 startUpdateFlow(appUpdateInfo, AppUpdateType.IMMEDIATE, updateLauncher)
             } else if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
-                Log.i(tag, "Flexible update already downloaded. Ready to complete.")
+                Log.i(tag, "[IN-APP UPDATE] Flexible update already downloaded. Prompting completion...")
+                onFlexibleDownloadCompleteCallback?.invoke()
             }
         }
     }
@@ -86,6 +94,7 @@ class InAppUpdateManager(private val activity: Activity) {
      * Completes flexible update installation by restarting the app.
      */
     fun completeFlexibleUpdate() {
+        Log.i(tag, "[IN-APP UPDATE] Completing flexible update installation and restarting...")
         appUpdateManager.completeUpdate()
     }
 

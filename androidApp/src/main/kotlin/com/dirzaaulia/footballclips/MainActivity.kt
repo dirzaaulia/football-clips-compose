@@ -51,7 +51,14 @@ class MainActivity : ComponentActivity() {
 
         // Initialize Google Play In-App Update Manager
         inAppUpdateManager = InAppUpdateManager(this)
-        inAppUpdateManager.checkForAppUpdate(updateResultLauncher)
+        inAppUpdateManager.checkForAppUpdate(
+            updateLauncher = updateResultLauncher,
+            onFlexibleDownloadComplete = {
+                runOnUiThread {
+                    showUpdateDownloadedDialog()
+                }
+            },
+        )
 
         // Handle Deep Link if activity is created via URL
         supabase.handleDeeplinks(intent)
@@ -107,5 +114,18 @@ class MainActivity : ComponentActivity() {
         if (::inAppUpdateManager.isInitialized) {
             inAppUpdateManager.onDestroy()
         }
+    }
+
+    private fun showUpdateDownloadedDialog() {
+        if (isFinishing || isDestroyed) return
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Update Downloaded")
+            .setMessage("A fresh version of Football Clips has been downloaded. Restart the app to apply the latest features and match updates?")
+            .setPositiveButton("Restart") { _, _ ->
+                inAppUpdateManager.completeFlexibleUpdate()
+            }
+            .setNegativeButton("Later", null)
+            .setCancelable(true)
+            .show()
     }
 }

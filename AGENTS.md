@@ -120,3 +120,37 @@ Applies strictly to both **`composeApp` (Android Native)** and **`webApp` (WasmJ
     2. Transitional Cloudflare Edge tier (`fc-edge-proxy.dirzaaulia11.workers.dev`): must remain routed to PostgreSQL 16.
     3. Production Caddy / PostgREST tier (`edge.fc.dirzaaulia.com`): must strip client JWT headers (`header_up -Authorization`) to serve `web_anon` without HTTP 500 errors.
   - Never deprecate or shut down a legacy endpoint or auth bridge until active version telemetry proves <1% of active users remain on that tier.
+
+---
+
+## 5. Android Production Deployment & In-App Update Rules
+Whenever the user instructs this agent or any other AI agent with deployment commands:
+
+### Command Grammar & Priority Mapping
+1. **"deploy production force update"**:
+   - **Target**: Google Play Production Track (`track=production`).
+   - **In-App Update Mode**: Priority **`5`** (`AppUpdateType.IMMEDIATE`).
+   - **User Experience**: Google Play displays a mandatory, full-screen blocking modal preventing app usage until updated.
+   - **Execution**: Run `python scripts/deploy_android.py --production --force` (or `python scripts/deploy_android.py --production --priority 5`).
+2. **"deploy production show update prompt"**:
+   - **Target**: Google Play Production Track (`track=production`).
+   - **In-App Update Mode**: Priority **`2`** (`AppUpdateType.FLEXIBLE`).
+   - **User Experience**: Google Play displays an optional update sheet with [Update] and [No thanks]. If accepted, it downloads in the background while the user continues using the app, and displays a "[Restart App]" dialog once downloaded.
+   - **Execution**: Run `python scripts/deploy_android.py --production --prompt` (or `python scripts/deploy_android.py --production --priority 2`).
+3. **"deploy production update level <0-5>"** (e.g. `level 0`, `level 4`, `level 5`):
+   - **Target**: Google Play Production Track (`track=production`).
+   - **In-App Update Mode**: Explicit numeric priority `0`, `1`, `2`, `3`, `4`, or `5`:
+     - `0`: Silent / Default (standard Google Play background auto-update, no in-app prompt).
+     - `1`: Low priority (no in-app prompt unless stale).
+     - `2`: Standard flexible prompt (features and routine fixes).
+     - `3`: Important flexible prompt (escalates to immediate after 14 days).
+     - `4`: Immediate force update (major redesigns or breaking changes).
+     - `5`: Immediate force update (critical zero-day security or API decommission).
+   - **Execution**: Run `python scripts/deploy_android.py --production --priority <N>`.
+4. **"deploy internal"**:
+   - **Target**: Google Play Internal Testing Track (`track=internal`).
+   - **Execution**: Run `python scripts/deploy_android.py --internal`.
+
+### Deployment Safety Invariants
+- Never deploy without verifying `./gradlew :androidApp:compileReleaseKotlin` pre-flight check.
+- Never hardcode or reuse a `versionCode`. Always increment `VERSION_BUILD` in `version.properties` to ensure strict monotonicity.
