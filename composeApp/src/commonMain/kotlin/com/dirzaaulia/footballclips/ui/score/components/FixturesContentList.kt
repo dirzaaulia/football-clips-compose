@@ -64,7 +64,7 @@ fun FixturesContentList(
                             isSpoilerFree = isSpoilerFreeMode,
                             isRevealed = revealedMatchIds.contains(item.match.id),
                             isFavorite = isFav,
-                            onRevealClick = { onRevealMatch(item.match.id) },
+                            onRevealClick = { onVideoClick(item) {} },
                             onClick = { onVideoClick(item) {} },
                         )
                     }
@@ -96,7 +96,7 @@ fun FixturesContentList(
                             isSpoilerFree = isSpoilerFreeMode,
                             isRevealed = revealedMatchIds.contains(item.match.id),
                             isFavorite = isFav,
-                            onRevealClick = { onRevealMatch(item.match.id) },
+                            onRevealClick = { onVideoClick(item) {} },
                             onWatchHighlightClick = { onVideoClick(item) {} },
                         )
                     }

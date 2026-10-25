@@ -72,43 +72,66 @@ fun StandingsScreen(
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
-                TopAppBar(
-                    title = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    TopAppBar(
+                        title = {
                             Text(
                                 text = "Standings",
                                 style = if (isLarge) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Black,
                                 letterSpacing = if (isLarge) 1.sp else (-0.5).sp,
                             )
+                        },
+                        actions = {
+                            if (isLarge || isLandscape) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.padding(end = horizontalPadding),
+                                ) {
+                                    SeasonDropdownSelector(
+                                        selectedSeason = selectedSeason,
+                                        onSeasonSelected = onSeasonSelected,
+                                        isCompact = false,
+                                    )
+                                    LeagueDropdownSelector(
+                                        selectedCompetitionId = selectedCompetitionId ?: "PL",
+                                        dynamicCompetitions = dynamicCompetitions,
+                                        onLeagueSelected = onLeagueSelected,
+                                        showAll = false,
+                                    )
+                                }
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                        ),
+                    )
+                    if (!isLarge && !isLandscape) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = horizontalPadding, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
                             SeasonDropdownSelector(
                                 selectedSeason = selectedSeason,
                                 onSeasonSelected = onSeasonSelected,
-                                isCompact = !isLarge,
+                                isCompact = true,
                             )
-                        }
-                    },
-                    actions = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.padding(end = horizontalPadding),
-                        ) {
                             LeagueDropdownSelector(
                                 selectedCompetitionId = selectedCompetitionId ?: "PL",
                                 dynamicCompetitions = dynamicCompetitions,
                                 onLeagueSelected = onLeagueSelected,
                                 showAll = false,
+                                modifier = Modifier.weight(1f),
                             )
                         }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
-                    ),
-                )
+                    }
+                }
             },
         ) { innerPadding ->
             Box(

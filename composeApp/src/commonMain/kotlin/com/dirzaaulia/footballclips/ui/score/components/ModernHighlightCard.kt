@@ -1,6 +1,6 @@
 package com.dirzaaulia.footballclips.ui.score.components
 
-import androidx.compose.animation.*
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.*
-import com.dirzaaulia.footballclips.ui.components.common.shimmerEffect
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,12 +34,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import coil3.compose.SubcomposeAsyncImage
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.ui.adaptive.LocalAnimatedVisibilityScope
 import com.dirzaaulia.footballclips.ui.adaptive.LocalSharedTransitionScope
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.ui.components.player.SpoilerThumbnailBox
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
@@ -179,12 +181,11 @@ fun ModernHighlightCard(
                     modifier = Modifier.weight(1f)
                 ) {
                     if (match.homeTeamCrest != null) {
-                        SubcomposeAsyncImage(
+                        GlassLogoBadge(
                             model = match.homeTeamCrest.toProxyUrl(),
-                            contentDescription = null,
-                            loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) },
-                            modifier = Modifier.size(28.dp),
-                            contentScale = ContentScale.Fit
+                            contentDescription = match.homeTeamName,
+                            size = 28.dp,
+                            padding = 2.dp,
                         )
                         if (shouldShowName) {
                             Spacer(modifier = Modifier.width(8.dp))
@@ -247,12 +248,11 @@ fun ModernHighlightCard(
                         if (shouldShowName) {
                             Spacer(modifier = Modifier.width(8.dp))
                         }
-                        SubcomposeAsyncImage(
+                        GlassLogoBadge(
                             model = match.awayTeamCrest.toProxyUrl(),
-                            contentDescription = null,
-                            loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) },
-                            modifier = Modifier.size(28.dp),
-                            contentScale = ContentScale.Fit
+                            contentDescription = match.awayTeamName,
+                            size = 28.dp,
+                            padding = 2.dp,
                         )
                     }
                 }

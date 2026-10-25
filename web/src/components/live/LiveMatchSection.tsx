@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Radio, ArrowRight, Shield } from 'lucide-react';
+import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 import { MatchRecord } from '@/lib/database';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 
@@ -33,25 +34,13 @@ const ESPN_COMPETITION_LOGOS: Record<string, string> = {
 };
 
 function TeamLiveCrest({ crestUrl, teamName }: { crestUrl?: string | null; teamName: string }) {
-  const [error, setError] = useState(false);
-  if (!crestUrl || error) {
-    return (
-      <div className="w-11 h-11 rounded-full bg-[#181C20] border border-[#334155] flex items-center justify-center text-[#7098F8] font-black text-sm shadow-md">
-        {teamName.charAt(0) || 'T'}
-      </div>
-    );
-  }
   return (
-    <div className="relative w-11 h-11 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
-      <Image
-        src={crestUrl}
-        alt={teamName}
-        fill
-        className="object-contain"
-        unoptimized
-        onError={() => setError(true)}
-      />
-    </div>
+    <GlassLogoBadge
+      src={crestUrl}
+      alt={teamName}
+      size={44}
+      fallbackText={teamName.charAt(0) || 'T'}
+    />
   );
 }
 
@@ -101,9 +90,7 @@ export default function LiveMatchSection({ liveMatches, className = '' }: LiveMa
             <div key={competitionName} className="space-y-3">
               <div className="flex items-center gap-2 px-1">
                 {compLogo ? (
-                  <div className="relative w-5 h-5 shrink-0">
-                    <Image src={compLogo} alt={competitionName} fill className="object-contain" unoptimized />
-                  </div>
+                  <GlassLogoBadge src={compLogo} alt={competitionName} size={22} />
                 ) : (
                   <Shield className="w-4 h-4 text-[#7098F8]" />
                 )}

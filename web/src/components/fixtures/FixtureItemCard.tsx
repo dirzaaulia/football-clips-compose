@@ -4,6 +4,8 @@ import { Play, Radio, Film, Clock, EyeOff } from 'lucide-react';
 import { MatchRecord } from '@/lib/database';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
+import { useRouter } from 'next/navigation';
+import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 
 interface FixtureItemCardProps {
   match: MatchRecord;
@@ -11,9 +13,9 @@ interface FixtureItemCardProps {
 }
 
 export default function FixtureItemCard({ match, showLeagueHeader = false }: FixtureItemCardProps) {
+  const router = useRouter();
   const { isSpoilerFree } = useSpoilerFree();
   const { playVideo } = useVideoPlayer();
-  const [isRevealed, setIsRevealed] = useState(false);
   const isFinished = match.status === 'FINISHED';
   const isLive = match.status === 'IN_PLAY' || match.status === 'PAUSED' || match.status === 'LIVE';
   const isPaused = match.status === 'PAUSED';
@@ -27,11 +29,17 @@ export default function FixtureItemCard({ match, showLeagueHeader = false }: Fix
   });
 
   // Live matches never hide score; spoiler shielding only applies to finished matches
-  const shouldHideScore = isSpoilerFree && !isRevealed && isFinished;
+  const shouldHideScore = isSpoilerFree && isFinished;
 
   return (
     <div
-      onClick={() => playVideo(match)}
+      onClick={() => {
+        if (shouldHideScore) {
+          router.push(`/match/${match.id}`);
+        } else {
+          playVideo(match);
+        }
+      }}
       className={`py-2.5 px-3 sm:px-4 transition-colors flex items-center justify-between gap-2 sm:gap-4 hover:bg-[#22272E] cursor-pointer ${
         isLive
           ? 'bg-gradient-to-r from-red-950/20 via-[#181C20] to-red-950/20 border-l-2 border-l-red-500'
@@ -88,13 +96,12 @@ export default function FixtureItemCard({ match, showLeagueHeader = false }: Fix
         {/* Home Team */}
         <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 min-w-0">
           <span className="text-xs sm:text-sm font-bold text-white text-right line-clamp-2 leading-tight">{homeName}</span>
-          {match.home_team_crest ? (
-            <div className="relative w-5 h-5 sm:w-6 sm:h-6 shrink-0 drop-shadow-[0_0_2px_rgba(255,255,255,0.7)]">
-              <Image src={match.home_team_crest} alt={homeName} fill className="object-contain" unoptimized />
-            </div>
-          ) : (
-            <div className="w-5 h-5 rounded-full bg-[#252B33] shrink-0" />
-          )}
+          <GlassLogoBadge
+            src={match.home_team_crest}
+            alt={homeName}
+            size={28}
+            imageClassName="object-contain p-0.5"
+          />
         </div>
 
         {/* Score Badge */}
@@ -103,9 +110,9 @@ export default function FixtureItemCard({ match, showLeagueHeader = false }: Fix
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setIsRevealed(true);
+                router.push(`/match/${match.id}`);
               }}
-              title="Click to reveal score"
+              title="Click to view match centre"
               className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#101418] border border-[#334155] hover:border-[#7098F8]/60 text-xs font-bold text-[#94A3B8] hover:text-white transition-all cursor-pointer min-w-[56px] sm:min-w-[64px] justify-center shadow-inner"
             >
               <EyeOff className="w-3 h-3 text-[#7098F8]" />
@@ -132,13 +139,12 @@ export default function FixtureItemCard({ match, showLeagueHeader = false }: Fix
 
         {/* Away Team */}
         <div className="flex items-center justify-start gap-1.5 sm:gap-2.5 min-w-0">
-          {match.away_team_crest ? (
-            <div className="relative w-5 h-5 sm:w-6 sm:h-6 shrink-0 drop-shadow-[0_0_2px_rgba(255,255,255,0.7)]">
-              <Image src={match.away_team_crest} alt={awayName} fill className="object-contain" unoptimized />
-            </div>
-          ) : (
-            <div className="w-5 h-5 rounded-full bg-[#252B33] shrink-0" />
-          )}
+          <GlassLogoBadge
+            src={match.away_team_crest}
+            alt={awayName}
+            size={28}
+            imageClassName="object-contain p-0.5"
+          />
           <span className="text-xs sm:text-sm font-bold text-white text-left line-clamp-2 leading-tight">{awayName}</span>
         </div>
       </div>

@@ -88,31 +88,8 @@ object AffiliateConfiguration {
             ?: DEFAULT_MARKETPLACE
     }
 
-    private val CLUB_KIT_IMAGES: Map<String, String> = mapOf(
-        "arsenal" to "https://images.footballfanatics.com/arsenal/arsenal-adidas-home-shirt-2024-25_ss5_p-200924976+u-2xvdubqffy8gq6qvycct+v-3mffoeyy4lffh8hlyptn.jpg",
-        "real madrid" to "https://images.footballfanatics.com/real-madrid/real-madrid-adidas-home-shirt-2024-25_ss5_p-200924956+u-7n36hvy7wqqi9o4y0zpt+v-mcvgflzrt8f8045vbt4q.jpg",
-        "manchester city" to "https://images.footballfanatics.com/manchester-city/manchester-city-puma-home-shirt-2024-25_ss5_p-200924933+u-8f37h8d7j3j19i2z8vbt+v-2mv8flzrt8f8045vbt4q.jpg",
-        "barcelona" to "https://images.footballfanatics.com/barcelona/barcelona-nike-home-stadium-shirt-2024-25_ss5_p-200924922+u-4f37h8d7j3j19i2z8vbt+v-4mv8flzrt8f8045vbt4q.jpg",
-        "liverpool" to "https://images.footballfanatics.com/liverpool/liverpool-nike-home-stadium-shirt-2024-25_ss5_p-200924911+u-3f37h8d7j3j19i2z8vbt+v-1mv8flzrt8f8045vbt4q.jpg",
-        "chelsea" to "https://images.footballfanatics.com/chelsea/chelsea-nike-home-stadium-shirt-2024-25_ss5_p-200924944+u-9f37h8d7j3j19i2z8vbt+v-5mv8flzrt8f8045vbt4q.jpg",
-        "manchester united" to "https://images.footballfanatics.com/manchester-united/manchester-united-adidas-home-shirt-2024-25_ss5_p-200924901+u-1f37h8d7j3j19i2z8vbt+v-6mv8flzrt8f8045vbt4q.jpg",
-        "bayern munich" to "https://images.footballfanatics.com/bayern-munich/fc-bayern-munich-adidas-home-shirt-2024-25_ss5_p-200924966+u-5f37h8d7j3j19i2z8vbt+v-7mv8flzrt8f8045vbt4q.jpg",
-        "paris saint-germain" to "https://images.footballfanatics.com/paris-saint-germain/paris-saint-germain-nike-home-stadium-shirt-2024-25_ss5_p-200924988+u-6f37h8d7j3j19i2z8vbt+v-8mv8flzrt8f8045vbt4q.jpg",
-        "psg" to "https://images.footballfanatics.com/paris-saint-germain/paris-saint-germain-nike-home-stadium-shirt-2024-25_ss5_p-200924988+u-6f37h8d7j3j19i2z8vbt+v-8mv8flzrt8f8045vbt4q.jpg",
-        "juventus" to "https://images.footballfanatics.com/juventus/juventus-adidas-home-shirt-2024-25_ss5_p-200924999+u-7f37h8d7j3j19i2z8vbt+v-9mv8flzrt8f8045vbt4q.jpg",
-        "inter milan" to "https://images.footballfanatics.com/inter-milan/inter-milan-nike-home-stadium-shirt-2024-25_ss5_p-200924955+u-8f37h8d7j3j19i2z8vbt+v-0mv8flzrt8f8045vbt4q.jpg",
-        "ac milan" to "https://images.footballfanatics.com/ac-milan/ac-milan-puma-home-shirt-2024-25_ss5_p-200924977+u-9f37h8d7j3j19i2z8vbt+v-1mv8flzrt8f8045vbt4q.jpg",
-        "tottenham hotspur" to "https://images.footballfanatics.com/tottenham-hotspur/tottenham-hotspur-nike-home-stadium-shirt-2024-25_ss5_p-200924933+u-0f37h8d7j3j19i2z8vbt+v-2mv8flzrt8f8045vbt4q.jpg",
-        "atletico madrid" to "https://images.footballfanatics.com/atletico-de-madrid/atletico-de-madrid-nike-home-stadium-shirt-2024-25_ss5_p-200924911+u-1f37h8d7j3j19i2z8vbt+v-3mv8flzrt8f8045vbt4q.jpg",
-        "borussia dortmund" to "https://images.footballfanatics.com/borussia-dortmund/borussia-dortmund-puma-home-shirt-2024-25_ss5_p-200924922+u-2f37h8d7j3j19i2z8vbt+v-4mv8flzrt8f8045vbt4q.jpg",
-    )
-
     fun resolveClubJerseyImageUrl(clubName: String, crestUrl: String?): String {
-        val lower = clubName.lowercase().trim()
-        for ((key, url) in CLUB_KIT_IMAGES) {
-            if (lower.contains(key)) return url
-        }
-        return crestUrl.orEmpty()
+        return ClubKitRegistry.resolveKitPhoto(clubName) ?: crestUrl.orEmpty()
     }
 }
 

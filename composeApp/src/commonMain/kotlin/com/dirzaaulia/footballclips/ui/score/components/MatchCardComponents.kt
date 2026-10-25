@@ -35,9 +35,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
-import coil3.compose.SubcomposeAsyncImage
 import com.dirzaaulia.footballclips.domain.model.Match
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.ui.components.common.shimmerEffect
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
@@ -52,11 +51,11 @@ internal fun TeamBadgeColumn(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (logoUrl != null) {
-            AsyncImage(
+            GlassLogoBadge(
                 model = logoUrl.toProxyUrl(),
                 contentDescription = name,
-                modifier = Modifier.size(48.dp),
-                contentScale = ContentScale.Fit
+                size = 48.dp,
+                padding = 4.dp,
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -83,18 +82,11 @@ internal fun TeamItem(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        SubcomposeAsyncImage(
+        GlassLogoBadge(
             model = crest?.toProxyUrl(),
-            contentDescription = null,
-            loading = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .shimmerEffect()
-                )
-            },
-            modifier = Modifier.size(if (showName) 44.dp else 36.dp),
-            contentScale = ContentScale.Fit
+            contentDescription = name,
+            size = if (showName) 44.dp else 36.dp,
+            padding = 4.dp,
         )
         if (showName) {
             Spacer(modifier = Modifier.height(12.dp))

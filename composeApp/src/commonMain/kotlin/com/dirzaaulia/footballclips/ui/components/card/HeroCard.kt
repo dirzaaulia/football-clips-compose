@@ -2,7 +2,6 @@ package com.dirzaaulia.footballclips.ui.components.card
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -20,7 +19,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +41,7 @@ import coil3.compose.AsyncImage
 import coil3.compose.SubcomposeAsyncImage
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.ui.components.player.SpoilerThumbnailBox
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
@@ -53,7 +58,6 @@ fun HeroCard(
     excitementTag: String? = null
 ) {
     val shape = RoundedCornerShape(14.dp)
-    val isDarkTheme = isSystemInDarkTheme()
     
     val title: String
     val thumbnail: String
@@ -161,8 +165,6 @@ fun HeroCard(
                     letterSpacing = 1.sp
                 )
             }
-
-            val logoBgColor = if (isDarkTheme) Color.White.copy(alpha = 0.95f) else Color.White.copy(alpha = 0.2f)
             
             Column(
                 modifier = Modifier
@@ -171,17 +173,12 @@ fun HeroCard(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (leagueLogo.isNotEmpty()) {
-                        Surface(
-                            color = logoBgColor,
-                            shape = CircleShape,
-                            modifier = Modifier.size(if (isCinematic) 36.dp else 28.dp)
-                        ) {
-                            AsyncImage(
-                                model = leagueLogo.toProxyUrl(),
-                                contentDescription = null,
-                                modifier = Modifier.padding(if (isCinematic) 6.dp else 5.dp)
-                            )
-                        }
+                        GlassLogoBadge(
+                            model = leagueLogo.toProxyUrl(),
+                            contentDescription = leagueName,
+                            size = if (isCinematic) 36.dp else 28.dp,
+                            padding = if (isCinematic) 4.dp else 3.dp,
+                        )
                         Spacer(modifier = Modifier.width(if (isCinematic) 12.dp else 8.dp))
                     }
                     Surface(

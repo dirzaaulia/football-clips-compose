@@ -5,8 +5,10 @@ import Image from 'next/image';
 import { Play, Sparkles, Trophy } from 'lucide-react';
 import { MatchRecord } from '@/lib/database';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import SpoilerThumbnailBox from '../player/SpoilerThumbnailBox';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
+import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 
 interface HighlightCardProps {
   match: MatchRecord;
@@ -14,6 +16,7 @@ interface HighlightCardProps {
 }
 
 export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
+  const router = useRouter();
   const { isSpoilerFree } = useSpoilerFree();
   const [isRevealed, setIsRevealed] = useState(false);
 
@@ -29,6 +32,10 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
   const awayName = match.away_team_name || match.away_team;
 
   const handlePlay = () => {
+    if (shouldHideScore) {
+      router.push(`/match/${match.id}`);
+      return;
+    }
     if (match.viewer_availability === 'unknown' && match.external_video_id) {
       window.open(`https://www.youtube.com/watch?v=${match.external_video_id}`, '_blank', 'noopener,noreferrer');
       return;
@@ -44,7 +51,7 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
       <SpoilerThumbnailBox
         isSpoilerFree={isSpoilerFree}
         isRevealed={isRevealed}
-        onRevealClick={() => setIsRevealed(true)}
+        onRevealClick={() => router.push(`/match/${match.id}`)}
         className="w-full aspect-video bg-[#101418] cursor-pointer"
       >
         <div className="relative w-full h-full" onClick={handlePlay}>
@@ -115,21 +122,12 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
         <div className="flex items-center justify-between gap-2.5 my-1">
           {/* Home Team (No ellipsis, soft-wrapped naturally) */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            {match.home_team_crest ? (
-              <div className="relative w-6 h-6 shrink-0 drop-shadow-[0_0_2px_rgba(255,255,255,0.7)]">
-                <Image
-                  src={match.home_team_crest}
-                  alt={homeName}
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
-              </div>
-            ) : (
-              <div className="w-6 h-6 rounded-full bg-[#181C20] border border-[#334155] text-[10px] font-bold text-[#7098F8] flex items-center justify-center shrink-0">
-                {homeName.charAt(0)}
-              </div>
-            )}
+            <GlassLogoBadge
+              src={match.home_team_crest}
+              alt={homeName}
+              size={26}
+              imageClassName="object-contain p-0.5"
+            />
             <span className="font-extrabold text-xs text-[#F1F5F9] leading-tight break-words group-hover:text-[#7098F8] transition-colors">
               {homeName}
             </span>
@@ -141,10 +139,10 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsRevealed(true);
+                  router.push(`/match/${match.id}`);
                 }}
                 className="font-black text-xs text-[#94A3B8] hover:text-[#4FC3F7] transition-colors cursor-pointer"
-                title="Click to reveal score"
+                title="Click to view match centre"
               >
                 VS
               </button>
@@ -160,21 +158,12 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
             <span className="font-extrabold text-xs text-[#F1F5F9] leading-tight break-words group-hover:text-[#7098F8] transition-colors">
               {awayName}
             </span>
-            {match.away_team_crest ? (
-              <div className="relative w-6 h-6 shrink-0 drop-shadow-[0_0_2px_rgba(255,255,255,0.7)]">
-                <Image
-                  src={match.away_team_crest}
-                  alt={awayName}
-                  fill
-                  className="object-contain"
-                  unoptimized
-                />
-              </div>
-            ) : (
-              <div className="w-6 h-6 rounded-full bg-[#181C20] border border-[#334155] text-[10px] font-bold text-[#7098F8] flex items-center justify-center shrink-0">
-                {awayName.charAt(0)}
-              </div>
-            )}
+            <GlassLogoBadge
+              src={match.away_team_crest}
+              alt={awayName}
+              size={26}
+              imageClassName="object-contain p-0.5"
+            />
           </div>
         </div>
 

@@ -117,7 +117,7 @@ export default function FilterSideSheet({
                       }`}
                     >
                       {l.logo && (
-                        <div className="relative w-4 h-4 rounded-full bg-white p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-slate-200/20">
+                        <div className="relative w-4 h-4 rounded-lg bg-white/[0.08] backdrop-blur-md p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-white/10">
                           <div className="relative w-full h-full">
                             <CompetitionLogo src={l.logo} name={l.name} />
                           </div>

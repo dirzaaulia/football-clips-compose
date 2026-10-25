@@ -174,7 +174,7 @@ class OracleVmRepositoryImpl(
 
                 url {
                     parameters.append("select", "*")
-                    parameters.append("competition_id", "ilike.$competitionId")
+                    parameters.append("competition_code", "ilike.$competitionId")
                     parameters.append("season", "eq.$effSeason")
                     parameters.append("order", "position.asc")
                 }

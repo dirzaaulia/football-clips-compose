@@ -110,19 +110,21 @@ internal fun HomeListContent(
                 val itemUniqueId = item.uniqueId
                 val isRevealed = revealedItemIds.contains(itemUniqueId)
 
+                val handleVideoClick: () -> Unit = {
+                    onVideoClick(item) { isJumping ->
+                        viewModel.setPendingInterstitial(true)
+                        if (!isJumping) viewModel.consumePendingInterstitial()
+                    }
+                }
+
                 when (item) {
                     is HighlightUiItem.OracleMatch -> {
                         MatchCard(
                             match = item.match,
                             isSpoilerFree = isSpoilerFreeMode,
                             isRevealed = isRevealed,
-                            onRevealClick = { onRevealItem(itemUniqueId) },
-                            onWatchHighlightClick = {
-                                onVideoClick(item) { isJumping ->
-                                    viewModel.setPendingInterstitial(true)
-                                    if (!isJumping) viewModel.consumePendingInterstitial()
-                                }
-                            },
+                            onRevealClick = handleVideoClick,
+                            onWatchHighlightClick = { handleVideoClick() },
                         )
                     }
 
@@ -131,13 +133,8 @@ internal fun HomeListContent(
                             item = item,
                             isSpoilerFree = isSpoilerFreeMode,
                             isRevealed = isRevealed,
-                            onRevealClick = { onRevealItem(itemUniqueId) },
-                            onClick = {
-                                onVideoClick(item) { isJumping ->
-                                    viewModel.setPendingInterstitial(true)
-                                    if (!isJumping) viewModel.consumePendingInterstitial()
-                                }
-                            },
+                            onRevealClick = handleVideoClick,
+                            onClick = { handleVideoClick() },
                         )
                     }
 

@@ -8,6 +8,7 @@ import { useSupportedClubs } from '@/hooks/useSupportedClubs';
 import { useCompetitions } from '@/hooks/useCompetitions';
 import { useUserRegion } from '@/hooks/useUserRegion';
 import CustomDropdown from '@/components/common/CustomDropdown';
+import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 import {
   buildClubGearUrl,
   resolveClubKitPhoto,
@@ -181,6 +182,8 @@ function ClubStoreCard({
   const crest = club.crest_url || club.crestUrl;
   const compName = club.competition_name || club.leagueName || 'Official Merchandise';
   const affiliateUrl = buildClubGearUrl(club.name, 'jersey', country);
+  const jerseyPhoto = resolveClubKitPhoto(club.name, crest);
+  const isCustomPhoto = jerseyPhoto && jerseyPhoto !== crest;
 
   return (
     <a
@@ -191,18 +194,34 @@ function ClubStoreCard({
     >
       <div>
         <div className="relative w-full h-36 rounded-xl bg-gradient-to-b from-[#101418] via-[#1E2227] to-[#14181D] border border-[#334155]/40 flex items-center justify-center overflow-hidden mb-3">
-          {crest ? (
-            <div className="relative w-20 h-20 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-300">
-              <Image
+          {isCustomPhoto ? (
+            <Image
+              src={jerseyPhoto}
+              alt={`${club.name} Kit`}
+              fill
+              className="object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+              unoptimized
+            />
+          ) : crest ? (
+            <div className="group-hover:scale-105 transition-transform duration-300">
+              <GlassLogoBadge
                 src={crest}
                 alt={`${club.name} Crest`}
-                fill
-                className="object-contain"
-                unoptimized
+                size={72}
               />
             </div>
           ) : (
             <ShoppingBag className="w-10 h-10 text-[#7098F8]/50" />
+          )}
+
+          {crest && isCustomPhoto && (
+            <div className="absolute top-2 right-2">
+              <GlassLogoBadge
+                src={crest}
+                alt=""
+                size={28}
+              />
+            </div>
           )}
 
           {isFavorite && (

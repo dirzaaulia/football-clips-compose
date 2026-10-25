@@ -104,7 +104,7 @@ internal fun HomeLandscapeContent(
             Spacer(modifier = Modifier.height(8.dp))
 
             LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
+                columns = GridCells.Fixed(1),
                 state = gridState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 60.dp),

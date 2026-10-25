@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Calendar, Clock, Eye, EyeOff, Radio, Sparkles } from 'lucide-react';
 import { MatchRecord } from '@/lib/database';
 import WhereToWatchBanner from '@/components/broadcast/WhereToWatchBanner';
+import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 
 interface MatchCentreHeroProps {
   match: MatchRecord;
@@ -84,13 +85,13 @@ export default function MatchCentreHero({
       <div className="relative flex items-center justify-between py-4 sm:py-6 gap-2">
         {/* Home Team */}
         <div className="flex flex-col items-center flex-1 text-center min-w-0">
-          <div className="relative w-11 h-11 sm:w-14 sm:h-14 mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
-            {match.home_team_crest ? (
-              <Image src={match.home_team_crest} alt={homeName} fill className="object-contain" unoptimized />
-            ) : (
-              <div className="w-full h-full rounded-full bg-[#1E293B] border border-[#334155]" />
-            )}
-          </div>
+          <GlassLogoBadge
+            src={match.home_team_crest}
+            alt={homeName}
+            size={56}
+            className="mb-2"
+            imageClassName="object-contain p-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]"
+          />
           <span className="font-extrabold text-xs sm:text-sm text-white leading-tight max-w-[110px] sm:max-w-[150px] line-clamp-2">
             {homeName}
           </span>
@@ -157,13 +158,13 @@ export default function MatchCentreHero({
 
         {/* Away Team */}
         <div className="flex flex-col items-center flex-1 text-center min-w-0">
-          <div className="relative w-11 h-11 sm:w-14 sm:h-14 mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
-            {match.away_team_crest ? (
-              <Image src={match.away_team_crest} alt={awayName} fill className="object-contain" unoptimized />
-            ) : (
-              <div className="w-full h-full rounded-full bg-[#1E293B] border border-[#334155]" />
-            )}
-          </div>
+          <GlassLogoBadge
+            src={match.away_team_crest}
+            alt={awayName}
+            size={56}
+            className="mb-2"
+            imageClassName="object-contain p-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]"
+          />
           <span className="font-extrabold text-xs sm:text-sm text-white leading-tight max-w-[110px] sm:max-w-[150px] line-clamp-2">
             {awayName}
           </span>

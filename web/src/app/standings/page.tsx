@@ -12,12 +12,14 @@ import KnockoutRoundsView from '@/components/standings/KnockoutRoundsView';
 import { useSeason } from '@/hooks/useSeason';
 import { useCompetitions } from '@/hooks/useCompetitions';
 import CompetitionLogo from '@/components/common/CompetitionLogo';
+import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 
 interface CompetitionDef {
   code: string;
   name: string;
   type: 'league' | 'hybrid' | 'cup';
   category: string;
+  logo?: string;
 }
 
 const ALL_COMPETITIONS: CompetitionDef[] = [
@@ -141,6 +143,7 @@ export default function StandingsPage() {
           name: c.name,
           type: resolvedType,
           category: resolvedCategory,
+          logo: c.logo || (c.competitionId === 'IDN' ? '/logos/competitions/idn-2026.png' : ''),
         };
       });
     return dynamicOnly.length > 0 ? dynamicOnly : ALL_COMPETITIONS;
@@ -229,7 +232,15 @@ export default function StandingsPage() {
               label: l.name,
               badge: l.type === 'cup' ? 'Cup' : l.type === 'hybrid' ? 'Hybrid' : 'League',
               badgeVariant: l.type === 'cup' ? 'amber' : l.type === 'hybrid' ? 'primary' : 'gray',
-              icon: l.code === 'IDN' ? <span className="relative h-5 w-5"><CompetitionLogo src="/logos/competitions/idn-2026.png" name="Liga Indonesia" /></span> : <Trophy className="w-4 h-4 text-[#7098F8]" />,
+              icon: l.logo ? (
+                <div className="relative w-4 h-4 rounded-lg bg-white/[0.08] backdrop-blur-md p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-white/10">
+                  <div className="relative w-full h-full">
+                    <CompetitionLogo src={l.logo} name={l.name} />
+                  </div>
+                </div>
+              ) : (
+                <Trophy className="w-4 h-4 text-[#7098F8]" />
+              ),
             }))}
             value={selectedComp}
             onChange={(c) => {
@@ -237,7 +248,17 @@ export default function StandingsPage() {
               const compDef = competitionList.find((x) => x.code === c);
               if (compDef?.type === 'hybrid') setHybridStage('table');
             }}
-            leadingIcon={selectedComp === 'IDN' ? <span className="relative h-5 w-5"><CompetitionLogo src="/logos/competitions/idn-2026.png" name="Liga Indonesia" /></span> : <Trophy className="w-4 h-4 text-[#7098F8]" />}
+            leadingIcon={
+              activeCompDef.logo ? (
+                <div className="relative w-4 h-4 rounded-lg bg-white/[0.08] backdrop-blur-md p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-white/10">
+                  <div className="relative w-full h-full">
+                    <CompetitionLogo src={activeCompDef.logo} name={activeCompDef.name} />
+                  </div>
+                </div>
+              ) : (
+                <Trophy className="w-4 h-4 text-[#7098F8]" />
+              )
+            }
             prefix="Comp"
             align="right"
             className="w-auto"
@@ -405,17 +426,12 @@ export default function StandingsPage() {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          {team.crest_url ? (
-                            <Image
-                              src={team.crest_url}
-                              alt={team.team_name}
-                              width={24}
-                              height={24}
-                              className="object-contain shrink-0 group-hover:scale-110 transition-transform"
-                            />
-                          ) : (
-                            <div className="w-6 h-6 rounded-full bg-zinc-800 shrink-0" />
-                          )}
+                          <GlassLogoBadge
+                            src={team.crest_url}
+                            alt={team.team_name}
+                            size={28}
+                            imageClassName="object-contain p-0.5"
+                          />
                           <span className="font-bold text-white group-hover:text-[#7098F8] transition-colors truncate">
                             {team.team_name}
                           </span>

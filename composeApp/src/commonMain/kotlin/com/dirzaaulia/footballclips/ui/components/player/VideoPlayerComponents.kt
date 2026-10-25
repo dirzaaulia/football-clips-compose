@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.ui.components.affiliate.MatchDayGearRow
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.ui.components.common.MarkdownText
 import com.dirzaaulia.footballclips.util.MatchAnalysisUtils
 import com.dirzaaulia.footballclips.util.shareText
@@ -41,11 +42,14 @@ import com.dirzaaulia.footballclips.util.toProxyUrl
 internal fun VideoMetadata(
     item: HighlightUiItem,
     isSpoilerFree: Boolean = false,
+    isScoreRevealed: Boolean = !isSpoilerFree,
+    onRevealClick: () -> Unit = {},
     isMerchandiseEnabled: Boolean = true,
     hasVideo: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val meta = remember(item) { resolveMetadata(item) } ?: return
+    val isGuarded = isSpoilerFree && !isScoreRevealed
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         VideoMetadataHeader(
@@ -62,7 +66,8 @@ internal fun VideoMetadata(
                 awayName = (item as? HighlightUiItem.OracleMatch)?.match?.awayTeamName.orEmpty(),
                 awayCrest = meta.awayCrest,
                 scoreText = meta.scoreText,
-                isSpoilerFree = isSpoilerFree,
+                isSpoilerFree = isGuarded,
+                onRevealClick = onRevealClick,
             )
         } else if (!hasVideo) {
             Text(text = meta.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface)
@@ -74,12 +79,16 @@ internal fun VideoMetadata(
             VideoMetadataAnalysis(
                 item = item,
                 recapAnalysis = meta.recapAnalysis,
-                isSpoilerFree = isSpoilerFree,
+                isSpoilerFree = isGuarded,
+                onRevealClick = onRevealClick,
             )
         }
 
         if (item is HighlightUiItem.OracleMatch) {
-            MatchTacticalBoxscore(match = item.match, isSpoilerFree = isSpoilerFree)
+            MatchTacticalBoxscore(
+                match = item.match,
+                isSpoilerFree = isGuarded,
+            )
         }
     }
 }
@@ -194,6 +203,7 @@ private fun VideoMetadataTeamsRow(
     homeName: String, homeCrest: String,
     awayName: String, awayCrest: String,
     scoreText: String, isSpoilerFree: Boolean,
+    onRevealClick: () -> Unit,
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
@@ -206,23 +216,22 @@ private fun VideoMetadataTeamsRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
-                AsyncImage(model = homeCrest.toProxyUrl(), contentDescription = null, modifier = Modifier.size(28.dp), contentScale = ContentScale.Fit)
+                GlassLogoBadge(model = homeCrest.toProxyUrl(), contentDescription = homeName, size = 30.dp, padding = 3.dp)
                 Text(text = homeName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, maxLines = 2, minLines = 1, lineHeight = 16.sp, overflow = TextOverflow.Ellipsis)
             }
-            VideoScoreBadge(scoreText = scoreText, isSpoilerFree = isSpoilerFree)
+            VideoScoreBadge(scoreText = scoreText, isSpoilerFree = isSpoilerFree, onRevealClick = onRevealClick)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End), modifier = Modifier.weight(1f)) {
                 Text(text = awayName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, maxLines = 2, minLines = 1, lineHeight = 16.sp, overflow = TextOverflow.Ellipsis)
-                AsyncImage(model = awayCrest.toProxyUrl(), contentDescription = null, modifier = Modifier.size(28.dp), contentScale = ContentScale.Fit)
+                GlassLogoBadge(model = awayCrest.toProxyUrl(), contentDescription = awayName, size = 30.dp, padding = 3.dp)
             }
         }
     }
 }
 
 @Composable
-private fun VideoScoreBadge(scoreText: String, isSpoilerFree: Boolean) {
-    var isRevealed by remember { mutableStateOf(!isSpoilerFree) }
-    if (isSpoilerFree && !isRevealed) {
-        Surface(onClick = { isRevealed = true }, color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp)) {
+private fun VideoScoreBadge(scoreText: String, isSpoilerFree: Boolean, onRevealClick: () -> Unit) {
+    if (isSpoilerFree) {
+        Surface(onClick = onRevealClick, color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
                 Icon(imageVector = Icons.Default.VisibilityOff, contentDescription = "Reveal Score", modifier = Modifier.size(13.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(text = "? - ?", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 1.sp)
@@ -240,14 +249,14 @@ private fun VideoMetadataAnalysis(
     item: HighlightUiItem,
     recapAnalysis: String,
     isSpoilerFree: Boolean,
+    onRevealClick: () -> Unit,
 ) {
-    var isRevealed by remember { mutableStateOf(!isSpoilerFree) }
     val isUpcoming = item is HighlightUiItem.OracleMatch && MatchAnalysisUtils.isUpcoming(item.match)
-    val isGuarded = !isUpcoming && isSpoilerFree && !isRevealed
+    val isGuarded = !isUpcoming && isSpoilerFree
     val header = if (isUpcoming) "MATCH PREVIEW & TACTICAL SETUP" else "MATCH SUMMARY & TACTICAL BREAKDOWN"
 
     Card(
-        onClick = { if (isGuarded) isRevealed = true },
+        onClick = { if (isGuarded) onRevealClick() },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth(),

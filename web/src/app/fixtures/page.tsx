@@ -14,6 +14,7 @@ import MyClubsModal from '@/components/clubs/MyClubsModal';
 import FixturesDateAndTabs, { FixtureTab } from '@/components/fixtures/FixturesDateAndTabs';
 import SeasonSelector from '@/components/filter/SeasonSelector';
 import CustomDropdown from '@/components/common/CustomDropdown';
+import CompetitionLogo from '@/components/common/CompetitionLogo';
 import { useSeason } from '@/hooks/useSeason';
 
 export default function FixturesPage() {
@@ -223,9 +224,9 @@ export default function FixturesPage() {
               value: c.competitionId || 'ALL',
               label: c.name,
               icon: c.logo ? (
-                <div className="relative w-4 h-4 rounded-full bg-white p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-slate-200/20">
+                <div className="relative w-4 h-4 rounded-lg bg-white/[0.08] backdrop-blur-md p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-white/10">
                   <div className="relative w-full h-full">
-                    <Image src={c.logo} alt={c.name} fill className="object-contain" unoptimized />
+                    <CompetitionLogo src={c.logo} name={c.name} />
                   </div>
                 </div>
               ) : (
@@ -239,9 +240,9 @@ export default function FixturesPage() {
             }}
             leadingIcon={
               competition?.logo ? (
-                <div className="relative w-4 h-4 rounded-full bg-white p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-slate-200/20">
+                <div className="relative w-4 h-4 rounded-lg bg-white/[0.08] backdrop-blur-md p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-white/10">
                   <div className="relative w-full h-full">
-                    <Image src={competition.logo} alt={competition.name} fill className="object-contain" unoptimized />
+                    <CompetitionLogo src={competition.logo} name={competition.name} />
                   </div>
                 </div>
               ) : (

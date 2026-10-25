@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { ShoppingBag, Star, ExternalLink } from 'lucide-react';
+import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 import { useUserRegion } from '@/hooks/useUserRegion';
 import {
   buildClubGearUrl,
@@ -98,13 +99,11 @@ function TeamMerchandiseCard({
               unoptimized
             />
           ) : crestUrl ? (
-            <div className="relative w-16 h-16 opacity-85 group-hover:opacity-100 group-hover:scale-110 transition-transform">
-              <Image
+            <div className="group-hover:scale-105 transition-transform duration-300">
+              <GlassLogoBadge
                 src={crestUrl}
                 alt={teamName}
-                fill
-                className="object-contain"
-                unoptimized
+                size={64}
               />
             </div>
           ) : (
@@ -113,14 +112,11 @@ function TeamMerchandiseCard({
 
           {/* Crest Overlay */}
           {crestUrl && isCustomPhoto && (
-            <div className="absolute top-2 right-2 w-7 h-7 rounded-md bg-black/60 p-1 border border-[#334155]/60 flex items-center justify-center">
-              <Image
+            <div className="absolute top-2 right-2">
+              <GlassLogoBadge
                 src={crestUrl}
                 alt=""
-                width={20}
-                height={20}
-                className="object-contain"
-                unoptimized
+                size={28}
               />
             </div>
           )}

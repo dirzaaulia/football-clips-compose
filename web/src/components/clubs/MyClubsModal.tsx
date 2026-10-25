@@ -10,6 +10,7 @@ import { useUserRegion } from '@/hooks/useUserRegion';
 import { buildClubGearUrl } from '@/lib/affiliate/amazon';
 import ModalSideSheet from '@/components/common/ModalSideSheet';
 import CustomDropdown from '@/components/common/CustomDropdown';
+import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 import NotificationOptInModal from './NotificationOptInModal';
 import { requestWebNotificationPermission, syncWebPushSubscription, getStoredWebPushToken } from '@/lib/firebase/messaging';
 
@@ -187,20 +188,12 @@ export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="relative w-8 h-8 shrink-0 bg-black/40 rounded-lg p-1 border border-[#334155]/40 flex items-center justify-center">
-                    {(club.crest_url || club.crestUrl) ? (
-                      <Image
-                        src={club.crest_url || club.crestUrl || ''}
-                        alt={club.name}
-                        width={24}
-                        height={24}
-                        className="object-contain"
-                        unoptimized
-                      />
-                    ) : (
-                      <span className="text-xs font-bold text-[#7098F8]">{club.name.charAt(0)}</span>
-                    )}
-                  </div>
+                  <GlassLogoBadge
+                    src={club.crest_url || club.crestUrl}
+                    alt={club.name}
+                    size={32}
+                    imageClassName="object-contain p-0.5"
+                  />
                   <div className="min-w-0 flex-1">
                     <h4 className="text-xs sm:text-sm font-bold text-white line-clamp-2 leading-tight">
                       {club.name}

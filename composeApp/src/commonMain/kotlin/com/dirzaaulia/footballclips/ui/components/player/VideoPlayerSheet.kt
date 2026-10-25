@@ -1,43 +1,44 @@
 package com.dirzaaulia.footballclips.ui.components.player
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.dp
-import com.dirzaaulia.footballclips.data.model.HighlightUiItem
-import com.dirzaaulia.footballclips.ui.components.common.ModalSideSheet
-import com.dirzaaulia.footballclips.util.extractVideoId
-
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import com.dirzaaulia.footballclips.data.model.uniqueId
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.NetworkResult
+import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.data.repository.OracleVmRepository
 import com.dirzaaulia.footballclips.domain.model.toMatch
 import com.dirzaaulia.footballclips.ui.adaptive.LocalIsBigScreen
+import com.dirzaaulia.footballclips.ui.components.common.ModalSideSheet
+import com.dirzaaulia.footballclips.util.extractVideoId
 import com.dirzaaulia.footballclips.util.isWasmTarget
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -172,6 +173,8 @@ private fun VideoPlayerSheetContent(
         }
     }
 
+    var isScoreRevealed by remember(isSpoilerFree, currentItem?.uniqueId) { mutableStateOf(!isSpoilerFree) }
+
     key(videoId) {
         Box(
             modifier = Modifier
@@ -187,86 +190,16 @@ private fun VideoPlayerSheetContent(
                     .then(if (!isSideSheet) Modifier.navigationBarsPadding() else Modifier)
                     .padding(bottom = 16.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = if (isSideSheet) 20.dp else 12.dp, vertical = if (isSideSheet) 12.dp else 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        if (!isSideSheet) {
-                            IconButton(onClick = { onDismiss(false) }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back"
-                                )
-                            }
-                        }
-                        Text(
-                            "Match Centre",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        if (isLive) {
-                            Surface(
-                                color = Color(0xFFEF4444).copy(alpha = 0.15f),
-                                shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(5.dp)
-                                            .clip(androidx.compose.foundation.shape.CircleShape)
-                                            .background(Color(0xFFEF4444))
-                                    )
-                                    Text(
-                                        text = "LIVE",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFFEF4444)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Manual Refresh Action Button
-                        if (currentMatchObj != null) {
-                            IconButton(
-                                onClick = refreshMatch,
-                                enabled = !isRefreshing
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Refresh,
-                                    contentDescription = "Refresh Match Data",
-                                    tint = if (isLive) Color(0xFFEF4444) else MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                        if (onMinimize != null && videoId != null) {
-                            IconButton(onClick = onMinimize) {
-                                Icon(
-                                    imageVector = Icons.Default.KeyboardArrowDown,
-                                    contentDescription = "Minimize Player",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                        if (isSideSheet) {
-                            IconButton(onClick = { onDismiss(false) }) {
-                                Icon(Icons.Default.Close, contentDescription = "Close")
-                            }
-                        }
-                    }
-                }
+                MatchCentreTopBar(
+                    isSideSheet = isSideSheet,
+                    isLive = isLive,
+                    currentMatchObj = currentMatchObj,
+                    isRefreshing = isRefreshing,
+                    onRefreshMatch = refreshMatch,
+                    videoId = videoId,
+                    onMinimize = onMinimize,
+                    onDismiss = { onDismiss(false) },
+                )
 
                 if (videoId != null) {
                     CatalogVideoPlayer(currentItem, videoId, onDismiss)
@@ -275,9 +208,20 @@ private fun VideoPlayerSheetContent(
                     MatchCentreHero(
                         match = (currentItem as HighlightUiItem.OracleMatch).match,
                         isSpoilerFree = isSpoilerFree,
+                        isScoreRevealed = isScoreRevealed,
+                        onRevealClick = { isScoreRevealed = true },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp, vertical = 6.dp)
+                    )
+                }
+
+                if (isSpoilerFree && !isScoreRevealed && (currentItem as? HighlightUiItem.OracleMatch)?.match?.isFinished == true) {
+                    MatchSpoilerNoticeCard(
+                        onRevealClick = { isScoreRevealed = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 8.dp),
                     )
                 }
 
@@ -285,6 +229,8 @@ private fun VideoPlayerSheetContent(
                     VideoMetadata(
                         item = currentItem!!,
                         isSpoilerFree = isSpoilerFree,
+                        isScoreRevealed = isScoreRevealed,
+                        onRevealClick = { isScoreRevealed = true },
                         isMerchandiseEnabled = isMerchandiseEnabled,
                         hasVideo = videoId != null,
                         modifier = Modifier

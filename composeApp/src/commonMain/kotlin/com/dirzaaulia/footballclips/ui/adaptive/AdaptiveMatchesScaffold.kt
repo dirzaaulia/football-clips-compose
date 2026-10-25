@@ -41,6 +41,7 @@ import com.dirzaaulia.footballclips.ui.home.selectVideo
 import com.dirzaaulia.footballclips.ui.home.selectVideoById
 import com.dirzaaulia.footballclips.ui.info.InfoScreen
 import com.dirzaaulia.footballclips.ui.navigation.NavDestination
+import com.dirzaaulia.footballclips.ui.store.ClubStoreScreen
 import com.dirzaaulia.footballclips.ui.score.MatchStatusFilter
 import com.dirzaaulia.footballclips.ui.score.MatchesAndHighlightsScreen
 import com.dirzaaulia.footballclips.ui.score.ScoreViewModel
@@ -135,7 +136,18 @@ fun AdaptiveMatchesScaffold(
         }
     }
     val infoContent: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit = remember {
-        { InfoScreen() }
+        {
+            InfoScreen(
+                onNavigateToStore = { navController.navigate(NavDestination.Store.route) },
+            )
+        }
+    }
+    val storeContent: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit = remember {
+        {
+            ClubStoreScreen(
+                onBack = { navController.popBackStack() },
+            )
+        }
     }
 
     Scaffold(
@@ -176,6 +188,7 @@ fun AdaptiveMatchesScaffold(
                         composable(NavDestination.Home.route, content = homeContent)
                         composable(NavDestination.Fixtures.route, content = fixturesContent)
                         composable(NavDestination.Standings.route, content = standingsContent)
+                        composable(NavDestination.Store.route, content = storeContent)
                         composable(NavDestination.Info.route, content = infoContent)
                     }
 

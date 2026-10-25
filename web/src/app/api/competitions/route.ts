@@ -39,12 +39,14 @@ export async function GET() {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
         return NextResponse.json(data.map((competition) => {
-          const espnLogo = ESPN_COMPETITION_LOGOS[competition.code];
+          const code = competition.code || competition.id;
+          const espnLogo = ESPN_COMPETITION_LOGOS[code];
           const emblem = competition.emblem_url && !competition.emblem_url.includes('football-data.org')
             ? competition.emblem_url
             : (espnLogo || competition.emblem_url || '');
           return {
             ...competition,
+            code: code,
             emblem_url: emblem,
           };
         }));

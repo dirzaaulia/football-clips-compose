@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingBag, Star, ExternalLink, ArrowRight } from 'lucide-react';
+import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import { useSupportedClubs } from '@/hooks/useSupportedClubs';
 import { useUserRegion } from '@/hooks/useUserRegion';
@@ -109,13 +110,11 @@ export default function MyClubsStoreShelf({
                       unoptimized
                     />
                   ) : club.crest_url ? (
-                    <div className="relative w-14 h-14 opacity-90 group-hover:scale-110 transition-transform">
-                      <Image
+                    <div className="group-hover:scale-105 transition-transform">
+                      <GlassLogoBadge
                         src={club.crest_url}
                         alt={club.name}
-                        fill
-                        className="object-contain"
-                        unoptimized
+                        size={56}
                       />
                     </div>
                   ) : (
@@ -123,14 +122,11 @@ export default function MyClubsStoreShelf({
                   )}
 
                   {club.crest_url && isCustomPhoto && (
-                    <div className="absolute top-2 right-2 w-6 h-6 rounded-md bg-black/60 p-0.5 border border-[#334155]/60 flex items-center justify-center">
-                      <Image
+                    <div className="absolute top-2 right-2">
+                      <GlassLogoBadge
                         src={club.crest_url}
                         alt=""
-                        width={18}
-                        height={18}
-                        className="object-contain"
-                        unoptimized
+                        size={28}
                       />
                     </div>
                   )}

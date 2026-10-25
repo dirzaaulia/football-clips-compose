@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.dirzaaulia.footballclips.data.model.remote.BigLeague
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable
@@ -109,16 +110,16 @@ fun LeagueDropdownSelector(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 if (currentLeague != null && currentLeague.logo.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .padding(2.dp),
-                        contentAlignment = Alignment.Center,
+                    GlassLogoBadge(
+                        modifier = Modifier.size(22.dp),
+                        shape = RoundedCornerShape(6.dp),
                     ) {
                         AsyncImage(
                             model = currentLeague.logo.toProxyUrl(),
                             contentDescription = currentLeague.name,
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(2.dp),
                             contentScale = ContentScale.Fit,
                         )
                     }
@@ -174,16 +175,16 @@ fun LeagueDropdownSelector(
                 DropdownMenuItem(
                     leadingIcon = {
                         if (league.logo.isNotEmpty()) {
-                            Box(
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .padding(3.dp),
-                                contentAlignment = Alignment.Center,
+                            GlassLogoBadge(
+                                modifier = Modifier.size(24.dp),
+                                shape = RoundedCornerShape(6.dp),
                             ) {
                                 AsyncImage(
                                     model = league.logo.toProxyUrl(),
                                     contentDescription = league.name,
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(2.dp),
                                     contentScale = ContentScale.Fit,
                                 )
                             }

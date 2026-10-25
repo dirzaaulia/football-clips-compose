@@ -50,6 +50,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun InfoScreen(
+    onNavigateToStore: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val isPreview = LocalInspectionMode.current
@@ -116,8 +117,13 @@ fun InfoScreen(
                             )
                         }
                         item(span = { GridItemSpan(maxLineSpan) }) {
+                            ClubStoreEntryCard(
+                                onNavigateToStore = onNavigateToStore,
+                            )
+                        }
+                        item(span = { GridItemSpan(maxLineSpan) }) {
                             SupportDeveloperCard(
-                                initialExpanded = true,
+                                initialExpanded = false,
                                 uriHandler = uriHandler,
                             )
                         }
@@ -151,8 +157,12 @@ fun InfoScreen(
                                 onShowPaywall = { showPaywall = true },
                                 modifier = Modifier.fillMaxWidth(),
                             )
+                            ClubStoreEntryCard(
+                                onNavigateToStore = onNavigateToStore,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                             SupportDeveloperCard(
-                                initialExpanded = true,
+                                initialExpanded = false,
                                 uriHandler = uriHandler,
                                 modifier = Modifier.fillMaxWidth(),
                             )
@@ -205,8 +215,11 @@ fun InfoScreen(
                             onToggle = onToggleMerchandise,
                             onShowPaywall = { showPaywall = true },
                         )
+                        ClubStoreEntryCard(
+                            onNavigateToStore = onNavigateToStore,
+                        )
                         SupportDeveloperCard(
-                            initialExpanded = true,
+                            initialExpanded = false,
                             uriHandler = uriHandler,
                         )
                         DataSourceCard(initialExpanded = false)

@@ -72,34 +72,7 @@ const REGIONAL_FALLBACK_MAP: Record<string, string> = {
   UY: 'amazon.com.br',
 };
 
-const CLUB_KIT_IMAGES: Record<string, string> = {
-  'arsenal': 'https://images.footballfanatics.com/arsenal/arsenal-adidas-home-shirt-2024-25_ss5_p-200924976+u-2xvdubqffy8gq6qvycct+v-3mffoeyy4lffh8hlyptn.jpg',
-  'real madrid': 'https://images.footballfanatics.com/real-madrid/real-madrid-adidas-home-shirt-2024-25_ss5_p-200924956+u-7n36hvy7wqqi9o4y0zpt+v-mcvgflzrt8f8045vbt4q.jpg',
-  'manchester city': 'https://images.footballfanatics.com/manchester-city/manchester-city-puma-home-shirt-2024-25_ss5_p-200924933+u-8f37h8d7j3j19i2z8vbt+v-2mv8flzrt8f8045vbt4q.jpg',
-  'barcelona': 'https://images.footballfanatics.com/barcelona/barcelona-nike-home-stadium-shirt-2024-25_ss5_p-200924922+u-4f37h8d7j3j19i2z8vbt+v-4mv8flzrt8f8045vbt4q.jpg',
-  'liverpool': 'https://images.footballfanatics.com/liverpool/liverpool-nike-home-stadium-shirt-2024-25_ss5_p-200924911+u-3f37h8d7j3j19i2z8vbt+v-1mv8flzrt8f8045vbt4q.jpg',
-  'chelsea': 'https://images.footballfanatics.com/chelsea/chelsea-nike-home-stadium-shirt-2024-25_ss5_p-200924944+u-9f37h8d7j3j19i2z8vbt+v-5mv8flzrt8f8045vbt4q.jpg',
-  'manchester united': 'https://images.footballfanatics.com/manchester-united/manchester-united-adidas-home-shirt-2024-25_ss5_p-200924901+u-1f37h8d7j3j19i2z8vbt+v-6mv8flzrt8f8045vbt4q.jpg',
-  'bayern munich': 'https://images.footballfanatics.com/bayern-munich/fc-bayern-munich-adidas-home-shirt-2024-25_ss5_p-200924966+u-5f37h8d7j3j19i2z8vbt+v-7mv8flzrt8f8045vbt4q.jpg',
-  'paris saint-germain': 'https://images.footballfanatics.com/paris-saint-germain/paris-saint-germain-nike-home-stadium-shirt-2024-25_ss5_p-200924988+u-6f37h8d7j3j19i2z8vbt+v-8mv8flzrt8f8045vbt4q.jpg',
-  'juventus': 'https://images.footballfanatics.com/juventus/juventus-adidas-home-shirt-2024-25_ss5_p-200924999+u-1f37h8d7j3j19i2z8vbt+v-9mv8flzrt8f8045vbt4q.jpg',
-  'ac milan': 'https://images.footballfanatics.com/ac-milan/ac-milan-puma-home-shirt-2024-25_ss5_p-200924981+u-2f37h8d7j3j19i2z8vbt+v-0mv8flzrt8f8045vbt4q.jpg',
-  'inter milan': 'https://images.footballfanatics.com/inter-milan/inter-milan-nike-home-stadium-shirt-2024-25_ss5_p-200924970+u-3f37h8d7j3j19i2z8vbt+v-1mv8flzrt8f8045vbt4q.jpg',
-  'tottenham hotspur': 'https://images.footballfanatics.com/tottenham-hotspur/tottenham-hotspur-nike-home-stadium-shirt-2024-25_ss5_p-200924950+u-4f37h8d7j3j19i2z8vbt+v-2mv8flzrt8f8045vbt4q.jpg',
-  'borussia dortmund': 'https://images.footballfanatics.com/borussia-dortmund/borussia-dortmund-puma-home-shirt-2024-25_ss5_p-200924940+u-5f37h8d7j3j19i2z8vbt+v-3mv8flzrt8f8045vbt4q.jpg',
-  'atletico madrid': 'https://images.footballfanatics.com/atletico-de-madrid/atletico-de-madrid-nike-home-stadium-shirt-2024-25_ss5_p-200924930+u-6f37h8d7j3j19i2z8vbt+v-4mv8flzrt8f8045vbt4q.jpg',
-};
-
-export function resolveClubKitPhoto(clubName: string, crestUrl?: string | null): string {
-  if (!clubName) return crestUrl || '';
-  const clean = clubName.toLowerCase().replace(/\b(fc|cf|afc|sc|sv|fk|ssc)\b/gi, '').trim();
-  for (const [key, photo] of Object.entries(CLUB_KIT_IMAGES)) {
-    if (clean.includes(key) || key.includes(clean)) {
-      return photo;
-    }
-  }
-  return crestUrl || '';
-}
+export { resolveClubKitPhoto } from './clubKits';
 
 export function resolveAmazonMarketplace(country?: string | null): string {
   if (!country) return DEFAULT_MARKETPLACE;

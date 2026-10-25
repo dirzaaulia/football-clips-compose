@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -119,18 +120,22 @@ internal fun HomeGridContent(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Box(modifier = Modifier.weight(0.7f)) {
+                    Box(modifier = Modifier.weight(1f)) {
                         BigLeaguesQuickFilterBar(
                             selectedLeagueId = selectedLeagueId,
                             dynamicCompetitions = competitions,
                             onLeagueSelected = onLeagueSelected,
                         )
                     }
-                    Box(modifier = Modifier.weight(0.3f)) {
+                    Box(
+                        modifier = Modifier
+                            .width(280.dp)
+                            .height(140.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
                         BannerAdItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(80.dp),
+                            style = NativeAdStyle.HIGHLIGHT,
+                            modifier = Modifier.fillMaxSize(),
                         )
                     }
                 }
@@ -153,21 +158,23 @@ internal fun HomeGridContent(
                 val itemUniqueId = item.uniqueId
                 val isRevealed = revealedItemIds.contains(itemUniqueId)
 
+                val handleVideoClick: () -> Unit = {
+                    onVideoClick(item) { isJumping ->
+                        viewModel.setPendingInterstitial(true)
+                        if (!isJumping) {
+                            viewModel.consumePendingInterstitial()
+                        }
+                    }
+                }
+
                 when (item) {
                     is HighlightUiItem.OracleMatch, is HighlightUiItem.Highlight -> {
                         WebHighlightCard(
                             item = item,
                             isSpoilerFree = isSpoilerFreeMode,
                             isRevealed = isRevealed,
-                            onRevealClick = { onRevealItem(itemUniqueId) },
-                            onClick = {
-                                onVideoClick(item) { isJumping ->
-                                    viewModel.setPendingInterstitial(true)
-                                    if (!isJumping) {
-                                        viewModel.consumePendingInterstitial()
-                                    }
-                                }
-                            },
+                            onRevealClick = handleVideoClick,
+                            onClick = { handleVideoClick() },
                         )
                     }
 
