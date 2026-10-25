@@ -14,6 +14,7 @@ import { PlayerErrorType } from './PlayerErrorOverlay';
 import PlayerVideoFrame from './PlayerVideoFrame';
 import MatchCentreHero from './MatchCentreHero';
 import MatchTacticalBoxscore from '@/components/match/MatchTacticalBoxscore';
+import MatchDayGearSection from '@/components/affiliate/MatchDayGearSection';
 import PlayerRelatedHighlights from './PlayerRelatedHighlights';
 
 interface VideoPlayerSideSheetProps {
@@ -239,7 +240,7 @@ export default function VideoPlayerSideSheet({
                     <Image src={currentMatch.home_team_crest} alt={homeName} fill className="object-contain" unoptimized />
                   </div>
                 )}
-                <span className="font-extrabold text-xs text-white truncate">{homeName}</span>
+                <span className="font-extrabold text-xs text-white line-clamp-2 leading-tight">{homeName}</span>
               </div>
 
               {isHidden ? (
@@ -262,7 +263,7 @@ export default function VideoPlayerSideSheet({
               )}
 
               <div className="flex items-center justify-end gap-2 flex-1 min-w-0 text-right">
-                <span className="font-extrabold text-xs text-white truncate">{awayName}</span>
+                <span className="font-extrabold text-xs text-white line-clamp-2 leading-tight">{awayName}</span>
                 {currentMatch.away_team_crest && (
                   <div className="relative w-6 h-6 shrink-0">
                     <Image src={currentMatch.away_team_crest} alt={awayName} fill className="object-contain" unoptimized />
@@ -282,6 +283,14 @@ export default function VideoPlayerSideSheet({
             onHideScore={() => setIsScoreRevealed(false)}
           />
         )}
+
+        {/* Match-Day Official Fan Gear & Kits */}
+        <MatchDayGearSection
+          homeName={homeName}
+          homeCrest={currentMatch.home_team_crest}
+          awayName={awayName}
+          awayCrest={currentMatch.away_team_crest}
+        />
 
         {/* Unified Tactical Boxscore (Timeline, Stats, Lineups, Report) */}
         <MatchTacticalBoxscore match={currentMatch} />

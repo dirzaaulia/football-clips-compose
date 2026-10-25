@@ -1,10 +1,7 @@
 import argparse
-import gzip
-import json
 import os
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 
 from loguru import logger
 from worker.clients.supabase_client import supabase_client
@@ -43,121 +40,72 @@ def get_r2_client():
     )
 
 
-def export_season_matches(season_year: int, upload_r2: bool = True) -> str:
-    """Export all finished matches for a season to compressed JSON cold storage."""
-    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
-    logger.info(f"[Archive] Fetching finished matches for season {season_year}/{season_year + 1} from Supabase...")
-
-    # Season span: August 1 of season_year to July 31 of season_year + 1
-    start_date = f"{season_year}-08-01T00:00:00Z"
-    end_date = f"{season_year + 1}-07-31T23:59:59Z"
-
-    matches = []
-    page_size = 500
-    offset = 0
-
-    while True:
-        res = (
-            supabase_client.table("matches")
-            .select("*")
-            .gte("utc_date", start_date)
-            .lte("utc_date", end_date)
-            .order("utc_date", desc=False)
-            .range(offset, offset + page_size - 1)
-            .execute()
-        )
-        batch = res.data or []
-        matches.extend(batch)
-        if len(batch) < page_size:
-            break
-        offset += page_size
-
-    logger.info(f"[Archive] Extracted {len(matches)} matches for season {season_year}/{season_year + 1}.")
-    if not matches:
-        logger.warning(f"[Archive] No matches found in Supabase for season {season_year}.")
-        return ""
-
-    filename = f"season_{season_year}_{season_year + 1}_matches.json.gz"
-    local_path = ARCHIVE_DIR / filename
-
-    raw_json = json.dumps({
-        "season": f"{season_year}/{season_year + 1}",
-        "exported_at": datetime.now(UTC).isoformat(),
-        "total_matches": len(matches),
-        "matches": matches,
-    }, indent=2).encode("utf-8")
-
-    with gzip.open(local_path, "wb") as f:
-        f.write(raw_json)
-
-    size_kb = local_path.stat().st_size / 1024.0
-    logger.info(f"[Archive] Saved compressed cold archive to {local_path} ({size_kb:.1f} KB).")
-
+def export_season_matches(season_year: int, upload_r2: bool = False) -> str:
+    """Stream the actual provider season, including calendar-year competitions."""
+    from worker.utils.archive_io import write_archive
+    def records():
+        last = -1
+        while True:
+            result = (supabase_client.table("matches").select("*").eq("season", season_year)
+                .gt("id", last).order("id").limit(500).execute())
+            page = result.data or []
+            if not page:
+                return
+            yield from page
+            last = page[-1]["id"]
+    path = ARCHIVE_DIR / f"season_{season_year}.json.gz"
+    manifest = write_archive(path, records(), season=season_year)
     if upload_r2:
-        r2 = get_r2_client()
-        if r2:
-            r2_key = f"seasons/{filename}"
-            try:
-                r2.upload_file(str(local_path), settings.r2_bucket_name, r2_key)
-                logger.info(f"[R2 SUCCESS] Uploaded {filename} to Cloudflare R2 bucket '{settings.r2_bucket_name}' key '{r2_key}'.")
-            except Exception as e:
-                logger.error(f"[R2 ERROR] Failed to upload {filename} to R2: {e}")
+        if os.getenv("FC_REMOTE_ARCHIVE_APPROVED") != "true":
+            raise RuntimeError("Verify remote storage allowance and explicitly approve remote archival first")
+        client = get_r2_client()
+        if not client:
+            raise RuntimeError("Remote archive credentials are unavailable")
+        key = "seasons/" + path.name
+        client.upload_file(str(path), settings.r2_bucket_name, key,
+                           ExtraArgs={"Metadata": {"sha256": manifest["sha256"]}})
+        remote = client.head_object(Bucket=settings.r2_bucket_name, Key=key)
+        if remote["ContentLength"] != manifest["bytes"]:
+            raise RuntimeError("Remote archive size verification failed")
+    logger.info(f"[Archive] Verified {manifest['records']} records for provider season {season_year}.")
+    return str(path)
 
-    return str(local_path)
 
+def export_telemetry_logs(max_age_days: int = 14, upload_r2: bool = False) -> str:
+    """Export bounded pages that actually satisfy the requested age cutoff."""
+    from datetime import timedelta
 
-def export_telemetry_logs(max_age_days: int = 14, upload_r2: bool = True) -> str:
-    """Export old telemetry sync cycle logs into cold archive."""
-    ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
-    logger.info(f"[Archive] Fetching telemetry events older than {max_age_days} days from Supabase...")
-
-    # We check if telemetry_events table exists
-    try:
-        cutoff = (datetime.now(UTC).timestamp() - max_age_days * 86400)
-        res = (
-            supabase_client.table("telemetry_events")
-            .select("*")
-            .limit(1000)
-            .execute()
-        )
-        events = res.data or []
-        if not events:
-            logger.info("[Archive] No telemetry events found to archive.")
-            return ""
-
-        now_str = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-        filename = f"telemetry_archive_{now_str}.json.gz"
-        local_path = ARCHIVE_DIR / filename
-
-        with gzip.open(local_path, "wb") as f:
-            f.write(json.dumps(events).encode("utf-8"))
-
-        logger.info(f"[Archive] Saved {len(events)} telemetry events to {local_path}.")
-
-        if upload_r2:
-            r2 = get_r2_client()
-            if r2:
-                r2_key = f"telemetry/{filename}"
-                r2.upload_file(str(local_path), settings.r2_bucket_name, r2_key)
-                logger.info(f"[R2 SUCCESS] Uploaded {filename} to Cloudflare R2 bucket '{settings.r2_bucket_name}'.")
-
-        return str(local_path)
-    except Exception as e:
-        logger.warning(f"[Archive] Could not export telemetry events: {e}")
-        return ""
+    from worker.utils.archive_io import write_archive
+    cutoff = (datetime.now(UTC) - timedelta(days=max_age_days)).isoformat()
+    def records():
+        last = -1
+        while True:
+            result = (supabase_client.table("worker_events").select("*").lt("created_at", cutoff)
+                .gt("id", last).order("id").limit(500).execute())
+            page = result.data or []
+            if not page:
+                return
+            yield from page
+            last = page[-1]["id"]
+    path = ARCHIVE_DIR / ("telemetry_" + datetime.now(UTC).strftime("%Y%m%d_%H%M%S") + ".json.gz")
+    write_archive(path, records(), season=None)
+    if upload_r2:
+        raise RuntimeError("Remote telemetry export is disabled until retention and account allowance are verified")
+    return str(path)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Export match history and telemetry into compressed cold storage & Cloudflare R2.")
-    parser.add_argument("--season", type=int, default=2024, help="Season start year (e.g. 2024 for 2024/2025). Default: 2024")
+    parser.add_argument("--season", type=int, default=2025, help="Season start year (e.g. 2024 for 2024/2025). Default: 2024")
+    parser.add_argument("--upload-r2", action="store_true", help="Upload only after remote allowance approval.")
     parser.add_argument("--no-r2", action="store_true", help="Store only locally without attempting R2 upload.")
     parser.add_argument("--telemetry", action="store_true", help="Export telemetry logs as well.")
 
     args = parser.parse_args()
 
-    export_season_matches(args.season, upload_r2=not args.no_r2)
+    export_season_matches(args.season, upload_r2=args.upload_r2 and not args.no_r2)
     if args.telemetry:
-        export_telemetry_logs(upload_r2=not args.no_r2)
+        export_telemetry_logs(upload_r2=args.upload_r2 and not args.no_r2)
 
 
 if __name__ == "__main__":

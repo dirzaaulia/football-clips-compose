@@ -50,12 +50,14 @@ actual class PreferenceManager(
     private val deviceIdKey = stringPreferencesKey("telemetry_device_id")
     private val anonUserIdKey = stringPreferencesKey("telemetry_anon_user_id")
     private val selectedSeasonKey = intPreferencesKey("selected_season")
+    private val merchandiseEnabledKey = booleanPreferencesKey("is_merchandise_enabled")
 
     private val _inMemoryDarkMode = MutableStateFlow<Boolean?>(null)
     private val _inMemorySpoilerFree = MutableStateFlow<Boolean?>(null)
     private val _inMemorySpoilerConfigured = MutableStateFlow<Boolean?>(null)
     private val _inMemoryFavoriteClubs = MutableStateFlow<Set<String>?>(null)
     private val _inMemorySelectedSeason = MutableStateFlow<Int?>(null)
+    private val _inMemoryMerchandiseEnabled = MutableStateFlow<Boolean?>(null)
 
     actual val isAdsRemoved: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[adsRemovedKey] ?: false
@@ -173,6 +175,23 @@ actual class PreferenceManager(
         try {
             context.dataStore.edit { preferences ->
                 preferences[selectedSeasonKey] = season
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    actual val isMerchandiseEnabled: Flow<Boolean> = combine(
+        context.dataStore.data.map { preferences -> preferences[merchandiseEnabledKey] ?: true },
+        _inMemoryMerchandiseEnabled
+    ) { fromDisk, inMem ->
+        inMem ?: fromDisk
+    }
+
+    actual suspend fun setMerchandiseEnabled(enabled: Boolean) {
+        _inMemoryMerchandiseEnabled.value = enabled
+        try {
+            context.dataStore.edit { preferences ->
+                preferences[merchandiseEnabledKey] = enabled
             }
         } catch (_: Exception) {
         }

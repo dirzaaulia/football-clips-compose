@@ -21,7 +21,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden|keyboard|uiMode|density|fontScale"
+            android:resizeableActivity="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -39,6 +40,31 @@
                 <data
                     android:host="login-callback"
                     android:scheme="drzfc" />
+            </intent-filter>
+
+            <!-- Match Sharing HTTPS App Link (https://fc.dirzaaulia.com/match/{id}) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="fc.dirzaaulia.com"
+                    android:pathPrefix="/match" />
+            </intent-filter>
+
+            <!-- Match Sharing Custom Scheme (drzfc://match/{id}) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="drzfc"
+                    android:host="match" />
             </intent-filter>
         </activity>
 

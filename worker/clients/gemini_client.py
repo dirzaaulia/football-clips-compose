@@ -127,7 +127,7 @@ If NO candidate is a genuine match highlight of this fixture, set best_index to 
                     return best_idx - 1  # convert to 0-based index
                 elif best_idx is None:
                     logger.debug(f"[Gemini AI ({model_name})] Model determined no valid official highlight.")
-                    return None
+                    return -1  # Explicit rejection is distinct from provider unavailability.
             except Exception as e:
                 logger.warning(f"[Gemini AI] Evaluation failed with {model_name}: {e}")
 

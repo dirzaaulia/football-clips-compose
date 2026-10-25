@@ -18,8 +18,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
 import com.dirzaaulia.footballclips.data.model.remote.StandingDto
+import com.dirzaaulia.footballclips.ui.components.common.shimmerEffect
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable
@@ -182,7 +185,13 @@ fun StandingRow(standing: StandingDto, totalTeams: Int, modifier: Modifier = Mod
             Spacer(modifier = Modifier.width(8.dp))
 
             if (!standing.teamCrest.isNullOrEmpty()) {
-                AsyncImage(model = standing.teamCrest.toProxyUrl(), contentDescription = standing.teamName, modifier = Modifier.size(24.dp))
+                SubcomposeAsyncImage(
+                    model = standing.teamCrest.toProxyUrl(),
+                    contentDescription = standing.teamName,
+                    loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) },
+                    modifier = Modifier.size(24.dp),
+                    contentScale = ContentScale.Fit
+                )
                 Spacer(modifier = Modifier.width(8.dp))
             }
 

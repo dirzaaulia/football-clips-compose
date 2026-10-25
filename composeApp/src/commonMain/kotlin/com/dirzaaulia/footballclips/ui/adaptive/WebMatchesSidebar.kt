@@ -160,7 +160,7 @@ internal fun WebMatchesSidebar(
                                     .height(100.dp)
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
                             )
-                        } else if (fixtureItem is HighlightUiItem.SupabaseMatch) {
+                        } else if (fixtureItem is HighlightUiItem.OracleMatch) {
                             TheaterFixtureCard(
                                 match = fixtureItem.match,
                                 onClick = { }

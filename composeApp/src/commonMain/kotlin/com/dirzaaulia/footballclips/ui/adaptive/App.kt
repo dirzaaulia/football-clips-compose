@@ -18,17 +18,21 @@ import com.dirzaaulia.footballclips.ui.theme.FootballClipsTheme
 import org.koin.compose.koinInject
 
 val LocalIsBigScreen = compositionLocalOf { false }
+val LocalWindowWidthSizeClass = compositionLocalOf { WindowWidthSizeClass.Compact }
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
-fun App() {
+fun App(
+    initialMatchId: String? = null,
+    onMatchConsumed: (() -> Unit)? = null,
+) {
     val preferenceManager: PreferenceManager = koinInject()
     val isDarkMode by preferenceManager.isDarkMode.collectAsState(initial = true)
 
     FootballClipsTheme(darkTheme = isDarkMode) {
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+            color = MaterialTheme.colorScheme.background,
         ) {
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                 val windowWidthSizeClass = when {
@@ -36,14 +40,16 @@ fun App() {
                     maxWidth < 840.dp -> WindowWidthSizeClass.Medium
                     else -> WindowWidthSizeClass.Expanded
                 }
-                val isExpanded = windowWidthSizeClass == WindowWidthSizeClass.Expanded
-                
-                CompositionLocalProvider(LocalIsBigScreen provides isExpanded) {
-                    if (isExpanded) {
-                        WebMatchesScreen()
-                    } else {
-                        MobileMatchesScreen()
-                    }
+                val isBigScreen = windowWidthSizeClass != WindowWidthSizeClass.Compact
+
+                CompositionLocalProvider(
+                    LocalIsBigScreen provides isBigScreen,
+                    LocalWindowWidthSizeClass provides windowWidthSizeClass,
+                ) {
+                    AdaptiveMatchesScaffold(
+                        initialMatchId = initialMatchId,
+                        onMatchConsumed = onMatchConsumed,
+                    )
                 }
             }
         }

@@ -37,7 +37,7 @@ fun LeagueFilterItem(
                 .size(56.dp)
                 .background(
                     if (logo.isEmpty()) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    else Color.White.copy(alpha = 0.9f),
+                    else Color.Transparent,
                     CircleShape
                 )
                 .border(

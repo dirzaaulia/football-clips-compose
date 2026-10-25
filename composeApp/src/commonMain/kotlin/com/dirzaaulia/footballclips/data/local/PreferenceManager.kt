@@ -27,4 +27,7 @@ expect class PreferenceManager {
 
     val selectedSeason: Flow<Int>
     suspend fun setSelectedSeason(season: Int)
+
+    val isMerchandiseEnabled: Flow<Boolean>
+    suspend fun setMerchandiseEnabled(enabled: Boolean)
 }

@@ -90,7 +90,17 @@ export function useVideoPlayer() {
   const playVideo = useCallback((match: MatchRecord) => {
     // Navigate directly to the dedicated full-page Match Centre screen
     if (match?.id) {
-      router.push(`/match/${match.id}`);
+      const params = new URLSearchParams();
+      if (match.id.startsWith('mw-')) {
+        params.set('home', match.home_team_name || match.home_team);
+        params.set('away', match.away_team_name || match.away_team);
+        params.set('comp', match.competition_name);
+        params.set('vid', match.highlight_video_id || '');
+        params.set('date', match.utc_date);
+        if (match.home_team_crest) params.set('homeCrest', match.home_team_crest);
+        if (match.away_team_crest) params.set('awayCrest', match.away_team_crest);
+      }
+      router.push(`/match/${match.id}${params.size ? `?${params}` : ''}`);
     }
   }, [router]);
 

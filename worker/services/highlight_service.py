@@ -17,9 +17,11 @@ from worker.config.constants import (
     FORBIDDEN_TITLE_PATTERNS,
     HIGHLIGHT_REQUIRED_KEYWORDS,
     OFFICIAL_LEAGUE_CHANNELS,
+    BACKUP_LEAGUE_CHANNELS,
 )
 from worker.config.settings import settings
 from worker.services.notification_service import notification_service
+from worker.services.telemetry_service import telemetry_service
 from worker.utils.telemetry_logger import append_event
 
 
@@ -312,14 +314,29 @@ class HighlightService:
         now_utc = datetime.now(UTC)
         match_age_hours = (now_utc - match_start).total_seconds() / 3600.0
 
+        m_id = match.get("id")
+
+        def append_match_log(msg: str, level: str = "INFO", subsystem: str = "YOUTUBE", action: str = "RUN", attributes: dict | None = None):
+            return append_event(log_events, msg, level, subsystem, action, match_id=m_id, attributes=attributes)
+
+        # Strict Finished Status Guard: Unplayed, timed, or in-play matches must never be checked for highlights
+        status = match.get("status", "")
+        if status and status not in ["FINISHED", "AWARDED"]:
+            append_match_log(
+                f"   [SKIP UNFINISHED] {home} vs {away} status is {status}. Only FINISHED matches are eligible for highlight scraping.",
+                "INFO",
+                "YOUTUBE",
+                "SKIP_UNFINISHED",
+            )
+            return None, None, None, None
+
         # UEFA European embargo rule: clubs cannot legally publish highlights until H+2.5h
         if comp_id in ["CL", "EL", "ECL"] and match_age_hours < 2.5:
-            append_event(
-                log_events,
+            append_match_log(
                 f"   [SKIP EMBARGO] {home} vs {away} finished {match_age_hours:.1f}h ago (< 2.5h UEFA media embargo window). Awaiting official club upload release.",
                 "INFO",
                 "YOUTUBE",
-                "UEFA_EMBARGO"
+                "UEFA_EMBARGO",
             )
             return None, None, None, None
 
@@ -327,19 +344,27 @@ class HighlightService:
         pub_before = (match_start + timedelta(hours=96)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         # Architectural Directive:
-        # - LaLiga (PD), Bundesliga (BL1), Ligue 1 (FL1), Serie A (SA): Check official league YouTube channels
+        # - Official league / tournament channels checked first, followed by verified backup broadcasters
         # - Premier League (PL), Champions League (CL), or other: Check official club YouTube handles
+        target_handles = []
         if comp_id in OFFICIAL_LEAGUE_CHANNELS:
-            target_handles = [OFFICIAL_LEAGUE_CHANNELS[comp_id]]
+            target_handles.append(OFFICIAL_LEAGUE_CHANNELS[comp_id])
+            if comp_id in BACKUP_LEAGUE_CHANNELS:
+                target_handles.extend([b for b in BACKUP_LEAGUE_CHANNELS[comp_id] if b not in target_handles])
         elif comp_name_upper in OFFICIAL_LEAGUE_CHANNELS:
-            target_handles = [OFFICIAL_LEAGUE_CHANNELS[comp_name_upper]]
-        else:
-            h_handle = self.get_club_handle(home)
-            a_handle = self.get_club_handle(away)
-            target_handles = [h for h in [h_handle, a_handle] if h]
+            target_handles.append(OFFICIAL_LEAGUE_CHANNELS[comp_name_upper])
+            if comp_name_upper in BACKUP_LEAGUE_CHANNELS:
+                target_handles.extend([b for b in BACKUP_LEAGUE_CHANNELS[comp_name_upper] if b not in target_handles])
+
+        # For MLS, cup competitions, or if no league channel matched: also check official club channels
+        h_handle = self.get_club_handle(home)
+        a_handle = self.get_club_handle(away)
+        club_handles = [h for h in [h_handle, a_handle] if h and h not in target_handles]
+        if not target_handles or comp_id in ["MLS", "USA", "CDR", "FAC", "CIT", "DFB", "CDF", "EFL", "CL", "EL"]:
+            target_handles.extend(club_handles)
 
         if not target_handles:
-            append_event(log_events, f"[SKIP] [{comp}] ({m_date}) No official YouTube handles mapped for: {home} vs {away}", "DEBUG", "YOUTUBE", "NO_HANDLE")
+            append_match_log(f"[SKIP] [{comp}] ({m_date}) No official YouTube handles mapped for: {home} vs {away}", "DEBUG", "YOUTUBE", "NO_HANDLE")
             return None, None, None, None
 
         h_search = self.clean_team_name_for_search(home)
@@ -441,8 +466,7 @@ class HighlightService:
                     )
                 ):
                     self.cycle_search_api_calls += 1
-                    append_event(
-                        log_events,
+                    append_match_log(
                         f"   [LAST RESORT SEARCH] Zero-quota scans empty. Executing budgeted YouTube Search API for {handle} (Quota remaining: {self.get_safe_quota_remaining()} units)...",
                         "INFO",
                         "YOUTUBE",
@@ -451,9 +475,9 @@ class HighlightService:
                     matched_items = youtube_client.search_videos(query, c_id, pub_after, pub_before)
 
                 if matched_items:
-                    append_event(log_events, f"   [VIDEOS FOUND] Found {len(matched_items)} video(s) from channel {handle}", "INFO", "YOUTUBE", "CHANNEL_FOUND")
+                    append_match_log(f"   [VIDEOS FOUND] Found {len(matched_items)} video(s) from channel {handle}", "INFO", "YOUTUBE", "CHANNEL_FOUND")
                 else:
-                    append_event(log_events, f"   [NO VIDEOS] 0 matching videos from channel {handle}", "INFO", "YOUTUBE", "CHANNEL_EMPTY")
+                    append_match_log(f"   [NO VIDEOS] 0 matching videos from channel {handle}", "INFO", "YOUTUBE", "CHANNEL_EMPTY")
                     continue
 
                 video_ids = [it["id"]["videoId"] for it in matched_items if it.get("id", {}).get("videoId")]
@@ -464,21 +488,21 @@ class HighlightService:
                     title = html.unescape(item["snippet"]["title"])
                     is_forbidden, reason = self.check_forbidden_title(title)
                     if is_forbidden:
-                        append_event(log_events, f"   [BLOCKED TITLE] '{title[:60]}' (Reason: {reason})", "DEBUG", "YOUTUBE", "FILTER_TITLE")
+                        append_match_log(f"   [BLOCKED TITLE] '{title[:60]}' (Reason: {reason})", "DEBUG", "YOUTUBE", "FILTER_TITLE")
                         continue
 
                     dur = durations.get(vid, 0)
                     if not (settings.min_duration_seconds <= dur <= settings.max_duration_seconds):
-                        append_event(log_events, f"   [BLOCKED DURATION] '{title[:60]}' ({dur}s outside {settings.min_duration_seconds}-{settings.max_duration_seconds}s)", "DEBUG", "YOUTUBE", "FILTER_DURATION")
+                        append_match_log(f"   [BLOCKED DURATION] '{title[:60]}' ({dur}s outside {settings.min_duration_seconds}-{settings.max_duration_seconds}s)", "DEBUG", "YOUTUBE", "FILTER_DURATION")
                         continue
 
                     if youtube_client.is_youtube_short(vid):
-                        append_event(log_events, f"   [BLOCKED SHORT] '{title[:60]}' is a vertical YouTube Short.", "DEBUG", "YOUTUBE", "FILTER_SHORT")
+                        append_match_log(f"   [BLOCKED SHORT] '{title[:60]}' is a vertical YouTube Short.", "DEBUG", "YOUTUBE", "FILTER_SHORT")
                         continue
 
                     geo_penalty, geo_desc = self.get_geoblock_status(regions.get(vid))
                     if geo_penalty >= 9999:
-                        append_event(log_events, f"   [BLOCKED GEOBLOCK] '{title[:60]}' is blocked globally ({geo_desc}).", "DEBUG", "YOUTUBE", "FILTER_GEO")
+                        append_match_log(f"   [BLOCKED GEOBLOCK] '{title[:60]}' is blocked globally ({geo_desc}).", "DEBUG", "YOUTUBE", "FILTER_GEO")
                         continue
 
                     candidates.append({
@@ -495,9 +519,9 @@ class HighlightService:
             except Exception as e:
                 err_msg = str(e) or type(e).__name__
                 if "quotaExceeded" in err_msg or "429" in err_msg or "quota" in err_msg.lower():
-                    append_event(log_events, f"   [QUOTA LIMIT] YouTube Data API quota exceeded on channel {handle}: {err_msg[:80]}", "ERROR", "YOUTUBE", "QUOTA_EXCEEDED")
+                    append_match_log(f"   [QUOTA LIMIT] YouTube Data API quota exceeded on channel {handle}: {err_msg[:80]}", "ERROR", "YOUTUBE", "QUOTA_EXCEEDED")
                 else:
-                    append_event(log_events, f"   [ERROR] Channel scan failed for {handle}: {err_msg[:80]}", "ERROR", "YOUTUBE", "API_ERROR")
+                    append_match_log(f"   [ERROR] Channel scan failed for {handle}: {err_msg[:80]}", "ERROR", "YOUTUBE", "API_ERROR")
 
         if not candidates:
             return None, None, None, None
@@ -505,17 +529,16 @@ class HighlightService:
         if claimed_video_ids:
             candidates = [c for c in candidates if c.get("id") not in claimed_video_ids]
             if not candidates:
-                append_event(log_events, f"   [ALL CLAIMED] All detected candidates ({home} vs {away}) are already linked to other matches in Supabase.", "INFO", "YOUTUBE", "CLAIMED")
+                append_match_log(f"   [ALL CLAIMED] All detected candidates ({home} vs {away}) are already linked to other matches in Supabase.", "INFO", "YOUTUBE", "CLAIMED")
                 return None, None, None, None
 
-        append_event(log_events, f"   [CANDIDATES] Found {len(candidates)} official highlight candidate(s) for {home} vs {away}:", "INFO", "YOUTUBE", "CANDIDATES")
+        append_match_log(f"   [CANDIDATES] Found {len(candidates)} official highlight candidate(s) for {home} vs {away}:", "INFO", "YOUTUBE", "CANDIDATES")
         for idx, c in enumerate(candidates, 1):
             dur = c.get("duration", 0)
             dur_str = f"{dur // 60}m{dur % 60:02d}s"
             geo_str = "[🌐 100% Global]" if c.get("geo_penalty", 0) == 0 else f"[⚠️ {c.get('geo_desc')}]"
             embed_str = "[Embed: OK]" if c.get("is_embeddable", True) else "[⚠️ Embed: Redirect]"
-            append_event(
-                log_events,
+            append_match_log(
                 f"      #{idx} [{c['channel']}] '{c['title']}' ({dur_str}) {geo_str} {embed_str} -> https://youtu.be/{c['id']}",
                 "INFO",
                 "YOUTUBE",
@@ -584,8 +607,7 @@ class HighlightService:
 
         if (is_single_strong or is_dominant_winner) and is_valid_highlight_candidate(top_cand["title"]):
             backup_vid, backup_reg = find_backup_candidate(top_cand["id"], selected_pool)
-            append_event(
-                log_events,
+            append_match_log(
                 f"   [HIGH CONFIDENCE AUTO-SELECT] Deterministic scorer selected {top_cand['channel']} ({top_score}pts, margin +{margin}): '{top_cand['title']}' -> https://youtu.be/{top_cand['id']}" + (f" (Backup stream: https://youtu.be/{backup_vid})" if backup_vid else ""),
                 "SUCCESS",
                 "YOUTUBE",
@@ -594,24 +616,28 @@ class HighlightService:
             return top_cand["id"], top_cand["region"], backup_vid, backup_reg
 
         # 2. Evaluate with Gemini AI when multiple candidates are close or ambiguous
-        append_event(log_events, f"   [AI GEMINI] Evaluating {len(selected_pool)} candidate(s) with Gemini AI (top score: {top_score}pts, margin: {margin}pts)...", "INFO", "AI_GEMINI", "AI_EVAL")
+        append_match_log(f"   [AI GEMINI] Evaluating {len(selected_pool)} candidate(s) with Gemini AI (top score: {top_score}pts, margin: {margin}pts)...", "INFO", "AI_GEMINI", "AI_EVAL")
         comp_display = comp
         best_idx = gemini_client.rerank_highlights(home, away, comp_display, selected_pool)
         if best_idx is not None and 0 <= best_idx < len(selected_pool):
             best = selected_pool[best_idx]
             backup_vid, backup_reg = find_backup_candidate(best["id"], selected_pool)
-            append_event(log_events, f"   [AI MATCH] Gemini selected candidate #{best_idx + 1} ({best.get('heuristic_score', 0)}pts): '{best['title']}' ({best['channel']}) -> https://youtu.be/{best['id']}" + (f" (Backup: {backup_vid})" if backup_vid else ""), "SUCCESS", "AI_GEMINI", "LINKED")
+            append_match_log(f"   [AI MATCH] Gemini selected candidate #{best_idx + 1} ({best.get('heuristic_score', 0)}pts): '{best['title']}' ({best['channel']}) -> https://youtu.be/{best['id']}" + (f" (Backup: {backup_vid})" if backup_vid else ""), "SUCCESS", "AI_GEMINI", "LINKED")
             return best["id"], best["region"], backup_vid, backup_reg
+
+        if best_idx == -1:
+            append_match_log("AI explicitly rejected all candidates; no fallback acceptance.", "WARN", "AI_GEMINI", "AI_REJECTED")
+            return None, None, None, None
 
         # 3. Deterministic Heuristic Fallback: Select candidate with highest mathematical score (> 0)
         valid_candidates = [c for c in selected_pool if c["heuristic_score"] > 0 and is_valid_highlight_candidate(c["title"])]
         if valid_candidates:
             best = valid_candidates[0]
             backup_vid, backup_reg = find_backup_candidate(best["id"], selected_pool)
-            append_event(log_events, f"   [FALLBACK SELECT] Weighted Heuristic selected #{best['heuristic_score']}pts from {best['channel']}: '{best['title']}' -> https://youtu.be/{best['id']}" + (f" (Backup: {backup_vid})" if backup_vid else ""), "SUCCESS", "YOUTUBE", "LINKED")
+            append_match_log(f"   [FALLBACK SELECT] Weighted Heuristic selected #{best['heuristic_score']}pts from {best['channel']}: '{best['title']}' -> https://youtu.be/{best['id']}" + (f" (Backup: {backup_vid})" if backup_vid else ""), "SUCCESS", "YOUTUBE", "LINKED")
             return best["id"], best["region"], backup_vid, backup_reg
 
-        append_event(log_events, f"   [VALIDATION FAILED] Candidates do not match both {home} and {away} with verified highlight keywords. Skipped linking.", "WARN", "YOUTUBE", "REJECTED")
+        append_match_log(f"   [VALIDATION FAILED] Candidates do not match both {home} and {away} with verified highlight keywords. Skipped linking.", "WARN", "YOUTUBE", "REJECTED")
         return None, None, None, None
 
 
@@ -660,7 +686,10 @@ class HighlightService:
 
         if minutes_since_last_check >= cooldown_min:
             return True, f"{tier_name} expired ({minutes_since_last_check:.0f}m >= {cooldown_min}m)"
-        return False, f"{tier_name} active ({minutes_since_last_check:.0f}m < {cooldown_min}m)"
+        remaining_min = cooldown_min - minutes_since_last_check
+        next_check_dt = last_check + timedelta(minutes=cooldown_min)
+        next_check_str = next_check_dt.strftime("%Y-%m-%d %H:%M UTC")
+        return False, f"{tier_name} active ({remaining_min:.0f}m remaining of {cooldown_min}m; next check at {next_check_str})"
 
     def sort_unlinked_matches_by_priority(self, matches: list[dict], now_utc: datetime) -> list[dict]:
         """
@@ -714,6 +743,15 @@ class HighlightService:
     ) -> int:
         if log_events is None:
             log_events = []
+
+        import os
+        if os.getenv("FC_DISCOVERY_URL"):
+            import httpx
+            response = httpx.post(os.environ["FC_DISCOVERY_URL"] + "/internal/tick",
+                headers={"X-FC-Internal": os.environ["FC_INTERNAL_TOKEN"]}, timeout=15)
+            response.raise_for_status()
+            append_event(log_events, "Durable discovery coordination queued; processing is not yet complete.", "INFO", "YOUTUBE", "QUEUED")
+            return 0
 
         self.cycle_search_api_calls = 0
         now_utc = datetime.now(UTC)
@@ -872,7 +910,7 @@ class HighlightService:
                         err_msg = str(e)
                         if "23505" in err_msg or "uq_matches_highlight_video_id" in err_msg:
                             claimed_video_ids.add(vid)
-                            append_event(log_events, f"   [DUPLICATE BLOCKED] Video {vid} is already claimed by another match in database. Setting cooldown.", "WARN", "YOUTUBE", "DUPLICATE_CLAIM")
+                            append_event(log_events, f"   [DUPLICATE BLOCKED] Video {vid} is already claimed by another match in database. Setting cooldown.", "WARN", "YOUTUBE", "DUPLICATE_CLAIM", match_id=match["id"])
                             supabase_client.table("matches").update({
                                 "last_youtube_check": now_iso
                             }).eq("id", match["id"]).execute()
@@ -887,7 +925,7 @@ class HighlightService:
                             raise e
 
                     linked_count += 1
-                    append_event(log_events, f"   [LINKED] {home} vs {away} -> https://youtu.be/{vid} saved to Supabase.", "SUCCESS", "YOUTUBE", "DB_LINKED")
+                    append_event(log_events, f"   [LINKED] {home} vs {away} -> https://youtu.be/{vid} saved to Supabase.", "SUCCESS", "YOUTUBE", "DB_LINKED", match_id=match["id"])
 
                     # Dual-write to Legacy Supabase Cloud for backward compatibility
                     supabase_cloud_client.update_match_highlight(match["id"], vid, reg, now_iso)
@@ -895,20 +933,20 @@ class HighlightService:
                     notification_service.notify_highlight_ready(match, vid, "Official Highlights", log_events)
                 else:
                     _, next_tier_info = self.should_check_youtube_for_match({**match, "last_youtube_check": now_iso}, now_utc)
-                    append_event(log_events, f"   [NOT FOUND] No official highlight available yet for: {home} vs {away} (Entering cooldown: {next_tier_info})", "WARN", "YOUTUBE", "NOT_FOUND")
+                    append_event(log_events, f"   [NOT FOUND] No official highlight available yet for: {home} vs {away} (Entering cooldown: {next_tier_info})", "WARN", "YOUTUBE", "NOT_FOUND", match_id=match["id"])
                     supabase_client.table("matches").update({
                         "last_youtube_check": now_iso
                     }).eq("id", match["id"]).execute()
             except Exception as e:
                 err_str = str(e) or type(e).__name__
                 if "23505" in err_str or "uq_matches_highlight_video_id" in err_str:
-                    append_event(log_events, f"   [DUPLICATE BLOCKED] Match highlight constraint collision for {home} vs {away}. Entering cooldown.", "WARN", "YOUTUBE", "DUPLICATE_CLAIM")
+                    append_event(log_events, f"   [DUPLICATE BLOCKED] Match highlight constraint collision for {home} vs {away}. Entering cooldown.", "WARN", "YOUTUBE", "DUPLICATE_CLAIM", match_id=match["id"])
                     supabase_client.table("matches").update({
                         "last_youtube_check": now_iso
                     }).eq("id", match["id"]).execute()
                 else:
-                    append_event(log_events, f"   [ERROR] Match highlight search error for {home} vs {away}: {err_str}", "ERROR", "YOUTUBE", "SEARCH_ERROR")
-                    append_event(log_events, f"   [SKIP COOLDOWN] Network/API error ({err_str}). Cooldown not recorded for {home} vs {away} to allow retry next cycle.", "DEBUG", "YOUTUBE", "SKIP_COOLDOWN")
+                    append_event(log_events, f"   [ERROR] Match highlight search error for {home} vs {away}: {err_str}", "ERROR", "YOUTUBE", "SEARCH_ERROR", match_id=match["id"])
+                    append_event(log_events, f"   [SKIP COOLDOWN] Network/API error ({err_str}). Cooldown not recorded for {home} vs {away} to allow retry next cycle.", "DEBUG", "YOUTUBE", "SKIP_COOLDOWN", match_id=match["id"])
 
         # Step 3b: Quota Maximizer - Utilize remaining daily quota up to target (e.g. 8,500 units)
         # by scanning unlinked historical/archive matches to build high historical utilization proof for Google
@@ -1180,17 +1218,29 @@ class HighlightService:
         if not video_id or not title:
             return False
 
+        append_event(
+            log_events,
+            f"[WEBSUB INTAKE] Video ID: {video_id} | Title: '{title}' | Channel ID: {channel_id or 'Unknown'}",
+            "INFO",
+            "WEBSUB",
+            "INTAKE",
+        )
+
         # 1. Title Filter: reject forbidden patterns (shorts, pressers, interviews, training)
         is_forbidden, reason = self.check_forbidden_title(title)
         if is_forbidden:
-            append_event(log_events, f"[WEBSUB REJECT] Video '{title}' ({video_id}) rejected: {reason}", "INFO", "WEBSUB", "FORBIDDEN")
+            append_event(log_events, f"[WEBSUB REJECT] Video '{title}' ({video_id}) rejected: {reason}", "WARN", "WEBSUB", "FORBIDDEN")
             logger.info(f"[WebSub Direct] Video {video_id} ('{title}') rejected: {reason}")
+            telemetry_service.record_cycle("WEBSUB_PUSH", "0s", 0, log_events, pipeline_type="YOUTUBE_SCRAPER")
             return False
 
         if not self.has_highlight_keyword(title):
-            append_event(log_events, f"[WEBSUB REJECT] Video '{title}' ({video_id}) lacks highlight keyword", "INFO", "WEBSUB", "NO_KEYWORD")
+            append_event(log_events, f"[WEBSUB REJECT] Video '{title}' ({video_id}) lacks required highlight keyword", "WARN", "WEBSUB", "NO_KEYWORD")
             logger.info(f"[WebSub Direct] Video {video_id} ('{title}') lacks highlight keyword")
+            telemetry_service.record_cycle("WEBSUB_PUSH", "0s", 0, log_events, pipeline_type="YOUTUBE_SCRAPER")
             return False
+
+        append_event(log_events, f"[WEBSUB TITLE CHECK] Video title passed highlight keyword and pattern validation.", "INFO", "WEBSUB", "TITLE_PASSED")
 
         # 2. Query recent finished unlinked matches from Supabase
         now_utc = datetime.now(UTC)
@@ -1209,11 +1259,16 @@ class HighlightService:
             unlinked_matches = res.data or []
         except Exception as e:
             logger.error(f"[WebSub Direct] Error querying unlinked matches: {e}")
+            append_event(log_events, f"[WEBSUB ERROR] Supabase query failed: {e}", "ERROR", "WEBSUB", "DB_ERROR")
+            telemetry_service.record_cycle("WEBSUB_PUSH", "0s", 0, log_events, pipeline_type="YOUTUBE_SCRAPER")
             return False
 
         if not unlinked_matches:
-            append_event(log_events, f"[WEBSUB] No recent unlinked finished matches in the last 72h.", "INFO", "WEBSUB", "NO_CANDIDATES")
+            append_event(log_events, f"[WEBSUB] No recent unlinked finished matches in the last 72h window.", "INFO", "WEBSUB", "NO_CANDIDATES")
+            telemetry_service.record_cycle("WEBSUB_PUSH", "0s", 0, log_events, pipeline_type="YOUTUBE_SCRAPER")
             return False
+
+        append_event(log_events, f"[WEBSUB CANDIDATES] Query matched {len(unlinked_matches)} unlinked finished matches in last 72h.", "INFO", "WEBSUB", "CANDIDATES_FOUND")
 
         # 3. Identify matches matching team aliases
         best_match = None
@@ -1250,6 +1305,14 @@ class HighlightService:
                     published_at=now_utc,
                     match_utc=match_dt,
                 )
+                append_event(
+                    log_events,
+                    f"[WEBSUB CANDIDATE EVAL] Fixture {home} vs {away} (Home Hit={home_hit}, Away Hit={away_hit}) -> Match Score: {score}/100",
+                    "INFO",
+                    "WEBSUB",
+                    "SCORE_EVAL",
+                    match_id=m.get("id"),
+                )
                 if score > best_score:
                     best_score = score
                     best_match = m
@@ -1257,9 +1320,18 @@ class HighlightService:
         if best_match and best_score >= 50:
             # 4. Check global playability
             is_playable, is_embeddable, country_count, status_msg = youtube_rss_client.check_video_global_availability(video_id)
+            append_event(
+                log_events,
+                f"[WEBSUB PLAYABILITY] Playable={is_playable}, Embeddable={is_embeddable}, Worldwide Available Countries={country_count} ({status_msg})",
+                "INFO",
+                "WEBSUB",
+                "AVAILABILITY_CHECK",
+                match_id=best_match.get("id"),
+            )
             if not is_playable:
-                append_event(log_events, f"[WEBSUB REJECT] Video {video_id} is not playable globally ({status_msg}).", "WARN", "WEBSUB", "UNPLAYABLE")
+                append_event(log_events, f"[WEBSUB REJECT] Video {video_id} is not playable globally ({status_msg}).", "WARN", "WEBSUB", "UNPLAYABLE", match_id=best_match.get("id"))
                 logger.warning(f"[WebSub Direct] Video {video_id} not playable: {status_msg}")
+                telemetry_service.record_cycle("WEBSUB_PUSH", "0s", 0, log_events, pipeline_type="YOUTUBE_SCRAPER")
                 return False
 
             # Link immediately in Supabase
@@ -1274,7 +1346,7 @@ class HighlightService:
                 home_name = best_match.get("home_team_name")
                 away_name = best_match.get("away_team_name")
                 msg = f"[WEBSUB INSTANT LINK] Successfully linked video {video_id} ('{title}') -> {home_name} vs {away_name} (Score: {best_score}, Playable: {status_msg})"
-                append_event(log_events, msg, "SUCCESS", "WEBSUB", "INSTANT_LINK")
+                append_event(log_events, msg, "SUCCESS", "WEBSUB", "INSTANT_LINK", match_id=best_match.get("id"))
                 logger.info(msg)
 
                 # Dual-write to Legacy Supabase Cloud for backward compatibility
@@ -1285,13 +1357,17 @@ class HighlightService:
 
                 # Instantly invalidate Cloudflare Edge Cache so mobile clients see the highlight immediately
                 edge_cache_client.purge_matches_cache()
+                telemetry_service.record_cycle("WEBSUB_PUSH", "0s", 0, log_events, pipeline_type="YOUTUBE_SCRAPER")
 
                 return True
             except Exception as e:
                 logger.error(f"[WebSub Direct] Failed to update match {best_match.get('id')}: {e}")
+                append_event(log_events, f"[WEBSUB ERROR] Failed to update match {best_match.get('id')}: {e}", "ERROR", "WEBSUB", "DB_UPDATE_ERROR")
+                telemetry_service.record_cycle("WEBSUB_PUSH", "0s", 0, log_events, pipeline_type="YOUTUBE_SCRAPER")
                 return False
 
-        append_event(log_events, f"[WEBSUB NO MATCH] Video '{title}' ({video_id}) did not match any recent unlinked fixture.", "INFO", "WEBSUB", "NO_MATCH")
+        append_event(log_events, f"[WEBSUB NO MATCH] Video '{title}' ({video_id}) did not match any recent unlinked fixture with confidence >= 50.", "INFO", "WEBSUB", "NO_MATCH")
+        telemetry_service.record_cycle("WEBSUB_PUSH", "0s", 0, log_events, pipeline_type="YOUTUBE_SCRAPER")
         return False
 
 highlight_service = HighlightService()

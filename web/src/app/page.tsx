@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useTransition, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { MatchRecord, getLiveMatches } from '@/lib/database';
-import { fetchMergedHighlightsPage, extractFilterOptions } from '@/lib/middleware-highlights';
-import { BIG_LEAGUES, isLeagueMatch } from '@/lib/constants';
-import { isMatchForFavoriteClubs } from '@/lib/clubs';
+import { extractFilterOptions } from '@/lib/middleware-highlights';
+import { useCompetitions, isLeagueMatch } from '@/hooks/useCompetitions';
+import { isMatchForFavoriteClubs, useSupportedClubs } from '@/hooks/useSupportedClubs';
+import { useInfiniteHighlights } from '@/hooks/useCatalogHighlights';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import { useDragScroll } from '@/hooks/useDragScroll';
 import ExcitementCarousel from '@/components/hero/ExcitementCarousel';
@@ -16,6 +17,7 @@ import HomeModalsAndOverlays from '@/components/feed/HomeModalsAndOverlays';
 import SeasonSelector from '@/components/filter/SeasonSelector';
 import CompetitionFilterBar from '@/components/feed/CompetitionFilterBar';
 import InfiniteScrollSentinel from '@/components/feed/InfiniteScrollSentinel';
+import MyClubsStoreShelf from '@/components/affiliate/MyClubsStoreShelf';
 import { useSeason } from '@/hooks/useSeason';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { Trophy, Loader2, CheckCircle2, Archive } from 'lucide-react';
@@ -25,7 +27,6 @@ import Link from 'next/link';
 export default function HomePage() {
   const { selectedSeason, setSeason, isArchiveSeason, currentOption } = useSeason();
   const { playVideo, closePlayer, isSideSheetOpen, activeMatch } = useVideoPlayer();
-  const [matches, setMatches] = useState<MatchRecord[]>([]);
   const [liveMatches, setLiveMatches] = useState<MatchRecord[]>([]);
   const [selectedComp, setSelectedComp] = useState('ALL');
   const [isMyClubsActive, setIsMyClubsActive] = useState(false);
@@ -33,10 +34,7 @@ export default function HomePage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showEducation, setShowEducation] = useState(false);
   const [activeVideoMatch, setActiveVideoMatch] = useState<MatchRecord | null>(null);
-  const [loading, setLoading] = useState({ initial: true, more: false, hasMore: true });
-  const [offsets, setOffsets] = useState({ supa: 0, mw: 0 });
   const [mounted, setMounted] = useState(false);
-  const [, startTransition] = useTransition();
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,55 +71,27 @@ export default function HomePage() {
     return () => { isCancelled = true; clearInterval(interval); };
   }, []);
 
-  // Reset and load initial page when competition or season changes
-  useEffect(() => {
-    let isCancelled = false;
-    async function loadInitial() {
-      setLoading((prev) => ({ ...prev, initial: true }));
-      const res = await fetchMergedHighlightsPage(selectedComp, 0, 0, 24, 30, selectedSeason);
-      if (!isCancelled) {
-        startTransition(() => {
-          setMatches(res.matches);
-          setOffsets({ supa: res.nextOffsetDb, mw: res.nextOffsetMw });
-          setLoading({ initial: false, more: false, hasMore: res.hasMore });
-        });
-      }
-    }
-    loadInitial();
-    return () => { isCancelled = true; };
-  }, [selectedComp, selectedSeason]);
-
-  // Infinite scroll load more handler
-  const handleLoadMore = useCallback(async () => {
-    if (loading.more || !loading.hasMore) return;
-    setLoading((prev) => ({ ...prev, more: true }));
-    const res = await fetchMergedHighlightsPage(selectedComp, offsets.supa, offsets.mw, 20, 30, selectedSeason);
-    startTransition(() => {
-      setMatches((prev) => {
-        const seen = new Set(prev.map((m) => m.highlight_video_id || m.id));
-        return [...prev, ...res.matches.filter((m) => !seen.has(m.highlight_video_id || m.id))];
-      });
-      setOffsets({ supa: res.nextOffsetDb, mw: res.nextOffsetMw });
-      setLoading((prev) => ({ ...prev, more: false, hasMore: res.hasMore }));
-    });
-  }, [loading.more, loading.hasMore, selectedComp, offsets, selectedSeason]);
+  const catalog = useInfiniteHighlights(selectedComp, selectedSeason, 20, searchQuery);
+  const matches = catalog.highlights;
+  const loading = { initial: catalog.isLoading, more: catalog.isLoadingMore, hasMore: catalog.hasMore };
+  const handleLoadMore = catalog.loadMore;
 
   // Infinite scroll intersection observer
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    if (!sentinel || !loading.hasMore || loading.initial) return;
+    if (!sentinel || !loading.hasMore || loading.initial || catalog.error) return;
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) handleLoadMore();
     }, { rootMargin: '400px' });
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [handleLoadMore, loading.hasMore, loading.initial]);
+  }, [handleLoadMore, loading.hasMore, loading.initial, catalog.error]);
 
   const { countries, leagues } = useMemo(() => extractFilterOptions(matches), [matches]);
 
   const displayedMatches = useMemo(() => {
     return matches.filter((m) => {
-      if (isMyClubsActive && favoriteClubs.size > 0 && !isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs)) return false;
+      if (isMyClubsActive && favoriteClubs.size > 0 && !isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs, supportedClubs)) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const home = (m.home_team_name || m.home_team).toLowerCase();
@@ -134,25 +104,31 @@ export default function HomePage() {
     });
   }, [matches, isMyClubsActive, favoriteClubs, searchQuery, selectedCountries, selectedLeagues]);
 
-  const bigLeague = useMemo(() => BIG_LEAGUES.find((b) => b.competitionId === selectedComp), [selectedComp]);
+  const competitions = useCompetitions();
+  const supportedClubs = useSupportedClubs();
+  const competition = useMemo(() => competitions.find((b) => b.competitionId === selectedComp), [competitions, selectedComp]);
 
   const displayedLiveMatches = useMemo(() => {
     return liveMatches.filter((m) => {
       if (isMyClubsActive && favoriteClubs.size > 0) {
-        if (!isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs)) return false;
-      } else if (selectedComp !== 'ALL' && bigLeague) {
-        const matchComp = m.competition_id === selectedComp || isLeagueMatch(bigLeague.name, m.competition_name);
+        if (!isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs, supportedClubs)) return false;
+      } else if (selectedComp !== 'ALL' && competition) {
+        const matchComp = m.competition_id === selectedComp || isLeagueMatch(competition.name, m.competition_name);
         if (!matchComp) return false;
       }
       return true;
     });
-  }, [liveMatches, isMyClubsActive, favoriteClubs, selectedComp, bigLeague]);
+  }, [liveMatches, isMyClubsActive, favoriteClubs, selectedComp, competition, supportedClubs]);
 
   const activeFilterCount = (searchQuery ? 1 : 0) + selectedCountries.length + selectedLeagues.length;
   const feedMatches = displayedMatches;
 
   return (
     <div className="max-w-[1600px] w-full mx-auto px-3.5 sm:px-6 lg:px-8 2xl:px-10 py-4">
+      {catalog.error ? <div role="alert" className="mb-4 rounded-xl border border-amber-700 p-4 text-amber-100">
+        Highlights could not load. Your last results are still available.
+        <button onClick={catalog.refresh} className="ml-3 underline min-h-12">Retry</button>
+      </div> : null}
       <ExcitementCarousel
         matches={matches}
         onPlay={(m) => {
@@ -174,7 +150,7 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-3">
             <SeasonSelector variant="compact" />
-            <span className="hidden sm:inline text-xs text-[#94A3B8] font-medium">Verified Official Broadcasts</span>
+            <span className="hidden sm:inline text-xs text-[#94A3B8] font-medium">Saved Highlights & Publisher Links</span>
           </div>
         </div>
 
@@ -190,6 +166,10 @@ export default function HomePage() {
           scrollRef={scrollRef}
         />
       </section>
+
+      {isMyClubsActive && (
+        <MyClubsStoreShelf onOpenMyClubs={() => setIsMyClubsModalOpen(true)} className="mb-6" />
+      )}
 
       {/* Archive Season Alert Banner */}
       {isArchiveSeason && (
@@ -263,8 +243,7 @@ export default function HomePage() {
 
       {/* Side Sheets & Modals */}
       <HomeModalsAndOverlays
-        activeVideoMatch={activeVideoMatch}
-        activeMatch={activeMatch}
+        currentMatch={activeVideoMatch || activeMatch}
         isSideSheetOpen={isSideSheetOpen}
         onClosePlayer={() => { setActiveVideoMatch(null); closePlayer(); }}
         matches={matches}
@@ -273,17 +252,11 @@ export default function HomePage() {
         onCloseFilter={() => setIsFilterOpen(false)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        availableCountries={countries}
-        selectedCountries={selectedCountries}
-        onToggleCountry={(c) => setSelectedCountries((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c])}
         availableLeagues={leagues}
         selectedLeagues={selectedLeagues}
         onToggleLeague={(l) => setSelectedLeagues((prev) => prev.includes(l) ? prev.filter((x) => x !== l) : [...prev, l])}
-        onResetFilters={() => { setSearchQuery(''); setSelectedCountries([]); setSelectedLeagues([]); }}
+        onResetFilters={() => { setSearchQuery(''); setSelectedLeagues([]); }}
         displayedMatchesCount={displayedMatches.length}
-        hasMore={loading.hasMore}
-        isLoadingMore={loading.more}
-        onLoadMore={handleLoadMore}
         isMyClubsModalOpen={isMyClubsModalOpen}
         onCloseMyClubs={() => setIsMyClubsModalOpen(false)}
         showEducation={showEducation}

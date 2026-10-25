@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import Image from 'next/image';
-import { X, Search, RotateCcw, Filter, Check } from 'lucide-react';
+import CompetitionLogo from '@/components/common/CompetitionLogo';
+import { X, Search, Filter, Check } from 'lucide-react';
 import { FilterOption } from '@/lib/middleware-highlights';
 
 interface FilterSideSheetProps {
@@ -10,17 +10,11 @@ interface FilterSideSheetProps {
   onClose: () => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
-  availableCountries: FilterOption[];
-  selectedCountries: string[];
-  onToggleCountry: (country: string) => void;
   availableLeagues: FilterOption[];
   selectedLeagues: string[];
   onToggleLeague: (league: string) => void;
   onReset: () => void;
   matchesFound: number;
-  hasMore?: boolean;
-  isLoadingMore?: boolean;
-  onLoadMore?: () => void;
 }
 
 export default function FilterSideSheet({
@@ -28,17 +22,11 @@ export default function FilterSideSheet({
   onClose,
   searchQuery,
   onSearchChange,
-  availableCountries,
-  selectedCountries,
-  onToggleCountry,
   availableLeagues,
   selectedLeagues,
   onToggleLeague,
   onReset,
   matchesFound,
-  hasMore = false,
-  isLoadingMore = false,
-  onLoadMore,
 }: FilterSideSheetProps) {
   useEffect(() => {
     if (isOpen) {
@@ -109,45 +97,11 @@ export default function FilterSideSheet({
 
         {/* Scrollable Filters */}
         <div className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-thin">
-          {/* Countries Filter */}
-          {availableCountries.length > 0 && (
-            <div className="space-y-2.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#7098F8]">
-                Select Country
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {availableCountries.map((c) => {
-                  const isSelected = selectedCountries.includes(c.name);
-                  return (
-                    <button
-                      key={c.name}
-                      onClick={() => onToggleCountry(c.name)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-[#1E3A8A]/50 text-white border-[#7098F8] shadow-[0_0_10px_rgba(112,152,248,0.25)]'
-                          : 'bg-[#1E2227] text-[#94A3B8] hover:text-white border-[#334155]'
-                      }`}
-                    >
-                      {c.logo && (
-                        <div className="relative w-3.5 h-3.5 shrink-0">
-                          <Image src={c.logo} alt={c.name} fill className="object-contain" unoptimized />
-                        </div>
-                      )}
-                      <span>{c.name}</span>
-                      <span className="text-[10px] text-[#94A3B8] font-normal">({c.count})</span>
-                      {isSelected && <Check className="w-3 h-3 text-[#4FC3F7] ml-0.5" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Leagues Filter */}
+          {/* Competitions / Leagues Filter */}
           {availableLeagues.length > 0 && (
             <div className="space-y-2.5">
               <span className="text-xs font-bold uppercase tracking-wider text-[#7098F8]">
-                Select League
+                Select Competition
               </span>
               <div className="flex flex-wrap gap-2">
                 {availableLeagues.map((l) => {
@@ -163,8 +117,10 @@ export default function FilterSideSheet({
                       }`}
                     >
                       {l.logo && (
-                        <div className="relative w-3.5 h-3.5 shrink-0">
-                          <Image src={l.logo} alt={l.name} fill className="object-contain" unoptimized />
+                        <div className="relative w-4 h-4 rounded-full bg-white p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-slate-200/20">
+                          <div className="relative w-full h-full">
+                            <CompetitionLogo src={l.logo} name={l.name} />
+                          </div>
                         </div>
                       )}
                       <span>{l.name}</span>
@@ -174,24 +130,6 @@ export default function FilterSideSheet({
                   );
                 })}
               </div>
-            </div>
-          )}
-
-          {/* Load More Option within Filter Sheet (Android Parity) */}
-          {hasMore && onLoadMore && (
-            <div className="p-4 rounded-2xl bg-[#1E2227]/60 border border-[#334155] space-y-2.5">
-              <p className="text-xs font-bold text-white">Looking for more matches?</p>
-              <p className="text-[11px] text-[#94A3B8] leading-relaxed">
-                Fetch older fixtures to discover more leagues and highlight clips.
-              </p>
-              <button
-                disabled={isLoadingMore}
-                onClick={onLoadMore}
-                className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-[#181C20] border border-[#7098F8]/40 hover:bg-[#1E3A8A]/30 text-[#7098F8] text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
-              >
-                <RotateCcw className={`w-3.5 h-3.5 ${isLoadingMore ? 'animate-spin' : ''}`} />
-                <span>{isLoadingMore ? 'Loading More...' : 'Load 40 More Highlights'}</span>
-              </button>
             </div>
           )}
         </div>

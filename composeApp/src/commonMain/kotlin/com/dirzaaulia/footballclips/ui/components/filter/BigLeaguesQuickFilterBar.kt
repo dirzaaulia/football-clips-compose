@@ -1,30 +1,35 @@
 package com.dirzaaulia.footballclips.ui.components.filter
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import com.dirzaaulia.footballclips.data.constants.BigLeague
-import com.dirzaaulia.footballclips.data.constants.BigLeaguesConstants
+import com.dirzaaulia.footballclips.data.model.remote.BigLeague
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable
@@ -36,30 +41,26 @@ fun BigLeaguesQuickFilterBar(
     dynamicCompetitions: List<BigLeague>? = null,
     showAll: Boolean = true,
     isCompact: Boolean = false,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp)
+    contentPadding: PaddingValues = PaddingValues(horizontal = 16.dp),
 ) {
     BoxWithConstraints(modifier = modifier.padding(vertical = 4.dp)) {
         val isWeb = maxWidth > 840.dp
         val leagues = remember(dynamicCompetitions, showAll) {
-            if (dynamicCompetitions != null && dynamicCompetitions.isNotEmpty()) {
-                val list = mutableListOf<BigLeague>()
-                if (showAll && dynamicCompetitions.none { it.leagueId == null && it.competitionId == null }) {
-                    list.add(
-                        BigLeague(
-                            name = "All Leagues",
-                            leagueId = null,
-                            countryCode = null,
-                            competitionId = null,
-                            logo = ""
-                        )
-                    )
-                }
-                list.addAll(dynamicCompetitions.filter { if (showAll) true else (it.leagueId != null || it.competitionId != null) })
-                list
-            } else {
-                if (showAll) BigLeaguesConstants.leagues
-                else BigLeaguesConstants.leagues.filter { it.leagueId != null || it.competitionId != null }
+            val comps = dynamicCompetitions ?: emptyList()
+            val list = mutableListOf<BigLeague>()
+            if (showAll && comps.none { it.leagueId == null && it.competitionId.isEmpty() }) {
+                list.add(
+                    BigLeague(
+                        id = "",
+                        name = "All Leagues",
+                        leagueId = null,
+                        countryCode = null,
+                        emblemUrl = null,
+                    ),
+                )
             }
+            list.addAll(comps.filter { if (showAll) true else (it.leagueId != null || it.competitionId.isNotEmpty()) })
+            list
         }
 
         val itemSpacing = if (isCompact) 8.dp else if (isWeb) 16.dp else 10.dp
@@ -68,7 +69,7 @@ fun BigLeaguesQuickFilterBar(
             modifier = Modifier.wrapContentWidth(),
             contentPadding = contentPadding,
             horizontalArrangement = Arrangement.spacedBy(itemSpacing),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             items(leagues) { league ->
                 val isSelected = if (selectedLeagueId != null) {
@@ -76,7 +77,7 @@ fun BigLeaguesQuickFilterBar(
                 } else if (selectedCompetitionId != null) {
                     league.competitionId == selectedCompetitionId
                 } else {
-                    league.leagueId == null && league.competitionId == null
+                    league.leagueId == null && league.competitionId.isEmpty()
                 }
 
                 LeagueModernFilterItem(
@@ -85,7 +86,7 @@ fun BigLeaguesQuickFilterBar(
                     isSelected = isSelected,
                     isWeb = isWeb,
                     isCompact = isCompact,
-                    onClick = { onLeagueSelected(league.leagueId, league.competitionId) }
+                    onClick = { onLeagueSelected(league.leagueId, league.competitionId) },
                 )
             }
         }
@@ -99,20 +100,14 @@ fun LeagueModernFilterItem(
     isSelected: Boolean,
     isWeb: Boolean = false,
     isCompact: Boolean = false,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val isALL = logo.isEmpty()
-    
-    val backgroundColor by animateColorAsState(
-        if (isSelected && isALL) MaterialTheme.colorScheme.primary 
-        else if (isALL) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        else Color.White.copy(alpha = 0.95f) // Professional clean backdrop for logos
-    )
-    
+
     val contentColor by animateColorAsState(
         if (isSelected && isALL) MaterialTheme.colorScheme.onPrimary
         else if (isSelected) MaterialTheme.colorScheme.primary
-        else MaterialTheme.colorScheme.onSurface
+        else MaterialTheme.colorScheme.onSurface,
     )
 
     val itemWidth = if (isCompact) 44.dp else if (isWeb) 68.dp else 52.dp
@@ -124,33 +119,33 @@ fun LeagueModernFilterItem(
             .width(itemWidth)
             .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Box(
             modifier = Modifier
                 .size(circleSize)
-                .background(backgroundColor, CircleShape)
+                .background(Color.Transparent, CircleShape)
                 .border(
                     width = if (isSelected) 2.5.dp else 1.dp,
                     color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.2f),
-                    shape = CircleShape
+                    shape = CircleShape,
                 )
                 .padding(logoPadding),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             if (logo.isNotEmpty()) {
                 AsyncImage(
                     model = logo.toProxyUrl(),
                     contentDescription = name,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.Fit,
                 )
             } else {
                 Text(
                     text = "ALL",
                     style = if (isCompact) MaterialTheme.typography.labelSmall else if (isWeb) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
-                    color = contentColor
+                    color = contentColor,
                 )
             }
         }

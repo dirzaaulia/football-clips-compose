@@ -4,14 +4,14 @@ import com.dirzaaulia.footballclips.data.model.remote.HighlightUiModel
 import com.dirzaaulia.footballclips.domain.model.Match
 
 sealed class HighlightUiItem {
-    data class SupabaseMatch(val match: Match) : HighlightUiItem()
+    data class OracleMatch(val match: Match) : HighlightUiItem()
     data class Highlight(val highlight: HighlightUiModel) : HighlightUiItem()
-    data class BannerAd(val id: String) : HighlightUiItem()
+    data object BannerAd : HighlightUiItem()
 }
 
 val HighlightUiItem.uniqueId: String
     get() = when (this) {
-        is HighlightUiItem.SupabaseMatch -> "match-${match.id}"
-        is HighlightUiItem.Highlight -> "highlight-${highlight.id}"
-        is HighlightUiItem.BannerAd -> "ad-$id"
+        is HighlightUiItem.OracleMatch -> "match-${match.id}"
+        is HighlightUiItem.Highlight -> "hl-${highlight.id}"
+        is HighlightUiItem.BannerAd -> "ad-${hashCode()}"
     }

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.domain.model.StarterPlayer
+import com.dirzaaulia.footballclips.ui.components.common.MarkdownText
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -522,11 +523,6 @@ private fun TacticalReportTab(match: Match) {
             )
         }
 
-        Text(
-            text = story,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            lineHeight = 20.sp
-        )
+        MarkdownText(markdown = story)
     }
 }

@@ -1,12 +1,26 @@
 package com.dirzaaulia.footballclips.ui.home
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -30,6 +44,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel(),
     listState: LazyListState = rememberLazyListState(),
     gridState: LazyGridState = rememberLazyGridState(),
+    onNavigateToFixtures: () -> Unit = {},
     onVideoClick: (HighlightUiItem, onDismiss: (Boolean) -> Unit) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -60,6 +75,8 @@ fun HomeScreen(
     val selectedLeagueId by viewModel.selectedLeagueId.collectAsState()
     val selectedSeason by viewModel.selectedSeason.collectAsState()
     val favoriteClubs by viewModel.favoriteClubs.collectAsState()
+    val supportedClubs by viewModel.supportedClubs.collectAsState()
+    val liveMatches by viewModel.liveMatches.collectAsState()
     var showMyClubsSheet by remember { mutableStateOf(false) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -73,17 +90,17 @@ fun HomeScreen(
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val isLandscape = maxHeight < 500.dp
-        val isWeb = maxWidth > 840.dp && !isLandscape
+        val isGrid = maxWidth >= 600.dp && !isLandscape
         val isScrolled by remember {
             derivedStateOf {
                 val hasContent = (uiState as? HomeState.Success)?.items?.isNotEmpty() == true
-                val index = if (isWeb) gridState.firstVisibleItemIndex else listState.firstVisibleItemIndex
-                val offset = if (isWeb) gridState.firstVisibleItemScrollOffset else listState.firstVisibleItemScrollOffset
+                val index = if (isGrid) gridState.firstVisibleItemIndex else listState.firstVisibleItemIndex
+                val offset = if (isGrid) gridState.firstVisibleItemScrollOffset else listState.firstVisibleItemScrollOffset
                 hasContent && (index > 0 || offset > 30)
             }
         }
 
-        val shouldLoadMore = remember(uiState, isWeb) {
+        val shouldLoadMore = remember(uiState, isGrid) {
             derivedStateOf {
                 val successState = uiState as? HomeState.Success
                 val canLoadMore = successState?.canLoadMore == true
@@ -94,11 +111,14 @@ fun HomeScreen(
                     return@derivedStateOf false
                 }
 
-                val total = if (isWeb) gridState.layoutInfo.totalItemsCount else listState.layoutInfo.totalItemsCount
-                val lastVisible = if (isWeb) gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-                else listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                val total = if (isGrid) gridState.layoutInfo.totalItemsCount else listState.layoutInfo.totalItemsCount
+                val lastVisible = if (isGrid) {
+                    gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                } else {
+                    listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                }
 
-                val threshold = if (isWeb) 10 else 5
+                val threshold = if (isGrid) 10 else 5
                 total > 0 && lastVisible >= total - threshold
             }
         }
@@ -107,26 +127,16 @@ fun HomeScreen(
             if (shouldLoadMore.value) viewModel.loadMore()
         }
 
-        LaunchedEffect(isScrolled) {
-            viewModel.setScrollToTopVisible(isScrolled)
-        }
-
-        LaunchedEffect(Unit) {
-            viewModel.errorMessage.collect { message -> snackbarHostState.showSnackbar(message) }
-        }
-
-        LaunchedEffect(Unit) {
-            viewModel.scrollToTopEvent.collect {
-                if (isWeb) gridState.animateScrollToItem(0) else listState.animateScrollToItem(0)
-            }
-        }
+        LaunchedEffect(isScrolled) { viewModel.setScrollToTopVisible(isScrolled) }
+        LaunchedEffect(Unit) { viewModel.errorMessage.collect { message -> snackbarHostState.showSnackbar(message) } }
+        LaunchedEffect(Unit) { viewModel.scrollToTopEvent.collect { if (isGrid) gridState.animateScrollToItem(0) else listState.animateScrollToItem(0) } }
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             snackbarHost = { SnackbarHost(hostState = snackbarHostState, modifier = Modifier.padding(bottom = 120.dp)) },
             topBar = {
                 HomeScreenTopBar(
-                    isWeb = isWeb,
+                    isWeb = isGrid,
                     isDarkMode = isDarkMode,
                     isPremium = isPremium,
                     isSpoilerFreeMode = isSpoilerFreeMode,
@@ -144,29 +154,34 @@ fun HomeScreen(
                     onToggleSpoilerFree = { viewModel.toggleSpoilerFreeMode() },
                     onShowMyClubs = { showMyClubsSheet = true },
                     onShowPaywall = { showPaywall = true },
-                    onShowFilter = { showFilterSheet = true }
+                    onShowFilter = { showFilterSheet = true },
                 )
-            }
+            },
         ) { innerPadding ->
             Box(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
+                val items = (uiState as? HomeState.Success)?.items ?: emptyList()
+
                 HomeScreenBody(
                     uiState = uiState,
-                    isWeb = isWeb,
-                    isLandscape = isLandscape,
-                    selectedLeagueId = selectedLeagueId,
-                    filterState = filterState,
-                    showExternalHighlights = showExternalHighlights,
+                    items = items,
+                    gridItems = items,
+                    featuredHighlight = items.firstOrNull(),
                     isAdsRemoved = isAdsRemoved,
+                    showExternalHighlights = showExternalHighlights,
+                    selectedLeagueId = selectedLeagueId,
+                    isLandscape = isLandscape,
+                    isGrid = isGrid,
                     isSpoilerFreeMode = isSpoilerFreeMode,
                     revealedItemIds = revealedItemIds,
                     onRevealItem = { id -> revealedItemIds = revealedItemIds + id },
+                    onSeeAllLiveMatches = onNavigateToFixtures,
                     gridState = gridState,
                     listState = listState,
                     onVideoClick = onVideoClick,
-                    viewModel = viewModel
+                    viewModel = viewModel,
                 )
             }
         }
@@ -191,7 +206,7 @@ fun HomeScreen(
                 viewModel.setVerifyingAuth(false)
                 coroutineScope.launch { snackbarHostState.showSnackbar("Native sign in unavailable, opening browser...") }
                 viewModel.signIn()
-            }
+            },
         )
 
         val isFilterSheetVisible by viewModel.showFilterSheet.collectAsState()
@@ -215,22 +230,21 @@ fun HomeScreen(
             onSignIn = { viewModel.setVerifyingAuth(true); googleSignInAction.startFlow() },
             onDismissPaywall = { showPaywall = false },
             onDismissFilter = { showFilterSheet = false; viewModel.setFilterSheetVisible(false) },
-            onDismissDev = { showDevScreen = false }
+            onDismissDev = { showDevScreen = false },
         )
 
         if (showMyClubsSheet || isMyClubsSheetVisible) {
             MyClubsBottomSheet(
                 selectedClubIds = favoriteClubs,
                 onToggleClub = { viewModel.toggleFavoriteClub(it) },
-                onDismissRequest = { showMyClubsSheet = false; viewModel.setMyClubsSheetVisible(false) }
+                onDismissRequest = { showMyClubsSheet = false; viewModel.setMyClubsSheetVisible(false) },
+                clubs = supportedClubs,
             )
         }
 
         if (isSpoilerFreeConfigured == false) {
             SpoilerEducationDialog(
-                onSelectPreference = { isSpoilerFree ->
-                    viewModel.setSpoilerFreePreference(isSpoilerFree)
-                }
+                onSelectPreference = { isSpoilerFree -> viewModel.setSpoilerFreePreference(isSpoilerFree) },
             )
         }
     }

@@ -40,6 +40,10 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
         (formations.away?.starters && formations.away.starters.length > 0))
   );
   const hasStory = Boolean(story && story.trim().length > 0);
+  const cleanStory = React.useMemo(() => {
+    if (!story) return '';
+    return story.replace(/(?:\.\.\.)?\s*Continue\s+reading\.{0,3}/gi, '').trim();
+  }, [story]);
 
   const availableTabs = React.useMemo(() => {
     const list: Array<'timeline' | 'stats' | 'lineups' | 'story'> = [];
@@ -274,7 +278,7 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
                 By {source} &bull; Accredited Journalism
               </div>
               <div className="prose prose-invert max-w-none text-[#F1F5F9] text-xs sm:text-sm leading-relaxed whitespace-pre-line">
-                {story}
+                {cleanStory}
               </div>
             </div>
           )}

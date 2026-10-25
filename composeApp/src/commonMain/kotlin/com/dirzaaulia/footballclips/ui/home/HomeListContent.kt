@@ -1,84 +1,97 @@
 package com.dirzaaulia.footballclips.ui.home
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Explore
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
 import com.dirzaaulia.footballclips.ui.components.card.HeroCarousel
-import com.dirzaaulia.footballclips.ui.components.card.VerticalHighlightCard
+import com.dirzaaulia.footballclips.ui.components.card.WebHighlightCard
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import com.dirzaaulia.footballclips.ui.components.filter.BigLeaguesQuickFilterBar
 import com.dirzaaulia.footballclips.ui.score.components.MatchCard
 
 @Composable
 internal fun HomeListContent(
     items: List<HighlightUiItem>,
-    gridItems: List<HighlightUiItem>,
     featuredHighlight: HighlightUiItem?,
     isAdsRemoved: Boolean,
     showExternalHighlights: Boolean,
-    selectedLeagueId: Int?,
     isLoadingMore: Boolean,
     isSpoilerFreeMode: Boolean = false,
     revealedItemIds: Set<String> = emptySet(),
     onRevealItem: (String) -> Unit = {},
+    onSeeAllLiveMatches: () -> Unit = {},
     listState: LazyListState,
     onVideoClick: (HighlightUiItem, (Boolean) -> Unit) -> Unit,
-    onLeagueSelected: (Int?, String?) -> Unit,
     onResetFilters: () -> Unit,
     onToggleExternalHighlights: () -> Unit,
-    viewModel: HomeViewModel
+    viewModel: HomeViewModel,
 ) {
+    val liveMatches by viewModel.liveMatches.collectAsState()
+    val favoriteClubs by viewModel.favoriteClubs.collectAsState()
+    val supportedClubs by viewModel.supportedClubs.collectAsState()
+
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 140.dp)
+        contentPadding = PaddingValues(bottom = 90.dp, start = 16.dp, end = 16.dp, top = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        if (liveMatches.isNotEmpty()) {
+            item {
+                HomeLiveMatchSection(
+                    liveMatches = liveMatches,
+                    favoriteClubs = favoriteClubs,
+                    supportedClubs = supportedClubs,
+                    onMatchClick = { selectedItem ->
+                        onVideoClick(selectedItem) { isJumping ->
+                            viewModel.setPendingInterstitial(true)
+                            if (!isJumping) viewModel.consumePendingInterstitial()
+                        }
+                    },
+                    onSeeAllClick = onSeeAllLiveMatches,
+                )
+            }
+        }
+
         if (featuredHighlight != null) {
             item {
                 HeroCarousel(
                     items = items,
                     isAdsRemoved = isAdsRemoved,
-                    isCinematic = false,
                     isSpoilerFreeMode = isSpoilerFreeMode,
                     revealedItemIds = revealedItemIds,
                     onRevealItem = onRevealItem,
                     onVideoClick = { selectedItem ->
                         onVideoClick(selectedItem) { isJumping ->
                             viewModel.setPendingInterstitial(true)
-                            if (!isJumping) {
-                                viewModel.consumePendingInterstitial()
-                            }
+                            if (!isJumping) viewModel.consumePendingInterstitial()
                         }
                     },
-                    modifier = Modifier.padding(top = 12.dp, bottom = 4.dp, start = 16.dp, end = 16.dp)
                 )
             }
-        }
-
-        item {
-            val competitions by viewModel.competitions.collectAsState()
-            BigLeaguesQuickFilterBar(
-                selectedLeagueId = selectedLeagueId,
-                dynamicCompetitions = competitions,
-                onLeagueSelected = onLeagueSelected
-            )
         }
 
         if (items.isEmpty()) {
@@ -86,95 +99,52 @@ internal fun HomeListContent(
                 EmptyState(
                     title = "No Highlights Found",
                     description = "Try selecting another league or check back later.",
-                    onActionClick = onResetFilters
+                    onActionClick = onResetFilters,
                 )
             }
         } else {
             items(
-                items = gridItems,
-                key = { item -> item.uniqueId }
+                items = items,
+                key = { item -> item.uniqueId },
             ) { item ->
                 val itemUniqueId = item.uniqueId
                 val isRevealed = revealedItemIds.contains(itemUniqueId)
 
                 when (item) {
-                    is HighlightUiItem.SupabaseMatch -> {
+                    is HighlightUiItem.OracleMatch -> {
                         MatchCard(
                             match = item.match,
-                            onWatchHighlightClick = {
-                                onVideoClick(item) { isJumping ->
-                                    viewModel.setPendingInterstitial(true)
-                                    if (!isJumping) {
-                                        viewModel.consumePendingInterstitial()
-                                    }
-                                }
-                            },
-                            showStatus = false,
                             isSpoilerFree = isSpoilerFreeMode,
                             isRevealed = isRevealed,
                             onRevealClick = { onRevealItem(itemUniqueId) },
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            onWatchHighlightClick = {
+                                onVideoClick(item) { isJumping ->
+                                    viewModel.setPendingInterstitial(true)
+                                    if (!isJumping) viewModel.consumePendingInterstitial()
+                                }
+                            },
                         )
                     }
+
                     is HighlightUiItem.Highlight -> {
-                        VerticalHighlightCard(
-                            highlight = item.highlight,
+                        WebHighlightCard(
+                            item = item,
                             isSpoilerFree = isSpoilerFreeMode,
                             isRevealed = isRevealed,
                             onRevealClick = { onRevealItem(itemUniqueId) },
                             onClick = {
                                 onVideoClick(item) { isJumping ->
                                     viewModel.setPendingInterstitial(true)
-                                    if (!isJumping) {
-                                        viewModel.consumePendingInterstitial()
-                                    }
+                                    if (!isJumping) viewModel.consumePendingInterstitial()
                                 }
-                            }
+                            },
                         )
                     }
+
                     is HighlightUiItem.BannerAd -> {
                         BannerAdItem(
-                            style = if (showExternalHighlights) NativeAdStyle.HIGHLIGHT else NativeAdStyle.MATCH
+                            style = if (showExternalHighlights) NativeAdStyle.HIGHLIGHT else NativeAdStyle.MATCH,
                         )
-                    }
-                }
-            }
-        }
-        
-        if (!showExternalHighlights) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    TextButton(onClick = onToggleExternalHighlights) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Explore,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Explore More Highlights",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
                     }
                 }
             }
@@ -188,11 +158,11 @@ internal fun HomeListContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     ExpressiveLoadingIndicator(
                         modifier = Modifier.size(36.dp),
-                        strokeWidth = 4.dp
+                        strokeWidth = 4.dp,
                     )
                 }
             }
@@ -202,12 +172,12 @@ internal fun HomeListContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
                         text = loadMoreError,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedButton(onClick = { viewModel.retryLoadMore() }) {

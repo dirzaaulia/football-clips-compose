@@ -19,9 +19,9 @@ flowchart TD
 
     Discovery --> Match{"Candidate Verification"}
     
-    Match --> T1["Tier 1 Priority: Official Club Channels<br>(@realmadrid, @arsenal, @mancity, @psg, @fcbayern, etc.)<br>★ 100% UNRESTRICTED WORLDWIDE RIGHTS ★"]
-    Match --> T2["Tier 2 Priority: Official League Global Channels<br>(@LaLiga, @bundesliga, @SerieA, @ligue1, @thefacup, @EFL)"]
-    Match --> T3["Tier 3 Priority: Regional Broadcasters<br>(@SkySports, @espnnl, @rfef, @FFF, @sportstudio)"]
+    Match --> T1["Tier 1 Priority: Official Club Channels<br>(@realmadrid, @arsenal, @mancity, @psg, @fcbayern, @flamengo, @bocajuniors, etc.)<br>★ 100% UNRESTRICTED WORLDWIDE RIGHTS ★"]
+    Match --> T2["Tier 2 Priority: Official League Global Channels<br>(@TheAFCHub, @libertadores, @sudamericana, @brasileirao, @ligaprofesional, @liga1match, @LaLiga, @bundesliga, @SerieA, @ligue1, @thefacup, @EFL)"]
+    Match --> T3["Tier 3 Priority: Verified Regional Broadcasters & Backups<br>(@ESPNFans, @CazeTV, @beINSPORTS_Asia, @SonySportsNetwork, @SkySports, @espnnl, @rfef, @TNTSportsBR, @Vidio)"]
 
     T1 --> Geo["Embed Playability & Geo-Block Pre-Check<br>(YouTube oEmbed + regionRestriction)"]
     T2 --> Geo

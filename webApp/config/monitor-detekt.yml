@@ -1,0 +1,16 @@
+complexity:
+  LongMethod:
+    threshold: 40
+  LargeClass:
+    threshold: 250
+  LongParameterList:
+    ignoreDataClasses: true
+    constructorThreshold: 8
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+style:
+  WildcardImport:
+    active: true
+  MagicNumber:
+    ignorePropertyDeclaration: true

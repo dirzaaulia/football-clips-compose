@@ -30,7 +30,7 @@ fun calculateExcitementRank(item: HighlightUiItem): RankedHighlightItem {
     val awayScore: Int?
 
     when (item) {
-        is HighlightUiItem.SupabaseMatch -> {
+        is HighlightUiItem.OracleMatch -> {
             home = item.match.homeTeamName
             away = item.match.awayTeamName
             homeScore = item.match.homeScore
@@ -106,7 +106,7 @@ fun arrangeExcitementCarouselPages(
     ranked.forEachIndexed { index, rankedItem ->
         result.add(rankedItem.item to rankedItem.tag)
         if ((index + 1) % 2 == 0 && index < ranked.size - 1) {
-            result.add(HighlightUiItem.BannerAd("hero-ad-${adIndex++}") to "")
+            result.add(HighlightUiItem.BannerAd to "")
         }
     }
     return result

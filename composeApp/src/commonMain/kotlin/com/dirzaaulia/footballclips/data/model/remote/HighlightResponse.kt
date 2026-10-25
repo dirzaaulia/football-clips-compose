@@ -89,41 +89,61 @@ data class HighlightUiModel(
     val source: String
 )
 
+private fun extractTeamsFromTitle(itemTitle: String?): Pair<String, String> {
+    if (itemTitle.isNullOrBlank()) return Pair("Official", "Highlight")
+    val clean = itemTitle.replace(Regex("^[^:]+:\\s*"), "").replace(Regex("\\s*Highlights.*$", RegexOption.IGNORE_CASE), "")
+    val parts = clean.split(Regex("\\s+vs\\.?\\s+", RegexOption.IGNORE_CASE))
+    if (parts.size >= 2) {
+        return Pair(parts[0].trim(), parts[1].trim())
+    }
+    val hyphenParts = clean.split(Regex("\\s+-\\s+"))
+    if (hyphenParts.size >= 2) {
+        return Pair(hyphenParts[0].trim(), hyphenParts[1].trim())
+    }
+    return Pair(clean.trim(), "")
+}
+
 fun HighlightItemResponse.toUiModel(): HighlightUiModel? {
     val highlightId = id ?: return null
-    val matchDetails = match ?: return null
-    
-    // Parse ISO date and format it for the UI (e.g., "23 Aug, 15:00")
+    val matchDetails = match
+
+    val fallbackTeams = extractTeamsFromTitle(title)
+    val homeName = matchDetails?.homeTeam?.name ?: fallbackTeams.first
+    val awayName = matchDetails?.awayTeam?.name ?: fallbackTeams.second
+    val rawLeague = matchDetails?.league?.name ?: channel ?: "Official Highlight"
+
     val formattedDate = try {
-        val dateString = matchDetails.date ?: ""
-        val instant = kotlin.time.Instant.parse(dateString)
-        val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-        val dateTimeFormat = LocalDateTime.Format {
-            day()
-            char(' ')
-            monthName(MonthNames.ENGLISH_ABBREVIATED)
-            char(',')
-            char(' ')
-            hour()
-            char(':')
-            minute()
-        }
-        dateTimeFormat.format(localDateTime)
+        val dateString = matchDetails?.date ?: ""
+        if (dateString.isNotEmpty()) {
+            val instant = kotlin.time.Instant.parse(dateString)
+            val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+            val dateTimeFormat = LocalDateTime.Format {
+                day()
+                char(' ')
+                monthName(MonthNames.ENGLISH_ABBREVIATED)
+                char(',')
+                char(' ')
+                hour()
+                char(':')
+                minute()
+            }
+            dateTimeFormat.format(localDateTime)
+        } else ""
     } catch (_: Exception) {
-        matchDetails.date ?: ""
+        matchDetails?.date ?: ""
     }
 
     return HighlightUiModel(
         id = highlightId,
         title = title ?: "",
-        homeTeam = matchDetails.homeTeam?.name ?: "Unknown",
-        homeTeamLogo = matchDetails.homeTeam?.logo ?: "",
-        awayTeam = matchDetails.awayTeam?.name ?: "Unknown",
-        awayTeamLogo = matchDetails.awayTeam?.logo ?: "",
-        leagueName = (matchDetails.league?.name ?: "Unknown").normalizeLeagueName(),
-        leagueLogo = matchDetails.league?.logo ?: "",
-        countryName = matchDetails.country?.name ?: "Unknown",
-        countryLogo = matchDetails.country?.logo ?: "",
+        homeTeam = homeName,
+        homeTeamLogo = matchDetails?.homeTeam?.logo ?: "",
+        awayTeam = awayName,
+        awayTeamLogo = matchDetails?.awayTeam?.logo ?: "",
+        leagueName = rawLeague.normalizeLeagueName(),
+        leagueLogo = matchDetails?.league?.logo ?: "",
+        countryName = matchDetails?.country?.name ?: "International",
+        countryLogo = matchDetails?.country?.logo ?: "",
         date = formattedDate,
         thumbnail = imgUrl ?: "",
         embedHtml = embedUrl ?: "",

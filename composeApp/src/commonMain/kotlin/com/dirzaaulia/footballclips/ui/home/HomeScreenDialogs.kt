@@ -45,13 +45,9 @@ internal fun HomeScreenDialogs(
     if (showFilterSheet) {
         FilterBottomSheet(
             state = filterState,
-            isLoadingMore = isLoadingMore,
-            showLoadMore = showExternalHighlights,
             onSearchQueryChanged = viewModel::onSearchQueryChanged,
-            onCountryToggle = viewModel::toggleCountry,
             onLeagueToggle = viewModel::toggleLeague,
             onReset = viewModel::resetFilters,
-            onLoadMore = viewModel::loadMore,
             onApply = {
                 viewModel.applyFilters()
                 onDismissFilter()

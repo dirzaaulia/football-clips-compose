@@ -14,7 +14,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.ui.components.common.ModalSideSheet
-import com.dirzaaulia.footballclips.ui.player.YouTubePlayerView
 import com.dirzaaulia.footballclips.util.extractVideoId
 
 import androidx.compose.material.icons.Icons
@@ -36,7 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.data.model.NetworkResult
-import com.dirzaaulia.footballclips.data.repository.ScoreRepository
+import com.dirzaaulia.footballclips.data.repository.OracleVmRepository
 import com.dirzaaulia.footballclips.domain.model.toMatch
 import com.dirzaaulia.footballclips.ui.adaptive.LocalIsBigScreen
 import com.dirzaaulia.footballclips.util.isWasmTarget
@@ -55,6 +54,7 @@ fun VideoPlayerSheet(
     relatedFixturesUpcoming: List<HighlightUiItem> = emptyList(),
     relatedItems: List<HighlightUiItem> = emptyList(),
     isSpoilerFree: Boolean = false,
+    isMerchandiseEnabled: Boolean = true,
     onItemClick: ((HighlightUiItem) -> Unit)? = null,
     onMinimize: (() -> Unit)? = null,
     onDismiss: (Boolean) -> Unit,
@@ -77,6 +77,7 @@ fun VideoPlayerSheet(
                 relatedFixturesUpcoming = relatedFixturesUpcoming,
                 relatedItems = relatedItems,
                 isSpoilerFree = isSpoilerFree,
+                isMerchandiseEnabled = isMerchandiseEnabled,
                 onItemClick = onItemClick,
                 onMinimize = onMinimize,
                 isSideSheet = true,
@@ -106,6 +107,7 @@ fun VideoPlayerSheet(
                     relatedFixturesUpcoming = relatedFixturesUpcoming,
                     relatedItems = relatedItems,
                     isSpoilerFree = isSpoilerFree,
+                    isMerchandiseEnabled = isMerchandiseEnabled,
                     onItemClick = onItemClick,
                     onMinimize = onMinimize,
                     isSideSheet = false,
@@ -125,6 +127,7 @@ private fun VideoPlayerSheetContent(
     relatedFixturesUpcoming: List<HighlightUiItem>,
     relatedItems: List<HighlightUiItem>,
     isSpoilerFree: Boolean,
+    isMerchandiseEnabled: Boolean,
     onItemClick: ((HighlightUiItem) -> Unit)?,
     onMinimize: (() -> Unit)?,
     isSideSheet: Boolean,
@@ -135,20 +138,20 @@ private fun VideoPlayerSheetContent(
     var selectedTab by remember { mutableStateOf(0) }
     var fixtureSubTab by remember { mutableStateOf(0) } // 0: Results, 1: Upcoming
 
-    val scoreRepository: ScoreRepository = koinInject()
+    val oracleVmRepository: OracleVmRepository = koinInject()
     var currentItem by remember(item) { mutableStateOf(item) }
     var isRefreshing by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
     val refreshMatch: () -> Unit = {
-        val currentMatch = (currentItem as? HighlightUiItem.SupabaseMatch)?.match
+        val currentMatch = (currentItem as? HighlightUiItem.OracleMatch)?.match
         if (currentMatch != null && !isRefreshing) {
             coroutineScope.launch {
                 isRefreshing = true
-                when (val res = scoreRepository.getMatch(currentMatch.id)) {
+                when (val res = oracleVmRepository.getMatch(currentMatch.id)) {
                     is NetworkResult.Success -> {
                         val updatedMatch = res.data.toMatch()
-                        currentItem = HighlightUiItem.SupabaseMatch(match = updatedMatch)
+                        currentItem = HighlightUiItem.OracleMatch(match = updatedMatch)
                     }
                     else -> {}
                 }
@@ -158,7 +161,7 @@ private fun VideoPlayerSheetContent(
     }
 
     // Auto-refresh interval (20s) for live in-play matches
-    val currentMatchObj = (currentItem as? HighlightUiItem.SupabaseMatch)?.match
+    val currentMatchObj = (currentItem as? HighlightUiItem.OracleMatch)?.match
     val isLive = currentMatchObj?.isLive == true
     LaunchedEffect(currentItem?.uniqueId, isLive) {
         if (isLive) {
@@ -266,32 +269,11 @@ private fun VideoPlayerSheetContent(
                 }
 
                 if (videoId != null) {
-                    val backupVideoId = when (currentItem) {
-                        is HighlightUiItem.SupabaseMatch -> (currentItem as HighlightUiItem.SupabaseMatch).match.backupHighlightVideoId
-                        else -> null
-                    }
-                    val regionInfo = when (currentItem) {
-                        is HighlightUiItem.SupabaseMatch -> (currentItem as HighlightUiItem.SupabaseMatch).match.youtubeRegionInfo
-                        else -> null
-                    }
-                    val backupRegionInfo = when (currentItem) {
-                        is HighlightUiItem.SupabaseMatch -> (currentItem as HighlightUiItem.SupabaseMatch).match.backupYoutubeRegionInfo
-                        else -> null
-                    }
-                    YouTubePlayerView(
-                        videoId = videoId,
-                        backupVideoId = backupVideoId,
-                        regionInfo = regionInfo,
-                        backupRegionInfo = backupRegionInfo,
-                        onDismiss = onDismiss,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(16f / 9f)
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                    )
-                } else if (currentItem is HighlightUiItem.SupabaseMatch) {
+                    CatalogVideoPlayer(currentItem, videoId, onDismiss)
+
+                } else if (currentItem is HighlightUiItem.OracleMatch) {
                     MatchCentreHero(
-                        match = (currentItem as HighlightUiItem.SupabaseMatch).match,
+                        match = (currentItem as HighlightUiItem.OracleMatch).match,
                         isSpoilerFree = isSpoilerFree,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -303,6 +285,7 @@ private fun VideoPlayerSheetContent(
                     VideoMetadata(
                         item = currentItem!!,
                         isSpoilerFree = isSpoilerFree,
+                        isMerchandiseEnabled = isMerchandiseEnabled,
                         hasVideo = videoId != null,
                         modifier = Modifier
                             .fillMaxWidth()

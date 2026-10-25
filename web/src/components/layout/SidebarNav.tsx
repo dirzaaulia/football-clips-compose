@@ -10,6 +10,7 @@ import {
   Newspaper,
   Play,
   Info,
+  ShoppingBag,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -24,6 +25,7 @@ const NAV_LINKS = [
   { href: '/', label: 'Highlights', icon: Play },
   { href: '/fixtures', label: 'Scores & Fixtures', icon: Calendar },
   { href: '/standings', label: 'League Standings', icon: Trophy },
+  { href: '/store', label: 'Club Store', icon: ShoppingBag },
   { href: '/articles', label: 'Analysis Hub', icon: Newspaper },
   { href: '/info', label: 'Info & Resources', icon: Info },
 ];

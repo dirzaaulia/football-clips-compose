@@ -63,7 +63,7 @@ export default function ExcitementCard({
         </div>
 
         {/* Top-Right Competition Pill */}
-        <div className="absolute top-3 right-3 text-[10px] font-extrabold text-white/90 bg-black/60 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-white/10 truncate max-w-[120px]">
+        <div className="absolute top-3 right-3 text-[10px] font-extrabold text-white/90 bg-black/60 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-white/10">
           {match.competition_name}
         </div>
       </div>
@@ -117,15 +117,15 @@ export default function ExcitementCard({
           </div>
         </div>
 
-        {/* Footer info: Kickoff date & High-Definition badge */}
+        {/* Footer info: Kickoff date */}
         <div className="flex items-center justify-between text-[11px] text-[#94A3B8] pt-2 border-t border-[#334155]/50">
           <span>
             {new Date(match.utc_date).toLocaleDateString('en-GB', {
               day: 'numeric',
               month: 'short',
+              year: 'numeric',
             })}
           </span>
-          <span className="text-[#4FC3F7] font-semibold text-[10px]">Official Highlights HD</span>
         </div>
       </div>
     </div>

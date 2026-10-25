@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -68,7 +69,12 @@ fun StandardMatchCard(
                     )
                     if (isFavorite) {
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("⭐", fontSize = 12.sp)
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "Favorite",
+                            tint = Color(0xFFFFB300),
+                            modifier = Modifier.size(14.dp)
+                        )
                     }
                 }
                 
@@ -116,6 +122,16 @@ fun StandardMatchCard(
                                 color = if (match.isLive) Color.Red else MaterialTheme.colorScheme.onSurface,
                                 letterSpacing = 2.sp
                             )
+                            if (match.isLive) {
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "KO ${match.kickoffTime}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     } else {
                         Surface(
@@ -149,35 +165,81 @@ fun StandardMatchCard(
                 )
             }
 
-            if (!match.highlightVideoId.isNullOrEmpty() && onWatchHighlightClick != null) {
-                Spacer(modifier = Modifier.height(14.dp))
-                FilledTonalButton(
-                    onClick = { onWatchHighlightClick(match.highlightVideoId) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(38.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Watch Highlight",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 0.3.sp
-                    )
-                }
-            }
+            StandardMatchBottomAction(match = match, onWatchHighlightClick = onWatchHighlightClick)
         }
     }
 }
+}
+
+@Composable
+private fun StandardMatchBottomAction(
+    match: Match,
+    onWatchHighlightClick: ((String) -> Unit)?,
+) {
+    val availability = match.viewerAvailability
+    val isPlayable = !match.highlightVideoId.isNullOrEmpty() && (availability == null || availability == "available")
+    val isUnverified = availability == "unknown" && !match.externalVideoId.isNullOrEmpty()
+
+    if (isPlayable && onWatchHighlightClick != null) {
+        Spacer(modifier = Modifier.height(14.dp))
+        FilledTonalButton(
+            onClick = { onWatchHighlightClick(match.highlightVideoId.orEmpty()) },
+            modifier = Modifier.fillMaxWidth().height(38.dp),
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.filledTonalButtonColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ),
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+        ) {
+            Icon(Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "Watch Highlight",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.3.sp,
+            )
+        }
+    } else if (isUnverified && onWatchHighlightClick != null) {
+        Spacer(modifier = Modifier.height(14.dp))
+        OutlinedButton(
+            onClick = { onWatchHighlightClick(match.externalVideoId.orEmpty()) },
+            modifier = Modifier.fillMaxWidth().height(38.dp),
+            shape = RoundedCornerShape(10.dp),
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+        ) {
+            Text(
+                text = "Availability not verified · YouTube ↗",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    } else if (availability != null && availability != "available" && match.isFinished) {
+        Spacer(modifier = Modifier.height(14.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            val label = when (availability) {
+                "country_blocked" -> "Unavailable in your country"
+                "not_found" -> "Highlight not found"
+                "unavailable" -> "Video unavailable"
+                else -> "Availability not verified"
+            }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+    } else {
+        Spacer(modifier = Modifier.height(14.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            Text(
+                text = match.dateOnly,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+    }
 }

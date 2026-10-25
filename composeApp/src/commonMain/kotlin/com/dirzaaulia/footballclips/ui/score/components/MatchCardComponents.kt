@@ -8,10 +8,21 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -27,7 +38,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.compose.SubcomposeAsyncImage
 import com.dirzaaulia.footballclips.domain.model.Match
-import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.common.shimmerEffect
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable
@@ -79,14 +90,8 @@ internal fun TeamItem(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    ExpressiveLoadingIndicator(
-                        modifier = Modifier.size(28.dp),
-                        strokeWidth = 3.dp
-                    )
-                }
+                        .shimmerEffect()
+                )
             },
             modifier = Modifier.size(if (showName) 44.dp else 36.dp),
             contentScale = ContentScale.Fit
@@ -108,82 +113,101 @@ internal fun TeamItem(
 
 @Composable
 internal fun MatchStatusBadge(match: Match, isProminent: Boolean = false) {
-    if (match.isLive) {
-        val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-        val alpha by infiniteTransition.animateFloat(
-            initialValue = 0.4f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(1000),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "alpha"
-        )
+    when {
+        match.isLive -> LiveMatchStatusBadge(match = match, isProminent = isProminent)
+        match.isFinished -> FinishedMatchStatusBadge(isProminent = isProminent)
+        else -> UpcomingMatchStatusBadge(status = match.status, isProminent = isProminent)
+    }
+}
 
-        Surface(
-            color = Color.Red.copy(alpha = 0.15f),
-            shape = RoundedCornerShape(if (isProminent) 12.dp else 8.dp),
-            border = BorderStroke(
-                if (isProminent) 2.dp else 1.dp, 
-                Color.Red.copy(alpha = 0.6f)
+@Composable
+private fun LiveMatchStatusBadge(match: Match, isProminent: Boolean) {
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "alpha",
+    )
+    val isPaused = match.status.equals("PAUSED", ignoreCase = true) || match.displayClock?.equals("HT", ignoreCase = true) == true
+    val liveText = when {
+        isPaused -> "HT"
+        !match.displayClock.isNullOrBlank() -> "LIVE ${match.displayClock}"
+        else -> "LIVE"
+    }
+
+    Surface(
+        color = Color.Red.copy(alpha = 0.15f),
+        shape = RoundedCornerShape(if (isProminent) 12.dp else 8.dp),
+        border = BorderStroke(
+            if (isProminent) 2.dp else 1.dp,
+            Color.Red.copy(alpha = 0.6f),
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(
+                horizontal = if (isProminent) 12.dp else 8.dp,
+                vertical = if (isProminent) 6.dp else 4.dp,
+            ),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(if (isProminent) 10.dp else 8.dp)
+                    .clip(CircleShape)
+                    .background(Color.Red.copy(alpha = alpha)),
             )
-        ) {
-            Row(
-                modifier = Modifier.padding(
-                    horizontal = if (isProminent) 12.dp else 8.dp, 
-                    vertical = if (isProminent) 6.dp else 4.dp
-                ),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(if (isProminent) 10.dp else 8.dp)
-                        .clip(CircleShape)
-                        .background(Color.Red.copy(alpha = alpha))
-                )
-                Spacer(modifier = Modifier.width(if (isProminent) 8.dp else 6.dp))
-                Text(
-                    text = "LIVE",
-                    style = if (isProminent) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
-                    color = Color.Red,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = if (isProminent) 1.sp else 0.sp
-                )
-            }
-        }
-    } else if (match.isFinished) {
-        Surface(
-            color = MaterialTheme.colorScheme.secondaryContainer,
-            shape = RoundedCornerShape(if (isProminent) 12.dp else 8.dp)
-        ) {
+            Spacer(modifier = Modifier.width(if (isProminent) 8.dp else 6.dp))
             Text(
-                text = "FINISHED",
+                text = liveText,
                 style = if (isProminent) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.padding(
-                    horizontal = if (isProminent) 12.dp else 8.dp, 
-                    vertical = if (isProminent) 6.dp else 4.dp
-                )
+                color = Color.Red,
+                fontWeight = FontWeight.Black,
+                letterSpacing = if (isProminent) 1.sp else 0.sp,
             )
         }
-    } else {
-        val statusText = if (match.status == "TIMED" || match.status == "SCHEDULED") "UPCOMING" else match.status.replace("_", " ")
-        Surface(
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shape = RoundedCornerShape(if (isProminent) 12.dp else 8.dp)
-        ) {
-            Text(
-                text = statusText,
-                style = if (isProminent) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.padding(
-                    horizontal = if (isProminent) 12.dp else 8.dp, 
-                    vertical = if (isProminent) 6.dp else 4.dp
-                )
-            )
-        }
+    }
+}
+
+@Composable
+private fun FinishedMatchStatusBadge(isProminent: Boolean) {
+    Surface(
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        shape = RoundedCornerShape(if (isProminent) 12.dp else 8.dp),
+    ) {
+        Text(
+            text = "FINISHED",
+            style = if (isProminent) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            fontWeight = FontWeight.ExtraBold,
+            modifier = Modifier.padding(
+                horizontal = if (isProminent) 12.dp else 8.dp,
+                vertical = if (isProminent) 6.dp else 4.dp,
+            ),
+        )
+    }
+}
+
+@Composable
+private fun UpcomingMatchStatusBadge(status: String, isProminent: Boolean) {
+    val statusText = if (status == "TIMED" || status == "SCHEDULED") "UPCOMING" else status.replace("_", " ")
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        shape = RoundedCornerShape(if (isProminent) 12.dp else 8.dp),
+    ) {
+        Text(
+            text = statusText,
+            style = if (isProminent) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            fontWeight = FontWeight.ExtraBold,
+            modifier = Modifier.padding(
+                horizontal = if (isProminent) 12.dp else 8.dp,
+                vertical = if (isProminent) 6.dp else 4.dp,
+            ),
+        )
     }
 }
 

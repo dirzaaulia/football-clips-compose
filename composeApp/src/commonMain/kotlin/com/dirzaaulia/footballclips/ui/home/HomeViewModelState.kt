@@ -43,7 +43,7 @@ internal fun HomeViewModel.observeProfileForBilling() {
 internal fun HomeViewModel.observeAdsRemoved() {
     viewModelScope.launch {
         isAdsRemoved.collectLatest { removed ->
-            if (_uiState.value is HomeState.Success && supabaseMatches.isNotEmpty()) updateUiState(removed = removed)
+            if (_uiState.value is HomeState.Success && oracleMatches.isNotEmpty()) updateUiState(removed = removed)
         }
     }
 }
@@ -55,11 +55,10 @@ internal fun HomeViewModel.observeBillingErrors() {
 internal fun HomeViewModel.updateUiState(removed: Boolean? = null) {
     viewModelScope.launch(Dispatchers.Default) {
         val (items, itemCount) = buildHomeUiItems(
-            supabaseMatches,
+            oracleMatches,
             allHighlights,
             searchQuery,
             selectedLeagues,
-            selectedCountries,
             _selectedLeagueId.value,
             _selectedCompetitionId.value,
             _showExternalHighlights.value,
@@ -68,13 +67,12 @@ internal fun HomeViewModel.updateUiState(removed: Boolean? = null) {
         _uiState.value = HomeState.Success(
             items = builtItems,
             isAdsRemoved = removed ?: isAdsRemoved.value,
-            canLoadMore = hasMoreSupabase || (totalCount == 0 || currentOffset < totalCount),
+            canLoadMore = hasMoreOracle,
         )
         _filterState.value = extractAllFilters(
-            supabaseMatches,
+            oracleMatches,
             allHighlights,
             searchQuery,
-            selectedCountries,
             selectedLeagues,
             itemCount,
         )
@@ -103,6 +101,10 @@ fun HomeViewModel.setForceNonPremium(isForce: Boolean) {
 
 fun HomeViewModel.toggleFavoriteClub(clubId: String) {
     viewModelScope.launch { preferenceManager.toggleFavoriteClub(clubId) }
+}
+
+fun HomeViewModel.setMerchandiseEnabled(enabled: Boolean) {
+    viewModelScope.launch { preferenceManager.setMerchandiseEnabled(enabled) }
 }
 
 fun HomeViewModel.setVerifyingAuth(verifying: Boolean) {

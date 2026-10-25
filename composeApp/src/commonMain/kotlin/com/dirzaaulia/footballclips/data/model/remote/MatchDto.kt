@@ -39,6 +39,7 @@ data class MatchDto(
     @SerialName("home_score") val homeScore: Int? = null,
     @SerialName("away_score") val awayScore: Int? = null,
     @SerialName("highlight_video_id") val highlightVideoId: String? = null,
+    @SerialName("playback_mode") val playbackMode: String? = null,
     @SerialName("backup_highlight_video_id") val backupHighlightVideoId: String? = null,
     @SerialName("recap_analysis") val recapAnalysis: String? = null,
     @SerialName("round_name") val roundName: String? = null,
@@ -52,7 +53,9 @@ data class MatchDto(
     @SerialName("editorial_source") val editorialSource: String? = null,
     @SerialName("events") val events: List<MatchEventDto>? = null,
     @SerialName("youtube_region_info") val youtubeRegionInfo: RegionRestrictionDto? = null,
-    @SerialName("backup_youtube_region_info") val backupYoutubeRegionInfo: RegionRestrictionDto? = null
+    @SerialName("backup_youtube_region_info") val backupYoutubeRegionInfo: RegionRestrictionDto? = null,
+    @SerialName("viewer_availability") val viewerAvailability: String? = null,
+    @SerialName("external_video_id") val externalVideoId: String? = null
 )
 
 @Serializable

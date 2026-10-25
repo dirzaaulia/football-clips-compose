@@ -2,10 +2,12 @@
 
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
-import { Search, Star, Sparkles, Check, X, Bell, Trophy } from 'lucide-react';
+import { Search, Star, Sparkles, Check, X, Bell, Trophy, ShoppingBag } from 'lucide-react';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import { useSupportedClubs } from '@/hooks/useSupportedClubs';
 import { useCompetitions } from '@/hooks/useCompetitions';
+import { useUserRegion } from '@/hooks/useUserRegion';
+import { buildClubGearUrl } from '@/lib/affiliate/amazon';
 import ModalSideSheet from '@/components/common/ModalSideSheet';
 import CustomDropdown from '@/components/common/CustomDropdown';
 import NotificationOptInModal from './NotificationOptInModal';
@@ -20,6 +22,7 @@ export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
   const { favoriteClubs, toggleClub, clearAll, favoriteCount } = useMyClubs();
   const allSupportedClubs = useSupportedClubs();
   const competitions = useCompetitions();
+  const { country } = useUserRegion();
   const [search, setSearch] = useState('');
   const [selectedLeague, setSelectedLeague] = useState('ALL');
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
@@ -77,12 +80,14 @@ export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
 
   const filteredClubs = useMemo(() => {
     return allSupportedClubs.filter((club) => {
-      const matchesLeague = selectedLeague === 'ALL' || club.leagueCode === selectedLeague;
+      const code = club.competition_code || club.leagueCode;
+      const matchesLeague = selectedLeague === 'ALL' || code === selectedLeague;
       const s = search.toLowerCase().trim();
+      const short = club.short_name || club.shortName || '';
       const matchesSearch =
         !s ||
         club.name.toLowerCase().includes(s) ||
-        club.shortName.toLowerCase().includes(s) ||
+        (short && short.toLowerCase().includes(s)) ||
         (club.aliases && club.aliases.some((a) => a.toLowerCase().includes(s)));
       return matchesLeague && matchesSearch;
     });
@@ -183,36 +188,53 @@ export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="relative w-8 h-8 shrink-0 bg-black/40 rounded-lg p-1 border border-[#334155]/40 flex items-center justify-center">
-                    <Image
-                      src={club.crestUrl}
-                      alt={club.name}
-                      width={24}
-                      height={24}
-                      className="object-contain"
-                      unoptimized
-                    />
+                    {(club.crest_url || club.crestUrl) ? (
+                      <Image
+                        src={club.crest_url || club.crestUrl || ''}
+                        alt={club.name}
+                        width={24}
+                        height={24}
+                        className="object-contain"
+                        unoptimized
+                      />
+                    ) : (
+                      <span className="text-xs font-bold text-[#7098F8]">{club.name.charAt(0)}</span>
+                    )}
                   </div>
-                  <div className="min-w-0">
-                    <h4 className="text-xs sm:text-sm font-bold text-white truncate">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-xs sm:text-sm font-bold text-white line-clamp-2 leading-tight">
                       {club.name}
                     </h4>
                     <span className="text-[10px] text-[#94A3B8] uppercase tracking-wider font-semibold">
-                      {club.leagueName}
+                      {club.competition_name || club.leagueName || 'Club'}
                     </span>
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  aria-label={`Toggle ${club.name}`}
-                  className={`p-1.5 rounded-xl border transition-all ${
-                    isFav
-                      ? 'bg-[#7098F8] text-[#101418] border-[#7098F8]'
-                      : 'bg-[#181C20] text-[#94A3B8] border-[#334155] hover:text-white'
-                  }`}
-                >
-                  <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-current' : ''}`} />
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <a
+                    href={buildClubGearUrl(club.name, 'jersey', country)}
+                    target="_blank"
+                    rel="noopener noreferrer sponsored"
+                    onClick={(e) => e.stopPropagation()}
+                    title={`Shop ${club.name} gear on Amazon`}
+                    className="p-1.5 rounded-xl border border-[#334155] bg-[#181C20] hover:bg-[#1E2227] text-[#7098F8] hover:text-white transition-all cursor-pointer"
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                  </a>
+
+                  <button
+                    type="button"
+                    aria-label={`Toggle ${club.name}`}
+                    className={`p-1.5 rounded-xl border transition-all ${
+                      isFav
+                        ? 'bg-[#7098F8] text-[#101418] border-[#7098F8]'
+                        : 'bg-[#181C20] text-[#94A3B8] border-[#334155] hover:text-white'
+                    }`}
+                  >
+                    <Star className={`w-3.5 h-3.5 ${isFav ? 'fill-current' : ''}`} />
+                  </button>
+                </div>
               </div>
             );
           })

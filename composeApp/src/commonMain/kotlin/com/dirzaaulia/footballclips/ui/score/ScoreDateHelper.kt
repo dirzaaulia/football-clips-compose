@@ -39,7 +39,7 @@ internal fun generateDateOptions(): List<DateOption> {
 
         DateOption(
             displayDay = dayName,
-            displayDate = "${date.day} ${date.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }}",
+            displayDate = "${date.day} ${date.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }} ${date.year}",
             date = "${date.year}-${(date.month.ordinal + 1).toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}",
             isToday = daysOffset == 0
         )

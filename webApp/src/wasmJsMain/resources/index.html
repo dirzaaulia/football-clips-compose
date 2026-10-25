@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚽ Football Clips - Worker Telemetry Dashboard</title>
+    <title>FootballClips - Pipeline Monitor</title>
     <meta name="description" content="Real-time worker telemetry dashboard for Football Clips sync pipeline, YouTube API monitoring, and match events.">
 
     <!-- Favicon & Touch Icons -->
@@ -19,10 +19,6 @@
         (function() {
             var path = window.location.pathname;
             var isTelemetry = path.indexOf('/telemetry') === 0;
-            if (isTelemetry && !path.endsWith('/') && path.indexOf('.') === -1) {
-                window.location.replace('/telemetry/' + window.location.search + window.location.hash);
-                return;
-            }
             var baseHref = isTelemetry ? '/telemetry/' : './';
             var base = document.querySelector('base');
             if (!base) {
@@ -33,6 +29,16 @@
         })();
     </script>
     
+    <!-- Same-origin session refresh; no credential is passed in the URL. -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (location.hostname === 'fc.dirzaaulia.com' || location.hostname === 'localhost') {
+                var session = document.createElement('iframe');
+                session.src = '/owner-session'; session.hidden = true;
+                session.title = 'Owner session refresh'; document.body.appendChild(session);
+            }
+        });
+    </script>
     <!-- YouTube IFrame Player API -->
     <script src="https://www.youtube.com/iframe_api"></script>
 
@@ -157,7 +163,25 @@
         (function() {
             var isTelemetry = window.location.pathname.indexOf('/telemetry') === 0;
             var script = document.createElement('script');
-            script.src = (isTelemetry ? '/telemetry/' : '') + 'composeApp.js';
+            function bootFailure() {
+                if (document.querySelector('canvas') || document.getElementById('boot-error')) return;
+                dismissSplash();
+                var panel = document.createElement('div');
+                panel.id = 'boot-error'; panel.setAttribute('role', 'alert');
+                panel.style.cssText = 'position:fixed;inset:0;z-index:10000;display:grid;place-content:center;gap:18px;padding:32px;color:white;background:#050508;font:16px Inter,sans-serif';
+                var title = document.createElement('h1'); title.textContent = 'The console could not start';
+                var description = document.createElement('p'); description.textContent = 'A download may have failed or an older version may be cached. Reload the console to retry.';
+                var retry = document.createElement('button'); retry.textContent = 'Reload console';
+                retry.style.cssText = 'padding:14px;border:0;border-radius:10px;background:#38bdf8;cursor:pointer';
+                retry.onclick = function () { location.replace('/telemetry?reload=' + Date.now()); };
+                var databases = document.createElement('a'); databases.href = 'https://fc.dirzaaulia.com/database'; databases.textContent = 'Open Oracle databases'; databases.style.color = '#38bdf8';
+                panel.append(title, description, retry, databases); document.body.appendChild(panel);
+            }
+            script.src = (isTelemetry ? '/telemetry/' : '') + 'composeApp.js?release=20261024-personal1';
+            script.onerror = bootFailure;
+            window.addEventListener('unhandledrejection', function (event) {
+                if (/WebAssembly|wasm|Loading chunk/i.test(String(event.reason))) bootFailure();
+            });
             document.body.appendChild(script);
         })();
     </script>

@@ -37,6 +37,8 @@ triplet-play = "4.1.1"
 play-app-update = "2.1.0"
 
 [libraries]
+detekt-cli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version = "1.23.8" }
+kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version = "0.4.0" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -104,6 +106,7 @@ firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 play-app-update = { module = "com.google.android.play:app-update-ktx", version.ref = "play-app-update" }
 
 [plugins]
+spotless = { id = "com.diffplug.spotless", version = "8.10.4" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }

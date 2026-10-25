@@ -5,12 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.dirzaaulia.footballclips.data.billing.BillingManager
 import com.dirzaaulia.footballclips.data.local.PreferenceManager
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
-import com.dirzaaulia.footballclips.data.constants.BigLeague
-import com.dirzaaulia.footballclips.data.repository.ClubRepository
-import com.dirzaaulia.footballclips.data.repository.CompetitionRepository
+import com.dirzaaulia.footballclips.data.model.remote.BigLeague
+import com.dirzaaulia.footballclips.data.repository.OracleVmRepository
 import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
-import com.dirzaaulia.footballclips.data.repository.ScoreRepository
-import com.dirzaaulia.footballclips.data.repository.StandingRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -24,17 +21,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class ScoreViewModel(
-    internal val repository: ScoreRepository,
+    internal val oracleVmRepository: OracleVmRepository,
     private val preferenceManager: PreferenceManager,
     private val billingManager: BillingManager,
     private val profilesRepository: ProfilesRepository,
-    private val clubRepository: ClubRepository,
-    internal val standingRepository: StandingRepository,
-    private val competitionRepository: CompetitionRepository,
 ) : ViewModel() {
 
-    val supportedClubs = clubRepository.supportedClubs
-    val competitions: StateFlow<List<BigLeague>> = competitionRepository.competitions
+    val supportedClubs = oracleVmRepository.supportedClubs
+    val competitions: StateFlow<List<BigLeague>> = oracleVmRepository.competitions
 
     internal val _uiState = MutableStateFlow<ScoreState>(ScoreState.Loading)
     val uiState: StateFlow<ScoreState> = _uiState.asStateFlow()
@@ -50,7 +44,7 @@ class ScoreViewModel(
     val hasLiveMatch: StateFlow<Boolean> = uiState.map { state ->
         if (state is ScoreState.Success) {
             state.matches.any { item ->
-                (item as? HighlightUiItem.SupabaseMatch)?.match?.isLive == true
+                (item as? HighlightUiItem.OracleMatch)?.match?.isLive == true
             }
         } else {
             false
@@ -96,7 +90,7 @@ class ScoreViewModel(
     val liveMatchCount: StateFlow<Int> = uiState.map { state ->
         if (state is ScoreState.Success) {
             state.matches.count { item ->
-                (item as? HighlightUiItem.SupabaseMatch)?.match?.isLive == true
+                (item as? HighlightUiItem.OracleMatch)?.match?.isLive == true
             }
         } else 0
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
@@ -157,8 +151,8 @@ class ScoreViewModel(
 
     init {
         viewModelScope.launch { 
-            clubRepository.refreshClubs()
-            competitionRepository.refreshCompetitions()
+            oracleVmRepository.refreshClubs()
+            oracleVmRepository.refreshCompetitions()
         }
         _selectedDate.value = availableDates.firstOrNull { it.isToday }?.date
         viewModelScope.launch {

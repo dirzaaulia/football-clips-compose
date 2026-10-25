@@ -65,7 +65,7 @@ fun HeroCard(
     val awayLogo: String
 
     when (item) {
-        is HighlightUiItem.SupabaseMatch -> {
+        is HighlightUiItem.OracleMatch -> {
             title = "${item.match.homeTeamName} vs ${item.match.awayTeamName}"
             thumbnail = "https://img.youtube.com/vi/${item.match.highlightVideoId}/maxresdefault.jpg"
             leagueName = item.match.competitionName

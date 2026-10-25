@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
+    alias(libs.plugins.spotless)
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
@@ -25,8 +26,18 @@ kotlin {
     }
 
     sourceSets {
+        commonMain.dependencies {
+            implementation(libs.compose.components.resources)
+            implementation(libs.kotlinx.collections.immutable)
+        }
         wasmJsMain.dependencies {
             implementation(libs.compose.runtime)
+            implementation(libs.compose.components.resources)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
             implementation(libs.compose.ui)
@@ -42,4 +53,36 @@ kotlin {
             implementation(libs.kotlinx.datetime)
         }
     }
+}
+
+compose.resources {
+    packageOfResClass = "com.dirzaaulia.footballclips.monitor.resources"
+    generateResClass = always
+}
+
+spotless {
+    kotlin {
+        target("src/wasmJsMain/kotlin/com/dirzaaulia/footballclips/monitor/**/*.kt",
+            "src/commonMain/kotlin/com/dirzaaulia/footballclips/monitor/**/*.kt")
+        ktlint("1.8.0").editorConfigOverride(mapOf(
+            "max_line_length" to "120",
+            "ktlint_function_naming_ignore_when_annotated_with" to "Composable",
+            "ktlint_standard_trailing-comma-on-call-site" to "enabled",
+            "ktlint_standard_trailing-comma-on-declaration-site" to "enabled",
+        ))
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+val monitorDetekt = configurations.create("monitorDetekt")
+
+dependencies { monitorDetekt(libs.detekt.cli) }
+
+tasks.register<JavaExec>("detekt") {
+    group = "verification"
+    classpath = monitorDetekt
+    mainClass.set("io.gitlab.arturbosch.detekt.cli.Main")
+    args("--input", "src/wasmJsMain/kotlin/com/dirzaaulia/footballclips/monitor,src/commonMain/kotlin/com/dirzaaulia/footballclips/monitor",
+        "--config", "config/monitor-detekt.yml", "--build-upon-default-config")
 }

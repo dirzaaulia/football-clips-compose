@@ -7,7 +7,9 @@ import { createClient } from '@supabase/supabase-js';
 const databaseUrl = process.env.NEXT_PUBLIC_DATABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://edge.fc.dirzaaulia.com';
 const databaseApiKey = process.env.NEXT_PUBLIC_DATABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpb21rdHZhdm5kb3JhenJleWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1OTQ4ODcsImV4cCI6MjEwMzE3MDg4N30.GhP7TJXMeAEpG8F-9pB_SLNwaXLjIrOJ2LAiPC1kCk4';
 
-export const database = createClient(databaseUrl, databaseApiKey);
+export const database = createClient(databaseUrl, databaseApiKey, {
+  auth: { flowType: 'pkce' },
+});
 export const supabase = database; // Alias for seamless backward compatibility
 
 export interface StarterPlayer {
@@ -41,6 +43,10 @@ export interface MatchRecord {
   home_score?: number | null;
   away_score?: number | null;
   highlight_video_id?: string | null;
+  external_video_id?: string | null;
+  viewer_availability?: 'available' | 'country_blocked' | 'not_found' | 'unavailable' | 'unknown' | null;
+  playback_mode?: 'embed' | 'external' | 'unknown' | null;
+  availability_verified?: boolean | null;
   backup_highlight_video_id?: string | null;
   recap_analysis?: string | null;
   slug?: string;
@@ -184,6 +190,12 @@ export async function getMatchesBySeason(
 }
 
 export async function getMatchById(id: string): Promise<MatchRecord | null> {
+  if (/^-?\d+$/.test(id)) {
+    const { catalogRequest } = await import('./catalog-request');
+    const response = await catalogRequest(`https://fc-edge-proxy.dirzaaulia11.workers.dev/api/v2/matches/${encodeURIComponent(id)}`);
+    if (response.ok) return normalizeMatch((await response.json()).match);
+    if (response.status !== 404) throw new Error(`Match unavailable (${response.status}); retry.`);
+  }
   const { data, error } = await database
     .from('matches')
     .select('*')

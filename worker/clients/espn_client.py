@@ -10,7 +10,7 @@ class ESPNClient:
     """Enterprise-grade, zero-quota ESPN Soccer API client.
 
     Provides real-time scores, live clocks, goal events, cards, and full domestic
-    cup coverage with zero authentication keys and no rate limits.
+    cup coverage through public endpoints; provider limits and backoff still apply.
     """
 
     BASE_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer"
@@ -35,12 +35,20 @@ class ESPNClient:
         "MLS": {"slug": "usa.1", "name": "Major League Soccer", "type": "league"},
         "DED": {"slug": "ned.1", "name": "Eredivisie", "type": "league"},
         "PPL": {"slug": "por.1", "name": "Liga Portugal", "type": "league"},
+        "IDN": {"slug": "idn.1", "name": "Liga 1 Indonesia", "type": "league"},
+        "ACL": {"slug": "afc.champions", "name": "AFC Champions League Elite", "type": "cup"},
+        "LIB": {"slug": "conmebol.libertadores", "name": "CONMEBOL Libertadores", "type": "cup"},
+        "SUD": {"slug": "conmebol.sudamericana", "name": "CONMEBOL Sudamericana", "type": "cup"},
+        "REC": {"slug": "conmebol.recopa", "name": "CONMEBOL Recopa", "type": "cup"},
+        "BRA": {"slug": "bra.1", "name": "Brasileirão Série A", "type": "league"},
+        "ARG": {"slug": "arg.1", "name": "Argentine Liga Profesional", "type": "league"},
     }
 
     # Inverse mapping from ESPN slug -> internal code
     SLUG_TO_CODE: dict[str, str] = {v["slug"]: k for k, v in COMPETITION_MAP.items()}
 
     def __init__(self):
+        self.backoff_until = None
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept": "application/json",
@@ -54,6 +62,10 @@ class ESPNClient:
         state_upper = (espn_state or "").upper()
         detail_upper = (detail or "").upper()
 
+        if "ABANDONED" in detail_upper:
+            return "ABANDONED"
+        if "SUSPENDED" in detail_upper or "INTERRUPTED" in detail_upper:
+            return "INTERRUPTED"
         if "POSTPONED" in detail_upper:
             return "POSTPONED"
         if "CANCELLED" in detail_upper or "CANCELED" in detail_upper:
@@ -123,6 +135,8 @@ class ESPNClient:
 
     async def fetch_scoreboard_day(self, client: httpx.AsyncClient, league_slug: str, yyyymmdd: str | None = None) -> dict[str, Any]:
         """Fetch scoreboard data for a single league on a specific day."""
+        if self.backoff_until and self.backoff_until > datetime.now(UTC):
+            return {}
         url = f"{self.BASE_URL}/{league_slug}/scoreboard"
         params = {}
         if yyyymmdd:
@@ -130,6 +144,8 @@ class ESPNClient:
 
         try:
             resp = await client.get(url, params=params, headers=self.headers, timeout=15.0)
+            if resp.status_code in (429, 503):
+                self.backoff_until = datetime.now(UTC) + timedelta(minutes=5)
             if resp.status_code == 200:
                 return resp.json()
             elif resp.status_code == 400:
@@ -221,7 +237,7 @@ class ESPNClient:
                 "id": event_id,
                 "competition_id": league_info["code"],
                 "competition_name": league_info["name"],
-                "season": int(event.get("season", {}).get("year", 2026)),
+                "season": int(event.get("season", {}).get("year") or datetime.fromisoformat(utc_date.replace("Z", "+00:00")).year),
                 "utc_date": utc_date,
                 "status": status,
                 "matchday": matchday,
@@ -276,7 +292,7 @@ class ESPNClient:
         all_matches: list[dict[str, Any]] = []
         seen_ids: set[int] = set()
 
-        sem = asyncio.Semaphore(15)
+        sem = asyncio.Semaphore(4)
 
         async with httpx.AsyncClient(timeout=25.0) as client:
             async def bounded_fetch(slug: str, day: str):
@@ -319,6 +335,8 @@ class ESPNClient:
         Returns parsed rows matching Supabase standings table schema.
         Zero quota cost, zero API keys, real-time table rankings.
         """
+        if self.backoff_until and self.backoff_until > datetime.now(UTC):
+            return []
         info = self.COMPETITION_MAP.get(competition_code)
         if not info:
             logger.warning(f"[ESPN Standings] Unknown competition code: {competition_code}")
@@ -338,6 +356,8 @@ class ESPNClient:
 
             try:
                 resp = await client.get(url)
+                if resp.status_code in (429, 503):
+                    self.backoff_until = datetime.now(UTC) + timedelta(minutes=5)
                 if resp.status_code != 200:
                     logger.warning(f"[ESPN Standings] HTTP {resp.status_code} fetching standings for {competition_code}")
                     return []
@@ -429,6 +449,8 @@ class ESPNClient:
         Fetch full match summary from ESPN (formations, real stats, real journalistic recap).
         Zero quota cost, 100% authentic accredited data.
         """
+        if self.backoff_until and self.backoff_until > datetime.now(UTC):
+            return {}
         info = self.COMPETITION_MAP.get(competition_code)
         slug = info["slug"] if info else "eng.1"
         url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/summary?event={event_id}"
@@ -441,6 +463,8 @@ class ESPNClient:
 
             try:
                 resp = await client.get(url)
+                if resp.status_code in (429, 503):
+                    self.backoff_until = datetime.now(UTC) + timedelta(minutes=5)
                 if resp.status_code != 200:
                     return {}
                 data = resp.json()

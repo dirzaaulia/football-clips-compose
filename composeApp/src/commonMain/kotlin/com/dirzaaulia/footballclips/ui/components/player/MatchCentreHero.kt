@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -17,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -246,6 +249,107 @@ fun MatchCentreHero(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
+                }
+            }
+
+            // Official Live Stream Redirect Card for LIVE matches
+            if (isLive) {
+                val uriHandler = LocalUriHandler.current
+                val streamUrl = remember(match.competitionId, match.competitionName) {
+                    val comp = match.competitionId.uppercase()
+                    val name = match.competitionName.uppercase()
+                    when {
+                        comp.contains("PL") || name.contains("PREMIER LEAGUE") -> "https://www.premierleague.com/broadcast-schedules"
+                        comp.contains("PD") || name.contains("LA LIGA") || name.contains("LALIGA") -> "https://www.laliga.com/en-GB/where-to-watch-laliga"
+                        comp.contains("CL") || comp.contains("EL") || comp.contains("ECL") || name.contains("CHAMPIONS") || name.contains("EUROPA") -> "https://www.uefa.com/uefatv/"
+                        comp.contains("SA") || name.contains("SERIE A") -> "https://www.legaseriea.it/en/where-to-watch"
+                        comp.contains("BL1") || name.contains("BUNDESLIGA") -> "https://www.bundesliga.com/en/bundesliga/info/broadcaster"
+                        comp.contains("FL1") || name.contains("LIGUE 1") -> "https://www.ligue1.com/broadcasters"
+                        comp.contains("MLS") -> "https://tv.apple.com/channel/tvc.mcls.7132a0d0-e34d-43c2-a9b0-98845012a64c"
+                        comp.contains("SPL") || name.contains("SAUDI") -> "https://spl.com.sa/en"
+                        else -> "https://www.google.com/search?q=${match.competitionName.replace(" ", "+")}+official+live+stream"
+                    }
+                }
+
+                Surface(
+                    color = Color(0xFFEF4444).copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(16.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.35f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = Color(0xFFEF4444).copy(alpha = 0.2f),
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Default.Tv,
+                                        contentDescription = null,
+                                        tint = Color(0xFFEF4444),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+                            Column {
+                                Text(
+                                    text = "Official Match Live Stream",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFFEF4444)
+                                )
+                                Text(
+                                    text = "Watch live on official broadcast partner",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Button(
+                            onClick = {
+                                try {
+                                    uriHandler.openUri(streamUrl)
+                                } catch (_: Exception) {}
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFEF4444),
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier.height(32.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = "Watch Stream",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             }
 

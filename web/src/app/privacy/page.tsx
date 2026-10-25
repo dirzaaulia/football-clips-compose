@@ -139,6 +139,18 @@ export default function PrivacyPage() {
               </a>.
             </p>
           </div>
+
+          <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">
+            <h3 className="text-base font-semibold text-white flex items-center gap-2">
+              <span>🛍️</span> Amazon Associates Program
+            </h3>
+            <p className="text-sm leading-relaxed">
+              Football Highlights &amp; Clips is a participant in the <strong className="text-white">Amazon Services LLC Associates Program</strong>, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com and affiliated international marketplaces.
+            </p>
+            <p className="text-sm leading-relaxed">
+              When you click on links to official merchandise, team kits, or equipment, you may be redirected to Amazon via an affiliate tracking link. If you choose to make a purchase, we may earn a small referral commission at no additional cost to you. Product links open directly in your web browser or official Amazon app. You can disable merchandise recommendations at any time in the app settings.
+            </p>
+          </div>
         </div>
       </section>
 

@@ -66,7 +66,7 @@ internal fun MatchTheater(
     val isSpoilerFreeMode by viewModel.isSpoilerFreeMode.collectAsState()
 
     val videoId = when (item) {
-        is HighlightUiItem.SupabaseMatch -> item.match.highlightVideoId
+        is HighlightUiItem.OracleMatch -> item.match.highlightVideoId
         is HighlightUiItem.Highlight -> extractVideoId(item.highlight.embedHtml)
         else -> null
     }
@@ -78,7 +78,7 @@ internal fun MatchTheater(
     val thumbnail: String
 
     when (item) {
-        is HighlightUiItem.SupabaseMatch -> {
+        is HighlightUiItem.OracleMatch -> {
             title = "${item.match.homeTeamName} vs ${item.match.awayTeamName}"
             competition = item.match.competitionName
             competitionId = item.match.competitionId

@@ -1,0 +1,259 @@
+<resources>
+
+    <string name="monitor_app_title">FootballClips</string>
+
+    <string name="monitor_subtitle">Pipeline monitor</string>
+
+    <string name="monitor_dashboard">Dashboard</string>
+
+    <string name="monitor_pipelines">Pipelines</string>
+
+    <string name="monitor_competitions">Competitions</string>
+
+    <string name="monitor_operations">Operations</string>
+
+    <string name="monitor_search">Search team, match or log message</string>
+
+    <string name="monitor_team">Team name or alias</string>
+
+    <string name="monitor_opponent">Opponent team name or alias</string>
+
+    <string name="monitor_message">Log message / video / channel</string>
+
+    <string name="monitor_country">Country code</string>
+
+    <string name="monitor_competition">Competition code</string>
+
+    <string name="monitor_season">Season (blank = current)</string>
+
+    <string name="monitor_clear">Clear</string>
+
+    <string name="monitor_refresh">Refresh</string>
+
+    <string name="monitor_live">Live</string>
+
+    <string name="monitor_pause">Pause</string>
+
+    <string name="monitor_wib">WIB · GMT+7</string>
+
+    <string name="monitor_signin">Continue with Google</string>
+
+    <string name="monitor_owner">Sign in with your approved owner account to inspect backend processing.</string>
+
+    <string name="monitor_fixtures">Fixtures &amp; Live Scores</string>
+
+    <string name="monitor_youtube">YouTube API Search</string>
+
+    <string name="monitor_youtube_upload">WebSub Uploads</string>
+
+    <string name="monitor_rss">Channel feed fallback</string>
+
+    <string name="monitor_cycles">Cycles</string>
+
+    <string name="monitor_matches">Matches considered</string>
+
+    <string name="monitor_evidence">Step-by-step evidence</string>
+
+    <string name="monitor_no_cycles">No cycles match these filters. Try another pipeline or a wider time range.</string>
+
+    <string name="monitor_no_matches">No match evaluations recorded in this cycle. Received uploads may still be unmatched; inspect cycle logs.</string>
+
+    <string name="monitor_no_evidence">No candidate evidence was recorded. Planned work is not an executed search.</string>
+
+    <string name="monitor_older">Load older records</string>
+
+    <string name="monitor_back">Back</string>
+
+    <string name="monitor_all_history">Search all retained history · 90 days</string>
+
+    <string name="monitor_last_hour">Last hour</string>
+
+    <string name="monitor_last_day">Last 24 hours</string>
+
+    <string name="monitor_last_week">Last seven days</string>
+
+    <string name="monitor_quota">YouTube quota</string>
+
+    <string name="monitor_quota_help">Separate search and general API buckets. Usage includes actual reservations; provider reconciliation may lag.</string>
+
+    <string name="monitor_coverage">Highlight coverage</string>
+
+    <string name="monitor_coverage_help">Coverage counts distinct finished matches. Country availability is based on fresh YouTube metadata, not a playback guarantee.</string>
+
+    <string name="monitor_catalog">Catalog</string>
+
+    <string name="monitor_availability">Country availability</string>
+
+    <string name="monitor_pipeline_mode">Discovery mode</string>
+
+    <string name="monitor_zero_mode">Search dry run · zero allocation. Feeds and WebSub may still process published uploads.</string>
+
+    <string name="monitor_updated">Last successful update</string>
+
+    <string name="monitor_unknown">Unknown</string>
+
+    <string name="monitor_loading">Loading measured results…</string>
+
+    <string name="monitor_empty">No records for these filters.</string>
+
+    <string name="monitor_retry">Retry</string>
+
+    <string name="monitor_details">Details</string>
+
+    <string name="monitor_wrong">Wrong highlight — find replacement</string>
+
+    <string name="monitor_undo">Undo rejection</string>
+
+    <string name="monitor_video">Open on YouTube</string>
+
+    <string name="monitor_next">Next check</string>
+
+    <string name="monitor_reason">Result / waiting reason</string>
+
+    <string name="monitor_published">Published</string>
+
+    <string name="monitor_duration">Duration (seconds)</string>
+
+    <string name="monitor_channel">Channel</string>
+
+    <string name="monitor_events">Recorded pipeline events</string>
+
+    <string name="monitor_candidates">Candidate videos</string>
+
+    <string name="monitor_skipped_history">This match was skipped; its recorded reason is shown above. No search or AI execution is implied.</string>
+
+    <string name="monitor_no_samples">No measured samples in this period.</string>
+
+    <string name="monitor_search_again">Inspect match history</string>
+
+    <string name="monitor_approved">Active / approved</string>
+
+    <string name="monitor_pending">Pending approval</string>
+
+    <string name="monitor_sources">Approved sources</string>
+
+    <string name="monitor_provider">Fixture provider</string>
+
+    <string name="monitor_last_sync">Last fixture update</string>
+
+    <string name="monitor_finished">Finished in selected coverage scope</string>
+
+    <string name="monitor_total_finished">Finished matches · all stored history</string>
+
+    <string name="monitor_total_matches">Matches in database</string>
+
+    <string name="monitor_with_highlights">Finished with highlights</string>
+
+    <string name="monitor_missing">Finished without highlights</string>
+
+    <string name="monitor_missing_percent">Missing highlights (%)</string>
+
+    <string name="monitor_country_watchable">Watchable matches in selected country</string>
+
+    <string name="monitor_country_gaps">Geoblocked Highlights (Restricted in some countries)</string>
+
+    <string name="monitor_stale_live">Live matches with stale updates</string>
+
+    <string name="monitor_accepted">Unique accepted videos</string>
+
+    <string name="monitor_watchable">Watchable videos in this country</string>
+
+    <string name="monitor_blocked">Videos restricted in this country</string>
+
+    <string name="monitor_unknown_videos">Videos with unknown availability</string>
+
+    <string name="monitor_more">More</string>
+
+    <string name="monitor_used">Used / reserved</string>
+
+    <string name="monitor_remaining">Remaining allowance</string>
+
+    <string name="monitor_reset">Quota resets</string>
+
+    <string name="monitor_reconciled">Last reconciliation</string>
+
+    <string name="monitor_retained">Search results cover retained operational history. Canonical match history is preserved.</string>
+
+    <string name="monitor_filters">Search &amp; filters</string>
+
+    <string name="monitor_summary">Measured overview</string>
+
+    <string name="monitor_cycle_logs">Cycle events / unmatched uploads</string>
+
+    <string name="monitor_export">Export loaded evidence · JSON</string>
+
+    <string name="monitor_copy_link">Copy private filter link</string>
+
+    <string name="monitor_matches_result">Matching football records</string>
+
+    <string name="monitor_failure">Request failed. Last successful results remain visible.</string>
+
+    <string name="monitor_corrected">Owner correction saved; replacement processing queued.</string>
+
+    <string name="monitor_empty_finished">No finished matches</string>
+
+    <string name="monitor_all_scopes">Catalog totals include history; coverage uses current seasons unless filtered.</string>
+
+    <string name="monitor_pipeline_help">Open a cycle, then a match, then each candidate to see what ran and why it passed or failed.</string>
+
+    <string name="monitor_quota_origins">Quota usage by discovery source</string>
+
+    <string name="monitor_delivery">Delivery &amp; backlog</string>
+
+    <string name="monitor_trend">Recorded event activity</string>
+
+    <string name="monitor_logs">Logs</string>
+
+    <string name="monitor_export_csv">Export loaded logs · CSV</string>
+
+    <string name="monitor_activation">10% activation queued · health gates apply</string>
+    <string name="monitor_since_wib">Logs from WIB · yyyy-MM-ddTHH:mm</string>
+    <string name="monitor_until_wib">Logs until WIB · yyyy-MM-ddTHH:mm</string>
+    <string name="monitor_apply_range">Apply log dates</string>
+    <string name="monitor_unassociated">No recorded match association</string>
+    <string name="workspace_collapse_navigation">Collapse navigation</string>
+    <string name="workspace_expand_navigation">Expand navigation</string>
+    <string name="workspace_timezone_detail">Asia/Jakarta · WIB · GMT+7</string>
+    <string name="workspace_menu">Navigation menu</string>
+    <string name="workspace_expand_filters">Search and filters</string>
+    <string name="workspace_collapse_filters">Collapse search and filters</string>
+    <string name="workspace_active_filters">Active filters</string>
+    <string name="workspace_all_loaded">All matching records loaded</string>
+    <string name="workspace_loading_more">Loading more records…</string>
+    <string name="workspace_retry">Retry loading</string>
+    <string name="workspace_pending_jobs">Pending jobs</string>
+    <string name="workspace_error_signal">Errors</string>
+    <string name="workspace_warning_signal">Warnings</string>
+    <string name="workspace_discovery_signal">Videos found</string>
+    <string name="workspace_success_signal">Changes saved</string>
+    <string name="workspace_technical">Technical details</string>
+    <string name="workspace_format">Format</string>
+    <string name="workspace_league">League</string>
+    <string name="workspace_cup">Cup</string>
+    <string name="workspace_hybrid">Hybrid</string>
+    <string name="workspace_unknown_format">Format not verified</string>
+    <string name="workspace_sources_directory">Channels and rights evidence</string>
+    <string name="workspace_rights_unknown">YouTube highlight rights not verified</string>
+    <string name="workspace_worldwide">Worldwide</string>
+    <string name="workspace_priority_markets">Priority markets</string>
+    <string name="workspace_countries_territories">countries and territories</string>
+    <string name="workspace_unrestricted">No regional restrictions reported by YouTube</string>
+    <string name="workspace_country_search">Search countries</string>
+    <string name="workspace_source_identity">Channel identity</string>
+    <string name="workspace_source_approval">Source approval</string>
+    <string name="workspace_highlight_rights">YouTube highlight rights</string>
+    <string name="workspace_territories">Licensed territories</string>
+    <string name="workspace_recorded_evidence">Recorded evidence</string>
+    <string name="workspace_approved_sources_only">Existing approval and verified YouTube rights are separate</string>
+    <string name="workspace_all_formats">All formats</string>
+    <string name="workspace_collapse">Collapse</string>
+    <string name="workspace_expand">Expand</string>
+    <string name="workspace_completed_steps">Recorded checks</string>
+    <string name="workspace_new_records">New records available</string>
+    <string name="workspace_available">Available</string>
+    <string name="workspace_country_blocked">Unavailable in your country</string>
+    <string name="workspace_not_found">Highlight not found</string>
+    <string name="workspace_unavailable">Video unavailable</string>
+    <string name="workspace_unverified">Availability not verified</string>
+</resources>
+

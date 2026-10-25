@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.ui.adaptive.LocalIsBigScreen
 import com.dirzaaulia.footballclips.ui.components.common.ModalSideSheet
-import com.dirzaaulia.footballclips.util.isWasmTarget
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,7 +18,7 @@ fun DeveloperOptionsBottomSheet(
     onDismiss: () -> Unit
 ) {
     val isBigScreen = LocalIsBigScreen.current
-    val shouldUseSideSheet = isWasmTarget && isBigScreen
+    val shouldUseSideSheet = isBigScreen
 
     if (shouldUseSideSheet) {
         ModalSideSheet(

@@ -2,8 +2,9 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Calendar, Clock, Eye, EyeOff, Radio, RotateCw, Sparkles } from 'lucide-react';
+import { Calendar, Clock, Eye, EyeOff, Radio, Sparkles } from 'lucide-react';
 import { MatchRecord } from '@/lib/database';
+import WhereToWatchBanner from '@/components/broadcast/WhereToWatchBanner';
 
 interface MatchCentreHeroProps {
   match: MatchRecord;
@@ -37,6 +38,7 @@ export default function MatchCentreHero({
     weekday: 'short',
     day: 'numeric',
     month: 'short',
+    year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -89,7 +91,7 @@ export default function MatchCentreHero({
               <div className="w-full h-full rounded-full bg-[#1E293B] border border-[#334155]" />
             )}
           </div>
-          <span className="font-extrabold text-xs sm:text-sm text-white leading-tight max-w-[95px] sm:max-w-[130px] truncate">
+          <span className="font-extrabold text-xs sm:text-sm text-white leading-tight max-w-[110px] sm:max-w-[150px] line-clamp-2">
             {homeName}
           </span>
         </div>
@@ -162,7 +164,7 @@ export default function MatchCentreHero({
               <div className="w-full h-full rounded-full bg-[#1E293B] border border-[#334155]" />
             )}
           </div>
-          <span className="font-extrabold text-xs sm:text-sm text-white leading-tight max-w-[95px] sm:max-w-[130px] truncate">
+          <span className="font-extrabold text-xs sm:text-sm text-white leading-tight max-w-[110px] sm:max-w-[150px] line-clamp-2">
             {awayName}
           </span>
         </div>
@@ -194,6 +196,13 @@ export default function MatchCentreHero({
                 </div>
               ))}
           </div>
+        </div>
+      )}
+
+      {/* Live Official Broadcaster Live Stream Redirect */}
+      {isLive && (
+        <div className="relative my-3 pt-3 border-t border-[#334155]/60">
+          <WhereToWatchBanner competitionId={match.competition_id || match.competition_name || 'PL'} />
         </div>
       )}
 

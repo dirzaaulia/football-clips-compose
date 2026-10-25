@@ -7,10 +7,11 @@ import { Trophy, GitBranch, ListFilter, TableProperties, Sparkles } from 'lucide
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
 import SeasonSelector from '@/components/filter/SeasonSelector';
 import CustomDropdown from '@/components/common/CustomDropdown';
-import WhereToWatchBanner from '@/components/broadcast/WhereToWatchBanner';
 import KnockoutBracketView from '@/components/standings/KnockoutBracketView';
 import KnockoutRoundsView from '@/components/standings/KnockoutRoundsView';
 import { useSeason } from '@/hooks/useSeason';
+import { useCompetitions } from '@/hooks/useCompetitions';
+import CompetitionLogo from '@/components/common/CompetitionLogo';
 
 interface CompetitionDef {
   code: string;
@@ -30,6 +31,7 @@ const ALL_COMPETITIONS: CompetitionDef[] = [
   { code: 'MLS', name: 'MLS', type: 'league', category: 'Domestic Leagues' },
   { code: 'DED', name: 'Eredivisie', type: 'league', category: 'Domestic Leagues' },
   { code: 'PPL', name: 'Liga Portugal', type: 'league', category: 'Domestic Leagues' },
+  { code: 'IDN', name: 'Liga Indonesia', type: 'league', category: 'Domestic Leagues' },
 
   // European Hybrid Competitions (League Phase + Knockout Phase)
   { code: 'CL', name: 'UEFA Champions League', type: 'hybrid', category: 'European Competitions' },
@@ -111,6 +113,7 @@ function deduplicateStandings(standings: StandingRecord[]): StandingRecord[] {
 export default function StandingsPage() {
   const [selectedComp, setSelectedComp] = useState('PL');
   const { selectedSeason } = useSeason();
+  const dynamicCompetitions = useCompetitions();
   const [standings, setStandings] = useState<StandingRecord[]>([]);
   const [knockoutMatches, setKnockoutMatches] = useState<MatchRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -121,9 +124,31 @@ export default function StandingsPage() {
   // Knockout View Mode ('bracket' = visual tree, 'rounds' = match list)
   const [knockoutViewMode, setKnockoutViewMode] = useState<'bracket' | 'rounds'>('bracket');
 
+  const competitionList = useMemo<CompetitionDef[]>(() => {
+    if (!dynamicCompetitions || dynamicCompetitions.length <= 1) {
+      return ALL_COMPETITIONS;
+    }
+    const dynamicOnly: CompetitionDef[] = dynamicCompetitions
+      .filter((c) => c.competitionId && c.competitionId !== 'ALL')
+      .map((c) => {
+        const fallback = ALL_COMPETITIONS.find((x) => x.code === c.competitionId);
+        const resolvedType = (c.type || fallback?.type || 'league') as 'league' | 'hybrid' | 'cup';
+        const resolvedCategory = fallback?.category || (
+          resolvedType === 'cup' ? 'Knockout Cups' : resolvedType === 'hybrid' ? 'European Competitions' : 'Domestic Leagues'
+        );
+        return {
+          code: c.competitionId!,
+          name: c.name,
+          type: resolvedType,
+          category: resolvedCategory,
+        };
+      });
+    return dynamicOnly.length > 0 ? dynamicOnly : ALL_COMPETITIONS;
+  }, [dynamicCompetitions]);
+
   const activeCompDef = useMemo(
-    () => ALL_COMPETITIONS.find((c) => c.code === selectedComp) || ALL_COMPETITIONS[0],
-    [selectedComp]
+    () => competitionList.find((c) => c.code === selectedComp) || competitionList[0] || ALL_COMPETITIONS[0],
+    [competitionList, selectedComp]
   );
 
   const hasFormData = useMemo(
@@ -199,29 +224,27 @@ export default function StandingsPage() {
 
           {/* 17 Competitions Selector with Category Badges */}
           <CustomDropdown<string>
-            items={ALL_COMPETITIONS.map((l) => ({
+            items={competitionList.map((l) => ({
               value: l.code,
               label: l.name,
               badge: l.type === 'cup' ? 'Cup' : l.type === 'hybrid' ? 'Hybrid' : 'League',
               badgeVariant: l.type === 'cup' ? 'amber' : l.type === 'hybrid' ? 'primary' : 'gray',
-              icon: <Trophy className="w-4 h-4 text-[#7098F8]" />,
+              icon: l.code === 'IDN' ? <span className="relative h-5 w-5"><CompetitionLogo src="/logos/competitions/idn-2026.png" name="Liga Indonesia" /></span> : <Trophy className="w-4 h-4 text-[#7098F8]" />,
             }))}
             value={selectedComp}
             onChange={(c) => {
               setSelectedComp(c);
-              const compDef = ALL_COMPETITIONS.find((x) => x.code === c);
+              const compDef = competitionList.find((x) => x.code === c);
               if (compDef?.type === 'hybrid') setHybridStage('table');
             }}
-            leadingIcon={<Trophy className="w-4 h-4 text-[#7098F8]" />}
+            leadingIcon={selectedComp === 'IDN' ? <span className="relative h-5 w-5"><CompetitionLogo src="/logos/competitions/idn-2026.png" name="Liga Indonesia" /></span> : <Trophy className="w-4 h-4 text-[#7098F8]" />}
             prefix="Comp"
+            align="right"
             className="w-auto"
             ariaLabel="Select competition"
           />
         </div>
       </header>
-
-      {/* Official Broadcaster Live Stream Redirect Banner */}
-      <WhereToWatchBanner competitionId={selectedComp} className="mb-6" />
 
       {/* European Hybrid Stage Toggle (League Phase Table vs Knockout Bracket & Rounds) */}
       {activeCompDef.type === 'hybrid' && (

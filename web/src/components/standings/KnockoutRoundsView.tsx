@@ -96,7 +96,7 @@ export default function KnockoutRoundsView({ matches, competitionName }: Knockou
                   </span>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <Calendar className="w-3.5 h-3.5 text-[#94A3B8]" />
-                    <span>{m.utc_date ? new Date(m.utc_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'TBD'}</span>
+                    <span>{m.utc_date ? new Date(m.utc_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'TBD'}</span>
                   </div>
                 </div>
 

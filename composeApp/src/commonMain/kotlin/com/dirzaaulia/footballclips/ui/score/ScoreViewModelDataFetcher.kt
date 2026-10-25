@@ -1,18 +1,16 @@
 package com.dirzaaulia.footballclips.ui.score
 
 import androidx.lifecycle.viewModelScope
-import com.dirzaaulia.footballclips.data.constants.SupportedClubsConstants
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.NetworkResult
 import com.dirzaaulia.footballclips.data.model.remote.StandingDto
+import com.dirzaaulia.footballclips.data.model.remote.isMatchForFavoriteClubs
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.domain.model.toMatch
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
-
-import com.dirzaaulia.footballclips.data.constants.BigLeaguesConstants
 
 fun ScoreViewModel.getStandings(
     competitionId: String? = selectedCompetitionId.value,
@@ -22,50 +20,49 @@ fun ScoreViewModel.getStandings(
     viewModelScope.launch {
         _standingsState.value = StandingsState.Loading
 
-        if (BigLeaguesConstants.isKnockoutCup(compId)) {
-            when (val matchRes = repository.getMatches(
-                competitionId = compId,
-                limit = 100,
-                ascending = true,
-                season = season
-            )) {
-                is NetworkResult.Success -> {
-                    val matches = matchRes.data.map { it.toMatch() }
-                    _standingsState.value = StandingsState.Success(
-                        standings = emptyList(),
-                        knockoutMatches = matches
-                    )
-                }
-                is NetworkResult.Error -> _standingsState.value = StandingsState.Error("Error ${matchRes.code}: ${matchRes.message}")
-                is NetworkResult.Exception -> _standingsState.value = StandingsState.Error(matchRes.e.message ?: "Failed to load cup matches")
+        val matchRes = oracleVmRepository.getMatches(
+            competitionId = compId,
+            limit = 300,
+            ascending = true,
+            season = season
+        )
+        
+        val matches = if (matchRes is NetworkResult.Success) matchRes.data.map { it.toMatch() } else emptyList()
+        val hasKnockouts = matches.any { it.roundName != null }
+        val hasLeaguePhase = matches.any { it.matchday != null }
+
+        val compDef = oracleVmRepository.competitions.value.firstOrNull { it.id.equals(compId, ignoreCase = true) }
+        val isCup = compDef?.isCup == true || compId in setOf("FAC", "EFL", "CDR", "DFB", "CIT") || (hasKnockouts && !hasLeaguePhase)
+        val isHybrid = compDef?.isHybrid == true || compId in setOf("CL", "EL", "ECL") || (hasKnockouts && hasLeaguePhase)
+
+        if (isCup) {
+            if (matchRes is NetworkResult.Success) {
+                _standingsState.value = StandingsState.Success(
+                    standings = emptyList(),
+                    knockoutMatches = matches
+                )
+            } else if (matchRes is NetworkResult.Error) {
+                _standingsState.value = StandingsState.Error("Error ${matchRes.code}: ${matchRes.message}")
+            } else if (matchRes is NetworkResult.Exception) {
+                _standingsState.value = StandingsState.Error(matchRes.e.message ?: "Failed to load cup matches")
             }
-        } else if (BigLeaguesConstants.isEuropeanHybrid(compId)) {
-            val standingsRes = standingRepository.getStandings(compId, season)
-            val matchRes = repository.getMatches(
-                competitionId = compId,
-                limit = 100,
-                ascending = true,
-                season = season
-            )
+        } else if (isHybrid) {
+            val standingsRes = oracleVmRepository.getStandings(compId, season)
 
             val standings = if (standingsRes is NetworkResult.Success) {
                 deduplicateStandings(standingsRes.data)
             } else emptyList()
 
-            val knockoutMatches = if (matchRes is NetworkResult.Success) {
-                matchRes.data.map { it.toMatch() }
-            } else emptyList()
-
-            if (standings.isEmpty() && knockoutMatches.isEmpty() && standingsRes is NetworkResult.Error) {
+            if (standings.isEmpty() && matches.isEmpty() && standingsRes is NetworkResult.Error) {
                 _standingsState.value = StandingsState.Error("Error ${standingsRes.code}: ${standingsRes.message}")
             } else {
                 _standingsState.value = StandingsState.Success(
                     standings = standings,
-                    knockoutMatches = knockoutMatches
+                    knockoutMatches = matches
                 )
             }
         } else {
-            when (val res = standingRepository.getStandings(compId, season)) {
+            when (val res = oracleVmRepository.getStandings(compId, season)) {
                 is NetworkResult.Success -> {
                     val deduplicated = deduplicateStandings(res.data)
                     _standingsState.value = StandingsState.Success(
@@ -107,15 +104,19 @@ fun ScoreViewModel.getMatches() {
                 date.plus(-1, DateTimeUnit.DAY).toString() to date.plus(1, DateTimeUnit.DAY).toString()
             } else null to null
 
-            val result = repository.getMatches(
-                competitionId = selectedCompetitionId.value,
-                excludeStatus = null,
-                startDate = startDate,
-                endDate = endDate,
-                ascending = if (isArchiveSeason) false else true,
-                limit = if (isArchiveSeason) 50 else 60,
-                season = currSeason
-            )
+            val result = if (isLiveOnly && !isArchiveSeason) {
+                oracleVmRepository.getLiveMatches()
+            } else {
+                oracleVmRepository.getMatches(
+                    competitionId = selectedCompetitionId.value,
+                    excludeStatus = null,
+                    startDate = startDate,
+                    endDate = endDate,
+                    ascending = if (isArchiveSeason) false else true,
+                    limit = if (isArchiveSeason) 50 else 60,
+                    season = currSeason,
+                )
+            }
 
             when (result) {
                 is NetworkResult.Success -> {
@@ -130,6 +131,10 @@ fun ScoreViewModel.getMatches() {
                             if (!isArchiveSeason) {
                                 if (isLiveOnly) {
                                     if (!match.isLive) return@filter false
+                                    val selComp = selectedCompetitionId.value
+                                    if (selComp != null && !match.competitionId.equals(selComp, ignoreCase = true)) {
+                                        return@filter false
+                                    }
                                 } else {
                                     val isSelectedDate = match.dateOnlyISO == selDate
                                     val isLiveNow = match.isLive
@@ -151,7 +156,7 @@ fun ScoreViewModel.getMatches() {
                                 }
                             }
                             if (isMyClubsOnly) {
-                                SupportedClubsConstants.isMatchForFavoriteClubs(match, favIds, clubs)
+                                match.isMatchForFavoriteClubs(favIds, clubs)
                             } else {
                                 true
                             }
@@ -164,10 +169,10 @@ fun ScoreViewModel.getMatches() {
                     val matches = deduplicatedMatches
                         .sortedWith(
                             compareByDescending<Match> { it.isLive }
-                                .thenByDescending { SupportedClubsConstants.isMatchForFavoriteClubs(it, favIds, clubs) }
+                                .thenByDescending { it.isMatchForFavoriteClubs(favIds, clubs) }
                                 .thenBy { it.utcDate }
                         )
-                        .map { HighlightUiItem.SupabaseMatch(it) }
+                        .map { HighlightUiItem.OracleMatch(it) }
 
                     val adsRemoved = isAdsRemoved.value
                     _uiState.value = ScoreState.Success(
@@ -199,7 +204,7 @@ fun ScoreViewModel.buildFixtureListWithAds(
     for (i in items.indices) {
         result.add(items[i])
         if ((i + 1) % 6 == 0 && i < items.size - 1) {
-            result.add(HighlightUiItem.BannerAd("ad-$i"))
+            result.add(HighlightUiItem.BannerAd)
         }
     }
     return result

@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { SUPPORTED_CLUBS } from '@/lib/clubs';
 
 export const revalidate = 3600; // 1 hour edge cache
 
@@ -26,15 +25,24 @@ export async function GET() {
           crest_url?: string;
           team_id?: number;
           aliases?: string[];
-        }) => ({
-          id: dto.id,
-          name: dto.name,
-          shortName: dto.short_name || dto.name.slice(0, 15),
-          leagueCode: dto.competition_code,
-          leagueName: dto.competition_name,
-          crestUrl: dto.crest_url || `https://a.espncdn.com/i/teamlogos/soccer/500/${dto.team_id}.png`,
-          aliases: dto.aliases || [],
-        }));
+        }) => {
+          const crest = dto.crest_url || (dto.team_id ? `https://a.espncdn.com/i/teamlogos/soccer/500/${dto.team_id}.png` : '');
+          const short = dto.short_name || dto.name.slice(0, 15);
+          return {
+            id: dto.id,
+            name: dto.name,
+            short_name: short,
+            shortName: short,
+            competition_code: dto.competition_code,
+            leagueCode: dto.competition_code,
+            competition_name: dto.competition_name,
+            leagueName: dto.competition_name,
+            crest_url: crest,
+            crestUrl: crest,
+            aliases: dto.aliases || [],
+            team_id: dto.team_id || null,
+          };
+        });
         return NextResponse.json(mapped);
       }
     }
@@ -42,5 +50,5 @@ export async function GET() {
     console.error('Failed to fetch dynamic supported clubs from PostgreSQL:', err);
   }
 
-  return NextResponse.json(SUPPORTED_CLUBS);
+  return NextResponse.json([]);
 }

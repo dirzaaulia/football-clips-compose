@@ -1,7 +1,28 @@
 import { NextResponse } from 'next/server';
-import { BIG_LEAGUES } from '@/lib/constants';
+import { supabase } from '@/lib/database';
 
 export const revalidate = 3600; // 1 hour edge cache
+
+const ESPN_COMPETITION_LOGOS: Record<string, string> = {
+  CL: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2.png',
+  EL: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2310.png',
+  ECL: 'https://a.espncdn.com/i/leaguelogos/soccer/500/20296.png',
+  PL: 'https://a.espncdn.com/i/leaguelogos/soccer/500/23.png',
+  PD: 'https://a.espncdn.com/i/leaguelogos/soccer/500/15.png',
+  SA: 'https://a.espncdn.com/i/leaguelogos/soccer/500/12.png',
+  BL1: 'https://a.espncdn.com/i/leaguelogos/soccer/500/10.png',
+  FL1: 'https://a.espncdn.com/i/leaguelogos/soccer/500/9.png',
+  FAC: 'https://a.espncdn.com/i/leaguelogos/soccer/500/40.png',
+  EFL: 'https://a.espncdn.com/i/leaguelogos/soccer/500/41.png',
+  CDR: 'https://a.espncdn.com/i/leaguelogos/soccer/500/80.png',
+  DFB: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2061.png',
+  CIT: 'https://a.espncdn.com/i/leaguelogos/soccer/500/83.png',
+  PPL: 'https://a.espncdn.com/i/leaguelogos/soccer/500/14.png',
+  DED: 'https://a.espncdn.com/i/leaguelogos/soccer/500/11.png',
+  MLS: 'https://a.espncdn.com/i/leaguelogos/soccer/500/19.png',
+  SPL: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2488.png',
+  IDN: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2336.png',
+};
 
 export async function GET() {
   try {
@@ -17,24 +38,21 @@ export async function GET() {
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
-        return NextResponse.json(data);
+        return NextResponse.json(data.map((competition) => {
+          const espnLogo = ESPN_COMPETITION_LOGOS[competition.code];
+          const emblem = competition.emblem_url && !competition.emblem_url.includes('football-data.org')
+            ? competition.emblem_url
+            : (espnLogo || competition.emblem_url || '');
+          return {
+            ...competition,
+            emblem_url: emblem,
+          };
+        }));
       }
     }
   } catch (err) {
     console.error('Failed to fetch dynamic competitions from PostgreSQL:', err);
   }
 
-  // Graceful fallback to static bundled competitions
-  const fallback = BIG_LEAGUES.filter((l) => l.competitionId !== 'ALL').map((l, idx) => ({
-    id: l.competitionId,
-    name: l.name,
-    short_name: l.name,
-    country_code: l.countryCode,
-    emblem_url: l.logo,
-    league_id: l.leagueId,
-    is_active: true,
-    display_order: idx + 1,
-  }));
-
-  return NextResponse.json(fallback);
+  return NextResponse.json([]);
 }

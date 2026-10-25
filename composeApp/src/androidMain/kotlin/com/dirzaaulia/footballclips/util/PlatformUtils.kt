@@ -26,3 +26,5 @@ actual fun shareText(title: String, text: String, url: String) {
 
 actual val isWasmTarget: Boolean = false
 
+actual fun getDeviceCountryCode(): String = java.util.Locale.getDefault().country
+

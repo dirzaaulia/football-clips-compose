@@ -1,7 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BIG_LEAGUES, BigLeague } from '@/lib/constants';
+
+export interface Competition {
+  name: string;
+  leagueId: number | null;
+  countryCode: string | null;
+  competitionId: string | null;
+  logo: string;
+  type?: 'league' | 'hybrid' | 'cup';
+}
 
 interface DynamicCompetitionDto {
   id: string;
@@ -10,12 +18,13 @@ interface DynamicCompetitionDto {
   country_code: string | null;
   emblem_url: string | null;
   league_id: number | null;
+  type?: 'league' | 'hybrid' | 'cup';
 }
 
-const CACHE_KEY = 'fc_cached_dynamic_competitions';
+const CACHE_KEY = 'fc_cached_dynamic_competitions_v2';
 
 export function useCompetitions() {
-  const [competitions, setCompetitions] = useState<BigLeague[]>(() => {
+  const [competitions, setCompetitions] = useState<Competition[]>(() => {
     if (typeof window !== 'undefined') {
       try {
         const cached = localStorage.getItem(CACHE_KEY);
@@ -29,7 +38,15 @@ export function useCompetitions() {
         // Ignored
       }
     }
-    return BIG_LEAGUES;
+    return [
+      {
+        name: 'All Competitions',
+        leagueId: null,
+        countryCode: null,
+        competitionId: 'ALL',
+        logo: '',
+      }
+    ];
   });
 
   useEffect(() => {
@@ -42,7 +59,7 @@ export function useCompetitions() {
         const data: DynamicCompetitionDto[] = await res.json();
         if (isCancelled || !Array.isArray(data) || data.length === 0) return;
 
-        const allLeaguesOption: BigLeague = {
+        const allLeaguesOption: Competition = {
           name: 'All Competitions',
           leagueId: null,
           countryCode: null,
@@ -50,7 +67,7 @@ export function useCompetitions() {
           logo: '',
         };
 
-        const mapped: BigLeague[] = [
+        const mapped: Competition[] = [
           allLeaguesOption,
           ...data.map((c) => ({
             name: c.name,
@@ -58,6 +75,7 @@ export function useCompetitions() {
             countryCode: c.country_code,
             competitionId: c.id,
             logo: c.emblem_url || '',
+            type: c.type || 'league',
           })),
         ];
 
@@ -81,4 +99,19 @@ export function useCompetitions() {
   }, []);
 
   return competitions;
+}
+
+export function isLeagueMatch(target?: string | null, candidate?: string | null): boolean {
+  if (!target || !candidate) return false;
+  const t = target.toLowerCase().trim();
+  const c = candidate.toLowerCase().trim();
+  if (t === c) return true;
+
+  const plRegex = /\b(pl|epl|premier league)\b/i;
+  if (plRegex.test(t) && plRegex.test(c)) return true;
+
+  const laligaRegex = /\b(la liga|laliga|primera division|primera división|pd)\b/i;
+  if (laligaRegex.test(t) && laligaRegex.test(c)) return true;
+
+  return t.includes(c) || c.includes(t);
 }

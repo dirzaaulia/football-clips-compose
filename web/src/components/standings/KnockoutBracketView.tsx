@@ -127,7 +127,7 @@ export default function KnockoutBracketView({ matches, competitionName }: Knocko
                       <div className="flex items-center justify-between text-[10px] text-[#94A3B8] font-bold mb-2">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-3 h-3 text-[#7098F8]" />
-                          {m.utc_date ? new Date(m.utc_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'TBD'}
+                          {m.utc_date ? new Date(m.utc_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'TBD'}
                         </span>
                         {isLive && (
                           <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-black animate-pulse">

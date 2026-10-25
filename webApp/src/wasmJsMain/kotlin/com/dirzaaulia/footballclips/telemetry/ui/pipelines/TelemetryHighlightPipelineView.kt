@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,10 +15,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Loop
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,10 +40,19 @@ import com.dirzaaulia.footballclips.telemetry.ui.theme.StitchError
 import com.dirzaaulia.footballclips.telemetry.ui.theme.StitchPrimary
 import com.dirzaaulia.footballclips.telemetry.ui.theme.StitchSecondary
 import com.dirzaaulia.footballclips.telemetry.ui.theme.StitchSuccess
+import com.dirzaaulia.footballclips.telemetry.ui.theme.StitchSurface
+import com.dirzaaulia.footballclips.telemetry.ui.theme.StitchSurfaceContainer
 import com.dirzaaulia.footballclips.telemetry.ui.theme.StitchSurfaceContainerHigh
 import com.dirzaaulia.footballclips.telemetry.ui.theme.StitchTextMuted
+import com.dirzaaulia.footballclips.telemetry.ui.theme.StitchTextPrimary
 import com.dirzaaulia.footballclips.telemetry.ui.theme.StitchTextSecondary
 import com.dirzaaulia.footballclips.telemetry.ui.theme.StitchWarning
+
+data class CycleMatchGroup(
+    val cycleId: Long,
+    val cycleName: String,
+    val matches: List<ParsedMatch>
+)
 
 @Composable
 fun TelemetryHighlightPipelineView(
@@ -46,11 +60,11 @@ fun TelemetryHighlightPipelineView(
     searchQuery: String,
     modifier: Modifier = Modifier
 ) {
-    var expandedIndices by remember {
+    var expandedMatchIndices by remember {
         mutableStateOf(matches.filter { it.isExpanded }.map { it.index }.toSet())
     }
 
-    val isAllExpanded = matches.isNotEmpty() && expandedIndices.size == matches.size
+    val isAllExpanded = matches.isNotEmpty() && expandedMatchIndices.size == matches.size
 
     val filteredMatches = remember(matches, searchQuery) {
         val q = searchQuery.trim().lowercase()
@@ -59,6 +73,23 @@ fun TelemetryHighlightPipelineView(
             m.title.lowercase().contains(q) ||
             m.events.any { it.eventText.lowercase().contains(q) }
         }
+    }
+
+    // Group matches by Cycle ID (extracted from events or chunked by 10 items)
+    val cycleGroups = remember(filteredMatches) {
+        filteredMatches.groupBy { match ->
+            match.events.firstOrNull()?.cycleId?.takeIf { it > 0 } ?: ((match.index / 10).toLong() + 1)
+        }.map { (cycleId, matchGroup) ->
+            CycleMatchGroup(
+                cycleId = cycleId,
+                cycleName = "Background Cycle #$cycleId",
+                matches = matchGroup
+            )
+        }
+    }
+
+    var expandedCycleIds by remember {
+        mutableStateOf(cycleGroups.map { it.cycleId }.toSet())
     }
 
     val successCount = matches.count { it.statusType == "success" }
@@ -134,7 +165,13 @@ fun TelemetryHighlightPipelineView(
                     .background(StitchSurfaceContainerHigh)
                     .border(0.5.dp, StitchBorder, RoundedCornerShape(4.dp))
                     .clickable {
-                        expandedIndices = if (isAllExpanded) emptySet() else matches.map { it.index }.toSet()
+                        if (isAllExpanded) {
+                            expandedMatchIndices = emptySet()
+                            expandedCycleIds = emptySet()
+                        } else {
+                            expandedMatchIndices = matches.map { it.index }.toSet()
+                            expandedCycleIds = cycleGroups.map { it.cycleId }.toSet()
+                        }
                     }
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
@@ -148,21 +185,109 @@ fun TelemetryHighlightPipelineView(
             }
         }
 
-        // Accordion List
+        // Cycle Grouped Accordion List
         LazyColumn(
             modifier = Modifier.fillMaxWidth().height(560.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(filteredMatches, key = { it.index }) { match ->
-                val isOpen = expandedIndices.contains(match.index)
-                TelemetryMatchAccordion(
-                    match = match,
-                    isExpanded = isOpen,
-                    onToggle = {
-                        expandedIndices = if (isOpen) expandedIndices - match.index else expandedIndices + match.index
+            items(cycleGroups, key = { it.cycleId }) { group ->
+                val isCycleOpen = expandedCycleIds.contains(group.cycleId)
+                val groupSuccess = group.matches.count { it.statusType == "success" }
+                val groupTotal = group.matches.size
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(StitchSurfaceContainer)
+                        .border(1.dp, StitchBorder, RoundedCornerShape(8.dp))
+                ) {
+                    // Top Cycle Header
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                expandedCycleIds = if (isCycleOpen) expandedCycleIds - group.cycleId else expandedCycleIds + group.cycleId
+                            }
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isCycleOpen) Icons.Default.ExpandMore else Icons.Default.ChevronRight,
+                                contentDescription = if (isCycleOpen) "Collapse Cycle" else "Expand Cycle",
+                                tint = StitchTextSecondary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Loop,
+                                contentDescription = "Cycle",
+                                tint = StitchPrimary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = group.cycleName,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = StitchTextPrimary,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(StitchPrimary.copy(alpha = 0.15f))
+                                    .border(1.dp, StitchPrimary.copy(alpha = 0.4f), RoundedCornerShape(4.dp))
+                                    .padding(horizontal = 8.dp, vertical = 3.dp)
+                            ) {
+                                Text(
+                                    text = "$groupSuccess / $groupTotal Linked",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = StitchPrimary,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        }
                     }
-                )
+
+                    // Nested Matches Accordions inside Cycle
+                    if (isCycleOpen) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(StitchSurface)
+                                .padding(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            group.matches.forEach { match ->
+                                val isOpen = expandedMatchIndices.contains(match.index)
+                                TelemetryMatchAccordion(
+                                    match = match,
+                                    isExpanded = isOpen,
+                                    onToggle = {
+                                        expandedMatchIndices = if (isOpen) {
+                                            expandedMatchIndices - match.index
+                                        } else {
+                                            expandedMatchIndices + match.index
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
             }
+
             if (filteredMatches.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {

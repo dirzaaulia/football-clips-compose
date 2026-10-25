@@ -17,7 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
+import com.dirzaaulia.footballclips.ui.components.common.shimmerEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,15 +60,24 @@ fun ModernHighlightCard(
         val isLandscape = maxWidth < 300.dp || maxHeight < 300.dp
         val shouldShowName = showTeamName && !isLandscape
 
+        val isPlayable = !match.highlightVideoId.isNullOrEmpty() && (match.viewerAvailability == null || match.viewerAvailability == "available")
+        val isUnverified = match.viewerAvailability == "unknown" && !match.externalVideoId.isNullOrEmpty()
+
         Surface(
-            onClick = { onWatchHighlightClick(match.highlightVideoId.orEmpty()) },
+            onClick = {
+                if (isPlayable) {
+                    onWatchHighlightClick(match.highlightVideoId.orEmpty())
+                } else if (isUnverified) {
+                    onWatchHighlightClick(match.externalVideoId.orEmpty())
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .then(
                 if (sharedTransitionScope != null && animatedVisibilityScope != null && match.highlightVideoId != null) {
                     with(sharedTransitionScope) {
                         Modifier.sharedElement(
-                            rememberSharedContentState(key = "player-${HighlightUiItem.SupabaseMatch(match).uniqueId}"),
+                            rememberSharedContentState(key = "player-${HighlightUiItem.OracleMatch(match).uniqueId}"),
                             animatedVisibilityScope = animatedVisibilityScope
                         )
                     }
@@ -129,13 +141,27 @@ fun ModernHighlightCard(
                         )
                         if (isFavorite) {
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("⭐", fontSize = 12.sp)
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = "Favorite",
+                                tint = Color(0xFFFFB300),
+                                modifier = Modifier.size(14.dp)
+                            )
                         }
                     }
                     
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = match.dateOnly,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.9f),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
                         if (match.isLive) {
                             MatchStatusBadge(match = match)
+                        } else if (match.viewerAvailability != null) {
+                            AvailabilityBadge(match.viewerAvailability)
                         }
                     }
                 }
@@ -156,6 +182,7 @@ fun ModernHighlightCard(
                         SubcomposeAsyncImage(
                             model = match.homeTeamCrest.toProxyUrl(),
                             contentDescription = null,
+                            loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) },
                             modifier = Modifier.size(28.dp),
                             contentScale = ContentScale.Fit
                         )
@@ -223,6 +250,7 @@ fun ModernHighlightCard(
                         SubcomposeAsyncImage(
                             model = match.awayTeamCrest.toProxyUrl(),
                             contentDescription = null,
+                            loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) },
                             modifier = Modifier.size(28.dp),
                             contentScale = ContentScale.Fit
                         )
@@ -231,5 +259,34 @@ fun ModernHighlightCard(
             }
         }
     }
+
 }
+}
+
+@Composable
+private fun AvailabilityBadge(status: String) {
+    val text = when (status) {
+        "country_blocked" -> "Unavailable in your country"
+        "not_found" -> "Highlight not found"
+        "unavailable" -> "Video unavailable"
+        "unknown" -> "Availability not verified"
+        else -> "Available"
+    }
+    Surface(
+        color = when (status) {
+            "available" -> MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+            "country_blocked", "unknown" -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.85f)
+            "unavailable" -> MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
+            else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f)
+        },
+        shape = RoundedCornerShape(4.dp),
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+        )
+    }
 }

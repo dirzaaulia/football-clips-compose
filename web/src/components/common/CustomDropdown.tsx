@@ -35,22 +35,33 @@ export default function CustomDropdown<T extends string | number>({
   variant = 'default',
   align = 'left',
   className = '',
-  menuWidth = 'min-w-full w-max max-w-[90vw]',
+  menuWidth = 'min-w-full w-max max-w-[calc(100vw-1.5rem)]',
   ariaLabel = 'Select option',
 }: CustomDropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [autoAlign, setAutoAlign] = useState<'left' | 'right'>(align === 'popout' ? 'left' : align);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedItem = items.find((item) => item.value === value) || items[0];
 
   const handleToggle = () => {
-    if (!isOpen && align === 'popout' && containerRef.current) {
+    if (!isOpen && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
-      setCoords({
-        top: Math.max(12, Math.min(rect.top, window.innerHeight - 200)),
-        left: rect.right + 10,
-      });
+      if (align === 'popout') {
+        setCoords({
+          top: Math.max(12, Math.min(rect.top, window.innerHeight - 200)),
+          left: Math.min(rect.right + 10, window.innerWidth - 220),
+        });
+      } else {
+        // Auto-detect if trigger button is near the right edge of viewport
+        const spaceOnRight = window.innerWidth - rect.left;
+        if (spaceOnRight < 280 || align === 'right') {
+          setAutoAlign('right');
+        } else {
+          setAutoAlign('left');
+        }
+      }
     }
     setIsOpen((prev) => !prev);
   };
@@ -166,7 +177,7 @@ export default function CustomDropdown<T extends string | number>({
           className={`${
             align === 'popout'
               ? ''
-              : align === 'right'
+              : autoAlign === 'right'
               ? 'absolute right-0 mt-2 z-50'
               : 'absolute left-0 mt-2 z-50'
           } ${menuWidth} bg-[#181C20]/95 backdrop-blur-xl border border-[#334155] rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.55)] p-1.5 focus:outline-none transition-all duration-150 origin-top animate-in fade-in-0 zoom-in-95`}

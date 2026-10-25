@@ -62,7 +62,12 @@ Here are the official high-resolution marketing banners featured on the Google P
 ## ✨ Key Features
 
 - 🎥 **HD Official Match Highlights**: Curated, decisive goals, and extended match highlights from official club channels and authorized broadcast partners without clickbait.
-- ⚡ **Live Scores & Real-Time Match Events**: Live scoreboards with interactive status indicators (`LIVE`, `FINISHED`, `SCHEDULED`), team crests, and kickoff schedules.
+- ⚡ **Live Scores, Match Clocks & Real-Time Events**: Real-time scoreboards with live match minute badges (`LIVE 74'`, `HT`, `FINISHED`, `SCHEDULED`), team crests, and kickoff schedules across both Android CMP and Web.
+- 🏆 **Broad Worldwide Competition Coverage**:
+  - **European Elite**: Premier League, LaLiga, Serie A, Bundesliga, Ligue 1, Eredivisie, Liga Portugal.
+  - **UEFA Tournaments**: UEFA Champions League, Europa League, Conference League, FA Cup, Carabao Cup, Copa del Rey, DFB-Pokal, Coppa Italia.
+  - **Asian & Middle Eastern Giants**: AFC Champions League Elite, Saudi Pro League, Liga 1 Indonesia (native ESPN `idn.1` ingestion).
+  - **South & North Americas**: CONMEBOL Libertadores, Copa Sudamericana, Recopa Sudamericana, Brasileirão Série A, Argentine Liga Profesional, Major League Soccer.
 - 📜 **Multi-Season Historical Archive**: Full cross-platform archive browsing for Season 2025/26 with over 3,420+ historical fixtures and video highlights, protected by database-level immutability triggers.
 - 📊 **Tactical Match Debrief & Boxscore Statistics**: In-depth match intelligence including authentic ESPN statistics (possession, shots, passes, corners, tackles), starting formations, upcoming match previews, and full-time journalistic summaries.
 - 📰 **Multi-Source Football Journalistic Hub**: Accredited football news streams from Tier-1 sports journalism providers (BBC Sport, The Guardian) with real-time editorial feeds.
@@ -79,7 +84,7 @@ Here are the official high-resolution marketing banners featured on the Google P
 - 🌐 **Modern Multi-Platform Architecture**: 
   - **Android Native App**: Jetpack Compose & Compose Multiplatform, hardware-accelerated inline and fullscreen YouTube player, heads-up FCM notifications.
   - **Web Portal ([fc.dirzaaulia.com](https://fc.dirzaaulia.com))**: Built with **Next.js 16 (React 19 & Turbopack)** with Static Site Generation (SSG), Incremental Static Regeneration (ISR), Web Push service worker, and Google AdSense integration.
-  - **APM Command Center ([fc.dirzaaulia.com/telemetry](https://fc.dirzaaulia.com/telemetry))**: High-performance **Kotlin/Wasm** real-time observability platform with live OpenMetrics streaming, edge cache purging, on-demand cycle triggers, and latency benchmarking.
+  - **APM Command Center ([fc.dirzaaulia.com/telemetry](https://fc.dirzaaulia.com/telemetry))**: High-performance **Kotlin/Wasm** real-time observability platform with collapsible desktop navigation, WIB clock badge, inline 5-level hierarchy (`Pipeline → Cycle → Match → Video → Checks`), meaningful outcome indicators, and IndexedDB session-scoped scroll restoration.
 - 💎 **Universal Account & In-App Purchase Sync**:
   - Google Native Sign-In via Supabase Auth.
   - Google Play In-App Billing (RevenueCat SDK 10.26) for Android.
@@ -107,7 +112,7 @@ Here are the official high-resolution marketing banners featured on the Google P
 | **Presentation: APM Command Center** | Kotlin/Wasm (WebAssembly)<br/>Compose Web Multiplatform | Real-time observability dashboard (`/telemetry`), live OpenMetrics stream (`/metrics`), interactive cycle dispatcher, instant Cloudflare cache invalidation, and edge benchmark tester. |
 | **Global Edge Proxy & Dual Router** | Cloudflare Workers (`fc-edge-proxy`)<br/>Domain: `edge.fc.dirzaaulia.com` | Sub-15ms edge caching layer with dual-origin routing: routes high-volume match/standings data to Oracle Super-Node PostgreSQL (0 egress limits) and user auth to Supabase. Enforces enterprise security headers (HSTS, CSP, X-Frame-Options, Nosniff) and instant cache purge API (`/api/purge-cache`). |
 | **Cloud Backend & Database** | Supabase Cloud (PostgreSQL 15)<br/>Supabase Auth & Postgrest | GoTrue Google OAuth authentication, user profiles (`profiles` table), in-app purchase entitlements, and real-time sync. |
-| **Autonomous Super-Node Datastore** | Oracle Always Free (Ampere ARM64)<br/>PostgreSQL 16, PostgREST, Caddy | Dedicated 4-core, 24GB RAM super-node (`168.110.196.30`) hosting production PostgreSQL 16 datastore with `protect_archive_matches` immutability trigger preserving 3,420+ archive matches, Caddy auto-TLS reverse proxy, FileBrowser Quantum, and automated Backblaze B2 sync. |
+| **Autonomous Super-Node & Orchestration** | Oracle Always Free (Ampere ARM64)<br/>PostgreSQL 16, PostgREST, n8n, Caddy | Dedicated 4-core, 24GB RAM super-node (`168.110.196.30`) hosting production PostgreSQL 16 datastore with `protect_archive_matches` immutability trigger preserving 3,420+ archive matches, `footballclips-operations` microservice (:8093), `footballclips-pgadmin` forward-auth GUI, `jarvis-n8n` autonomous hourly maintenance workflow (`fcOpsMaintenance`), Caddy auto-TLS, FileBrowser Quantum, and automated Backblaze B2 sync. |
 | **Push Notification Network** | Firebase Cloud Messaging (FCM)<br/>Topic Architecture: `club_{id}` | Global edge fanout delivering goal alerts, match schedules, and highlight releases to millions of Android devices and Web browsers at **$0 infrastructure cost**. |
 | **Serverless AI Worker Engine** | Python 3.12/3.13, FastAPI, Asyncio<br/>Google Cloud Run (`fc-worker`) | Containerized serverless worker on Cloud Run with automated scale-to-zero, real-time YouTube WebSub push receiver, ESPN sports engine, and Gemini 3.8 Flash AI re-ranking. |
 | **Offsite Backup & Cloud Storage** | Backblaze B2 + Rclone Sync<br/>Automated Cron Engine | Nightly automated synchronization from Backblaze B2 to the super-node cloud vault with encrypted storage and automated retention. |

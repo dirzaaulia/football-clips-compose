@@ -1,3 +1,4 @@
+import os
 from datetime import UTC, datetime, timedelta
 
 from loguru import logger
@@ -41,27 +42,29 @@ class MatchService:
             log_events = []
 
         now_utc = datetime.now(UTC)
+        durable = os.getenv("FC_FIXTURE_OUTBOX") == "true"
         provider = (settings.match_data_provider or "espn").lower()
         provider_name = "ESPN Live Engine" if provider == "espn" else "Football-Data API"
 
         mode_text = (
-            f"FULL SYNC [{provider_name}] (H-{settings.retention_days} s/d H+{settings.upcoming_fixture_days})"
+            f"FULL SYNC [{provider_name}] (H-2 to H+{settings.upcoming_fixture_days})"
             if is_full_sync
-            else f"LIVE SYNC [{provider_name}] (H-1 to H+7)"
+            else f"LIVE SYNC [{provider_name}] (H-1 to today)"
         )
         logger.info(f"Sync Mode: {mode_text}")
         append_event(log_events, f"Sync Mode: {mode_text}", "INFO", "MATCH_SYNC", "MODE")
 
         if is_full_sync:
-            date_from = (now_utc - timedelta(days=settings.retention_days)).strftime("%Y-%m-%d")
+            date_from = (now_utc - timedelta(days=2)).strftime("%Y-%m-%d")
             date_to = (now_utc + timedelta(days=settings.upcoming_fixture_days)).strftime("%Y-%m-%d")
         else:
             date_from = (now_utc - timedelta(days=1)).strftime("%Y-%m-%d")
-            date_to = (now_utc + timedelta(days=7)).strftime("%Y-%m-%d")
+            date_to = now_utc.strftime("%Y-%m-%d")
 
         if provider == "espn":
+            competitions = settings.target_competitions
             matches_raw = await espn_client.get_matches(
-                competitions=settings.target_competitions,
+                competitions=competitions,
                 date_from=date_from,
                 date_to=date_to,
             )
@@ -119,10 +122,6 @@ class MatchService:
                 elapsed_minutes = (now_utc - match_start).total_seconds() / 60
                 api_status = m.get("status", "SCHEDULED")
 
-                # Fallback otomatis jika status IN_PLAY tapi sudah lewat 140 menit
-                if api_status in ["IN_PLAY", "PAUSED"] and elapsed_minutes > 140:
-                    api_status = "FINISHED"
-
                 matchday = m.get("matchday")
                 payload = {
                     "id": m["id"],
@@ -169,6 +168,7 @@ class MatchService:
 
             changes_found = False
             for p in unique_payloads:
+                append_event(log_events,"Fixture considered for score and status synchronization","INFO","MATCH_SYNC","FIXTURE_CHECKED",match_id=p['id'], attributes={'snapshot': {key:p.get(key) for key in ('status','home_score','away_score','display_clock','events')}})
                 old = old_data_map.get(p["id"])
                 h_team, a_team = p["home_team_name"], p["away_team_name"]
 
@@ -192,7 +192,7 @@ class MatchService:
                         is_regression = True
 
                     if is_regression:
-                        append_event(log_events, f"[REGRESSION_BLOCKED] [{comp_name}] ({m_date}) {h_team} vs {a_team} status retained as {old['status']}", "WARN", "MATCH_SYNC", "REGRESSION")
+                        append_event(log_events, f"[REGRESSION_BLOCKED] [{comp_name}] ({m_date}) {h_team} vs {a_team} status retained as {old['status']}", "WARN", "MATCH_SYNC", "REGRESSION", match_id=p["id"])
                         p["status"] = old["status"]
                         if p.get("home_score") is None:
                             p["home_score"] = old.get("home_score")
@@ -201,35 +201,38 @@ class MatchService:
                     elif old["status"] != p["status"]:
                         if p["status"] in ["FINISHED", "AWARDED"]:
                             self.newly_finished_count += 1
-                            append_event(log_events, f"[FULL TIME] [{comp_name}] ({m_date}) {h_team} vs {a_team} finished: {p.get('home_score') or 0} - {p.get('away_score') or 0}", "INFO", "MATCH_SYNC", "FULL_TIME")
-                            notification_service.notify_match_event(p, "fulltime", log_events)
+                            append_event(log_events, f"[FULL TIME] [{comp_name}] ({m_date}) {h_team} vs {a_team} finished: {p.get('home_score') or 0} - {p.get('away_score') or 0}", "INFO", "MATCH_SYNC", "FULL_TIME", match_id=p["id"])
+                            if not durable:
+                                notification_service.notify_match_event(p, "fulltime", log_events)
                         elif p["status"] == "IN_PLAY":
                             if old["status"] == "PAUSED":
-                                append_event(log_events, f"[SECOND HALF] [{comp_name}] ({m_date}) 2nd half underway for {h_team} vs {a_team}", "INFO", "MATCH_SYNC", "SECOND_HALF")
+                                append_event(log_events, f"[SECOND HALF] [{comp_name}] ({m_date}) 2nd half underway for {h_team} vs {a_team}", "INFO", "MATCH_SYNC", "SECOND_HALF", match_id=p["id"])
                             else:
-                                append_event(log_events, f"[KICKOFF] [{comp_name}] ({m_date}) {h_team} vs {a_team} kicked off (Status: IN_PLAY)", "INFO", "MATCH_SYNC", "KICKOFF")
-                                notification_service.notify_match_event(p, "kickoff", log_events)
+                                append_event(log_events, f"[KICKOFF] [{comp_name}] ({m_date}) {h_team} vs {a_team} kicked off (Status: IN_PLAY)", "INFO", "MATCH_SYNC", "KICKOFF", match_id=p["id"])
+                                if not durable:
+                                    notification_service.notify_match_event(p, "kickoff", log_events)
                         elif p["status"] == "PAUSED":
-                            append_event(log_events, f"[HALF TIME] [{comp_name}] ({m_date}) Half time break: {h_team} {p.get('home_score') or 0} - {p.get('away_score') or 0} {a_team}", "INFO", "MATCH_SYNC", "HALF_TIME")
+                            append_event(log_events, f"[HALF TIME] [{comp_name}] ({m_date}) Half time break: {h_team} {p.get('home_score') or 0} - {p.get('away_score') or 0} {a_team}", "INFO", "MATCH_SYNC", "HALF_TIME", match_id=p["id"])
                         else:
-                            append_event(log_events, f"[STATUS UPDATE] [{comp_name}] ({m_date}) {h_team} vs {a_team} status changed: {old['status']} -> {p['status']}", "INFO", "MATCH_SYNC", "STATUS_CHANGE")
+                            append_event(log_events, f"[STATUS UPDATE] [{comp_name}] ({m_date}) {h_team} vs {a_team} status changed: {old['status']} -> {p['status']}", "INFO", "MATCH_SYNC", "STATUS_CHANGE", match_id=p["id"])
                         changes_found = True
 
                     if p["status"] in ["IN_PLAY", "PAUSED", "FINISHED"]:
                         h_score_old, a_score_old = old.get("home_score") or 0, old.get("away_score") or 0
                         h_score_new, a_score_new = p.get("home_score") or 0, p.get("away_score") or 0
                         if h_score_old != h_score_new or a_score_old != a_score_new:
-                            append_event(log_events, f"[LIVE SCORE] [{comp_name}] ({m_date}) Score updated for {h_team} vs {a_team}: {h_score_new} - {a_score_new}", "SUCCESS", "MATCH_SYNC", "GOAL_SCORE")
+                            append_event(log_events, f"[LIVE SCORE] [{comp_name}] ({m_date}) Score updated for {h_team} vs {a_team}: {h_score_new} - {a_score_new}", "SUCCESS", "MATCH_SYNC", "GOAL_SCORE", match_id=p["id"])
                             if p["status"] in ["IN_PLAY", "PAUSED"]:
-                                notification_service.notify_match_event(p, "score", log_events)
+                                if not durable:
+                                    notification_service.notify_match_event(p, "score", log_events)
                             changes_found = True
                 else:
                     changes_found = True
                     kickoff_time = p.get("utc_date", "")[11:16] + " UTC" if len(p.get("utc_date", "")) >= 16 else "TBD"
                     if p["status"] in ["TIMED", "SCHEDULED"]:
-                        append_event(log_events, f"[NEW FIXTURE] [{comp_name}] ({m_date}) Inserted upcoming fixture: {h_team} vs {a_team} (Kickoff: {kickoff_time})", "INFO", "MATCH_SYNC", "NEW_MATCH")
+                        append_event(log_events, f"[NEW FIXTURE] [{comp_name}] ({m_date}) Inserted upcoming fixture: {h_team} vs {a_team} (Kickoff: {kickoff_time})", "INFO", "MATCH_SYNC", "NEW_MATCH", match_id=p["id"])
                     else:
-                        append_event(log_events, f"[NEW FIXTURE] [{comp_name}] ({m_date}) Inserted fixture: {h_team} vs {a_team} (Status: {p['status']})", "INFO", "MATCH_SYNC", "NEW_MATCH")
+                        append_event(log_events, f"[NEW FIXTURE] [{comp_name}] ({m_date}) Inserted fixture: {h_team} vs {a_team} (Status: {p['status']})", "INFO", "MATCH_SYNC", "NEW_MATCH", match_id=p["id"])
 
             # 3. Enrich live and newly finished matches with real tactical data (Formations & Stats)
             enriched_count = 0
@@ -263,7 +266,7 @@ class MatchService:
                             f_home = summary.get("formations", {}).get("home", "")
                             f_away = summary.get("formations", {}).get("away", "")
                             form_str = f" ({f_home} vs {f_away})" if f_home and f_away else ""
-                            append_event(log_events, f"[TACTICAL DATA] [{comp_name}] Enriched formations{form_str} & boxscore stats for {h_team} vs {a_team}", "INFO", "MATCH_SYNC", "TACTICAL_SYNC")
+                            append_event(log_events, f"[TACTICAL DATA] [{comp_name}] Enriched formations{form_str} & boxscore stats for {h_team} vs {a_team}", "INFO", "MATCH_SYNC", "TACTICAL_SYNC", match_id=p["id"])
                     except Exception as ex:
                         logger.debug(f"[TACTICAL DATA] Could not fetch summary for {p['id']}: {ex}")
 
@@ -281,7 +284,7 @@ class MatchService:
                                 p["editorial_story"] = art["story"]
                                 p["editorial_source"] = art["source"]
                                 comp_name = p.get("competition_name") or p.get("competition_id") or "League"
-                                append_event(log_events, f"[EDITORIAL RSS] [{comp_name}] Linked {art['source']} journalistic story for {h_team} vs {a_team}", "INFO", "MATCH_SYNC", "EDITORIAL_SYNC")
+                                append_event(log_events, f"[EDITORIAL RSS] [{comp_name}] Linked {art['source']} journalistic story for {h_team} vs {a_team}", "INFO", "MATCH_SYNC", "EDITORIAL_SYNC", match_id=p["id"])
             except Exception as e:
                 logger.debug(f"[EDITORIAL RSS] Multi-source enrichment skipped: {e}")
 
@@ -289,14 +292,15 @@ class MatchService:
 
                 append_event(log_events, "No fixture score or status changes detected.", "INFO", "MATCH_SYNC", "NO_CHANGE")
 
-            notification_service.check_upcoming_fixtures(unique_payloads, log_events)
+            if not durable:
+                notification_service.check_upcoming_fixtures(unique_payloads, log_events)
 
             try:
                 supabase_client.table("matches").upsert(unique_payloads, on_conflict="id").execute()
             except Exception as upsert_err:
                 err_str = str(upsert_err).lower()
                 if "events" in err_str and ("column" in err_str or "exist" in err_str or "schema" in err_str or "pgrst204" in err_str):
-                    logger.warning("[MATCH SYNC] matches.events column not present on target schema; retrying upsert without events payload...")
+                    append_event(log_events, "Match event storage unavailable; score/status saved without event payload", "ERROR", "MATCH_SYNC", "EVENT_STORAGE_DEGRADED")
                     stripped = [{k: v for k, v in p.items() if k != "events"} for p in unique_payloads]
                     supabase_client.table("matches").upsert(stripped, on_conflict="id").execute()
                 else:
@@ -307,7 +311,8 @@ class MatchService:
             append_event(log_events, msg_upsert, "SUCCESS", "MATCH_SYNC", "DB_UPSERT")
 
             # Dual-write to Legacy Supabase Cloud for backward compatibility
-            supabase_cloud_client.sync_matches(unique_payloads)
+            if not durable:
+                supabase_cloud_client.sync_matches(unique_payloads)
 
             return unique_payloads
         except Exception as e:

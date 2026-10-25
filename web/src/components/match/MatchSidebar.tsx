@@ -26,7 +26,7 @@ export default function MatchSidebar({
       {/* Competition Header */}
       <div className="flex items-center gap-2 pb-3 border-b border-[#334155]/60 text-xs">
         <Trophy className="w-4 h-4 text-[#7098F8]" />
-        <span className="font-extrabold uppercase tracking-wider text-white truncate">
+        <span className="font-extrabold uppercase tracking-wider text-white line-clamp-2 leading-tight">
           {competitionName}
         </span>
       </div>
@@ -88,7 +88,7 @@ export default function MatchSidebar({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-xs font-bold text-white group-hover:text-[#7098F8] transition-colors truncate">
+                    <h4 className="text-xs font-bold text-white group-hover:text-[#7098F8] transition-colors line-clamp-2 leading-tight">
                       {home} vs {away}
                     </h4>
                     <span className="text-[10px] text-[#94A3B8]">
@@ -122,7 +122,7 @@ export default function MatchSidebar({
                   <div className="flex items-center justify-between text-[10px] text-[#94A3B8] mb-1">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-2.5 h-2.5" />
-                      {new Date(m.utc_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                      {new Date(m.utc_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
                     <span
                       className={
@@ -134,17 +134,17 @@ export default function MatchSidebar({
                       }
                     >
                       {isLive && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />}
-                      {isLive ? 'LIVE' : isFinished ? 'Finished' : 'Upcoming'}
+                      {isLive ? (m.status === 'PAUSED' ? 'HT' : m.display_clock ? `LIVE ${m.display_clock}` : 'LIVE') : isFinished ? 'Finished' : 'Upcoming'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between font-bold text-white">
-                    <span className="truncate flex-1">{home}</span>
-                    <span className="px-2 text-center text-[#7098F8]">
+                  <div className="flex items-center justify-between font-bold text-white gap-2">
+                    <span className="line-clamp-2 leading-tight flex-1">{home}</span>
+                    <span className="px-2 text-center text-[#7098F8] shrink-0">
                       {isLive || (isFinished && !isSpoilerFree)
                         ? `${m.home_score ?? 0} - ${m.away_score ?? 0}`
                         : 'vs'}
                     </span>
-                    <span className="truncate flex-1 text-right">{away}</span>
+                    <span className="line-clamp-2 leading-tight flex-1 text-right">{away}</span>
                   </div>
                 </Link>
               );

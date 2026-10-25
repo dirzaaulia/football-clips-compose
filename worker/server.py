@@ -63,161 +63,19 @@ _last_metrics_fetch_time: float = 0.0
 
 @app.get("/")
 @app.get("/dashboard")
-async def dashboard_view(request: Request):
-    """Interactive human-readable HTML status dashboard for browsers, JSON for API clients."""
-    accept = request.headers.get("accept", "")
-    if "text/html" not in accept:
-        return {
-            "status": "healthy",
-            "service": "football-clips-worker",
-            "timestamp": datetime.now(UTC).isoformat(),
-            "cycle_index": orchestrator.cycle_index,
-            "is_running": orchestrator.is_running,
-            "provider": settings.match_data_provider,
-            "target_competitions": settings.target_competitions,
-        }
+async def dashboard_view():
+    from fastapi.responses import RedirectResponse
 
-    from fastapi.responses import HTMLResponse
-    html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FootballClips Serverless Engine</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {{
-            --bg: #090d16;
-            --card-bg: rgba(22, 30, 49, 0.7);
-            --border: rgba(255, 255, 255, 0.08);
-            --accent: #10b981;
-            --accent-cyan: #06b6d4;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-        }}
-        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-        body {{
-            background: radial-gradient(circle at 50% 0%, #172554 0%, var(--bg) 60%);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            padding: 2.5rem 1.5rem;
-            display: flex;
-            justify-content: center;
-        }}
-        .container {{ max-width: 900px; width: 100%; }}
-        .header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }}
-        .badge-live {{
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--accent);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 0.35rem 0.85rem;
-            border-radius: 9999px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }}
-        .badge-live::before {{
-            content: '';
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--accent);
-            box-shadow: 0 0 10px var(--accent);
-        }}
-        .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }}
-        .card {{
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            backdrop-filter: blur(12px);
-        }}
-        .card-val {{ font-size: 2rem; font-weight: 800; color: #fff; margin-top: 0.25rem; font-family: 'JetBrains Mono', monospace; }}
-        .card-label {{ font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }}
-        .section-title {{ font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; }}
-        .links {{ display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem; }}
-        .btn {{
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 0.6rem 1.2rem;
-            border-radius: 0.5rem;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }}
-        .btn:hover {{ background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.2); }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div>
-                <h1 style="font-size: 1.75rem; font-weight: 800;">FootballClips Engine</h1>
-                <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">Serverless GCP Cloud Run + Cloudflare Edge Stack</p>
-            </div>
-            <div class="badge-live">SYSTEM HEALTHY</div>
-        </div>
-
-        <div class="grid">
-            <div class="card">
-                <div class="card-label">Sync Cycle</div>
-                <div class="card-val">#{orchestrator.cycle_index}</div>
-            </div>
-            <div class="card">
-                <div class="card-label">Provider</div>
-                <div class="card-val" style="color: var(--accent-cyan); font-size: 1.5rem; padding-top: 0.5rem;">ESPN Core</div>
-            </div>
-            <div class="card">
-                <div class="card-label">Active Leagues & Cups</div>
-                <div class="card-val">{len(settings.target_competitions)}</div>
-            </div>
-            <div class="card">
-                <div class="card-label">Infrastructure Cost</div>
-                <div class="card-val" style="color: var(--accent);">$0.00<span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 400;">/mo</span></div>
-            </div>
-        </div>
-
-        <div class="card" style="margin-bottom: 2rem;">
-            <div class="section-title">⚡ Subsystem Topology</div>
-            <p style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem;">
-                • <strong>Ingestion:</strong> ESPN Soccer API (zero keys, domestic cups & live minute clocks)<br>
-                • <strong>WebSub Push:</strong> YouTube PubSubHubbub webhooks (&lt;100ms instant match linking)<br>
-                • <strong>Edge CDN:</strong> Cloudflare Worker Proxy (<a href="https://fc-edge-proxy.dirzaaulia11.workers.dev" target="_blank" style="color: var(--accent-cyan);">fc-edge-proxy.dirzaaulia11.workers.dev</a>)<br>
-                • <strong>Scheduler:</strong> 5m off-peak, 1m weekend live, Sunday WebSub auto-renewal
-            </p>
-        </div>
-
-        <div class="section-title">Developer & Observability Endpoints</div>
-        <div class="links">
-            <a href="/metrics" class="btn">📊 Prometheus /metrics</a>
-            <a href="/health" class="btn">🩺 JSON /health</a>
-            <a href="/status" class="btn">⚙️ JSON /status</a>
-            <a href="https://fc-edge-proxy.dirzaaulia11.workers.dev/rest/v1/matches?status=eq.FINISHED&limit=2" target="_blank" class="btn">🌐 Cloudflare Edge Test</a>
-        </div>
-    </div>
-</body>
-</html>"""
-    return HTMLResponse(content=html_content)
+    return RedirectResponse("https://fc.dirzaaulia.com/telemetry", status_code=307)
 
 
 @app.get("/health")
 async def health_check():
     return {
-        "status": "healthy",
-        "service": "football-clips-worker",
+        "status": "ready",
+        "service": "football-clips-worker-http",
         "timestamp": datetime.now(UTC).isoformat(),
-        "cycle_index": orchestrator.cycle_index,
-        "fixture_cycle_index": orchestrator.fixture_cycle_index,
-        "highlight_sweep_index": orchestrator.highlight_sweep_index,
-        "is_running": orchestrator.is_running,
-        "provider": settings.match_data_provider,
-        "target_competitions": settings.target_competitions,
+        "pipeline_status_url": "https://api.fc.dirzaaulia.com/api/status/v1",
     }
 
 
@@ -255,30 +113,23 @@ async def get_metrics():
 
         # Total matches count query
         total_res = supabase_client.table("matches").select("id", count="exact").execute()
-        total_matches = total_res.count if total_res.count is not None else 793
+        total_matches = total_res.count if total_res.count is not None else len(total_res.data or [])
 
         # Finished matches count query
         fin_res = supabase_client.table("matches").select("id", count="exact").eq("status", "FINISHED").execute()
-        finished_matches = fin_res.count if fin_res.count is not None else 263
+        finished_matches = fin_res.count if fin_res.count is not None else len(fin_res.data or [])
 
         # Unlinked finished matches count query
         unlinked_res = supabase_client.table("matches").select("id", count="exact").eq("status", "FINISHED").is_("highlight_video_id", "null").execute()
-        unlinked_finished = unlinked_res.count if unlinked_res.count is not None else 135
+        unlinked_finished = unlinked_res.count if unlinked_res.count is not None else len(unlinked_res.data or [])
         highlight_linked = max(0, finished_matches - unlinked_finished)
 
         # YouTube quota telemetry
         quota_status = youtube_client.get_quota_status()
         quota_hits = quota_status.get("hits_today", 0)
-        quota_remaining = quota_status.get("remaining", 10000)
-    except Exception as e:
-        logger.warning(f"[Telemetry APM] Fallback metrics due to query error: {e}")
-        total_matches = 793
-        live_matches = 0
-        finished_matches = 263
-        highlight_linked = 128
-        unlinked_finished = 135
-        quota_hits = 0
-        quota_remaining = 10000
+        quota_remaining = quota_status["remaining"]
+    except Exception:
+        return PlainTextResponse("# Metrics temporarily unavailable; no synthetic values emitted", status_code=503)
 
     lines = [
         "# HELP footballclips_worker_cycle_index Current cycle sequence index",
@@ -338,8 +189,8 @@ async def renew_websub_subscriptions():
     logger.info("[WebSub Serverless] Starting scheduled batch subscription renewal...")
     await websub_subscriber.subscribe_all()
     return {
-        "status": "COMPLETED",
-        "message": "All official channels renewed with Google PubSubHubbub",
+        "status": "QUEUED",
+        "message": "Durable subscription coordination queued; actual confirmations are recorded separately",
         "timestamp": datetime.now(UTC).isoformat(),
     }
 
@@ -354,7 +205,7 @@ async def sync_matches_endpoint(
     Decoupled endpoint for Step 1: Live & Upcoming match sync.
     Runs separately from YouTube highlight scraper without blocking.
     """
-    if async_execution:
+    if async_execution and not os.getenv("FC_DISCOVERY_URL"):
         background_tasks.add_task(orchestrator.run_match_sync_only, is_full_sync=force_full)
         return {
             "status": "QUEUED",
@@ -381,7 +232,7 @@ async def sync_highlights_endpoint(
     Decoupled endpoint for Step 3: YouTube Official Highlight Scraping & Quota Maximizer.
     Runs independently of live matches to utilize daily quota on finished matches.
     """
-    if async_execution:
+    if async_execution and not os.getenv("FC_DISCOVERY_URL"):
         background_tasks.add_task(orchestrator.run_highlight_sync_only, batch_limit=max_batch)
         return {
             "status": "QUEUED",
@@ -408,7 +259,7 @@ async def trigger_cycle(
     Trigger a single full synchronization cycle on demand (all 4 steps).
     Preserves backward compatibility for Cloud Scheduler, webhooks, and legacy orchestrator triggers.
     """
-    if async_execution:
+    if async_execution and not os.getenv("FC_DISCOVERY_URL"):
         background_tasks.add_task(orchestrator.run_single_cycle, is_full_sync=force_full)
         return {
             "status": "QUEUED",
@@ -436,21 +287,18 @@ async def websub_handshake(
     """Google PubSubHubbub Handshake Verification."""
     if hub_challenge and hub_mode in ["subscribe", "unsubscribe"]:
         logger.info(f"[WebSub Handshake] Confirmed {hub_mode} for topic: {hub_topic}")
-        from fastapi.responses import PlainTextResponse
         return PlainTextResponse(content=hub_challenge, status_code=200)
 
-    from fastapi.responses import PlainTextResponse
     return PlainTextResponse(content="Invalid handshake request", status_code=400)
 
 
 @app.post("/websub")
 async def websub_notification(
     request: Request,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
 ):
     """Receives YouTube Atom XML real-time upload notification and triggers highlight sync."""
     import re
-    from fastapi.responses import PlainTextResponse
 
     try:
         body = await request.body()
@@ -468,20 +316,9 @@ async def websub_notification(
 
         logger.info(f"[WebSub Push] Received upload notification: {video_id} ('{title}') from channel {channel_id}")
 
-        # Attempt direct event-driven match linking first (<100ms, 0 quota)
-        linked = False
         if video_id and title:
-            linked = highlight_service.link_websub_video(
-                video_id=video_id,
-                title=title,
-                channel_id=channel_id or ""
-            )
-
-        if linked:
-            logger.info(f"[WebSub Push] Direct match linking succeeded for {video_id} ('{title}')!")
+            background_tasks.add_task(highlight_service.link_websub_video, video_id, title, channel_id or "")
         else:
-            # Fallback to general highlight sweep in background
-            logger.info(f"[WebSub Push] Direct link not resolved immediately. Enqueuing background sweep.")
             background_tasks.add_task(highlight_service.sync_unlinked_highlights, max_batch=10)
 
         return PlainTextResponse("Accepted", status_code=200)
@@ -564,6 +401,4 @@ async def get_broadcast_directory():
     """
     from worker.services.broadcast_service import broadcast_rights_service
     return broadcast_rights_service.generate_full_world_directory()
-
-
 

@@ -15,6 +15,8 @@
  * - Auth & Profiles: 0s (Cache BYPASS, strictly private)
  */
 
+import { catalogCacheKey, privateRoute } from './catalog-cache';
+
 export interface Env {
   SUPABASE_URL: string;         // Self-hosted PostgREST (https://168.110.196.30.sslip.io)
   SUPABASE_ANON_KEY: string;    // Supabase Anon Key (for Auth/Profiles fallback)
@@ -29,6 +31,7 @@ const POSTGRES_TABLES = [
   "competitions",
   "worker_cycles",
   "worker_events",
+  "telemetry_state",
 ];
 
 function isPostgresRoute(pathname: string): boolean {
@@ -80,29 +83,16 @@ export default {
     // 3. Cache Purge Hook
     if (url.pathname === "/api/purge-cache" && request.method === "POST") {
       const authHeader = request.headers.get("Authorization");
-      if (env.PURGE_SECRET && authHeader !== `Bearer ${env.PURGE_SECRET}`) {
+      if (!env.PURGE_SECRET || authHeader !== `Bearer ${env.PURGE_SECRET}`) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
       }
-      try {
-        const body = (await request.json().catch(() => ({}))) as { target_url?: string };
-        const target = body.target_url || `${url.origin}/rest/v1/matches?status=eq.FINISHED`;
-        const cache = caches.default;
-        await cache.delete(new Request(target, { method: "GET" }));
-        const headers = new Headers({ "Content-Type": "application/json" });
-        applySecurityHeaders(headers);
-        return new Response(JSON.stringify({ status: "Purged", target }), { headers });
-      } catch (e) {
-        const headers = new Headers({ "Content-Type": "application/json" });
-        applySecurityHeaders(headers);
-        return new Response(JSON.stringify({ status: "Purged error", error: String(e) }), {
-          status: 500,
-          headers,
-        });
-      }
+      const headers = new Headers({ "Content-Type": "application/json", "Cache-Control": "no-store" });
+      applySecurityHeaders(headers);
+      return new Response(JSON.stringify({ status: "Catalog versions invalidate all affected URL variants", refresh_bound_seconds: 15 }), { headers });
     }
 
     // 3. Inspect request for Cache TTL Rules
-    const cacheTtl = determineTtl(url);
+    const cacheTtl = privateRoute(url.pathname) ? 0 : determineTtl(url);
 
     // Dynamic mutations (POST, PUT, PATCH, DELETE) or non-cacheable routes (Auth, Profiles)
     if (request.method !== "GET" && request.method !== "HEAD" || cacheTtl === 0) {
@@ -120,7 +110,8 @@ export default {
     }
 
     // 4. Edge Cache Lookup
-    const cacheKey = new Request(url.toString(), { method: "GET" });
+    const cacheKey = await catalogCacheKey(url, env.SUPABASE_URL, request.headers.get('cf-ipcountry') || 'XX');
+    if (!cacheKey) return forwardRequest(request, env, url, 0);
     const cache = caches.default;
     let cachedResponse = await cache.match(cacheKey);
 
@@ -146,7 +137,7 @@ export default {
       applySecurityHeaders(responseHeaders, request);
       responseHeaders.set(
         "Cache-Control",
-        `public, max-age=${cacheTtl}, s-maxage=${cacheTtl}, stale-while-revalidate=60`
+        `public, max-age=${Math.min(15, cacheTtl)}, s-maxage=${cacheTtl}, must-revalidate`
       );
 
       const responseToCache = new Response(originResponse.clone().body, {
@@ -225,26 +216,28 @@ function determineTtl(url: URL): number {
 }
 
 async function forwardRequest(request: Request, env: Env, url: URL, cacheTtl: number = 60): Promise<Response> {
-  const isPostgres = isPostgresRoute(url.pathname);
+  const isPostgres = isPostgresRoute(url.pathname) || url.pathname.startsWith('/api/') || privateRoute(url.pathname);
   const forwardHeaders = new Headers(request.headers);
 
   if (isPostgres) {
     // 1. Route to Oracle VM PostgREST (PostgreSQL 16)
     const targetBase = (env.SUPABASE_URL || "https://168.110.196.30.sslip.io").replace(/\/$/, "");
-    const normalizedPath = url.pathname.replace(/^\/rest\/v1/, "");
+    const normalizedPath = url.pathname;
     const targetUrl = `${targetBase}${normalizedPath}${url.search}`;
 
     // PostgREST serves web_anon anonymously; strip client auth headers
-    forwardHeaders.delete("authorization");
-    forwardHeaders.delete("apikey");
+    if (!privateRoute(url.pathname) && (request.method === 'GET' || request.method === 'HEAD')) {
+      forwardHeaders.delete("authorization");
+      forwardHeaders.delete("apikey");
+    }
 
     return fetch(targetUrl, {
       method: request.method,
       headers: forwardHeaders,
       body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
       cf: {
-        cacheEverything: cacheTtl > 0,
-        cacheTtl: cacheTtl,
+        cacheEverything: false,
+        cacheTtl: 0,
       },
     });
   } else {

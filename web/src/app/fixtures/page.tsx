@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { getFixturesByDate, getLiveMatches, getMatchesBySeason, MatchRecord } from '@/lib/database';
-import { BIG_LEAGUES, isLeagueMatch } from '@/lib/constants';
-import { isMatchForFavoriteClubs } from '@/lib/clubs';
+import { useCompetitions, isLeagueMatch } from '@/hooks/useCompetitions';
+import { isMatchForFavoriteClubs, useSupportedClubs } from '@/hooks/useSupportedClubs';
 import { useMyClubs } from '@/hooks/useMyClubs';
-import { useDragScroll } from '@/hooks/useDragScroll';
-import { Calendar as CalendarIcon, Star, Trophy } from 'lucide-react';
+import { Star, Trophy } from 'lucide-react';
 import Image from 'next/image';
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
 import FixtureItemCard from '@/components/fixtures/FixtureItemCard';
@@ -18,7 +17,7 @@ import CustomDropdown from '@/components/common/CustomDropdown';
 import { useSeason } from '@/hooks/useSeason';
 
 export default function FixturesPage() {
-  const { selectedSeason, setSeason, currentOption } = useSeason();
+  const { selectedSeason, currentOption } = useSeason();
   const [archiveFilter, setArchiveFilter] = useState<'ALL' | 'HIGHLIGHTS'>('ALL');
   const [selectedDate, setSelectedDate] = useState('2026-10-08');
   const [activeTab, setActiveTab] = useState<FixtureTab>('ALL');
@@ -31,7 +30,6 @@ export default function FixturesPage() {
   const [mounted, setMounted] = useState(false);
 
   const { favoriteClubs, favoriteCount } = useMyClubs();
-  const scrollRef = useDragScroll<HTMLDivElement>();
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -101,7 +99,9 @@ export default function FixturesPage() {
     year: 'numeric',
   });
 
-  const bigLeague = BIG_LEAGUES.find((b) => b.competitionId === selectedComp);
+  const competitions = useCompetitions();
+  const supportedClubs = useSupportedClubs();
+  const competition = competitions.find((b) => b.competitionId === selectedComp);
 
   // Filter based on activeTab (status), competition (league), and My Clubs
   const allCandidateMatches = useMemo(() => {
@@ -147,15 +147,48 @@ export default function FixturesPage() {
       }
 
       if (isMyClubsActive && favoriteClubs.size > 0) {
-        if (!isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs)) return false;
-      } else if (selectedComp !== 'ALL' && bigLeague) {
-        const matchComp = m.competition_id === selectedComp || isLeagueMatch(bigLeague.name, m.competition_name);
+        if (!isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs, supportedClubs)) return false;
+      } else if (selectedComp !== 'ALL' && competition) {
+        const matchComp = m.competition_id === selectedComp || isLeagueMatch(competition.name, m.competition_name);
         if (!matchComp) return false;
       }
 
       return true;
     });
-  }, [allCandidateMatches, activeTab, isMyClubsActive, favoriteClubs, selectedComp, bigLeague, selectedSeason]);
+  }, [allCandidateMatches, activeTab, isMyClubsActive, favoriteClubs, selectedComp, competition, supportedClubs, selectedSeason]);
+
+  const groupedFixtures = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        competitionId: string;
+        competitionName: string;
+        logo?: string;
+        matches: MatchRecord[];
+      }
+    >();
+
+    filteredFixtures.forEach((m) => {
+      const rawName = m.competition_name || m.competition_id || 'Other Competitions';
+      const normName = rawName;
+
+      if (!map.has(normName)) {
+        const matchedLeague = competitions.find(
+          (b) => b.competitionId !== 'ALL' && (b.name === normName || isLeagueMatch(b.name, normName))
+        );
+        map.set(normName, {
+          competitionId: m.competition_id || 'OTHER',
+          competitionName: normName,
+          logo: matchedLeague?.logo,
+          matches: [],
+        });
+      }
+
+      map.get(normName)!.matches.push(m);
+    });
+
+    return Array.from(map.values());
+  }, [filteredFixtures]);
 
   return (
     <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 py-6">
@@ -186,17 +219,35 @@ export default function FixturesPage() {
         <div className="flex items-center gap-2">
           {/* League Dropdown Selector */}
           <CustomDropdown<string>
-            items={BIG_LEAGUES.map((c) => ({
+            items={competitions.map((c) => ({
               value: c.competitionId || 'ALL',
               label: c.name,
-              icon: <Trophy className="w-3.5 h-3.5 text-[#7098F8]" />,
+              icon: c.logo ? (
+                <div className="relative w-4 h-4 rounded-full bg-white p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-slate-200/20">
+                  <div className="relative w-full h-full">
+                    <Image src={c.logo} alt={c.name} fill className="object-contain" unoptimized />
+                  </div>
+                </div>
+              ) : (
+                <Trophy className="w-3.5 h-3.5 text-[#7098F8]" />
+              ),
             }))}
             value={isMyClubsActive ? '' : selectedComp}
             onChange={(val) => {
               setIsMyClubsActive(false);
               setSelectedComp(val);
             }}
-            leadingIcon={<Trophy className="w-3.5 h-3.5 text-[#7098F8]" />}
+            leadingIcon={
+              competition?.logo ? (
+                <div className="relative w-4 h-4 rounded-full bg-white p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-slate-200/20">
+                  <div className="relative w-full h-full">
+                    <Image src={competition.logo} alt={competition.name} fill className="object-contain" unoptimized />
+                  </div>
+                </div>
+              ) : (
+                <Trophy className="w-3.5 h-3.5 text-[#7098F8]" />
+              )
+            }
             prefix="League"
             variant="compact"
             ariaLabel="Filter fixtures by competition"
@@ -227,7 +278,7 @@ export default function FixturesPage() {
         <div className="hidden sm:flex items-center gap-2 text-xs text-[#94A3B8]">
           <span>Showing:</span>
           <span className="font-bold text-white bg-[#1E2227] border border-[#334155]/60 px-2.5 py-1 rounded-lg">
-            {isMyClubsActive ? `My Clubs (${favoriteCount})` : (bigLeague?.name || 'All Competitions')}
+            {isMyClubsActive ? `My Clubs (${favoriteCount})` : (competition?.name || 'All Competitions')}
           </span>
         </div>
       </div>
@@ -239,9 +290,16 @@ export default function FixturesPage() {
 
       {/* Fixtures List */}
       {isLoading ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-20 rounded-2xl bg-[#1E2227]/60 animate-pulse border border-[#334155]" />
+        <div className="space-y-4">
+          {[...Array(2)].map((_, groupIdx) => (
+            <div key={groupIdx} className="space-y-2">
+              <div className="h-5 w-40 bg-[#1E2227] rounded-md animate-pulse" />
+              <div className="bg-[#181C20] border border-[#334155]/70 rounded-2xl divide-y divide-[#334155]/40 overflow-hidden">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-12 bg-[#1E2227]/50 animate-pulse" />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       ) : filteredFixtures.length === 0 ? (
@@ -253,9 +311,43 @@ export default function FixturesPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {filteredFixtures.map((m) => (
-            <FixtureItemCard key={m.id} match={m} />
+        <div className="space-y-5">
+          {groupedFixtures.map((group) => (
+            <div key={group.competitionName} className="space-y-2">
+              {/* League Header */}
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  {group.logo ? (
+                    <div className="relative w-6 h-6 rounded-full bg-white p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-slate-200/20">
+                      <div className="relative w-full h-full">
+                        <Image
+                          src={group.logo}
+                          alt={group.competitionName}
+                          fill
+                          className="object-contain"
+                          unoptimized
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <Trophy className="w-4 h-4 text-[#7098F8]" />
+                  )}
+                  <h3 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">
+                    {group.competitionName}
+                  </h3>
+                </div>
+                <span className="text-[10px] font-bold text-[#94A3B8] bg-[#1E2227] px-2 py-0.5 rounded-full border border-[#334155]/60">
+                  {group.matches.length} {group.matches.length === 1 ? 'match' : 'matches'}
+                </span>
+              </div>
+
+              {/* Fixture Items Connected Container */}
+              <div className="bg-[#181C20] border border-[#334155]/70 rounded-2xl overflow-hidden divide-y divide-[#334155]/40 shadow-sm">
+                {group.matches.map((m) => (
+                  <FixtureItemCard key={m.id} match={m} showLeagueHeader={false} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}

@@ -33,7 +33,10 @@ data class Match(
     val editorialSource: String? = null,
     val events: List<MatchEvent>? = null,
     val youtubeRegionInfo: RegionRestriction? = null,
-    val backupYoutubeRegionInfo: RegionRestriction? = null
+    val backupYoutubeRegionInfo: RegionRestriction? = null,
+    val playbackMode: String? = null,
+    val viewerAvailability: String? = null,
+    val externalVideoId: String? = null,
 ) {
     val displayRound: String
         get() = roundName ?: matchday?.let { "Matchweek $it" } ?: competitionName
@@ -42,12 +45,13 @@ data class Match(
         get() = when (competitionId.uppercase()) {
             "CL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2.png"
             "EL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2487.png"
-            "ECL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/20349.png"
+            "ECL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/21822.png"
             "PL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/23.png"
             "PD" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/15.png"
             "SA" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/12.png"
             "BL1" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/10.png"
             "FL1" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/9.png"
+            "IDN" -> "https://fc.dirzaaulia.com/logos/competitions/idn-2026.png"
             "SPL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2488.png"
             "MLS" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/19.png"
             "DED" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/11.png"
@@ -81,12 +85,13 @@ data class Match(
             val month = it.month.name.take(3).lowercase().replaceFirstChar { c -> c.uppercase() }
             val hour = it.hour.toString().padStart(2, '0')
             val minute = it.minute.toString().padStart(2, '0')
-            "$day $month, $hour:$minute"
+            "$day $month ${it.year}, $hour:$minute"
         } ?: utcDate
 
     val dateOnly: String
         get() = localDateTime?.let {
-            "${it.day} ${it.month.name.take(3)}"
+            val month = it.month.name.take(3).lowercase().replaceFirstChar { c -> c.uppercase() }
+            "${it.day} $month ${it.year}"
         } ?: ""
 
     val dateOnlyISO: String
@@ -196,6 +201,7 @@ fun MatchDto.toMatch(): Match {
         homeScore = homeScore,
         awayScore = awayScore,
         highlightVideoId = highlightVideoId,
+        playbackMode = playbackMode,
         backupHighlightVideoId = backupHighlightVideoId,
         recapAnalysis = recapAnalysis,
         roundName = roundName,
@@ -208,7 +214,9 @@ fun MatchDto.toMatch(): Match {
         editorialSource = editorialSource,
         events = events?.map { it.toDomain() },
         youtubeRegionInfo = youtubeRegionInfo?.let { RegionRestriction(it.allowed, it.blocked) },
-        backupYoutubeRegionInfo = backupYoutubeRegionInfo?.let { RegionRestriction(it.allowed, it.blocked) }
+        backupYoutubeRegionInfo = backupYoutubeRegionInfo?.let { RegionRestriction(it.allowed, it.blocked) },
+        viewerAvailability = viewerAvailability,
+        externalVideoId = externalVideoId,
     )
 }
 

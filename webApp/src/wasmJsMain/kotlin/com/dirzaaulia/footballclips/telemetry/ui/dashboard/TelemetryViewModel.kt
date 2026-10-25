@@ -113,23 +113,23 @@ class TelemetryViewModel(
 
     private fun triggerCycle() {
         viewModelScope.launch {
-            _uiState.update { it.copy(actionMessage = "⚡ Dispatching cycle trigger to Cloud Run...") }
+            _uiState.update { it.copy(actionMessage = "Dispatching cycle trigger to Cloud Run...") }
             repository.triggerRunCycle().onSuccess {
-                _uiState.update { it.copy(actionMessage = "✅ Cycle successfully queued on Cloud Run fleet!") }
+                _uiState.update { it.copy(actionMessage = "Cycle successfully queued on Cloud Run fleet!") }
                 loadData()
             }.onFailure { err ->
-                _uiState.update { it.copy(actionMessage = "❌ Trigger failed: ${err.message}") }
+                _uiState.update { it.copy(actionMessage = "Trigger failed: ${err.message}") }
             }
         }
     }
 
     private fun purgeCache() {
         viewModelScope.launch {
-            _uiState.update { it.copy(actionMessage = "🧹 Invalidating Cloudflare Edge Cache...") }
+            _uiState.update { it.copy(actionMessage = "Invalidating Cloudflare Edge Cache...") }
             repository.purgeEdgeCache().onSuccess {
-                _uiState.update { it.copy(actionMessage = "✅ Cloudflare Edge Cache purged successfully!") }
+                _uiState.update { it.copy(actionMessage = "Cloudflare Edge Cache purged successfully!") }
             }.onFailure { err ->
-                _uiState.update { it.copy(actionMessage = "❌ Cache purge failed: ${err.message}") }
+                _uiState.update { it.copy(actionMessage = "Cache purge failed: ${err.message}") }
             }
         }
     }

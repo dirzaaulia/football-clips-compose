@@ -3,33 +3,27 @@
 import React from 'react';
 import { MatchRecord } from '@/lib/database';
 import { FilterOption } from '@/lib/middleware-highlights';
+import VideoPlayerSideSheet from '@/components/player/VideoPlayerSideSheet';
 import FilterSideSheet from '@/components/filter/FilterSideSheet';
 import MyClubsModal from '@/components/clubs/MyClubsModal';
 import SpoilerEducationDialog from '@/components/spoiler/SpoilerEducationDialog';
 import FloatingActionControls from '@/components/feed/FloatingActionControls';
 
 interface HomeModalsAndOverlaysProps {
-  activeVideoMatch: MatchRecord | null;
-  activeMatch: MatchRecord | null;
+  currentMatch: MatchRecord | null;
   isSideSheetOpen: boolean;
   onClosePlayer: () => void;
   matches: MatchRecord[];
-  onSelectMatch: (m: MatchRecord) => void;
+  onSelectMatch: (match: MatchRecord) => void;
   isFilterOpen: boolean;
   onCloseFilter: () => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
-  availableCountries: FilterOption[];
-  selectedCountries: string[];
-  onToggleCountry: (c: string) => void;
   availableLeagues: FilterOption[];
   selectedLeagues: string[];
-  onToggleLeague: (l: string) => void;
+  onToggleLeague: (league: string) => void;
   onResetFilters: () => void;
   displayedMatchesCount: number;
-  hasMore: boolean;
-  isLoadingMore: boolean;
-  onLoadMore: () => void;
   isMyClubsModalOpen: boolean;
   onCloseMyClubs: () => void;
   showEducation: boolean;
@@ -39,8 +33,7 @@ interface HomeModalsAndOverlaysProps {
 }
 
 export default function HomeModalsAndOverlays({
-  activeVideoMatch,
-  activeMatch,
+  currentMatch,
   isSideSheetOpen,
   onClosePlayer,
   matches,
@@ -49,17 +42,11 @@ export default function HomeModalsAndOverlays({
   onCloseFilter,
   searchQuery,
   onSearchChange,
-  availableCountries,
-  selectedCountries,
-  onToggleCountry,
   availableLeagues,
   selectedLeagues,
   onToggleLeague,
   onResetFilters,
   displayedMatchesCount,
-  hasMore,
-  isLoadingMore,
-  onLoadMore,
   isMyClubsModalOpen,
   onCloseMyClubs,
   showEducation,
@@ -67,26 +54,25 @@ export default function HomeModalsAndOverlays({
   activeFilterCount,
   onOpenFilter,
 }: HomeModalsAndOverlaysProps) {
-  const currentMatch = activeVideoMatch || activeMatch;
-
   return (
     <>
+      <VideoPlayerSideSheet
+        match={currentMatch}
+        isOpen={isSideSheetOpen}
+        onClose={onClosePlayer}
+        relatedMatches={matches}
+        onSelectMatch={onSelectMatch}
+      />
       <FilterSideSheet
         isOpen={isFilterOpen}
         onClose={onCloseFilter}
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
-        availableCountries={availableCountries}
-        selectedCountries={selectedCountries}
-        onToggleCountry={onToggleCountry}
         availableLeagues={availableLeagues}
         selectedLeagues={selectedLeagues}
         onToggleLeague={onToggleLeague}
         onReset={onResetFilters}
         matchesFound={displayedMatchesCount}
-        hasMore={hasMore}
-        isLoadingMore={isLoadingMore}
-        onLoadMore={onLoadMore}
       />
       <MyClubsModal isOpen={isMyClubsModalOpen} onClose={onCloseMyClubs} />
       <SpoilerEducationDialog isOpen={showEducation} onClose={onCloseEducation} />

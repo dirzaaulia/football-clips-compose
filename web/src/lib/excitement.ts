@@ -56,29 +56,29 @@ export function calculateExcitementRank(m: MatchRecord): RankedMatch {
   const goalDiff = hasScores ? Math.abs(hScore - aScore) : 99;
 
   let score = 0;
-  let tag = '🔥 Must-Watch';
+  let tag = 'Must-Watch';
 
   if (isClashOfTitans) {
     score += 65;
-    tag = '👑 Clash of Titans';
+    tag = 'Clash of Titans';
   } else if (isBigMatch) {
     score += 40;
-    tag = '🌟 Heavyweight Duel';
+    tag = 'Heavyweight Duel';
   }
 
   if (totalGoals >= 5) {
     score += 50;
-    tag = `🔥 Goal Fest • ${totalGoals} Goals`;
+    tag = `Goal Fest • ${totalGoals} Goals`;
   } else if (totalGoals === 4) {
     score += 35;
-    tag = `⚡ 4-Goal Thriller`;
+    tag = `4-Goal Thriller`;
   } else if (totalGoals === 3) {
     score += 20;
   }
 
   if (hasScores && goalDiff <= 1 && totalGoals >= 3) {
     score += 15;
-    if (tag === '🔥 Must-Watch') tag = '⚡ Dramatic Decider';
+    if (tag === 'Must-Watch') tag = 'Dramatic Decider';
   }
 
   return {

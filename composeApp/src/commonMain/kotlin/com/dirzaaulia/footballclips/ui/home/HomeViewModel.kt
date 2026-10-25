@@ -5,13 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.dirzaaulia.footballclips.data.admob.AdMobManager
 import com.dirzaaulia.footballclips.data.billing.BillingManager
 import com.dirzaaulia.footballclips.data.local.PreferenceManager
+import com.dirzaaulia.footballclips.data.paging.CatalogPagingSession
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.remote.HighlightUiModel
 import com.dirzaaulia.footballclips.data.model.remote.Profile
-import com.dirzaaulia.footballclips.data.repository.CompetitionRepository
-import com.dirzaaulia.footballclips.data.repository.HighlightRepository
+import com.dirzaaulia.footballclips.data.repository.MiddlewareRepository
+import com.dirzaaulia.footballclips.data.repository.OracleVmRepository
 import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
-import com.dirzaaulia.footballclips.data.repository.ScoreRepository
 import com.dirzaaulia.footballclips.domain.model.Match
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,16 +25,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
-    internal val highlightRepository: HighlightRepository,
-    internal val scoreRepository: ScoreRepository,
+    internal val middlewareRepository: MiddlewareRepository,
+    internal val oracleVmRepository: OracleVmRepository,
     internal val preferenceManager: PreferenceManager,
     internal val billingManager: BillingManager,
     internal val adMobManager: AdMobManager,
     internal val profilesRepository: ProfilesRepository,
-    private val competitionRepository: CompetitionRepository,
 ) : ViewModel() {
 
-    val competitions = competitionRepository.competitions
+    val competitions = oracleVmRepository.competitions
+    val supportedClubs = oracleVmRepository.supportedClubs
+    internal val _liveMatches = MutableStateFlow<List<Match>>(emptyList())
+    val liveMatches: StateFlow<List<Match>> = _liveMatches.asStateFlow()
 
     internal val _uiState = MutableStateFlow<HomeState>(HomeState.Loading)
     val uiState: StateFlow<HomeState> = _uiState.asStateFlow()
@@ -52,13 +54,6 @@ class HomeViewModel(
 
     val selectedSeason: StateFlow<Int> = preferenceManager.selectedSeason
         .stateIn(viewModelScope, SharingStarted.Eagerly, 2026)
-
-    fun setSeason(season: Int) {
-        if (selectedSeason.value == season) return
-        viewModelScope.launch {
-            preferenceManager.setSelectedSeason(season)
-        }
-    }
 
     internal val _selectedItem = MutableStateFlow<HighlightUiItem?>(null)
     val selectedItem = _selectedItem.asStateFlow()
@@ -79,6 +74,10 @@ class HomeViewModel(
     internal val _showMyClubsSheet = MutableStateFlow(false)
     val showMyClubsSheet = _showMyClubsSheet.asStateFlow()
 
+    fun setSeason(season: Int) {
+        if (selectedSeason.value == season) return
+        viewModelScope.launch { preferenceManager.setSelectedSeason(season) }
+    }
     fun setScrollToTopVisible(v: Boolean) { _showScrollToTop.value = v }
     fun triggerScrollToTop() { viewModelScope.launch { _scrollToTopEvent.emit(Unit) } }
     fun setFilterSheetVisible(v: Boolean) { _showFilterSheet.value = v }
@@ -92,6 +91,7 @@ class HomeViewModel(
     val isSpoilerFreeMode = preferenceManager.isSpoilerFreeMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
     val isSpoilerFreeConfigured = preferenceManager.isSpoilerFreeConfigured.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
     val isForceNonPremium = preferenceManager.isForceNonPremium.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
 
     val isPremium: StateFlow<Boolean> = combine(
         billingManager.isPremium,
@@ -119,6 +119,13 @@ class HomeViewModel(
         if (fnp) false else local || premium
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
+    val isMerchandiseEnabled: StateFlow<Boolean> = combine(
+        preferenceManager.isMerchandiseEnabled,
+        isPremium,
+    ) { enabled, premium ->
+        if (premium) enabled else true
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
     val currentUserProfile = profilesRepository.profile
     val customerInfo = billingManager.customerInfo
     val favoriteClubs: StateFlow<Set<String>> = preferenceManager.favoriteClubs.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
@@ -130,11 +137,12 @@ class HomeViewModel(
     internal var currentOffset = 0
     internal var totalCount = 0
     internal var isFetching = false
-    internal val supabaseLimit = 20
-    internal var supabaseOffset = 0
-    internal var hasMoreSupabase = true
+    internal val oracleLimit = 20
+    internal var oracleOffset = 0
+    internal var hasMoreOracle = true
 
-    internal val supabaseMatches = mutableListOf<Match>()
+    internal val oracleMatches = mutableListOf<Match>()
+    internal val catalogPaging = CatalogPagingSession(oracleVmRepository)
     internal val allHighlights = mutableListOf<HighlightUiModel>()
     internal var selectedCountries = mutableSetOf<String>()
     internal var selectedLeagues = mutableSetOf<String>()
@@ -145,7 +153,9 @@ class HomeViewModel(
         observeAdsRemoved()
         observeProfileForBilling()
         viewModelScope.launch {
-            competitionRepository.refreshCompetitions()
+            oracleVmRepository.refreshCompetitions()
+            oracleVmRepository.refreshClubs()
+            fetchLiveMatches()
         }
         viewModelScope.launch {
             preferenceManager.selectedSeason.collect {

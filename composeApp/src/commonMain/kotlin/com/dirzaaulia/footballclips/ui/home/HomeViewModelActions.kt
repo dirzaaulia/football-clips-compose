@@ -5,6 +5,7 @@ import com.dirzaaulia.footballclips.data.billing.BillingManager
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
+import com.dirzaaulia.footballclips.domain.model.toMatch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -12,13 +13,11 @@ import kotlinx.coroutines.launch
 fun HomeViewModel.refreshData() {
     viewModelScope.launch {
         _uiState.value = HomeState.Loading
-        getSupabaseHighlights()
+        getOracleHighlights(isRefresh = true)
+        updateUiState()
         val isArchiveSeason = selectedSeason.value != 2026
-        if (!isArchiveSeason && (_showExternalHighlights.value || supabaseMatches.isEmpty())) {
+        if (!isArchiveSeason && (_showExternalHighlights.value || oracleMatches.isEmpty())) {
             getExternalHighlights(isRefresh = true)
-        } else {
-            allHighlights.clear()
-            updateUiState()
         }
     }
 }
@@ -26,13 +25,27 @@ fun HomeViewModel.refreshData() {
 fun HomeViewModel.selectLeague(leagueId: Int?, competitionId: String?) {
     _selectedLeagueId.value = leagueId
     _selectedCompetitionId.value = competitionId
-    selectedCountries.clear()
     selectedLeagues.clear()
     searchQuery = ""
     refreshData()
 }
 
-fun HomeViewModel.selectVideoById(itemId: String) = selectVideo(findVideoById(supabaseMatches, allHighlights, itemId))
+fun HomeViewModel.selectVideoById(itemId: String) {
+    val cached = findVideoById(oracleMatches, allHighlights, itemId)
+    if (cached != null) {
+        selectVideo(cached)
+    } else {
+        val matchId = itemId.toLongOrNull() ?: return
+        viewModelScope.launch {
+            when (val res = oracleVmRepository.getMatch(matchId)) {
+                is com.dirzaaulia.footballclips.data.model.NetworkResult.Success -> {
+                    selectVideo(com.dirzaaulia.footballclips.data.model.HighlightUiItem.OracleMatch(res.data.toMatch()))
+                }
+                else -> {}
+            }
+        }
+    }
+}
 
 fun HomeViewModel.selectVideo(item: HighlightUiItem?) {
     _selectedItem.value = item
@@ -42,7 +55,7 @@ fun HomeViewModel.selectVideo(item: HighlightUiItem?) {
         _relatedHighlights.value = emptyList()
         return
     }
-    val (related, compId) = calculateRelatedHighlights(item, supabaseMatches, allHighlights)
+    val (related, compId) = calculateRelatedHighlights(item, oracleMatches, allHighlights, competitions.value)
     _relatedHighlights.value = related
     viewModelScope.launch {
         fetchRelatedHighlights(compId, item.uniqueId)
@@ -57,10 +70,10 @@ fun HomeViewModel.loadMore() {
     viewModelScope.launch {
         isFetching = true
         try {
-            if (hasMoreSupabase) {
+            if (hasMoreOracle) {
                 val cs = _uiState.value
                 if (cs is HomeState.Success) _uiState.value = cs.copy(isLoadingMore = true, loadMoreError = null)
-                getSupabaseHighlights(false)
+                getOracleHighlights(false)
                 updateUiState()
             } else {
                 getExternalHighlightsInternal(false)
@@ -107,11 +120,6 @@ fun HomeViewModel.getExternalHighlights(isRefresh: Boolean = false) {
     }
 }
 
-fun HomeViewModel.toggleCountry(country: String) {
-    if (country in selectedCountries) selectedCountries.remove(country) else selectedCountries.add(country)
-    updateUiState()
-}
-
 fun HomeViewModel.toggleLeague(league: String) {
     if (league in selectedLeagues) selectedLeagues.remove(league) else selectedLeagues.add(league)
     updateUiState()
@@ -123,7 +131,6 @@ fun HomeViewModel.onSearchQueryChanged(query: String) {
 }
 
 fun HomeViewModel.resetFilters() {
-    selectedCountries.clear()
     selectedLeagues.clear()
     searchQuery = ""
     _selectedLeagueId.value = null
@@ -133,6 +140,7 @@ fun HomeViewModel.resetFilters() {
 
 fun HomeViewModel.applyFilters() {
     updateUiState()
+    triggerScrollToTop()
 }
 
 fun HomeViewModel.signIn() = viewModelScope.launch { profilesRepository.signInWithGoogle() }
@@ -191,6 +199,17 @@ internal fun handleRestorePurchases(
                     onError("Purchases restored on Google Play! Sign in with Google to sync your Premium status across all platforms.")
                 }
             }
+        }
+    }
+}
+
+fun HomeViewModel.fetchLiveMatches() {
+    viewModelScope.launch {
+        when (val res = oracleVmRepository.getLiveMatches()) {
+            is com.dirzaaulia.footballclips.data.model.NetworkResult.Success -> {
+                _liveMatches.value = res.data.map { it.toMatch() }
+            }
+            else -> {}
         }
     }
 }

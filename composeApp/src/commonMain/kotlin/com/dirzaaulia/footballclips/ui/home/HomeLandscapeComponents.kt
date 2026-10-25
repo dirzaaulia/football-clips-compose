@@ -113,7 +113,7 @@ internal fun LandscapeHighlightItem(
     val isRevealed = revealedItemIds.contains(itemUniqueId)
 
     when (item) {
-        is HighlightUiItem.SupabaseMatch -> {
+        is HighlightUiItem.OracleMatch -> {
             MatchCard(
                 match = item.match,
                 onWatchHighlightClick = {

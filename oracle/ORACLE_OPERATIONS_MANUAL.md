@@ -344,16 +344,32 @@ curl -s http://footballclips-oracle:6333/collections
 
 ## 10. n8n Autonomous Workflow Orchestration
 
-n8n runs visual automation pipelines for background syncs, alerting, and data pipelines.
+n8n serves as the central orchestration engine for automated platform health checks, background jobs, and operational alerts.
 
-### Access Details
-- **URL**: `http://footballclips-oracle:5678` *(Accessible securely over Tailscale)*
-- **Use Cases**:
-  - Webhook triggers for live match score updates.
-  - Periodic integrity audits comparing Supabase and Oracle PostgreSQL.
-  - Automated Discord / Telegram notifications for breaking soccer news.
+### 1. Active Production Workflow: `fcOpsMaintenance`
+- **Workflow Name**: `FootballClips — hourly maintenance verification` (ID: `fcOpsMaintenance`)
+- **Execution Schedule**: Hourly at minute 7 (`7 * * * *`) via `scheduleTrigger` + on-demand via `manualTrigger`.
+- **Target Endpoint**: `POST http://footballclips-operations:8093/internal/maintenance`
+- **Security**: Authenticated via internal HMAC header authentication (`genericCredentialType` / `httpHeaderAuth`).
+- **Operational Scope**:
+  1. **Backup Verification**: Validates that daily PostgreSQL database snapshots exist in `/storage/cloud/Backups/` and are non-empty.
+  2. **Log Compaction**: Aggregates and compacts older worker event logs to prevent unbounded table growth.
+  3. **Storage Telemetry**: Measures disk usage across NVMe partitions and records metrics in `fc_ops.metrics`.
 
----
+### 2. Access & Management
+- **Dashboard URL**: `http://footballclips-oracle:5678` *(Accessible securely over Tailscale mesh)*
+- **Container**: `jarvis-n8n` (`n8nio/n8n:2.43.6`, RAM limit: 3 GB)
+- **Persistent Data**: SQLite datastore at `/home/ubuntu/jarvis/storage/n8n/database.sqlite`
+
+### 3. Manual Workflow Trigger & Diagnostic Inspection
+To trigger the maintenance verification on-demand:
+```bash
+# Trigger maintenance workflow directly via operations API
+ssh ubuntu@footballclips-oracle "curl -X POST http://footballclips-operations:8093/internal/maintenance"
+
+# Inspect latest n8n execution status
+ssh ubuntu@footballclips-oracle "docker logs --tail 50 jarvis-n8n"
+```
 
 ## 11. Automated Disaster Recovery & Backblaze B2
 

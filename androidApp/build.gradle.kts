@@ -204,5 +204,7 @@ dependencies {
     implementation(libs.play.app.update)
 
     debugImplementation(libs.chucker.library)
+    debugImplementation(libs.compose.ui.tooling)
+    implementation(libs.compose.ui.tooling.preview)
     releaseImplementation(libs.chucker.library.no.op)
 }

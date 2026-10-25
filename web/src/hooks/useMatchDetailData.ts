@@ -27,10 +27,7 @@ export function useMatchDetailData(
       const targetId = activeUrlId || (match ? String(match.id) : null);
       if (!targetId) return;
 
-      const isNonFinished = match && match.status !== 'FINISHED';
-      const needsFetchMatch = !match || String(match.id) !== targetId || isNonFinished || !match.statistics;
-
-      if (needsFetchMatch) {
+      // Always refresh viewer-specific availability when opening a statically exported detail page.
         setIsLoading(true);
         try {
           const fetched = await getMatchById(targetId);
@@ -119,53 +116,14 @@ export function useMatchDetailData(
         } finally {
           if (!isCancelled) setIsLoading(false);
         }
-      } else {
-        const isNotFinished = match.status !== 'FINISHED';
-        const isMissingData = !match.statistics || !match.events;
 
-        if (isNotFinished || isMissingData) {
-          try {
-            const [freshMatch, espnData] = await Promise.all([
-              getMatchById(String(match.id)).catch(() => null),
-              fetchEspnMatchSummary(match.id, match.competition_id, isNotFinished).catch(() => null),
-            ]);
-
-            if (!isCancelled && (freshMatch || espnData)) {
-              setMatch((prev) => {
-                if (!prev) return null;
-                const base = freshMatch || prev;
-                return {
-                  ...base,
-                  status: espnData?.status || base.status || prev.status,
-                  home_score: espnData?.home_score != null ? espnData.home_score : (base.home_score ?? prev.home_score),
-                  away_score: espnData?.away_score != null ? espnData.away_score : (base.away_score ?? prev.away_score),
-                  display_clock: espnData?.display_clock || base.display_clock || prev.display_clock,
-                  statistics: espnData?.statistics || base.statistics || prev.statistics,
-                  formations: espnData?.formations || base.formations || prev.formations,
-                  editorial_headline: espnData?.editorial_headline || base.editorial_headline || prev.editorial_headline,
-                  editorial_story: espnData?.editorial_story || base.editorial_story || prev.editorial_story,
-                  editorial_source: espnData?.editorial_source || base.editorial_source || prev.editorial_source,
-                  events: espnData?.events || base.events || prev.events,
-                };
-              });
-
-              const story = espnData?.editorial_story || freshMatch?.editorial_story;
-              if (story && (!recapAnalysis || recapAnalysis.length < 50)) {
-                setRecapAnalysis(story);
-              }
-            }
-          } catch (err) {
-            console.warn('[useMatchDetailData] Match sync error:', err);
-          }
-        }
-      }
     }
 
     syncMatchData();
     return () => {
       isCancelled = true;
     };
-  }, [activeUrlId, match?.id, refreshTrigger]);
+  }, [activeUrlId, refreshTrigger]);
 
   // Real-time live match polling: polls every 8s while game is active for near 99% real-time score/events/clock
   useEffect(() => {

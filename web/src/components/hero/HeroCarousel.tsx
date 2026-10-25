@@ -85,7 +85,7 @@ function TrendingItemCard({
             </>
           )}
           <span className="text-[10px]">
-            {new Date(match.utc_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+            {new Date(match.utc_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
           </span>
         </div>
       </div>

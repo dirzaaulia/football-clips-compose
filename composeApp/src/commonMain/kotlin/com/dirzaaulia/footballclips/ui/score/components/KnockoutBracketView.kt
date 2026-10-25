@@ -209,7 +209,7 @@ private fun KnockoutMatchCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = match.dateOnlyISO.ifBlank { "TBD" },
+                    text = match.dateOnly.ifBlank { "TBD" },
                     fontSize = 10.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

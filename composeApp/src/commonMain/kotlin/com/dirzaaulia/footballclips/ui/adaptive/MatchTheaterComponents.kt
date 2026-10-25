@@ -85,7 +85,7 @@ internal fun MatchTheaterMetadataBar(
     isSpoilerFree: Boolean = false,
     onIssueClick: () -> Unit
 ) {
-    var isScoreRevealed by remember { mutableStateOf(!isSpoilerFree) }
+    var isScoreRevealed by remember(item, isSpoilerFree) { mutableStateOf(!isSpoilerFree) }
 
     Surface(
         color = Color(0xFF181818),
@@ -105,7 +105,7 @@ internal fun MatchTheaterMetadataBar(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.weight(1f, fill = false)
             ) {
-                if (item is HighlightUiItem.SupabaseMatch) {
+                if (item is HighlightUiItem.OracleMatch) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         SubcomposeAsyncImage(
                             model = item.match.homeTeamCrest?.toProxyUrl(),

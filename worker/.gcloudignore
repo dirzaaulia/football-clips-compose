@@ -14,3 +14,6 @@ scratch/
 tests/
 channel_cache.json
 youtube_quota.json
+
+.env*
+operations/*.private.json

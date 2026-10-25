@@ -1,20 +1,15 @@
 package com.dirzaaulia.footballclips.di
 
-import com.dirzaaulia.footballclips.data.repository.ClubRepository
-import com.dirzaaulia.footballclips.data.repository.ClubRepositoryImpl
-import com.dirzaaulia.footballclips.data.repository.CompetitionRepository
-import com.dirzaaulia.footballclips.data.repository.CompetitionRepositoryImpl
-import com.dirzaaulia.footballclips.data.repository.HighlightRepository
-import com.dirzaaulia.footballclips.data.repository.HighlightRepositoryImpl
+import com.dirzaaulia.footballclips.data.constants.DatabaseConstants
+import com.dirzaaulia.footballclips.data.repository.MiddlewareRepository
+import com.dirzaaulia.footballclips.data.repository.MiddlewareRepositoryImpl
+import com.dirzaaulia.footballclips.data.repository.OracleVmRepository
+import com.dirzaaulia.footballclips.data.repository.OracleVmRepositoryImpl
 import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
 import com.dirzaaulia.footballclips.data.repository.ProfilesRepositoryImpl
-import com.dirzaaulia.footballclips.data.repository.ScoreRepository
-import com.dirzaaulia.footballclips.data.repository.ScoreRepositoryImpl
-import com.dirzaaulia.footballclips.data.repository.StandingRepository
-import com.dirzaaulia.footballclips.data.repository.StandingRepositoryImpl
+import com.dirzaaulia.footballclips.data.telemetry.DeviceTelemetrySync
 import com.dirzaaulia.footballclips.ui.home.HomeViewModel
 import com.dirzaaulia.footballclips.ui.score.ScoreViewModel
-import com.dirzaaulia.footballclips.data.constants.DatabaseConstants
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
@@ -28,15 +23,13 @@ import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-import com.dirzaaulia.footballclips.data.telemetry.DeviceTelemetrySync
-
 expect val platformModule: Module
 
 val databaseModule = module {
     single<SupabaseClient> {
         createSupabaseClient(
             supabaseUrl = DatabaseConstants.DATABASE_URL,
-            supabaseKey = DatabaseConstants.DATABASE_ANON_KEY
+            supabaseKey = DatabaseConstants.DATABASE_ANON_KEY,
         ) {
             install(Auth)
             install(Postgrest)
@@ -52,35 +45,28 @@ val databaseModule = module {
 
 val dataModule = module {
     single { DeviceTelemetrySync(get()) }
-    single<HighlightRepository> { HighlightRepositoryImpl(get()) }
-    single<ScoreRepository> { ScoreRepositoryImpl(get()) }
-    single<ClubRepository> { ClubRepositoryImpl(get()) }
-    single<CompetitionRepository> { CompetitionRepositoryImpl(get()) }
+    single<MiddlewareRepository> { MiddlewareRepositoryImpl(get()) }
+    single<OracleVmRepository> { OracleVmRepositoryImpl(get()) }
     single<ProfilesRepository> { ProfilesRepositoryImpl(get(), get()) }
-    single<StandingRepository> { StandingRepositoryImpl(get()) }
 }
 
 val viewModelModule = module {
     viewModel {
         HomeViewModel(
-            highlightRepository = get(),
-            scoreRepository = get(),
+            middlewareRepository = get(),
+            oracleVmRepository = get(),
             preferenceManager = get(),
             billingManager = get(),
             adMobManager = get(),
             profilesRepository = get(),
-            competitionRepository = get()
         )
     }
     viewModel {
         ScoreViewModel(
-            repository = get(),
+            oracleVmRepository = get(),
             preferenceManager = get(),
             billingManager = get(),
             profilesRepository = get(),
-            clubRepository = get(),
-            standingRepository = get(),
-            competitionRepository = get()
         )
     }
 }

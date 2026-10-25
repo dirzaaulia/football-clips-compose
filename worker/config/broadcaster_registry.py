@@ -58,6 +58,21 @@ GLOBAL_BROADCASTER_REGISTRY: list[dict[str, Any]] = [
         "contract_end_year": 2028,
         "status": "ACTIVE",
     },
+
+    # ---------------------------------------------------------
+    # Indonesia
+    # ---------------------------------------------------------
+    {
+        "broadcaster_id": "liga1_match_id",
+        "name": "Liga 1 Match Indonesia",
+        "channel_handle": "@liga1match",
+        "channel_id": "UCyJejTAHiCrIRqWmFrbgQfQ",
+        "competitions": ["IDN"],
+        "allowed_countries": ["ID"],
+        "contract_start_year": 2024,
+        "contract_end_year": 2028,
+        "status": "ACTIVE",
+    },
     {
         "broadcaster_id": "mls_official",
         "name": "Major League Soccer",

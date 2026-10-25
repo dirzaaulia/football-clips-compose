@@ -4,6 +4,7 @@ from typing import Any
 import httpx
 from loguru import logger
 from worker.clients.supabase_client import supabase_client
+from worker.config.settings import settings
 
 AUDIENCE_STATE_URL = "https://edge.fc.dirzaaulia.com/rest/v1/telemetry_state?key=eq.audience&select=payload"
 
@@ -22,7 +23,9 @@ class AudienceService:
 
         try:
             with httpx.Client(timeout=5.0) as client:
-                res = client.get(self.state_url, headers={"Accept": "application/json"})
+                res = client.get(self.state_url, headers={
+                    "Accept": "application/json", "apikey": settings.supabase_service_role_key,
+                })
                 if res.status_code == 200:
                     raw = res.json()
                     if isinstance(raw, list) and len(raw) > 0 and "payload" in raw[0]:

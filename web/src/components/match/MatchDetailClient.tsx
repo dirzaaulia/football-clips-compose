@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, usePathname } from 'next/navigation';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { MatchRecord } from '@/lib/database';
 import { useMatchDetailData } from '@/hooks/useMatchDetailData';
@@ -11,8 +11,8 @@ import AdSenseBanner from '@/components/ads/AdSenseBanner';
 import MatchCentreHeader from '@/components/match/MatchCentreHeader';
 import MatchSidebar from '@/components/match/MatchSidebar';
 import MatchRecapSection from '@/components/match/MatchRecapSection';
-import MatchFaqSection from '@/components/match/MatchFaqSection';
 import MatchTacticalBoxscore from '@/components/match/MatchTacticalBoxscore';
+import MatchDayGearSection from '@/components/affiliate/MatchDayGearSection';
 import MatchCentreHero from '@/components/player/MatchCentreHero';
 import HorizontalMatchTimeline from '@/components/match/HorizontalMatchTimeline';
 
@@ -51,20 +51,21 @@ export default function MatchDetailClient({
     return expectedId || null;
   }, [params?.id, pathname, expectedId]);
 
-  const [hasHydrated, setHasHydrated] = useState(false);
-  const { isSpoilerFree } = useSpoilerFree();
-  const [isScoreRevealed, setIsScoreRevealed] = useState(!isSpoilerFree);
-
-  useEffect(() => {
-    setHasHydrated(true);
-  }, []);
-
   const { match, recapAnalysis, related, isLoading } = useMatchDetailData(
     initialMatch,
     initialRecap,
     initialRelated,
     activeUrlId
   );
+
+  const [hasHydrated, setHasHydrated] = useState(false);
+  const { isSpoilerFree } = useSpoilerFree();
+  const [isScoreRevealed, setIsScoreRevealed] = useState(!isSpoilerFree);
+
+  useEffect(() => {
+    setHasHydrated(true);
+    setIsScoreRevealed(!isSpoilerFree);
+  }, [isSpoilerFree, match?.id]);
 
   const isPendingMismatch =
     hasHydrated &&
@@ -205,18 +206,21 @@ export default function MatchDetailClient({
             <div className="space-y-4">
               <div className="rounded-3xl overflow-hidden bg-[#1E2227] border border-[#334155] shadow-2xl">
                 <div className="relative w-full pt-[56.25%] bg-black">
-                  <iframe
+                  {match.playback_mode === 'external' ? <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
+                    <p>This publisher allows playback on YouTube.</p>
+                    <a href={`https://www.youtube.com/watch?v=${match.highlight_video_id}`} target="_blank" rel="noopener noreferrer" className="rounded-xl bg-blue-500 px-6 py-3 font-semibold">Watch on YouTube</a>
+                  </div> : <iframe
                     className="absolute inset-0 w-full h-full"
                     src={`https://www.youtube.com/embed/${match.highlight_video_id}?rel=0&modestbranding=1&autoplay=0`}
                     title={`${homeName} vs ${awayName} Highlights`}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
-                  />
+                  />}
                 </div>
                 <div className="p-3 bg-[#101418] flex items-center justify-between text-xs text-[#94A3B8] border-t border-[#334155]/60">
                   <span className="flex items-center gap-1.5 font-bold text-white">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    Official Match Highlights
+                    {match.availability_verified ? 'Verified highlight availability' : 'Highlight reference · availability unverified'}
                   </span>
                   <span className="text-[#4FC3F7] font-semibold">{match.competition_name || match.competition_id}</span>
                 </div>
@@ -243,30 +247,57 @@ export default function MatchDetailClient({
             />
           )}
 
-          {/* Premier League Style Horizontal Event Timeline */}
-          {match.events && match.events.length > 0 && (
-            <HorizontalMatchTimeline
-              events={match.events}
-              homeName={homeName}
-              awayName={awayName}
-              isSpoilerFree={isSpoilerFree}
-              isLive={['IN_PLAY', 'PAUSED', 'LIVE'].includes(match.status)}
-            />
-          )}
-
           <AdSenseBanner slotId="5616816386" format="horizontal" />
 
-          {/* Unified Match Centre: Timeline, Stats, Lineups & Report */}
-          <MatchTacticalBoxscore match={match} />
-
-          {/* Tactical Breakdown & Match Report */}
-          <MatchRecapSection
-            recapAnalysis={recapAnalysis}
-            status={match.status}
+          {/* Official Match-Day Fan Gear & Kits */}
+          <MatchDayGearSection
+            homeName={homeName}
+            homeCrest={match.home_team_crest}
+            awayName={awayName}
+            awayCrest={match.away_team_crest}
           />
 
-          {/* Authentic Match FAQs & Facts */}
-          <MatchFaqSection match={match} />
+          {/* Spoiler Protection or Full Match Data */}
+          {(match.status === 'FINISHED' || match.status === 'AWARDED') && isSpoilerFree && !isScoreRevealed ? (
+            <div className="py-8 px-6 rounded-3xl bg-[#181C20] border border-[#334155] text-center space-y-3 shadow-xl">
+              <div className="inline-flex p-3 rounded-full bg-[#1E3A8A]/30 text-[#7098F8] border border-[#7098F8]/40 mb-1">
+                <EyeOff className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-extrabold text-white">Spoiler Free Mode Active</h3>
+              <p className="text-xs text-[#94A3B8] max-w-md mx-auto">
+                Match scoreline, incident timeline, stats, and match recap are hidden to preserve match excitement.
+              </p>
+              <button
+                onClick={() => setIsScoreRevealed(true)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-lg hover:shadow-blue-500/25 cursor-pointer mt-2"
+              >
+                <Eye className="w-4 h-4" />
+                <span>Reveal Match Details &amp; Score</span>
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Premier League Style Horizontal Event Timeline */}
+              {match.events && match.events.length > 0 && (
+                <HorizontalMatchTimeline
+                  events={match.events}
+                  homeName={homeName}
+                  awayName={awayName}
+                  isSpoilerFree={false}
+                  isLive={['IN_PLAY', 'PAUSED', 'LIVE'].includes(match.status)}
+                />
+              )}
+
+              {/* Unified Match Centre: Timeline, Stats, Lineups & Report */}
+              <MatchTacticalBoxscore match={match} />
+
+              {/* Tactical Breakdown & Match Report */}
+              <MatchRecapSection
+                recapAnalysis={recapAnalysis}
+                status={match.status}
+              />
+            </>
+          )}
         </div>
 
         <div className="lg:col-span-4 space-y-6">

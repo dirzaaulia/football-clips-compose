@@ -6,3 +6,5 @@ expect fun shareText(title: String, text: String, url: String)
 
 expect val isWasmTarget: Boolean
 
+expect fun getDeviceCountryCode(): String
+

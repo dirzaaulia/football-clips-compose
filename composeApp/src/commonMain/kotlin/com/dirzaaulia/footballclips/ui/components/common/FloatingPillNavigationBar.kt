@@ -8,14 +8,27 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,7 +47,7 @@ fun FloatingPillNavigationBar(
     currentDestination: NavDestination?,
     onNavigate: (String) -> Unit,
     hasLiveMatch: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier.height(64.dp),
@@ -43,23 +56,23 @@ fun FloatingPillNavigationBar(
         tonalElevation = 8.dp,
         shadowElevation = 12.dp,
         border = BorderStroke(
-            0.5.dp, 
-            Color.White.copy(alpha = 0.1f)
-        )
+            0.5.dp,
+            Color.White.copy(alpha = 0.1f),
+        ),
     ) {
         Row(
             modifier = Modifier.fillMaxHeight().padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             bottomNavItems.forEach { screen ->
                 val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-                
+
                 PillNavItem(
                     screen = screen,
                     selected = selected,
                     hasLiveMatch = hasLiveMatch && screen == AppNavDestination.Fixtures,
-                    onClick = { onNavigate(screen.route) }
+                    onClick = { onNavigate(screen.route) },
                 )
             }
         }
@@ -71,17 +84,17 @@ private fun PillNavItem(
     screen: AppNavDestination,
     selected: Boolean,
     hasLiveMatch: Boolean = false,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val scale by animateFloatAsState(
         targetValue = if (selected) 1.15f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "scale"
+        label = "scale",
     )
-    
+
     val iconColor by animateColorAsState(
         targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-        label = "color"
+        label = "color",
     )
 
     Box(
@@ -90,21 +103,21 @@ private fun PillNavItem(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = onClick
+                onClick = onClick,
             )
             .padding(horizontal = 12.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.scale(scale)
+            modifier = Modifier.scale(scale),
         ) {
             Box(contentAlignment = Alignment.TopEnd) {
                 Icon(
                     imageVector = screen.icon,
                     contentDescription = screen.title,
                     tint = iconColor,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 )
 
                 if (hasLiveMatch) {
@@ -113,7 +126,7 @@ private fun PillNavItem(
                             .offset(x = 3.dp, y = (-1).dp)
                             .size(7.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFFF3B30))
+                            .background(Color(0xFFFF3B30)),
                     )
                 }
             }
@@ -121,14 +134,14 @@ private fun PillNavItem(
             if (selected) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 2.dp)
+                    modifier = Modifier.padding(top = 2.dp),
                 ) {
                     if (hasLiveMatch) {
                         Box(
                             modifier = Modifier
                                 .size(5.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFFF3B30))
+                                .background(Color(0xFFFF3B30)),
                         )
                         Spacer(Modifier.width(3.dp))
                     }
@@ -137,7 +150,7 @@ private fun PillNavItem(
                         style = MaterialTheme.typography.labelSmall,
                         color = iconColor,
                         fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                 }
             }

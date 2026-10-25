@@ -96,7 +96,7 @@ internal fun LandscapeLeagueChip(
                 Box(
                     modifier = Modifier
                         .size(24.dp)
-                        .background(Color.White.copy(alpha = 0.95f), CircleShape)
+                        .background(Color.Transparent, CircleShape)
                         .padding(3.dp),
                     contentAlignment = Alignment.Center
                 ) {

@@ -46,7 +46,7 @@ fun FloatingMiniPlayer(
     val awayScore: Int?
 
     when (item) {
-        is HighlightUiItem.SupabaseMatch -> {
+        is HighlightUiItem.OracleMatch -> {
             homeName = item.match.homeTeamName
             awayName = item.match.awayTeamName
             compName = item.match.competitionName
@@ -144,15 +144,15 @@ fun FloatingMiniPlayer(
                     .aspectRatio(16f / 9f)
             ) {
                 val backupVideoId = when (item) {
-                    is HighlightUiItem.SupabaseMatch -> item.match.backupHighlightVideoId
+                    is HighlightUiItem.OracleMatch -> item.match.backupHighlightVideoId
                     else -> null
                 }
                 val regionInfo = when (item) {
-                    is HighlightUiItem.SupabaseMatch -> item.match.youtubeRegionInfo
+                    is HighlightUiItem.OracleMatch -> item.match.youtubeRegionInfo
                     else -> null
                 }
                 val backupRegionInfo = when (item) {
-                    is HighlightUiItem.SupabaseMatch -> item.match.backupYoutubeRegionInfo
+                    is HighlightUiItem.OracleMatch -> item.match.backupYoutubeRegionInfo
                     else -> null
                 }
                 YouTubePlayerView(

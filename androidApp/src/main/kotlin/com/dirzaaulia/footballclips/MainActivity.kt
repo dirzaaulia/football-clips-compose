@@ -13,6 +13,9 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.dirzaaulia.footballclips.ui.adaptive.App
 import com.dirzaaulia.footballclips.update.InAppUpdateManager
 import io.github.jan.supabase.SupabaseClient
@@ -29,6 +32,19 @@ class MainActivity : ComponentActivity() {
         // Handle result code if needed (RESULT_OK, RESULT_CANCELED)
     }
 
+    private var deepLinkMatchId by mutableStateOf<String?>(null)
+
+    private fun extractMatchId(intent: Intent?): String? {
+        val uri = intent?.data ?: return null
+        if (uri.scheme == "https" && uri.host == "fc.dirzaaulia.com" && uri.path?.startsWith("/match") == true) {
+            return uri.lastPathSegment
+        }
+        if (uri.scheme == "drzfc" && (uri.host == "match" || uri.path?.startsWith("/match") == true)) {
+            return uri.lastPathSegment
+        }
+        return null
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -39,6 +55,7 @@ class MainActivity : ComponentActivity() {
 
         // Handle Deep Link if activity is created via URL
         supabase.handleDeeplinks(intent)
+        deepLinkMatchId = extractMatchId(intent)
 
         // Prominent, cinematic zoom-and-fade exit animation for splash screen
         splashScreen.setOnExitAnimationListener { splashScreenView ->
@@ -61,7 +78,10 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            App()
+            App(
+                initialMatchId = deepLinkMatchId,
+                onMatchConsumed = { deepLinkMatchId = null },
+            )
         }
     }
 
@@ -69,6 +89,10 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         // Handle Deep Link if activity receives new intent
         supabase.handleDeeplinks(intent)
+        val matchId = extractMatchId(intent)
+        if (matchId != null) {
+            deepLinkMatchId = matchId
+        }
     }
 
     override fun onResume() {

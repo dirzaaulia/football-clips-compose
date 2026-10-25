@@ -32,7 +32,7 @@ fun PaywallBottomSheet(
     val displayInfo = extractOfferingInfo(offerings)
     val isWasm = isWasmTarget
     val isBigScreen = LocalIsBigScreen.current
-    val shouldUseSideSheet = isWasm && isBigScreen
+    val shouldUseSideSheet = isBigScreen
 
     val paywallState = when {
         isLoading -> PaywallState.VERIFYING

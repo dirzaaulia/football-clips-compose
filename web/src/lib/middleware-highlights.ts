@@ -1,5 +1,5 @@
 import { MatchRecord, getRecentHighlights } from './database';
-import { BIG_LEAGUES, isLeagueMatch } from './constants';
+import { isLeagueMatch } from '@/hooks/useCompetitions';
 import {
   MiddlewareHighlight,
   MiddlewareFetchResult,
@@ -77,7 +77,7 @@ const COMP_COUNTRY_MAP: Record<string, { country: string; flag: string }> = {
   MLS: { country: 'USA', flag: 'https://flagcdn.com/w40/us.png' },
 };
 
-function enrichDatabaseMatch(m: MatchRecord): MatchRecord {
+export function enrichDatabaseMatch(m: MatchRecord): MatchRecord {
   const comp = COMP_COUNTRY_MAP[m.competition_id];
   return {
     ...m,
@@ -127,7 +127,7 @@ async function fetchAndProcessMw(
   count: number,
   offset: number,
   selectedComp?: string,
-  bigLeague?: (typeof BIG_LEAGUES)[number]
+  competition?: { name: string; competitionId: string | null }
 ): Promise<{ records: MatchRecord[]; hasMore: boolean; nextOffset: number }> {
   let currentOffset = offset;
   const collected: MatchRecord[] = [];
@@ -144,9 +144,9 @@ async function fetchAndProcessMw(
     hasMore = result.hasMore;
 
     let records = result.items.map(middlewareHighlightToMatchRecord);
-    if (selectedComp && selectedComp !== 'ALL' && bigLeague) {
+    if (selectedComp && selectedComp !== 'ALL' && competition) {
       records = records.filter(
-        (m) => isLeagueMatch(bigLeague.name, m.competition_name) || m.competition_id === selectedComp
+        (m) => isLeagueMatch(competition.name, m.competition_name) || m.competition_id === selectedComp
       );
     }
     collected.push(...records);
@@ -171,9 +171,10 @@ export async function fetchMergedHighlightsPage(
   offsetMw: number,
   limitSupabase = 20,
   limitMw = 30,
-  season?: number
+  season?: number,
+  competitions?: { name: string; competitionId: string | null }[]
 ): Promise<MergedHighlightsResult> {
-  const bigLeague = BIG_LEAGUES.find((b) => b.competitionId === selectedComp);
+  const competition = competitions?.find((b) => b.competitionId === selectedComp);
 
   // If viewing historical archive season (e.g. 2025), fetch exclusively from Supabase archive
   if (season && season !== 2026) {
@@ -229,14 +230,14 @@ export async function fetchMergedHighlightsPage(
     } else {
       nextOffsetSupabase = -1; // Supabase exhausted, transition to middleware
       const deficit = limitSupabase - enrichedSupa.length;
-      const mw = await fetchAndProcessMw(Math.max(deficit, limitMw), offsetMw, selectedComp, bigLeague);
+      const mw = await fetchAndProcessMw(Math.max(deficit, limitMw), offsetMw, selectedComp, competition);
       mwRecords = mw.records;
       hasMoreMw = mw.hasMore;
       nextOffsetMw = mw.nextOffset;
     }
   } else {
     // 2. Supabase already exhausted, page solely through newest Middleware items
-    const mw = await fetchAndProcessMw(limitMw, offsetMw, selectedComp, bigLeague);
+    const mw = await fetchAndProcessMw(limitMw, offsetMw, selectedComp, competition);
     mwRecords = mw.records;
     hasMoreMw = mw.hasMore;
     nextOffsetMw = mw.nextOffset;

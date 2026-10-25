@@ -419,7 +419,6 @@ class WorkerOrchestrator:
             await match_service.sync_matches(is_full_sync=is_full_sync, log_events=events)
         except Exception as e:
             append_event(events, f"Error: {e}", "ERROR", "MATCH_SYNC", "ERROR")
-            status = "ERROR"
         return {"status": status, "events": events}
 
     async def run_highlight_sync_only(self, batch_limit: int = 25) -> dict[str, Any]:

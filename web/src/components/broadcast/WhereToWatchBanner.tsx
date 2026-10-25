@@ -14,11 +14,9 @@ export default function WhereToWatchBanner({
   className = ''
 }: WhereToWatchBannerProps) {
   const [broadcaster, setBroadcaster] = useState<BroadcasterInfo | null>(null);
-  const [countryCode, setCountryCode] = useState<string>('US');
 
   useEffect(() => {
     const code = detectUserCountryCode();
-    setCountryCode(code);
     getOfficialBroadcaster(competitionId, code).then(setBroadcaster);
   }, [competitionId]);
 

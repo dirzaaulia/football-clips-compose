@@ -72,6 +72,8 @@ kotlin {
 
         androidMain.dependencies {
             implementation(libs.compose.components.uiToolingPreview)
+            implementation(libs.compose.ui.tooling)
+            implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.core.splashscreen)
             implementation(libs.androidx.material)

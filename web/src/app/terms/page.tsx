@@ -119,7 +119,16 @@ export default function TermsPage() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-bold text-white border-l-2 border-sky-400 pl-3">
-          5. Disclaimer of Warranties
+          5. Affiliate Links &amp; Merchandise Recommendations
+        </h2>
+        <p className="text-sm leading-relaxed">
+          Football Highlights &amp; Clips participates in the <strong className="text-white">Amazon Associates Program</strong>. Certain links to official jerseys, kits, and football equipment in the app and website are affiliate links. As an Amazon Associate, FootballClips earns from qualifying purchases at no extra expense to you. We do not sell or fulfill physical merchandise directly; all transactions are handled entirely by Amazon and its respective merchants. You may toggle off merchandise recommendations at any time within the app settings.
+        </p>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-bold text-white border-l-2 border-sky-400 pl-3">
+          6. Disclaimer of Warranties
         </h2>
         <p className="text-sm leading-relaxed">
           Football Highlights &amp; Clips is provided on an <strong className="text-white">&quot;AS IS&quot;</strong> and <strong className="text-white">&quot;AS AVAILABLE&quot;</strong> basis without warranties of any kind, whether express or implied. While we strive to maintain accurate live scores and up-to-date highlight links, we do not warrant that:
@@ -132,7 +141,7 @@ export default function TermsPage() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-bold text-white border-l-2 border-sky-400 pl-3">
-          6. Limitation of Liability
+          7. Limitation of Liability
         </h2>
         <p className="text-sm leading-relaxed">
           To the maximum extent permitted by applicable law, Dirza Aulia and Football Highlights &amp; Clips shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your access to or use of the application.
@@ -141,7 +150,7 @@ export default function TermsPage() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-bold text-white border-l-2 border-sky-400 pl-3">
-          7. Termination
+          8. Termination
         </h2>
         <p className="text-sm leading-relaxed">
           We reserve the right to suspend or terminate your access to Football Highlights &amp; Clips at our sole discretion, without prior notice, for conduct that violates these Terms or harms other users or the service.
@@ -150,7 +159,7 @@ export default function TermsPage() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-bold text-white border-l-2 border-sky-400 pl-3">
-          8. Changes to These Terms
+          9. Changes to These Terms
         </h2>
         <p className="text-sm leading-relaxed">
           We reserve the right to modify or replace these Terms at any time. If revisions are material, we will update the &quot;Last updated&quot; date at the top of this page. Your continued use of Football Highlights &amp; Clips following any changes signifies your acceptance of the updated Terms.
@@ -158,7 +167,7 @@ export default function TermsPage() {
       </section>
 
       <section className="space-y-3 border-t border-zinc-800 pt-6">
-        <h2 className="text-lg font-bold text-white">9. Contact Information</h2>
+        <h2 className="text-lg font-bold text-white">10. Contact Information</h2>
         <p className="text-sm leading-relaxed">
           If you have any questions or feedback regarding these Terms, please contact us:
         </p>

@@ -567,9 +567,21 @@ Follow unidirectional data flow (UDF / MVI) across all ViewModels:
    - Always enable edge-to-edge display (`enableEdgeToEdge()` in Activity).
    - Apply insets defensively: use `Modifier.statusBarsPadding()`, `Modifier.navigationBarsPadding()`, or `Modifier.windowInsetsPadding(WindowInsets.safeDrawing)`.
    - Never hardcode status bar or navigation bar heights.
-4. **Adaptive & Responsive Layouts**:
+4. **Adaptive & Responsive Layouts & Device Form Factor Matrix**:
    - Design using `WindowWidthSizeClass` (Compact, Medium, Expanded).
-   - Provide multi-pane layouts (list-detail, supporting pane) for foldables, tablets, and desktop targets using Navigation 3 or Compose Adaptive APIs.
+   - Provide responsive layouts and multi-pane structures for foldables, tablets, and desktop targets.
+
+| Form Factor / Device Type | Window Width Class | Width (`dp`) | Aspect Ratio & Form Factor Characteristics | Layout Strategy | Highlights Grid Columns | Fixtures Grid Columns | Filter Bar, Navigation & Sheets |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Compact Phone** | `Compact` | `< 600 dp` | Standard Vertical (`0.5 <= AR < 0.75`) | Single-column vertical list | 1 column | 1 column (`StandardMatchCard`) | Bottom Floating Pill Nav + Compact 2-row filters + Modal Bottom Sheets |
+| **Wide Portrait Phone** (e.g. Plus/Ultra/Max) | `Medium` | `600 dp - 839 dp` | Wide Vertical (`0.65 <= AR < 0.85`) | Multi-column Grid | 2 columns (`GridCells.Adaptive(minSize = 240.dp)`) | 2 columns (`GridCells.Adaptive(minSize = 320.dp)`) | Bottom Floating Pill Nav + Full horizontal filter bar + Modal Side Sheets |
+| **Z Fold / Next-Gen Foldable (Cover Screen)** | `Compact` | `< 600 dp` | Tall / Wider Cover Screen (20:9 or 21:9) | Single-column list + Inset Padding | 1 column | 1 column | Bottom Floating Pill Nav + Compact 2-row filters + Modal Bottom Sheets |
+| **Z Fold 8 / Next-Gen Foldable (Unfolded Main Canvas)** | `Medium` / `Expanded` | `>= 600 dp` | Unique Canvas (8"+ Near-Square 10:9 / 1:1 or 4:3) | Adaptive Dynamic Grid (`minSize` scaled) | 2–3 columns (`Adaptive(minSize = 220.dp)`) | 2 columns (`Adaptive(minSize = 300.dp)`) | Bottom Pill / Navigation Rail + Single-row filter bar + Modal Side Sheets |
+| **Flip Phone (Outer Cover Screen)** | `Compact` | `< 600 dp` | Small Outer Widget Screen | Compact single-column | 1 column | 1 column | Compact Pill Nav |
+| **Flip Phone (Unfolded Main Screen)** | `Compact` / `Medium` | `360 dp - 640 dp` | Tall Vertical (`0.45 <= AR < 0.6`) | Adaptive (1 col if <600dp; 2 cols if >=600dp) | 1–2 columns | 1–2 columns | Standard Bottom Pill Nav + Responsive filter bar + Bottom or Side Sheets |
+| **Tablet / Desktop / Large Display** | `Expanded` | `>= 840 dp` | Wide Canvas / Desktop (`AR > 1.25` or Width >= 840) | Web/Desktop Grid + Navigation Rail | 3–4 columns (`Adaptive(minSize = 260.dp)`) | 2–3 columns (`Adaptive(minSize = 400.dp)`) | Side Navigation Rail + Web Filter Bar + Modal Side Sheets |
+| **Landscape Phone / Flex Mode** | `Compact` / `Medium` | Any (`maxHeight < 500dp`) | Landscape (`maxHeight < 500dp`) | Dual-pane / Landscape Grid + Rail | PitchScope Split-Deck Dual Pane | PitchScope Dual Pane Control Desk | Left Navigation Rail + Modal Side Sheets |
+
 5. **Modern Navigation**:
    - Use type-safe navigation (Jetpack Navigation 3 / Navigation Compose with Kotlin `@Serializable` routes).
    - Support predictive back gestures via `navigation-event` or `BackHandler`.

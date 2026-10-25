@@ -15,7 +15,7 @@ internal class MobileVideoPlayerState {
     fun onVideoClick(item: HighlightUiItem, onDismiss: (Boolean) -> Unit) {
         selectedItem = item
         selectedVideoHtml = when (item) {
-            is HighlightUiItem.SupabaseMatch -> item.match.highlightVideoId
+            is HighlightUiItem.OracleMatch -> item.match.highlightVideoId
             is HighlightUiItem.Highlight -> item.highlight.embedHtml
             else -> null
         }
