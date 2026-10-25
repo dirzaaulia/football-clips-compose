@@ -28,7 +28,7 @@ export default function MatchFaqSection({ match }: MatchFaqSectionProps) {
     },
     {
       question: `Where are the official highlights for this match sourced from?`,
-      answer: `All highlight clips and videos featured on FootballClips are embedded from verified, official club channels and rights-holding league broadcasters (such as UEFA, Premier League, and official club media) via the official YouTube embed player.`,
+      answer: `All highlight clips and videos featured on Football Highlights & Clips are embedded from verified, official club channels and rights-holding league broadcasters (such as UEFA, Premier League, and official club media) via the official YouTube embed player.`,
     },
     {
       question: `What were the tactical systems deployed in ${homeName} vs ${awayName}?`,

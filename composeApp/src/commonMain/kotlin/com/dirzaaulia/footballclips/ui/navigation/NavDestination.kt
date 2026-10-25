@@ -3,7 +3,7 @@ package com.dirzaaulia.footballclips.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.filled.FormatListNumbered
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -17,7 +17,7 @@ sealed class NavDestination(
     data object Fixtures : NavDestination("fixtures", "Fixtures", Icons.AutoMirrored.Filled.EventNote)
     data object Standings : NavDestination("standings", "Standings", Icons.Default.FormatListNumbered)
     data object Store : NavDestination("store", "Club Store", Icons.Default.ShoppingBag)
-    data object Info : NavDestination("info", "Info", Icons.Default.Info)
+    data object Info : NavDestination("info", "Settings", Icons.Default.Settings)
     data object Player : NavDestination("player/{itemId}", "Player", Icons.Default.VideoLibrary)
 }
 

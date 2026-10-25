@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 
   if (!article) {
     return {
-      title: 'Article Not Found | FootballClips',
+      title: 'Article Not Found | Football Highlights & Clips',
       description: 'The requested tactical article could not be located.',
     };
   }
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
   const canonicalUrl = `${siteUrl}/articles/${article.slug}`;
 
   return {
-    title: `${article.title} | FootballClips Editorial`,
+    title: `${article.title} | Football Highlights & Clips Editorial`,
     description: article.excerpt,
     keywords: article.tags,
     authors: [{ name: article.author.name }],
@@ -245,7 +245,7 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
           <div className="text-sm font-bold text-white">{article.author.name}</div>
           <div className="text-xs text-[#4FC3F7]">{article.author.role}</div>
           <p className="text-xs text-[#94A3B8] leading-relaxed pt-1">
-            {article.author.bio} FootballClips maintains rigorous original reporting standards, utilizing Opta-aligned data feeds and verified video highlight integrations.
+            {article.author.bio} Football Highlights & Clips maintains rigorous original reporting standards, utilizing Opta-aligned data feeds and verified video highlight integrations.
           </p>
         </div>
       </div>

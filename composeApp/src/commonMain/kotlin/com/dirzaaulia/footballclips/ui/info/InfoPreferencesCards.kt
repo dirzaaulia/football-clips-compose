@@ -98,31 +98,12 @@ private fun MerchandiseSettingsInfo(
         }
         Spacer(Modifier.width(14.dp))
         Column {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    text = "Merchandise Recommendations",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                if (!isPremium) {
-                    Surface(
-                        color = Color(0xFFD4AF37).copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(4.dp),
-                    ) {
-                        Text(
-                            text = "PRO",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                            color = Color(0xFFD4AF37),
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        )
-                    }
-                }
-            }
+            Text(
+                text = "Merchandise Recommendations",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
             Text(
                 text = "Show official team gear links on Amazon",
                 style = MaterialTheme.typography.bodySmall,

@@ -37,7 +37,7 @@ export default function EditorialStandardsPage() {
           <h2 className="text-lg font-bold text-white">1. Match Data &amp; Score Verification</h2>
         </div>
         <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
-          Every score, timeline event, goalscorer, substitution, and disciplinary record published across FootballClips is corroborated against official league match sheets provided by accredited international sports data providers (Football-Data.org and ESPN FC). We do not publish speculative match data or unconfirmed reports.
+          Every score, timeline event, goalscorer, substitution, and disciplinary record published across Football Highlights &amp; Clips is corroborated against official league match sheets provided by accredited international sports data providers (Football-Data.org and ESPN FC). We do not publish speculative match data or unconfirmed reports.
         </p>
         <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
           During live fixtures, scores and timeline milestones update continuously via automated synchronizers with built-in regression guards to preserve historical immutability and record integrity.
@@ -51,7 +51,7 @@ export default function EditorialStandardsPage() {
           <h2 className="text-lg font-bold text-white">2. Tactical Analysis Methodology</h2>
         </div>
         <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
-          Our match reports and tactical breakdowns are authored and synthesized by the FootballClips Tactical Editorial Desk. We prioritize positional play analysis, pressing structures, spatial half-space overloads, and tactical substitutions rather than generic summaries.
+          Our match reports and tactical breakdowns are authored and synthesized by the Football Highlights &amp; Clips Tactical Editorial Desk. We prioritize positional play analysis, pressing structures, spatial half-space overloads, and tactical substitutions rather than generic summaries.
         </p>
         <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
           Each tactical report is tailored to the specific match events, tactical formations, and managerial decisions of the fixture to ensure every Match Centre page delivers substantial, unique value to football tacticians and enthusiasts.
@@ -65,7 +65,7 @@ export default function EditorialStandardsPage() {
           <h2 className="text-lg font-bold text-white">3. Official Rights &amp; Video Embed Licensing</h2>
         </div>
         <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
-          FootballClips is committed to upholding intellectual property rights and anti-piracy standards. We do not host, store, or stream pirated video files on our infrastructure.
+          Football Highlights &amp; Clips is committed to upholding intellectual property rights and anti-piracy standards. We do not host, store, or stream pirated video files on our infrastructure.
         </p>
         <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
           All highlight videos and decisive goal replays featured across our web and mobile applications are embedded strictly from verified, official club channels (such as Real Madrid, FC Barcelona, Arsenal, Manchester City, Juventus, Bayern Munich) and rights-holding league broadcasters through the official Google YouTube IFrame Embed API in full compliance with YouTube Developer Terms of Service.

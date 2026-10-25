@@ -138,7 +138,7 @@ export default function MatchDetailClient({
         dateModified: match.updated_at || match.utc_date,
         author: {
           '@type': 'Organization',
-          name: 'FootballClips Tactical Editorial Desk',
+          name: 'Football Highlights & Clips Tactical Editorial Desk',
           url: `${siteUrl}/editorial-standards`,
         },
         publisher: {
@@ -167,7 +167,7 @@ export default function MatchDetailClient({
             name: `Where are official highlights for ${homeName} vs ${awayName} available?`,
             acceptedAnswer: {
               '@type': 'Answer',
-              text: `Official highlights and decisive replay clips are available on FootballClips embedded from verified official broadcaster channels.`,
+              text: `Official highlights and decisive replay clips are available on Football Highlights & Clips embedded from verified official broadcaster channels.`,
             },
           },
         ],

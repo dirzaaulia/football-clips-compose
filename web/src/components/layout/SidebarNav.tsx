@@ -9,7 +9,7 @@ import {
   Calendar,
   Newspaper,
   Play,
-  Info,
+  Settings,
   ShoppingBag,
   PanelLeftClose,
   PanelLeftOpen,
@@ -27,7 +27,7 @@ const NAV_LINKS = [
   { href: '/standings', label: 'League Standings', icon: Trophy },
   { href: '/store', label: 'Club Store', icon: ShoppingBag },
   { href: '/articles', label: 'Analysis Hub', icon: Newspaper },
-  { href: '/info', label: 'Info & Resources', icon: Info },
+  { href: '/info', label: 'Settings', icon: Settings },
 ];
 
 export default function SidebarNav({
@@ -73,10 +73,10 @@ export default function SidebarNav({
           <Link
             href="/"
             onClick={onItemClick}
-            className="flex items-center gap-2.5 group min-w-0"
+            className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl border border-white/5 hover:border-[#7098F8]/30 bg-[#181C20]/80 hover:bg-[#1E2227] shadow-[0_2px_12px_rgba(0,0,0,0.3)] transition-all cursor-pointer group min-w-0"
             title="Football Highlights & Clips"
           >
-            <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-[#7098F8]/40 shadow-[0_0_12px_rgba(112,152,248,0.25)] group-hover:scale-105 transition-transform bg-[#181C20] shrink-0 flex items-center justify-center">
+            <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-[#7098F8]/40 shadow-[0_0_12px_rgba(112,152,248,0.3)] group-hover:scale-105 transition-transform bg-[#181C20] shrink-0 flex items-center justify-center">
               <Image
                 src="/app_icon.png"
                 alt="Football Highlights & Clips"
@@ -87,11 +87,11 @@ export default function SidebarNav({
               />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-extrabold text-xs tracking-tight text-white leading-tight truncate">
+              <span className="font-extrabold text-[12px] tracking-tight text-white leading-tight truncate">
                 Football Highlights
               </span>
-              <span className="text-[10px] font-black tracking-wider uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#7098F8] to-[#4FC3F7]">
-                & Clips
+              <span className="text-[10px] font-black tracking-wider uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#7098F8] via-[#60A5FA] to-[#38BDF8] leading-tight">
+                &amp; Clips
               </span>
             </div>
           </Link>

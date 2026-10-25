@@ -1,29 +1,56 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import { Heart, Database, ShieldCheck, Scale, FileText, Globe, Coffee, HeartHandshake } from 'lucide-react';
 import InfoHeroBanner from '@/components/info/InfoHeroBanner';
+import SettingsHubCards from '@/components/info/SettingsHubCards';
 import CollapsibleCard from '@/components/info/CollapsibleCard';
 import ExpressiveLinkCard from '@/components/info/ExpressiveLinkCard';
+import MyClubsModal from '@/components/clubs/MyClubsModal';
+import PaywallModal from '@/components/billing/PaywallModal';
 import Link from 'next/link';
 
-export const metadata = {
-  title: 'Information & Resources | Football Highlights & Clips',
-  description: 'Verified data sources, independent development, cross-platform billing, and privacy documentation.',
-};
+export default function SettingsPage() {
+  const [isMyClubsModalOpen, setIsMyClubsModalOpen] = useState(false);
+  const [isPaywallOpen, setIsPaywallOpen] = useState(false);
 
-export default function InfoPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-5">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          Settings
+        </h1>
+        <p className="text-xs sm:text-sm text-[#94A3B8]">
+          Manage your account profile, theme preferences, favorite clubs, and application resources.
+        </p>
+      </div>
+
+      {/* Hero Banner */}
       <InfoHeroBanner />
+
+      {/* Core Preferences & Account Section */}
+      <SettingsHubCards
+        onOpenMyClubs={() => setIsMyClubsModalOpen(true)}
+        onOpenPaywall={() => setIsPaywallOpen(true)}
+      />
+
+      {/* Section Divider */}
+      <div className="pt-2">
+        <h2 className="text-sm font-bold text-[#94A3B8] uppercase tracking-wider px-1 mb-3">
+          Resources &amp; Documentation
+        </h2>
+      </div>
 
       {/* 1. Support Developer Card */}
       <CollapsibleCard
         title="Support Developer"
         icon={<Heart className="w-5 h-5 text-[#7098F8]" />}
-        initialExpanded={true}
+        initialExpanded={false}
       >
         <div className="space-y-4 pt-1">
-          <p className="text-center sm:text-left">
-            If Football Highlights & Clips brings you joy, consider supporting independent development:
+          <p className="text-center sm:text-left text-xs sm:text-sm text-[#94A3B8]">
+            If Football Highlights &amp; Clips brings you joy, consider supporting independent development:
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <ExpressiveLinkCard
@@ -54,7 +81,7 @@ export default function InfoPage() {
         icon={<Database className="w-5 h-5 text-[#7098F8]" />}
         initialExpanded={false}
       >
-        <div className="space-y-2 pt-1">
+        <div className="space-y-2 pt-1 text-xs sm:text-sm text-[#94A3B8]">
           <p>
             All match highlights are embedded strictly from verified, official league and club channels on YouTube in full compliance with the official YouTube IFrame Player API. Live match fixtures, scores, and schedules are provided by the ESPN Live Sports Engine and official league feeds.
           </p>
@@ -70,7 +97,7 @@ export default function InfoPage() {
         icon={<ShieldCheck className="w-5 h-5 text-[#7098F8]" />}
         initialExpanded={false}
       >
-        <div className="space-y-2 pt-1">
+        <div className="space-y-2 pt-1 text-xs sm:text-sm text-[#94A3B8]">
           <p>
             Signing in is strictly for linking your Premium &quot;Remove Ads&quot; entitlement across devices. We do not collect, store, or sell any personal information. If you have previously purchased Premium on another device, simply sign in with the same account to restore your access.
           </p>
@@ -86,7 +113,7 @@ export default function InfoPage() {
         icon={<Scale className="w-5 h-5 text-[#7098F8]" />}
         initialExpanded={false}
       >
-        <div className="space-y-2 pt-1">
+        <div className="space-y-2 pt-1 text-xs sm:text-sm text-[#94A3B8]">
           <p>
             All team/league names, logos, and brands used in this application are the property of their respective owners. They are used strictly for identification and informational purposes under fair use.
           </p>
@@ -102,9 +129,9 @@ export default function InfoPage() {
         icon={<FileText className="w-5 h-5 text-[#7098F8]" />}
         initialExpanded={false}
       >
-        <div className="space-y-4 pt-1">
+        <div className="space-y-4 pt-1 text-xs sm:text-sm text-[#94A3B8]">
           <p>
-            Football Highlights & Clips uses official YouTube API Services and player embeds. By accessing or using this service, you agree to be bound by the YouTube Terms of Service and Google Privacy Policy. Review our full legal documentation below:
+            Football Highlights &amp; Clips uses official YouTube API Services and player embeds. By accessing or using this service, you agree to be bound by the YouTube Terms of Service and Google Privacy Policy. Review our full legal documentation below:
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <Link
@@ -122,6 +149,16 @@ export default function InfoPage() {
           </div>
         </div>
       </CollapsibleCard>
+
+      {/* Modals */}
+      <MyClubsModal
+        isOpen={isMyClubsModalOpen}
+        onClose={() => setIsMyClubsModalOpen(false)}
+      />
+      <PaywallModal
+        isOpen={isPaywallOpen}
+        onClose={() => setIsPaywallOpen(false)}
+      />
     </div>
   );
 }

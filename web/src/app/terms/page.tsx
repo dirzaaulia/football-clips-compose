@@ -122,7 +122,7 @@ export default function TermsPage() {
           5. Affiliate Links &amp; Merchandise Recommendations
         </h2>
         <p className="text-sm leading-relaxed">
-          Football Highlights &amp; Clips participates in the <strong className="text-white">Amazon Associates Program</strong>. Certain links to official jerseys, kits, and football equipment in the app and website are affiliate links. As an Amazon Associate, FootballClips earns from qualifying purchases at no extra expense to you. We do not sell or fulfill physical merchandise directly; all transactions are handled entirely by Amazon and its respective merchants. You may toggle off merchandise recommendations at any time within the app settings.
+          Football Highlights &amp; Clips participates in the <strong className="text-white">Amazon Associates Program</strong>. Certain links to official jerseys, kits, and football equipment in the app and website are affiliate links. As an Amazon Associate, Football Highlights &amp; Clips earns from qualifying purchases at no extra expense to you. We do not sell or fulfill physical merchandise directly; all transactions are handled entirely by Amazon and its respective merchants. You may toggle off merchandise recommendations at any time within the app settings.
         </p>
       </section>
 

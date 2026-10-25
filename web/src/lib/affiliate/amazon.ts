@@ -1,8 +1,8 @@
-// FootballClips Amazon Associates Engine & Geo-Routing
+// Football Highlights & Clips Amazon Associates Engine & Geo-Routing
 export const AMAZON_ASSOCIATE_TAG = 'drzfc-20';
 export const DEFAULT_MARKETPLACE = 'amazon.com';
 export const AMAZON_AFFILIATE_DISCLOSURE =
-  'As an Amazon Associate, FootballClips earns from qualifying purchases. We only recommend authentic gear and licensed club merchandise.';
+  'As an Amazon Associate, Football Highlights & Clips earns from qualifying purchases. We only recommend authentic gear and licensed club merchandise.';
 
 export const AMAZON_MARKETPLACES: Record<string, string> = {
   US: 'amazon.com',

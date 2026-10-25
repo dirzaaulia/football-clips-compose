@@ -63,7 +63,7 @@ fun FloatingMiniPlayer(
         else -> {
             homeName = "Match"
             awayName = "Highlight"
-            compName = "Football Clips"
+            compName = "Football Highlights & Clips"
             homeScore = null
             awayScore = null
         }

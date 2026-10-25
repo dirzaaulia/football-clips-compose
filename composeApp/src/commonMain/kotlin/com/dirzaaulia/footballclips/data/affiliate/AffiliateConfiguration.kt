@@ -3,7 +3,7 @@ package com.dirzaaulia.footballclips.data.affiliate
 object AffiliateConfiguration {
     const val AMAZON_ASSOCIATE_TAG = "drzfc-20"
     const val DEFAULT_MARKETPLACE = "amazon.com"
-    const val AFFILIATE_DISCLOSURE = "As an Amazon Associate, FootballClips earns from qualifying purchases."
+    const val AFFILIATE_DISCLOSURE = "As an Amazon Associate, Football Highlights & Clips earns from qualifying purchases."
 
     val AMAZON_MARKETPLACES: Map<String, String> = mapOf(
         "US" to "amazon.com",
