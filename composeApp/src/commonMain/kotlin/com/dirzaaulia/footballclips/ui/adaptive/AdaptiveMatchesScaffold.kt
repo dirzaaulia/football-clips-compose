@@ -15,9 +15,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +46,7 @@ import com.dirzaaulia.footballclips.ui.home.selectVideo
 import com.dirzaaulia.footballclips.ui.home.selectVideoById
 import com.dirzaaulia.footballclips.ui.info.InfoScreen
 import com.dirzaaulia.footballclips.ui.navigation.NavDestination
+import com.dirzaaulia.footballclips.ui.navigation.bottomNavItems
 import com.dirzaaulia.footballclips.ui.store.ClubStoreScreen
 import com.dirzaaulia.footballclips.ui.score.MatchStatusFilter
 import com.dirzaaulia.footballclips.ui.score.MatchesAndHighlightsScreen
@@ -150,6 +156,22 @@ fun AdaptiveMatchesScaffold(
         }
     }
 
+    val isMerchandiseEnabled by homeViewModel.isMerchandiseEnabled.collectAsState()
+    val navItems = remember(isMerchandiseEnabled) {
+        if (isMerchandiseEnabled) bottomNavItems else bottomNavItems.filter { it != NavDestination.Store }
+    }
+
+    LaunchedEffect(isMerchandiseEnabled, currentDestination?.route) {
+        if (!isMerchandiseEnabled && currentDestination?.route == NavDestination.Store.route) {
+            navController.navigate(NavDestination.Home.route) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    inclusive = false
+                }
+                launchSingleTop = true
+            }
+        }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
     ) { innerPadding ->
@@ -163,6 +185,7 @@ fun AdaptiveMatchesScaffold(
                 if (shouldUseNavRail) {
                     WebNavigationRail(
                         currentDestination = currentDestination,
+                        items = navItems,
                         onNavigate = { route ->
                             navController.navigate(route) {
                                 popUpTo(navController.graph.findStartDestination().route ?: NavDestination.Home.route) {
@@ -175,7 +198,18 @@ fun AdaptiveMatchesScaffold(
                     )
                 }
 
-                Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .then(
+                            if (shouldUseNavRail) {
+                                Modifier.consumeWindowInsets(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
+                            } else {
+                                Modifier
+                            }
+                        ),
+                ) {
                     NavHost(
                         navController = navController,
                         startDestination = NavDestination.Home.route,
@@ -213,6 +247,7 @@ fun AdaptiveMatchesScaffold(
                         ) {
                             FloatingPillNavigationBar(
                                 currentDestination = currentDestination,
+                                items = navItems,
                                 hasLiveMatch = hasLiveMatch,
                                 onNavigate = { route ->
                                     navController.navigate(route) {

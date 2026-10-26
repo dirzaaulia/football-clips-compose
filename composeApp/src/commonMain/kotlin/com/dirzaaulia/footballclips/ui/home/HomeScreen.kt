@@ -2,6 +2,7 @@ package com.dirzaaulia.footballclips.ui.home
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
@@ -9,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -133,10 +135,12 @@ fun HomeScreen(
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+            contentWindowInsets = if (isLandscape) WindowInsets(0, 0, 0, 0) else ScaffoldDefaults.contentWindowInsets,
             snackbarHost = { SnackbarHost(hostState = snackbarHostState, modifier = Modifier.padding(bottom = 120.dp)) },
             topBar = {
                 HomeScreenTopBar(
                     isWeb = isGrid,
+                    isLandscape = isLandscape,
                     isDarkMode = isDarkMode,
                     isPremium = isPremium,
                     isSpoilerFreeMode = isSpoilerFreeMode,

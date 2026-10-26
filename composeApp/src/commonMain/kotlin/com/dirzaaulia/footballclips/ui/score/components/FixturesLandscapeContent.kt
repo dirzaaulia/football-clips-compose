@@ -80,7 +80,7 @@ fun FixturesLandscapeContent(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(start = 8.dp, end = 16.dp, top = 4.dp, bottom = 8.dp),
     ) {
         FixturesLandscapeHeader(
             selectedSeason = selectedSeason,

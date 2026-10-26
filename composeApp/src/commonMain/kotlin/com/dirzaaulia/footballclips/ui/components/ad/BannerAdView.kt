@@ -5,8 +5,9 @@ import androidx.compose.ui.Modifier
 
 enum class NativeAdStyle {
     HERO,
+    HERO_LANDSCAPE,
     MATCH,
-    HIGHLIGHT
+    HIGHLIGHT,
 }
 
 @Composable

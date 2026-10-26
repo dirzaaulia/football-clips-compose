@@ -223,6 +223,7 @@ export default function FixturesPage() {
             items={competitions.map((c) => ({
               value: c.competitionId || 'ALL',
               label: c.name,
+              shortLabel: c.shortName || c.name,
               icon: c.logo ? (
                 <div className="relative w-4 h-4 rounded-lg bg-white/[0.08] backdrop-blur-md p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-white/10">
                   <div className="relative w-full h-full">

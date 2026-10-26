@@ -26,7 +26,9 @@ fun BannerAdItem(
     BoxWithConstraints {
         val isLandscape = maxHeight < 300.dp
         val cardHeight = when (style) {
-            NativeAdStyle.HERO -> if (isLandscape) 180.dp else 240.dp
+            NativeAdStyle.HERO,
+            NativeAdStyle.HERO_LANDSCAPE,
+            -> if (isLandscape) 180.dp else 240.dp
             NativeAdStyle.MATCH -> if (isLandscape) 180.dp else 250.dp
             NativeAdStyle.HIGHLIGHT -> if (isLandscape) 120.dp else 145.dp
         }

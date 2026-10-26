@@ -24,6 +24,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -121,13 +123,33 @@ fun LeagueModernFilterItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        val frostedGradient = Brush.verticalGradient(
+            colors = if (isSelected) {
+                listOf(
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+                )
+            } else {
+                listOf(
+                    Color.White.copy(alpha = 0.22f),
+                    Color.White.copy(alpha = 0.12f),
+                )
+            },
+        )
+        val borderColor = if (isSelected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            Color.White.copy(alpha = 0.25f)
+        }
+
         Box(
             modifier = Modifier
                 .size(circleSize)
-                .background(Color.Transparent, CircleShape)
+                .clip(CircleShape)
+                .background(frostedGradient)
                 .border(
-                    width = if (isSelected) 2.5.dp else 1.dp,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.2f),
+                    width = if (isSelected) 2.dp else 1.dp,
+                    color = borderColor,
                     shape = CircleShape,
                 )
                 .padding(logoPadding),

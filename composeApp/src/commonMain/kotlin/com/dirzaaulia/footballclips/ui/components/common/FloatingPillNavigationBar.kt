@@ -47,6 +47,7 @@ fun FloatingPillNavigationBar(
     currentDestination: NavDestination?,
     onNavigate: (String) -> Unit,
     hasLiveMatch: Boolean = false,
+    items: List<AppNavDestination> = bottomNavItems,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -65,7 +66,7 @@ fun FloatingPillNavigationBar(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            bottomNavItems.forEach { screen ->
+            items.forEach { screen ->
                 val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
 
                 PillNavItem(

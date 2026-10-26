@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -55,95 +56,85 @@ fun LeagueDropdownSelector(
 
     val leagues = remember(dynamicCompetitions, showAll) {
         val comps = dynamicCompetitions ?: emptyList()
-        val list = mutableListOf<BigLeague>()
-        if (showAll && comps.none { it.leagueId == null && it.competitionId.isEmpty() }) {
-            list.add(
-                BigLeague(
-                    id = "",
-                    name = "All Leagues",
-                    leagueId = null,
-                    countryCode = null,
-                    emblemUrl = null,
-                ),
-            )
+        buildList {
+            if (showAll && comps.none { it.leagueId == null && it.competitionId.isEmpty() }) {
+                add(BigLeague(id = "", name = "All Leagues"))
+            }
+            addAll(comps.filter { showAll || it.leagueId != null || it.competitionId.isNotEmpty() })
         }
-        list.addAll(comps.filter { if (showAll) true else (it.leagueId != null || it.competitionId.isNotEmpty()) })
-        list
     }
 
     val currentLeague = remember(leagues, selectedLeagueId, selectedCompetitionId) {
-        leagues.find { league ->
-            if (selectedLeagueId != null) {
-                league.leagueId == selectedLeagueId
-            } else if (selectedCompetitionId != null) {
-                league.competitionId == selectedCompetitionId
-            } else {
-                league.leagueId == null && league.competitionId.isEmpty()
+        leagues.find {
+            when {
+                selectedLeagueId != null -> it.leagueId == selectedLeagueId
+                selectedCompetitionId != null -> it.competitionId == selectedCompetitionId
+                else -> it.leagueId == null && it.competitionId.isEmpty()
             }
         } ?: leagues.firstOrNull()
     }
 
     val arrowRotation by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
 
+    val isFullWidth = modifier != Modifier
+    val hasSelection = currentLeague?.competitionId != null || currentLeague?.leagueId != null
+
     Box(modifier = modifier) {
         Surface(
             onClick = { expanded = !expanded },
             shape = RoundedCornerShape(20.dp),
-            color = if (currentLeague?.competitionId != null || currentLeague?.leagueId != null) {
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
-            } else {
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            },
-            border = BorderStroke(
-                1.dp,
-                if (currentLeague?.competitionId != null || currentLeague?.leagueId != null) {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                } else {
-                    MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                },
-            ),
-            modifier = Modifier.height(36.dp),
+            color = if (hasSelection) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            border = BorderStroke(1.dp, if (hasSelection) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+            modifier = Modifier.height(36.dp).then(if (isFullWidth) Modifier.fillMaxWidth() else Modifier),
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                modifier = Modifier
+                    .then(if (isFullWidth) Modifier.fillMaxWidth() else Modifier)
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = if (isFullWidth) Arrangement.SpaceBetween else Arrangement.spacedBy(6.dp),
             ) {
-                if (currentLeague != null && currentLeague.logo.isNotEmpty()) {
-                    GlassLogoBadge(
-                        modifier = Modifier.size(22.dp),
-                        shape = RoundedCornerShape(6.dp),
-                    ) {
-                        AsyncImage(
-                            model = currentLeague.logo.toProxyUrl(),
-                            contentDescription = currentLeague.name,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(2.dp),
-                            contentScale = ContentScale.Fit,
+                Row(
+                    modifier = if (isFullWidth) Modifier.weight(1f, fill = false) else Modifier,
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    if (currentLeague != null && currentLeague.logo.isNotEmpty()) {
+                        GlassLogoBadge(
+                            modifier = Modifier.size(22.dp),
+                            shape = RoundedCornerShape(6.dp),
+                        ) {
+                            AsyncImage(
+                                model = currentLeague.logo.toProxyUrl(),
+                                contentDescription = currentLeague.name,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(2.dp),
+                                contentScale = ContentScale.Fit,
+                            )
+                        }
+                    } else {
+                        Icon(
+                            imageVector = if (showAll) Icons.Default.Public else Icons.Default.EmojiEvents,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = if (currentLeague?.competitionId != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                } else {
-                    Icon(
-                        imageVector = if (showAll) Icons.Default.Public else Icons.Default.EmojiEvents,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = if (currentLeague?.competitionId != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+
+                    Text(
+                        text = currentLeague?.name ?: if (showAll) "All Leagues" else "Select League",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = if (currentLeague?.competitionId != null || currentLeague?.leagueId != null) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
                     )
                 }
-
-                Text(
-                    text = currentLeague?.name ?: if (showAll) "All Leagues" else "Select League",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = if (currentLeague?.competitionId != null || currentLeague?.leagueId != null) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
-                )
 
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,
@@ -160,7 +151,7 @@ fun LeagueDropdownSelector(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier
-                .widthIn(min = 240.dp, max = 320.dp)
+                .widthIn(min = 280.dp, max = 380.dp)
                 .background(MaterialTheme.colorScheme.surface),
         ) {
             leagues.forEach { league ->
@@ -207,9 +198,10 @@ fun LeagueDropdownSelector(
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 fontSize = 13.sp,
                                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.weight(1f, fill = false),
-                                maxLines = 1,
+                                modifier = Modifier.weight(1f),
+                                maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
+                                lineHeight = 16.sp,
                             )
                             if (league.competitionId.isNotEmpty()) {
                                 val (badgeText, badgeBg, badgeFg) = when {

@@ -31,6 +31,11 @@ const ESPN_COMPETITION_LOGOS: Record<string, string> = {
   MLS: 'https://a.espncdn.com/i/leaguelogos/soccer/500/19.png',
   SPL: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2488.png',
   IDN: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2336.png',
+  LIB: 'https://a.espncdn.com/i/leaguelogos/soccer/500/58.png',
+  SUD: 'https://a.espncdn.com/i/leaguelogos/soccer/500/1208.png',
+  REC: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2335.png',
+  BRA: 'https://a.espncdn.com/i/leaguelogos/soccer/500/85.png',
+  ARG: 'https://a.espncdn.com/i/leaguelogos/soccer/500/1.png',
 };
 
 function TeamLiveCrest({ crestUrl, teamName }: { crestUrl?: string | null; teamName: string }) {

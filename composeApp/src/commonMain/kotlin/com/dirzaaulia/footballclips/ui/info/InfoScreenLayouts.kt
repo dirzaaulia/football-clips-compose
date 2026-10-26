@@ -82,7 +82,9 @@ internal fun InfoSettingsLandscapeGrid(
         }
         item { DataSourceCard(initialExpanded = false) }
         item { AccountPurchasesCard(initialExpanded = false) }
-        item { AmazonAffiliateDisclosureCard(initialExpanded = false) }
+        if (isMerchandiseEnabled) {
+            item { AmazonAffiliateDisclosureCard(initialExpanded = false) }
+        }
         item { DisclaimerCard(initialExpanded = false) }
         item { PrivacyPolicyCard(initialExpanded = false) }
     }
@@ -159,10 +161,12 @@ internal fun InfoSettingsWideLayout(
                 initialExpanded = false,
                 modifier = Modifier.weight(1f).widthIn(min = 280.dp),
             )
-            AmazonAffiliateDisclosureCard(
-                initialExpanded = false,
-                modifier = Modifier.weight(1f).widthIn(min = 280.dp),
-            )
+            if (isMerchandiseEnabled) {
+                AmazonAffiliateDisclosureCard(
+                    initialExpanded = false,
+                    modifier = Modifier.weight(1f).widthIn(min = 280.dp),
+                )
+            }
             DisclaimerCard(
                 initialExpanded = false,
                 modifier = Modifier.weight(1f).widthIn(min = 280.dp),
@@ -228,7 +232,9 @@ internal fun InfoSettingsPortraitLayout(
         )
         DataSourceCard(initialExpanded = false)
         AccountPurchasesCard(initialExpanded = false)
-        AmazonAffiliateDisclosureCard(initialExpanded = false)
+        if (isMerchandiseEnabled) {
+            AmazonAffiliateDisclosureCard(initialExpanded = false)
+        }
         DisclaimerCard(initialExpanded = false)
         PrivacyPolicyCard(initialExpanded = false)
 

@@ -7,6 +7,7 @@ import { useMyClubs } from '@/hooks/useMyClubs';
 import { useSupportedClubs } from '@/hooks/useSupportedClubs';
 import { useCompetitions } from '@/hooks/useCompetitions';
 import { useUserRegion } from '@/hooks/useUserRegion';
+import { useMerchandisePreference } from '@/hooks/useMerchandisePreference';
 import { buildClubGearUrl } from '@/lib/affiliate/amazon';
 import ModalSideSheet from '@/components/common/ModalSideSheet';
 import CustomDropdown from '@/components/common/CustomDropdown';
@@ -21,6 +22,7 @@ interface MyClubsModalProps {
 
 export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
   const { favoriteClubs, toggleClub, clearAll, favoriteCount } = useMyClubs();
+  const { isMerchandiseEnabled } = useMerchandisePreference();
   const allSupportedClubs = useSupportedClubs();
   const competitions = useCompetitions();
   const { country } = useUserRegion();
@@ -205,16 +207,18 @@ export default function MyClubsModal({ isOpen, onClose }: MyClubsModalProps) {
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <a
-                    href={buildClubGearUrl(club.name, 'jersey', country)}
-                    target="_blank"
-                    rel="noopener noreferrer sponsored"
-                    onClick={(e) => e.stopPropagation()}
-                    title={`Shop ${club.name} gear on Amazon`}
-                    className="p-1.5 rounded-xl border border-[#334155] bg-[#181C20] hover:bg-[#1E2227] text-[#7098F8] hover:text-white transition-all cursor-pointer"
-                  >
-                    <ShoppingBag className="w-3.5 h-3.5" />
-                  </a>
+                  {isMerchandiseEnabled && (
+                    <a
+                      href={buildClubGearUrl(club.name, 'jersey', country)}
+                      target="_blank"
+                      rel="noopener noreferrer sponsored"
+                      onClick={(e) => e.stopPropagation()}
+                      title={`Shop ${club.name} gear on Amazon`}
+                      className="p-1.5 rounded-xl border border-[#334155] bg-[#181C20] hover:bg-[#1E2227] text-[#7098F8] hover:text-white transition-all cursor-pointer"
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5" />
+                    </a>
+                  )}
 
                   <button
                     type="button"

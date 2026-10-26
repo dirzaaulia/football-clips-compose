@@ -24,8 +24,12 @@ class Settings(BaseSettings):
     r2_secret_access_key: str | None = Field(default=None, alias="R2_SECRET_ACCESS_KEY")
     r2_bucket_name: str = Field(default="footballclips-archives", alias="R2_BUCKET_NAME")
 
-    # Target competitions: Premier League, LaLiga, Serie A, Bundesliga, Ligue 1, Champions League, Europa League, Conference League, Domestic Cups, SPL, MLS, Eredivisie, Liga Portugal
-    target_competitions: list[str] = ["PL", "PD", "SA", "BL1", "FL1", "CL", "EL", "ECL", "FAC", "EFL", "CDR", "DFB", "CIT", "SPL", "MLS", "DED", "PPL"]
+    # Target competitions: Premier League, LaLiga, Serie A, Bundesliga, Ligue 1, Champions League, Europa League, Conference League, Domestic Cups, SPL, MLS, Eredivisie, Liga Portugal, South American Competitions
+    target_competitions: list[str] = [
+        "PL", "PD", "SA", "BL1", "FL1", "CL", "EL", "ECL",
+        "FAC", "EFL", "CDR", "DFB", "CIT", "SPL", "MLS", "DED", "PPL",
+        "LIB", "SUD", "REC", "BRA", "ARG",
+    ]
     big_five_competitions: list[str] = ["PL", "PD", "SA", "BL1", "FL1"]
 
     # YouTube Quota & Durations

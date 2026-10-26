@@ -18,6 +18,7 @@ import { signInWithGoogle, signOutUser } from '@/lib/auth';
 import { useTheme } from '@/hooks/useTheme';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import { useProStatus } from '@/hooks/useProStatus';
+import { useMerchandisePreference } from '@/hooks/useMerchandisePreference';
 
 interface SettingsHubCardsProps {
   onOpenMyClubs: () => void;
@@ -32,17 +33,7 @@ export default function SettingsHubCards({
   const isPro = useProStatus();
   const { isDark, toggleTheme } = useTheme();
   const { favoriteCount } = useMyClubs();
-
-  const [merchandiseEnabled, setMerchandiseEnabled] = useState(true);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('fc-merchandise-enabled');
-      if (stored !== null) {
-        setMerchandiseEnabled(stored === 'true');
-      }
-    }
-  }, []);
+  const { rawPreference: merchandiseEnabled, setMerchandiseEnabled } = useMerchandisePreference();
 
   const handleToggleMerchandise = (enabled: boolean) => {
     if (!isPro && onOpenPaywall) {
@@ -50,8 +41,6 @@ export default function SettingsHubCards({
       return;
     }
     setMerchandiseEnabled(enabled);
-    localStorage.setItem('fc-merchandise-enabled', String(enabled));
-    window.dispatchEvent(new Event('fc-merchandise-toggle'));
   };
 
   return (

@@ -49,7 +49,8 @@ fun InfoScreen(
     val preferenceManager: PreferenceManager? = if (!isPreview) koinInject() else null
     val homeViewModel: HomeViewModel? = if (!isPreview) koinViewModel() else null
     val isPremium = homeViewModel?.isPremium?.collectAsState()?.value ?: true
-    val isMerchandiseEnabled = preferenceManager?.isMerchandiseEnabled?.collectAsState(initial = true)?.value ?: true
+    val isMerchandiseEnabled = homeViewModel?.isMerchandiseEnabled?.collectAsState()?.value
+        ?: (preferenceManager?.isMerchandiseEnabled?.collectAsState(initial = true)?.value ?: true)
     val isDarkMode = homeViewModel?.isDarkMode?.collectAsState()?.value ?: true
     val favoriteClubs = homeViewModel?.favoriteClubs?.collectAsState()?.value ?: emptySet()
     val supportedClubs = homeViewModel?.supportedClubs?.collectAsState()?.value ?: emptyList()

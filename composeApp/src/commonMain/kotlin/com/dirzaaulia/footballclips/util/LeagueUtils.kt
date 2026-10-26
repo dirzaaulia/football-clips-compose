@@ -52,6 +52,49 @@ fun String.normalizeLeagueName(): String {
         trimmed.equals("Primeira Liga", ignoreCase = true) ||
         trimmed.equals("PPL", ignoreCase = true) -> "Liga Portugal"
 
+        trimmed.equals("FA Cup", ignoreCase = true) ||
+        trimmed.equals("FAC", ignoreCase = true) -> "FA Cup"
+
+        trimmed.equals("Carabao Cup", ignoreCase = true) ||
+        trimmed.equals("EFL Cup", ignoreCase = true) ||
+        trimmed.equals("EFL", ignoreCase = true) -> "Carabao Cup"
+
+        trimmed.equals("Copa del Rey", ignoreCase = true) ||
+        trimmed.equals("CDR", ignoreCase = true) -> "Copa del Rey"
+
+        trimmed.equals("DFB-Pokal", ignoreCase = true) ||
+        trimmed.equals("DFB Pokal", ignoreCase = true) ||
+        trimmed.equals("DFB", ignoreCase = true) -> "DFB-Pokal"
+
+        trimmed.equals("Coppa Italia", ignoreCase = true) ||
+        trimmed.equals("CIT", ignoreCase = true) -> "Coppa Italia"
+
+        trimmed.equals("CONMEBOL Libertadores", ignoreCase = true) ||
+        trimmed.equals("Copa Libertadores", ignoreCase = true) ||
+        trimmed.equals("Libertadores", ignoreCase = true) ||
+        trimmed.equals("LIB", ignoreCase = true) -> "CONMEBOL Libertadores"
+
+        trimmed.equals("CONMEBOL Sudamericana", ignoreCase = true) ||
+        trimmed.equals("Copa Sudamericana", ignoreCase = true) ||
+        trimmed.equals("Sudamericana", ignoreCase = true) ||
+        trimmed.equals("SUD", ignoreCase = true) -> "CONMEBOL Sudamericana"
+
+        trimmed.equals("CONMEBOL Recopa", ignoreCase = true) ||
+        trimmed.equals("Recopa Sudamericana", ignoreCase = true) ||
+        trimmed.equals("Recopa", ignoreCase = true) ||
+        trimmed.equals("REC", ignoreCase = true) -> "CONMEBOL Recopa"
+
+        trimmed.equals("Brasileirão Série A", ignoreCase = true) ||
+        trimmed.equals("Brasileirao Serie A", ignoreCase = true) ||
+        trimmed.equals("Brasileirão", ignoreCase = true) ||
+        trimmed.equals("Brasileirao", ignoreCase = true) ||
+        trimmed.equals("BRA", ignoreCase = true) -> "Brasileirão Série A"
+
+        trimmed.equals("Argentine Liga Profesional", ignoreCase = true) ||
+        trimmed.equals("Liga Profesional de Fútbol", ignoreCase = true) ||
+        trimmed.equals("Liga Argentina", ignoreCase = true) ||
+        trimmed.equals("ARG", ignoreCase = true) -> "Argentine Liga Profesional"
+
         else -> trimmed
     }
 }

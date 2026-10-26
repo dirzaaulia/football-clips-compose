@@ -14,6 +14,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
+import { useMerchandisePreference } from '@/hooks/useMerchandisePreference';
 
 interface SidebarNavProps {
   isCollapsed?: boolean;
@@ -36,6 +37,12 @@ export default function SidebarNav({
   onToggleCollapse,
 }: SidebarNavProps) {
   const pathname = usePathname();
+  const { isMerchandiseEnabled } = useMerchandisePreference();
+
+  const links = React.useMemo(() => {
+    if (isMerchandiseEnabled) return NAV_LINKS;
+    return NAV_LINKS.filter((link) => link.href !== '/store');
+  }, [isMerchandiseEnabled]);
 
   return (
     <div className="space-y-2.5 w-full">
@@ -121,7 +128,7 @@ export default function SidebarNav({
 
       {/* Navigation Links */}
       <nav className="space-y-1 w-full">
-        {NAV_LINKS.map((link) => {
+        {links.map((link) => {
           const Icon = link.icon;
           const isActive = pathname === link.href;
           return (

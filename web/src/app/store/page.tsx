@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Search, ShoppingBag, Star, ExternalLink, Trophy, X, ShieldCheck } from 'lucide-react';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import { useSupportedClubs } from '@/hooks/useSupportedClubs';
 import { useCompetitions } from '@/hooks/useCompetitions';
 import { useUserRegion } from '@/hooks/useUserRegion';
+import { useMerchandisePreference } from '@/hooks/useMerchandisePreference';
 import CustomDropdown from '@/components/common/CustomDropdown';
 import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 import {
@@ -17,14 +19,31 @@ import {
 } from '@/lib/affiliate/amazon';
 
 export default function StorePage() {
+  const router = useRouter();
+  const { isMerchandiseEnabled } = useMerchandisePreference();
   const { favoriteClubs } = useMyClubs();
   const allClubs = useSupportedClubs();
   const competitions = useCompetitions();
   const { country } = useUserRegion();
   const marketplace = resolveAmazonMarketplace(country);
 
+  useEffect(() => {
+    if (!isMerchandiseEnabled) {
+      router.replace('/');
+    }
+  }, [isMerchandiseEnabled, router]);
+
   const [search, setSearch] = useState('');
   const [selectedLeague, setSelectedLeague] = useState('ALL');
+
+  if (!isMerchandiseEnabled) {
+    return (
+      <div className="py-24 text-center space-y-3 max-w-md mx-auto px-4">
+        <p className="text-sm font-semibold text-white">Club Store &amp; Merchandise are disabled</p>
+        <p className="text-xs text-[#94A3B8]">Redirecting to Highlights...</p>
+      </div>
+    );
+  }
 
   const followedClubs = useMemo(() => {
     return allClubs.filter((c) => favoriteClubs.has(c.id));

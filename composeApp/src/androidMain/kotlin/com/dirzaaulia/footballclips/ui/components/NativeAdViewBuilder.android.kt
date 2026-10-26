@@ -23,6 +23,7 @@ internal fun bindAdView(ctx: Context, nativeView: NativeAdView, nativeAd: Native
     nativeView.removeAllViews()
     when (style) {
         NativeAdStyle.HERO -> createHeroAdView(ctx, nativeView, nativeAd)
+        NativeAdStyle.HERO_LANDSCAPE -> createLandscapeHeroAdView(ctx, nativeView, nativeAd)
         NativeAdStyle.MATCH -> createMatchAdView(ctx, nativeView, nativeAd)
         NativeAdStyle.HIGHLIGHT -> createHighlightAdView(ctx, nativeView, nativeAd)
     }

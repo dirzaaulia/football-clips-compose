@@ -45,7 +45,7 @@ data class Match(
         get() = when (competitionId.uppercase()) {
             "CL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2.png"
             "EL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2487.png"
-            "ECL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/21822.png"
+            "ECL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/20296.png"
             "PL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/23.png"
             "PD" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/15.png"
             "SA" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/12.png"
@@ -56,11 +56,16 @@ data class Match(
             "MLS" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/19.png"
             "DED" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/11.png"
             "PPL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/14.png"
-            "FAC" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/38.png"
-            "EFL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/37.png"
-            "CDR" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/274.png"
+            "FAC" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/40.png"
+            "EFL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/41.png"
+            "CDR" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/80.png"
             "DFB" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2061.png"
             "CIT" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/270.png"
+            "LIB" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/58.png"
+            "SUD" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/1208.png"
+            "REC" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2335.png"
+            "BRA" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/85.png"
+            "ARG" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/1.png"
             else -> "https://a.espncdn.com/i/leaguelogos/soccer/500/23.png"
         }
 

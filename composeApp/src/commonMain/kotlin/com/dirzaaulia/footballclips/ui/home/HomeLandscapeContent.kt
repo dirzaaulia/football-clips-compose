@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -54,16 +53,14 @@ internal fun HomeLandscapeContent(
     viewModel: HomeViewModel,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding(),
+        modifier = Modifier.fillMaxSize(),
     ) {
         // Left Column: PitchScope Featured Hero Card
         Column(
             modifier = Modifier
                 .weight(0.42f)
                 .fillMaxHeight()
-                .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 12.dp),
+                .padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -72,6 +69,7 @@ internal fun HomeLandscapeContent(
                     items = items,
                     isAdsRemoved = isAdsRemoved,
                     isCinematic = false,
+                    isLandscape = true,
                     isSpoilerFreeMode = isSpoilerFreeMode,
                     revealedItemIds = revealedItemIds,
                     onRevealItem = onRevealItem,
@@ -99,6 +97,7 @@ internal fun HomeLandscapeContent(
                 dynamicCompetitions = competitions,
                 onLeagueSelected = onLeagueSelected,
                 contentPadding = PaddingValues(0.dp),
+                isCompact = true,
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -107,7 +106,7 @@ internal fun HomeLandscapeContent(
                 columns = GridCells.Fixed(1),
                 state = gridState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 60.dp),
+                contentPadding = PaddingValues(bottom = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {

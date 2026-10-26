@@ -43,7 +43,12 @@ internal fun LandscapeHighlightItem(
 
     when (item) {
         is HighlightUiItem.BannerAd -> {
-            BannerAdItem(style = if (showExternalHighlights) NativeAdStyle.HIGHLIGHT else NativeAdStyle.MATCH)
+            BannerAdItem(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                style = if (showExternalHighlights) NativeAdStyle.HIGHLIGHT else NativeAdStyle.MATCH,
+            )
         }
         else -> {
             LandscapeHighlightRowCard(

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ShoppingBag, Star, ExternalLink } from 'lucide-react';
 import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 import { useUserRegion } from '@/hooks/useUserRegion';
+import { useMerchandisePreference } from '@/hooks/useMerchandisePreference';
 import {
   buildClubGearUrl,
   resolveClubKitPhoto,
@@ -27,8 +28,13 @@ export default function MatchDayGearSection({
   awayCrest,
   className = '',
 }: MatchDayGearSectionProps) {
+  const { isMerchandiseEnabled } = useMerchandisePreference();
   const { country } = useUserRegion();
   const marketplace = resolveAmazonMarketplace(country);
+
+  if (!isMerchandiseEnabled) {
+    return null;
+  }
 
   return (
     <section className={`bg-[#14181D] border border-[#334155]/70 rounded-2xl p-4 sm:p-5 space-y-4 shadow-lg ${className}`}>

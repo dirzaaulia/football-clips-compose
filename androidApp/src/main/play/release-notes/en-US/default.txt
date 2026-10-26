@@ -1,0 +1,6 @@
+• Added South American competitions: Copa Libertadores, Copa Sudamericana, Brasileirão, and Argentine Primera.
+• Restored official cup and European tournament badges.
+• Optimized landscape experience with revamped hero banner and seamless navigation rail layout.
+• Enhanced league filters with expanded dropdowns.
+• Premium subscribers can now disable merchandise recommendations and club storefronts in Settings.
+• Performance improvements and bug fixes.

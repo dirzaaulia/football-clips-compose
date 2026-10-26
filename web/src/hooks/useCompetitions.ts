@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 
 export interface Competition {
   name: string;
+  shortName?: string;
   leagueId: number | null;
   countryCode: string | null;
   competitionId: string | null;
@@ -21,7 +22,7 @@ interface DynamicCompetitionDto {
   type?: 'league' | 'hybrid' | 'cup';
 }
 
-const CACHE_KEY = 'fc_cached_dynamic_competitions_v2';
+const CACHE_KEY = 'fc_cached_dynamic_competitions_v3';
 
 export function useCompetitions() {
   const [competitions, setCompetitions] = useState<Competition[]>(() => {
@@ -41,6 +42,7 @@ export function useCompetitions() {
     return [
       {
         name: 'All Competitions',
+        shortName: 'All Leagues',
         leagueId: null,
         countryCode: null,
         competitionId: 'ALL',
@@ -61,6 +63,7 @@ export function useCompetitions() {
 
         const allLeaguesOption: Competition = {
           name: 'All Competitions',
+          shortName: 'All Leagues',
           leagueId: null,
           countryCode: null,
           competitionId: 'ALL',
@@ -71,6 +74,7 @@ export function useCompetitions() {
           allLeaguesOption,
           ...data.map((c) => ({
             name: c.name,
+            shortName: c.short_name || c.name,
             leagueId: c.league_id,
             countryCode: c.country_code,
             competitionId: c.id,

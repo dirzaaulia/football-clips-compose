@@ -3,6 +3,7 @@ package com.dirzaaulia.footballclips.ui.home
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,6 +22,7 @@ import com.dirzaaulia.footballclips.util.isDebugBuild
 @Composable
 internal fun HomeScreenTopBar(
     isWeb: Boolean,
+    isLandscape: Boolean = false,
     isDarkMode: Boolean,
     isPremium: Boolean,
     isSpoilerFreeMode: Boolean,
@@ -36,6 +38,7 @@ internal fun HomeScreenTopBar(
     onShowFilter: () -> Unit,
 ) {
     TopAppBar(
+        windowInsets = if (isLandscape) WindowInsets(0, 0, 0, 0) else TopAppBarDefaults.windowInsets,
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

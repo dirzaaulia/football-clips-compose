@@ -32,6 +32,7 @@ internal fun WebNavigationRail(
     currentDestination: NavDestination?,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier,
+    items: List<com.dirzaaulia.footballclips.ui.navigation.NavDestination> = bottomNavItems,
     favoriteClubsCount: Int = 0,
     showScrollToTop: Boolean = false,
     isFiltersExpanded: Boolean = false,
@@ -64,7 +65,7 @@ internal fun WebNavigationRail(
             }
         },
     ) {
-        bottomNavItems.forEach { screen ->
+        items.forEach { screen ->
             val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
             NavigationRailItem(
                 selected = selected,

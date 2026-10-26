@@ -113,57 +113,6 @@ internal fun MatchesTopBarFilters(
                             ArchiveSeasonIndicator(season = selectedSeason)
                         }
 
-                        LeagueDropdownSelector(
-                            selectedCompetitionId = if (isMyClubsActive) null else selectedCompetitionId,
-                            dynamicCompetitions = dynamicCompetitions,
-                            onLeagueSelected = { leagueId, competitionId ->
-                                if (isMyClubsActive) onToggleMyClubs()
-                                onLeagueSelected(leagueId, competitionId)
-                            },
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            listOf(
-                                MatchStatusFilter.ALL to "All",
-                                MatchStatusFilter.FINISHED to "Finished",
-                                MatchStatusFilter.UPCOMING to "Upcoming",
-                            ).forEach { (status, label) ->
-                                val isSelected = selectedStatusFilter == status && !isLiveOnlyActive
-                                FilterChip(
-                                    selected = isSelected,
-                                    onClick = { onStatusFilterSelected(status) },
-                                    label = {
-                                        Text(
-                                            text = label,
-                                            fontSize = 11.sp,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                        )
-                                    },
-                                    modifier = Modifier.height(28.dp),
-                                    shape = RoundedCornerShape(14.dp),
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    ),
-                                    border = FilterChipDefaults.filterChipBorder(
-                                        enabled = true,
-                                        selected = isSelected,
-                                        borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                                        selectedBorderColor = MaterialTheme.colorScheme.primary,
-                                    ),
-                                )
-                            }
-                        }
-
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -214,6 +163,58 @@ internal fun MatchesTopBarFilters(
                                         .size(14.dp)
                                         .clip(CircleShape)
                                         .background(if (isLiveOnlyActive) Color.White else MaterialTheme.colorScheme.outline),
+                                )
+                            }
+                        }
+                    }
+
+                    LeagueDropdownSelector(
+                        selectedCompetitionId = if (isMyClubsActive) null else selectedCompetitionId,
+                        dynamicCompetitions = dynamicCompetitions,
+                        onLeagueSelected = { leagueId, competitionId ->
+                            if (isMyClubsActive) onToggleMyClubs()
+                            onLeagueSelected(leagueId, competitionId)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            listOf(
+                                MatchStatusFilter.ALL to "All",
+                                MatchStatusFilter.FINISHED to "Finished",
+                                MatchStatusFilter.UPCOMING to "Upcoming",
+                            ).forEach { (status, label) ->
+                                val isSelected = selectedStatusFilter == status && !isLiveOnlyActive
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { onStatusFilterSelected(status) },
+                                    label = {
+                                        Text(
+                                            text = label,
+                                            fontSize = 11.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        )
+                                    },
+                                    modifier = Modifier.height(28.dp),
+                                    shape = RoundedCornerShape(14.dp),
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = isSelected,
+                                        borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                        selectedBorderColor = MaterialTheme.colorScheme.primary,
+                                    ),
                                 )
                             }
                         }

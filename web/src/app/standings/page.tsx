@@ -46,6 +46,13 @@ const ALL_COMPETITIONS: CompetitionDef[] = [
   { code: 'CDR', name: 'Copa del Rey', type: 'cup', category: 'Knockout Cups' },
   { code: 'DFB', name: 'DFB-Pokal', type: 'cup', category: 'Knockout Cups' },
   { code: 'CIT', name: 'Coppa Italia', type: 'cup', category: 'Knockout Cups' },
+
+  // South American Competitions
+  { code: 'LIB', name: 'CONMEBOL Libertadores', type: 'hybrid', category: 'South American Competitions' },
+  { code: 'SUD', name: 'CONMEBOL Sudamericana', type: 'cup', category: 'South American Competitions' },
+  { code: 'REC', name: 'CONMEBOL Recopa', type: 'cup', category: 'South American Competitions' },
+  { code: 'BRA', name: 'Brasileirão Série A', type: 'league', category: 'South American Competitions' },
+  { code: 'ARG', name: 'Argentine Liga Profesional', type: 'league', category: 'South American Competitions' },
 ];
 
 function normalizeTeamNameForDeduplication(name: string): string {

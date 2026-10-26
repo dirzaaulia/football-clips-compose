@@ -20,6 +20,7 @@ import InfiniteScrollSentinel from '@/components/feed/InfiniteScrollSentinel';
 import MyClubsStoreShelf from '@/components/affiliate/MyClubsStoreShelf';
 import { useSeason } from '@/hooks/useSeason';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
+import { useMerchandisePreference } from '@/hooks/useMerchandisePreference';
 import { Trophy, Loader2, CheckCircle2, Archive } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -42,6 +43,7 @@ export default function HomePage() {
   const [selectedLeagues, setSelectedLeagues] = useState<string[]>([]);
 
   const { favoriteClubs, favoriteCount } = useMyClubs();
+  const { isMerchandiseEnabled } = useMerchandisePreference();
   const scrollRef = useDragScroll<HTMLDivElement>();
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
@@ -167,7 +169,7 @@ export default function HomePage() {
         />
       </section>
 
-      {isMyClubsActive && (
+      {isMerchandiseEnabled && isMyClubsActive && (
         <MyClubsStoreShelf onOpenMyClubs={() => setIsMyClubsModalOpen(true)} className="mb-6" />
       )}
 
