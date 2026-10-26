@@ -63,7 +63,7 @@ export default function ExcitementCard({
         </div>
 
         {/* Top-Right Competition Pill */}
-        <div className="absolute top-3 right-3 text-[10px] font-extrabold text-white/90 bg-black/60 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-white/10">
+        <div className="absolute top-3 right-3 text-[10px] font-extrabold text-white/90 bg-black/60 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-white/10 max-w-[140px] truncate">
           {match.competition_name}
         </div>
       </div>
@@ -79,7 +79,7 @@ export default function ExcitementCard({
                 <Image src={match.home_team_crest} alt={homeName} fill className="object-contain" unoptimized />
               </div>
             )}
-            <span className="font-extrabold text-xs text-white leading-tight">{homeName}</span>
+            <span className="font-extrabold text-xs text-white leading-tight truncate">{homeName}</span>
           </div>
 
           {/* Scoreline Pill */}
@@ -109,7 +109,7 @@ export default function ExcitementCard({
 
           {/* Away */}
           <div className="flex items-center justify-end gap-2 flex-1 min-w-0 text-right">
-            <span className="font-extrabold text-xs text-white leading-tight">{awayName}</span>
+            <span className="font-extrabold text-xs text-white leading-tight truncate">{awayName}</span>
             {match.away_team_crest && (
               <div className="relative w-6 h-6 shrink-0">
                 <Image src={match.away_team_crest} alt={awayName} fill className="object-contain" unoptimized />

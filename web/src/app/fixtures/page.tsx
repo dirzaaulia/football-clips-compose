@@ -279,7 +279,7 @@ export default function FixturesPage() {
         {/* Active League Badge / Summary */}
         <div className="hidden sm:flex items-center gap-2 text-xs text-[#94A3B8]">
           <span>Showing:</span>
-          <span className="font-bold text-white bg-[#1E2227] border border-[#334155]/60 px-2.5 py-1 rounded-lg">
+          <span className="font-bold text-white bg-[#1E2227] border border-[#334155]/60 px-2.5 py-1 rounded-lg truncate max-w-[220px]">
             {isMyClubsActive ? `My Clubs (${favoriteCount})` : (competition?.name || 'All Competitions')}
           </span>
         </div>

@@ -203,7 +203,7 @@ export default function HomePage() {
 
       {/* Highlights Grid */}
       {loading.initial ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 my-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 my-6">
           {[...Array(6)].map((_, i) => (
             <HighlightCardSkeleton key={i} />
           ))}
@@ -219,7 +219,7 @@ export default function HomePage() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 my-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 my-6">
           {feedMatches.map((m, idx) => (
             <React.Fragment key={m.id}>
               <HighlightCard

@@ -121,7 +121,7 @@ export default function CustomDropdown<T extends string | number>({
             : 'border-[#334155] hover:border-[#7098F8]/60 hover:bg-[#1E232B]'
         }`}
       >
-        <div className="flex items-center gap-2 whitespace-nowrap">
+        <div className="flex items-center gap-2 whitespace-nowrap min-w-0">
           {leadingIcon && (
             <span
               className={`shrink-0 transition-transform duration-200 group-hover:scale-105 ${
@@ -132,13 +132,13 @@ export default function CustomDropdown<T extends string | number>({
             </span>
           )}
           {!isIcon && prefix && (
-            <span className="text-[#94A3B8] font-medium hidden sm:inline text-xs">
+            <span className="text-[#94A3B8] font-medium hidden sm:inline text-xs shrink-0">
               {prefix}:
             </span>
           )}
           {!isIcon && (
             <span
-              className={`font-bold whitespace-nowrap ${
+              className={`font-bold truncate max-w-[130px] sm:max-w-[170px] ${
                 isAmber ? 'text-amber-300' : 'text-white'
               }`}
             >

@@ -84,7 +84,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-[#101418] text-[#F1F5F9] antialiased flex flex-col md:flex-row selection:bg-[#7098F8]/30 selection:text-white">
         <SplashScreen />
         {/* Left Side Navigation Rail */}
-        <Suspense fallback={<div className="w-64 bg-[#101418] hidden md:block" />}>
+        <Suspense fallback={<div className="w-60 lg:w-64 bg-[#101418] hidden md:block" />}>
           <Sidebar />
         </Suspense>
 

@@ -158,7 +158,7 @@ export default function Sidebar() {
       {/* Desktop Left Sidebar: Collapsible rail (w-16) or full width (w-60/64) */}
       <aside
         className={`hidden md:flex shrink-0 ${
-          isCollapsed ? 'w-16' : 'w-64 lg:w-72'
+          isCollapsed ? 'w-16' : 'w-60 lg:w-64'
         } h-dvh h-screen sticky top-0 bg-[#101418] border-r border-[#334155]/60 z-40 transition-all duration-300 ease-in-out`}
       >
         {renderContent(undefined, false)}

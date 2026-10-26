@@ -181,7 +181,7 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             {match.viewer_availability === 'unknown' && match.external_video_id ? (
               <a
                 href={`https://www.youtube.com/watch?v=${match.external_video_id}`}

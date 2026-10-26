@@ -112,7 +112,7 @@ export default function CompetitionFilterBar({
         {/* Advanced Filters Button */}
         <button
           onClick={onOpenFilter}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
             activeFilterCount > 0
               ? 'bg-[#1E3A8A]/50 text-[#7098F8] border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
               : 'bg-[#181C20] text-[#94A3B8] hover:text-white border border-[#334155]'
