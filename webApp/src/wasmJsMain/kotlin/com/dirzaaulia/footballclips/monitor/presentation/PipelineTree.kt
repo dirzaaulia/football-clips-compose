@@ -31,6 +31,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.rounded.Lock
+
 @Composable
 internal fun PipelineTree(state: MonitorState, action: (MonitorAction) -> Unit, modifier: Modifier) {
     Column(
@@ -50,8 +53,11 @@ internal fun PipelineTree(state: MonitorState, action: (MonitorAction) -> Unit, 
         PipelinePicker(state, action)
 
         val rows = treeRows(state)
+        val isAuthError = state.error.contains("Auth required", true) || state.error.contains("401")
         if (state.loading && rows.isEmpty()) {
             PipelineLoadingState()
+        } else if (state.cycles.items.isEmpty() && isAuthError && state.catalogMode.isBlank()) {
+            AuthRequiredPipelineBanner()
         } else {
             key(contextKey(state)) {
                 val scroll = workspaceScroll(
@@ -93,6 +99,39 @@ private fun PipelineLoadingState() {
                 text = "Loading pipeline execution cycles...",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AuthRequiredPipelineBanner() {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(vertical = Space.medium),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.5f)),
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(Space.large),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Space.small),
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Lock,
+                contentDescription = null,
+                tint = Color(0xFFF59E0B),
+                modifier = Modifier.size(36.dp),
+            )
+            Text(
+                text = "Owner Session Required for Pipeline Logs",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = "Telemetry cycles and worker events require owner privileges. Append ?ownerToken=YOUR_JWT to the URL or authenticate with Supabase owner credentials.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

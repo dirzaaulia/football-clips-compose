@@ -160,6 +160,14 @@
 
     <string name="monitor_blocked">Videos restricted in this country</string>
 
+    <string name="monitor_geo_worldwide">Available Worldwide (No Restrictions)</string>
+
+    <string name="monitor_geo_above_min">At or Above Bare Minimum (≥50 Countries)</string>
+
+    <string name="monitor_geo_below_min">Below Bare Minimum (&lt;50 Countries)</string>
+
+    <string name="monitor_clubs">Clubs</string>
+
     <string name="monitor_unknown_videos">Videos with unknown availability</string>
 
     <string name="monitor_more">More</string>

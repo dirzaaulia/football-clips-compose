@@ -20,6 +20,8 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 
+class AuthRequiredException(message: String) : Exception(message)
+
 class MonitorRemoteClient {
     private val client = HttpClient(Js) {
         install(HttpTimeout) {
@@ -34,7 +36,12 @@ class MonitorRemoteClient {
             val token = ownerToken()
             if (token.isNotBlank()) header("Authorization", "Bearer $token")
         }
-        if (response.status.value != 200) return JsonObject(emptyMap())
+        val status = response.status.value
+        if (status == 401 || status == 403) throw AuthRequiredException("Auth required: HTTP $status on $path")
+        if (status != 200) {
+            println("MonitorRemoteClient.read: unexpected status $status for $path, returning empty")
+            return JsonObject(emptyMap())
+        }
         val element = Json.parseToJsonElement(response.bodyAsText())
         return element as? JsonObject ?: JsonObject(emptyMap())
     }
@@ -45,7 +52,12 @@ class MonitorRemoteClient {
             val token = ownerToken()
             if (token.isNotBlank()) header("Authorization", "Bearer $token")
         }
-        if (response.status.value != 200) return emptyList()
+        val status = response.status.value
+        if (status == 401 || status == 403) throw AuthRequiredException("Auth required: HTTP $status on $path")
+        if (status != 200) {
+            println("MonitorRemoteClient.readArray: unexpected status $status for $path, returning empty")
+            return emptyList()
+        }
         val element = Json.parseToJsonElement(response.bodyAsText())
         return (element as? JsonArray)?.mapNotNull { it as? JsonObject }
             ?: (element as? JsonObject)?.records("items")
@@ -58,6 +70,12 @@ class MonitorRemoteClient {
             val token = ownerToken()
             if (token.isNotBlank()) header("Authorization", "Bearer $token")
             header("Prefer", "count=exact")
+        }
+        val status = response.status.value
+        if (status == 401 || status == 403) throw AuthRequiredException("Auth required: HTTP $status on $path")
+        if (status != 200 && status != 206) {
+            println("MonitorRemoteClient.count: unexpected status $status for $path, returning 0")
+            return 0L
         }
         val range = response.headers["Content-Range"] ?: return 0L
         val totalStr = range.substringAfterLast('/', "")

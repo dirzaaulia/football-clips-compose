@@ -13,12 +13,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 
+import androidx.compose.material.icons.rounded.Shield
+
 @Composable
 internal fun NavigationLabel(page: String, iconsOnly: Boolean = false, selected: Boolean = false) {
     val icon = when (page) {
         "dashboard" -> Icons.Rounded.Dashboard
         "pipelines" -> Icons.Rounded.AccountTree
         "competitions" -> Icons.Rounded.Public
+        "clubs" -> Icons.Rounded.Shield
         else -> Icons.Rounded.Dashboard
     }
     Row(

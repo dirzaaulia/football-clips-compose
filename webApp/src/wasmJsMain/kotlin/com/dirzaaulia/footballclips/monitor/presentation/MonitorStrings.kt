@@ -23,6 +23,10 @@ import com.dirzaaulia.footballclips.monitor.resources.monitor_corrected
 import com.dirzaaulia.footballclips.monitor.resources.monitor_country
 import com.dirzaaulia.footballclips.monitor.resources.monitor_country_gaps
 import com.dirzaaulia.footballclips.monitor.resources.monitor_country_watchable
+import com.dirzaaulia.footballclips.monitor.resources.monitor_clubs
+import com.dirzaaulia.footballclips.monitor.resources.monitor_geo_above_min
+import com.dirzaaulia.footballclips.monitor.resources.monitor_geo_below_min
+import com.dirzaaulia.footballclips.monitor.resources.monitor_geo_worldwide
 import com.dirzaaulia.footballclips.monitor.resources.monitor_coverage
 import com.dirzaaulia.footballclips.monitor.resources.monitor_coverage_help
 import com.dirzaaulia.footballclips.monitor.resources.monitor_cycle_logs
@@ -202,6 +206,10 @@ private val monitorResources: Map<String, StringResource> = mapOf(
     "accepted" to Res.string.monitor_accepted,
     "watchable" to Res.string.monitor_watchable,
     "blocked" to Res.string.monitor_blocked,
+    "geo_worldwide" to Res.string.monitor_geo_worldwide,
+    "geo_above_min" to Res.string.monitor_geo_above_min,
+    "geo_below_min" to Res.string.monitor_geo_below_min,
+    "clubs" to Res.string.monitor_clubs,
     "unknown_videos" to Res.string.monitor_unknown_videos,
     "more" to Res.string.monitor_more,
     "used" to Res.string.monitor_used,

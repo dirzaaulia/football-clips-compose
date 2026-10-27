@@ -21,8 +21,8 @@ internal fun reduceMonitor(state: MonitorState, action: MonitorAction): MonitorS
     is MonitorAction.Metric -> {
         val targetPipeline = when (action.mode) {
             "live", "stale_live" -> "fixtures"
-            "missing", "blocked", "country", "covered", "all_finished" -> "youtube"
-            else -> if (action.mode.startsWith("video_")) "youtube" else state.filter.pipeline
+            "missing", "blocked", "country", "covered", "all_finished", "geo_worldwide", "geo_above_min", "geo_below_min" -> "youtube"
+            else -> if (action.mode.startsWith("video_") || action.mode.startsWith("geo_")) "youtube" else state.filter.pipeline
         }
         state.navigation("pipelines").copy(
             catalogMode = action.mode,

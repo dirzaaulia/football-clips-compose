@@ -1,5 +1,6 @@
 package com.dirzaaulia.footballclips.monitor.data
 
+import com.dirzaaulia.footballclips.monitor.domain.Backlog
 import com.dirzaaulia.footballclips.monitor.domain.CountryCoverage
 import com.dirzaaulia.footballclips.monitor.domain.CountryDirectory
 import com.dirzaaulia.footballclips.monitor.domain.Dashboard
@@ -32,11 +33,19 @@ class DashboardProvider(private val remote: MonitorRemoteClient) {
             remote.count("$postgrest/matches?status=in.(IN_PLAY,PAUSED,LIVE)&limit=0")
         }
         val staleLiveDeferred = async {
-            remote.count("$postgrest/matches?status=in.(IN_PLAY,PAUSED,LIVE)&clock=is.null&limit=0")
+            remote.count("$postgrest/matches?status=in.(IN_PLAY,PAUSED,LIVE)&display_clock=is.null&limit=0")
+        }
+        val pendingHighlightsDeferred = async {
+            remote.count("$postgrest/matches?status=eq.FINISHED&highlight_video_id=is.null&limit=0")
         }
         val blockedMatchesDeferred = async {
             remote.readArray(
                 "$postgrest/matches?status=eq.FINISHED&youtube_region_info->blocked=not.is.null&select=id,youtube_region_info",
+            )
+        }
+        val allowedMatchesDeferred = async {
+            remote.readArray(
+                "$postgrest/matches?status=eq.FINISHED&youtube_region_info->allowed=not.is.null&select=id,youtube_region_info",
             )
         }
         val opsDeferred = async {
@@ -46,17 +55,13 @@ class DashboardProvider(private val remote: MonitorRemoteClient) {
                 null
             }
         }
-        val allowedMatchesDeferred = async {
-            remote.readArray(
-                "$postgrest/matches?status=eq.FINISHED&youtube_region_info->allowed=not.is.null&select=id,youtube_region_info",
-            )
-        }
 
         val totalFinished = totalFinishedDeferred.await().coerceAtLeast(0L)
         val withHighlights = withHighlightsDeferred.await().coerceAtLeast(0L)
         val totalMatches = totalMatchesDeferred.await().coerceAtLeast(0L)
         val liveMatches = liveMatchesDeferred.await().coerceAtLeast(0L)
         val staleLive = staleLiveDeferred.await().coerceAtLeast(0L)
+        val pendingHighlights = pendingHighlightsDeferred.await().coerceAtLeast(0L)
 
         val blockedMatches = blockedMatchesDeferred.await()
         val allowedMatches = allowedMatchesDeferred.await()
@@ -66,19 +71,29 @@ class DashboardProvider(private val remote: MonitorRemoteClient) {
         val missing = (totalFinished - withHighlights).coerceAtLeast(0L)
         val missingPercent = if (totalFinished > 0L) (missing * 100L) / totalFinished else 0L
 
-        val selectedCountry = filter.country.ifBlank { "ID" }.uppercase()
-        val blockedInSelected = restrictedMatches.count { match ->
-            isBlockedInCountry(match.obj("youtube_region_info"), selectedCountry)
+        // Worldwide videos = highlights without regional restrictions
+        val geoWorldwide = (withHighlights - regionalGaps).coerceAtLeast(0L)
+
+        // Classify restricted videos into above bare minimum (>=50 countries) vs below bare minimum (<50 countries)
+        var geoAboveMin = 0L
+        var geoBelowMin = 0L
+        for (match in restrictedMatches) {
+            val watchable = countWatchableCountries(match.obj("youtube_region_info"))
+            if (watchable >= 50) {
+                geoAboveMin++
+            } else {
+                geoBelowMin++
+            }
         }
-        val countryWatchable = (withHighlights - blockedInSelected).coerceAtLeast(0L)
 
         val countryList = CountryDirectory.ALL.map { (code, _) ->
             val blockedInCode = restrictedMatches.count { match ->
                 isBlockedInCountry(match.obj("youtube_region_info"), code)
             }
+            val watchableInCode = (withHighlights - blockedInCode).coerceAtLeast(0L)
             CountryCoverage(
                 code = code,
-                matches = withHighlights.toString(),
+                matches = watchableInCode.toString(),
                 blocked = blockedInCode.toString(),
                 unknown = "0",
             )
@@ -91,17 +106,29 @@ class DashboardProvider(private val remote: MonitorRemoteClient) {
             Metric("with_highlights", withHighlights.toString(), "covered"),
             Metric("missing", missing.toString(), "missing"),
             Metric("missing_percent", missingPercent.toString(), "missing"),
-            Metric("country_watchable", countryWatchable.toString(), "country"),
             Metric("country_gaps", regionalGaps.toString(), "blocked"),
             Metric("live", liveMatches.toString(), "live"),
             Metric("stale_live", staleLive.toString(), "stale_live"),
             Metric("accepted", withHighlights.toString(), "video_accepted"),
-            Metric("watchable", countryWatchable.toString(), "video_watchable"),
-            Metric("blocked", blockedInSelected.toString(), "video_blocked"),
-            Metric("unknown", "0", "video_unknown"),
+            Metric("geo_worldwide", geoWorldwide.toString(), "geo_worldwide"),
+            Metric("geo_above_min", geoAboveMin.toString(), "geo_above_min"),
+            Metric("geo_below_min", geoBelowMin.toString(), "geo_below_min"),
         ).toImmutableList()
 
         val ops = opsDeferred.await()
+
+        val fallbackQueues = listOf(
+            Backlog(
+                state = "Pending Highlights",
+                count = pendingHighlights.toString(),
+                oldest = "Worker Intake Queue",
+            ),
+            Backlog(
+                state = "Live Fixture Clock Sync",
+                count = liveMatches.toString(),
+                oldest = "Semi-live 60s Polling Tick",
+            ),
+        ).toImmutableList()
 
         Dashboard(
             metrics = metrics,
@@ -114,10 +141,22 @@ class DashboardProvider(private val remote: MonitorRemoteClient) {
             series = ops?.series ?: persistentListOf(),
             countries = countryList,
             origins = ops?.origins ?: persistentListOf(),
-            jobs = ops?.jobs ?: persistentListOf(),
-            delivery = ops?.delivery ?: persistentListOf(),
+            jobs = if (ops?.jobs?.isNotEmpty() == true) ops.jobs else fallbackQueues,
+            delivery = if (ops?.delivery?.isNotEmpty() == true) ops.delivery else fallbackQueues,
             activationAt = ops?.activationAt ?: "",
         )
+    }
+
+    private fun countWatchableCountries(info: JsonObject): Int {
+        val blockedArray = (info["blocked"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
+        if (blockedArray != null) {
+            return (249 - blockedArray.size).coerceAtLeast(0)
+        }
+        val allowedArray = (info["allowed"] as? JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
+        if (allowedArray != null) {
+            return allowedArray.size
+        }
+        return 249
     }
 
     private fun isBlockedInCountry(info: JsonObject, countryCode: String): Boolean {

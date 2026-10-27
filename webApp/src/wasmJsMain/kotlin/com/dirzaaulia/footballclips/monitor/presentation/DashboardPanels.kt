@@ -185,13 +185,30 @@ private fun CountrySearchableList(
     LazyColumn(modifier = Modifier.fillMaxWidth().height(260.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         items(filtered, key = { it.code }) { country ->
             val name = CountryDirectory.ALL[country.code] ?: countryName(country.code)
+            val watchable = country.matches.toIntOrNull() ?: 0
+            val blocked = country.blocked.toIntOrNull() ?: 0
+            val total = watchable + blocked
+            val score = if (total > 0) (watchable * 100) / total else 100
+            val scoreColor = if (score >= 90) Color(0xFF22C55E) else if (score >= 50) Color(0xFF0EA5E9) else Color(0xFFF59E0B)
+
             TextButton(onClick = { onSelect(country.code) }, modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.weight(1f)) {
-                    Text("$name (${country.code})", style = MaterialTheme.typography.titleSmall)
-                    Text(text = "Watchable Matches: ${country.matches}", style = MaterialTheme.typography.bodySmall)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("$name (${country.code})", style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            text = "$score%",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = scoreColor,
+                        )
+                    }
+                    Text(
+                        text = "$watchable watchable · $blocked restricted",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
-                Detail(label("blocked"), country.blocked)
-                Detail(label("unknown_videos"), country.unknown)
+                Detail("Blocked", country.blocked)
             }
         }
     }

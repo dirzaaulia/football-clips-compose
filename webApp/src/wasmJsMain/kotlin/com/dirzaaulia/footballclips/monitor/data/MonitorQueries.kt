@@ -37,9 +37,16 @@ internal fun buildCatalogPostgrestUrl(filter: MonitorFilter, mode: String): Stri
             params.add("highlight_video_id=not.is.null")
         }
 
-        "blocked", "video_blocked" -> {
+        "geo_worldwide" -> {
             params.add("status=eq.FINISHED")
-            params.add("youtube_region_info->blocked=not.is.null")
+            params.add("highlight_video_id=not.is.null")
+            params.add("youtube_region_info=is.null")
+        }
+
+        "geo_above_min", "geo_below_min", "blocked", "video_blocked" -> {
+            params.add("status=eq.FINISHED")
+            params.add("highlight_video_id=not.is.null")
+            params.add("youtube_region_info=not.is.null")
         }
 
         "all_finished", "finished" -> {

@@ -177,8 +177,8 @@ private fun StandardMatchBottomAction(
     onWatchHighlightClick: ((String) -> Unit)?,
 ) {
     val availability = match.viewerAvailability
-    val isPlayable = !match.highlightVideoId.isNullOrEmpty() && (availability == null || availability == "available")
-    val isUnverified = availability == "unknown" && !match.externalVideoId.isNullOrEmpty()
+    val isPlayable = !match.highlightVideoId.isNullOrEmpty()
+    val isUnverified = false
 
     if (isPlayable && onWatchHighlightClick != null) {
         Spacer(modifier = Modifier.height(14.dp))

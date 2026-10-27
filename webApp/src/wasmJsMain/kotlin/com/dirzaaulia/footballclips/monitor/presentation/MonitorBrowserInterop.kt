@@ -4,11 +4,33 @@ package com.dirzaaulia.footballclips.monitor.presentation
 
 @JsFun(
     """() => {
-    for (const key of Object.keys(localStorage)) {
-        if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
-            try { const s = JSON.parse(localStorage.getItem(key)); if(s.access_token) return s.access_token; } catch(e) {}
+    try {
+        const qp = new URL(location.href).searchParams.get('ownerToken');
+        if (qp) return qp;
+    } catch(e) {}
+    try {
+        const ot = localStorage.getItem('fc-owner-token');
+        if (ot) return ot;
+    } catch(e) {}
+    try {
+        const raw = localStorage.getItem('fc-auth-user');
+        if (raw) {
+            const s = JSON.parse(raw);
+            if (s.access_token) return s.access_token;
+            if (s.token) return s.token;
+            if (s.jwt) return s.jwt;
         }
-    }
+    } catch(e) {}
+    try {
+        for (const key of Object.keys(localStorage)) {
+            if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+                try {
+                    const s = JSON.parse(localStorage.getItem(key));
+                    if (s.access_token) return s.access_token;
+                } catch(e) {}
+            }
+        }
+    } catch(e) {}
     return '';
 }""",
 )

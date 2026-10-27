@@ -8,6 +8,7 @@ internal fun MonitorBody(state: MonitorState, action: (MonitorAction) -> Unit, m
     when (state.page) {
         "pipelines" -> PipelineTree(state, action, modifier)
         "competitions" -> CompetitionDirectory(state, action, modifier)
+        "clubs" -> ClubsDirectory(state, action, modifier)
         else -> DashboardScroll(state, action, modifier)
     }
 }

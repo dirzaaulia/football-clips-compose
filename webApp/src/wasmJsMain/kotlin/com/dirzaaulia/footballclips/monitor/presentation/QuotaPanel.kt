@@ -25,11 +25,45 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.monitor.domain.QuotaBucket
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.rounded.Lock
+
 @Composable
 internal fun QuotaPanel(state: MonitorState) {
     Panel(title = "YouTube Data API v3 Daily Quota Gauge") {
         if (state.dashboard.quota.isEmpty()) {
-            Text("No active quota buckets configured.")
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.4f)),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(Space.medium),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Space.small),
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Lock,
+                        contentDescription = null,
+                        tint = Color(0xFFF59E0B),
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = "YouTube API Quota Telemetry (Owner Authentication Required)",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = "To stream real-time Google Cloud quota gauges, connect owner session or append ?ownerToken=YOUR_JWT to URL.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
         } else {
             state.dashboard.quota.forEach { bucket ->
                 QuotaBucketCard(bucket)

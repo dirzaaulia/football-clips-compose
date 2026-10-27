@@ -50,7 +50,7 @@ internal fun MonitorDashboard(state: MonitorState, action: (MonitorAction) -> Un
         CatalogMetricCards(state.dashboard.metrics, action)
 
         // Section 3: YouTube Ingestion & Availability
-        DashboardSectionTitle("YouTube Video Intake & Geo Availability", Color(0xFF0EA5E9))
+        DashboardSectionTitle("YouTube Video Intake & Global Watchability", Color(0xFF0EA5E9))
         VideoMetricCards(state.dashboard.metrics, action)
 
         // Activity Trend Chart with Attention Icons
@@ -138,20 +138,31 @@ private fun CatalogMetricCards(metrics: List<Metric>, action: (MonitorAction) ->
 
 @Composable
 private fun VideoMetricCards(metrics: List<Metric>, action: (MonitorAction) -> Unit) {
-    val videoKeys = listOf("accepted", "watchable", "country_watchable", "blocked", "unknown")
+    val videoKeys = listOf("accepted", "geo_worldwide", "geo_above_min", "geo_below_min")
     val videoMetrics = metrics.filter { it.key in videoKeys }
 
     BoxWithConstraints {
-        val columns = if (maxWidth >= Space.compact) 3 else 2
+        val columns = if (maxWidth >= Space.compact) 4 else 2
         Column(verticalArrangement = Arrangement.spacedBy(Space.small)) {
             videoMetrics.chunked(columns).forEach { rowMetrics ->
                 Row(horizontalArrangement = Arrangement.spacedBy(Space.small)) {
                     rowMetrics.forEach { metric ->
+                        val accentColor = when (metric.key) {
+                            "geo_worldwide" -> Color(0xFF22C55E)
+                            "geo_above_min" -> Color(0xFF0EA5E9)
+                            "geo_below_min" -> Color(0xFFF59E0B)
+                            else -> Color(0xFF0EA5E9)
+                        }
+                        val icon = when (metric.key) {
+                            "geo_worldwide" -> Icons.Rounded.CheckCircle
+                            "geo_below_min" -> Icons.Rounded.Warning
+                            else -> Icons.Rounded.PlayCircle
+                        }
                         StyledDashboardCard(
                             metric = metric,
                             action = action,
-                            icon = Icons.Rounded.PlayCircle,
-                            accentColor = Color(0xFF0EA5E9),
+                            icon = icon,
+                            accentColor = accentColor,
                             modifier = Modifier.weight(1f),
                         )
                     }

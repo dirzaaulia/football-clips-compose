@@ -62,8 +62,8 @@ fun ModernHighlightCard(
         val isLandscape = maxWidth < 300.dp || maxHeight < 300.dp
         val shouldShowName = showTeamName && !isLandscape
 
-        val isPlayable = !match.highlightVideoId.isNullOrEmpty() && (match.viewerAvailability == null || match.viewerAvailability == "available")
-        val isUnverified = match.viewerAvailability == "unknown" && !match.externalVideoId.isNullOrEmpty()
+        val isPlayable = !match.highlightVideoId.isNullOrEmpty()
+        val isUnverified = false
 
         Surface(
             onClick = {
@@ -162,8 +162,6 @@ fun ModernHighlightCard(
                         )
                         if (match.isLive) {
                             MatchStatusBadge(match = match)
-                        } else if (match.viewerAvailability != null) {
-                            AvailabilityBadge(match.viewerAvailability)
                         }
                     }
                 }

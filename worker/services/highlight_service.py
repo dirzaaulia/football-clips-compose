@@ -95,6 +95,59 @@ class HighlightService:
         return 0, "100% Global"
 
     @staticmethod
+    def classify_candidate_tier(channel_handle: str | None, region_info: dict | None) -> tuple[int, str]:
+        """
+        Classifies video into 3-tier system:
+        - Tier 1: Official Club & Global League channels (100% Worldwide)
+        - Tier 2: Major Regional Broadcasters (Multi-country)
+        - Tier 3: Domestic / Single-country Broadcasters
+        """
+        handle = (channel_handle or "").strip().lower()
+        club_handles = {h.lower() for h in EUROPEAN_CLUB_HANDLES.values()}
+        league_handles = {h.lower() for h in OFFICIAL_LEAGUE_CHANNELS.values()}
+
+        # 1. Official Club Channel -> Tier 1 (100% Worldwide)
+        if handle in club_handles or any(handle == ch for ch in club_handles):
+            return 1, "Tier 1: Club Official (Worldwide)"
+
+        # 2. Global League Channel with no geoblocks -> Tier 1
+        if handle in league_handles or handle == "@mls":
+            if not region_info or (not region_info.get("blocked") and not region_info.get("allowed")):
+                return 1, "Tier 1: League Official (Worldwide)"
+
+        # 3. Match against Global Broadcaster Registry
+        try:
+            from worker.config.broadcaster_registry import GLOBAL_BROADCASTER_REGISTRY
+            for b in GLOBAL_BROADCASTER_REGISTRY:
+                if b.get("channel_handle", "").lower() == handle:
+                    allowed = b.get("allowed_countries", [])
+                    if len(allowed) == 0:
+                        return 1, f"Tier 1: {b.get('name', 'Global')} (Worldwide)"
+                    elif len(allowed) > 3:
+                        return 2, f"Tier 2: {b.get('name', 'Regional')} ({len(allowed)} countries)"
+                    else:
+                        return 3, f"Tier 3: {b.get('name', 'Domestic')} ({', '.join(allowed)})"
+        except Exception:
+            pass
+
+        # 4. Region info analysis
+        if region_info:
+            allowed = region_info.get("allowed") or []
+            blocked = region_info.get("blocked") or []
+            if allowed:
+                if len(allowed) > 10:
+                    return 2, f"Tier 2: Regional ({len(allowed)} countries)"
+                else:
+                    return 3, f"Tier 3: Domestic ({len(allowed)} countries)"
+            if blocked:
+                if len(blocked) > 50:
+                    return 3, f"Tier 3: Domestic ({249 - len(blocked)} countries)"
+                else:
+                    return 2, f"Tier 2: Broad Regional ({249 - len(blocked)} countries)"
+
+        return 1, "Tier 1: Global Unrestricted"
+
+    @staticmethod
     def fallback_score_video(
         title: str,
         duration_sec: int,
@@ -300,7 +353,7 @@ class HighlightService:
         log_events: list | None = None,
         claimed_video_ids: set[str] | None = None,
         allow_search_api: bool = False,
-    ) -> tuple[str | None, dict | None, str | None, dict | None]:
+    ) -> tuple[str | None, dict | None, str | None, dict | None, list[dict]]:
         if log_events is None:
             log_events = []
 
@@ -328,7 +381,7 @@ class HighlightService:
                 "YOUTUBE",
                 "SKIP_UNFINISHED",
             )
-            return None, None, None, None
+            return None, None, None, None, []
 
         # UEFA European embargo rule: clubs cannot legally publish highlights until H+2.5h
         if comp_id in ["CL", "EL", "ECL"] and match_age_hours < 2.5:
@@ -338,7 +391,7 @@ class HighlightService:
                 "YOUTUBE",
                 "UEFA_EMBARGO",
             )
-            return None, None, None, None
+            return None, None, None, None, []
 
         pub_after = (match_start - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ")
         pub_before = (match_start + timedelta(hours=96)).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -365,7 +418,7 @@ class HighlightService:
 
         if not target_handles:
             append_match_log(f"[SKIP] [{comp}] ({m_date}) No official YouTube handles mapped for: {home} vs {away}", "DEBUG", "YOUTUBE", "NO_HANDLE")
-            return None, None, None, None
+            return None, None, None, None, []
 
         h_search = self.clean_team_name_for_search(home)
         a_search = self.clean_team_name_for_search(away)
@@ -599,6 +652,26 @@ class HighlightService:
                     return c_id, cand.get("region")
             return None, None
 
+        def build_ranked_videos(pool: list[dict]) -> list[dict]:
+            videos = []
+            for cand in pool:
+                if is_valid_highlight_candidate(cand.get("title", "")):
+                    c_id = cand.get("id")
+                    c_reg = cand.get("region")
+                    c_tier, c_tier_name = HighlightService.classify_candidate_tier(cand.get("channel"), c_reg)
+                    videos.append({
+                        "video_id": c_id,
+                        "title": cand.get("title", ""),
+                        "channel": cand.get("channel", ""),
+                        "tier": c_tier,
+                        "tier_name": c_tier_name,
+                        "region_info": c_reg,
+                        "duration": cand.get("duration", 0),
+                        "heuristic_score": cand.get("heuristic_score", 0),
+                    })
+            videos.sort(key=lambda x: (x["tier"], -x.get("heuristic_score", 0)))
+            return videos
+
         # High Confidence Auto-Select Threshold:
         # If top candidate is official, has strong score (>= 50), and is dominant over runner-up (margin >= 15 or single candidate),
         # auto-select immediately with 0 latency, 0 quota spent, and 0 risk of AI 503 errors!
@@ -613,7 +686,7 @@ class HighlightService:
                 "YOUTUBE",
                 "LINKED"
             )
-            return top_cand["id"], top_cand["region"], backup_vid, backup_reg
+            return top_cand["id"], top_cand["region"], backup_vid, backup_reg, build_ranked_videos(selected_pool)
 
         # 2. Evaluate with Gemini AI when multiple candidates are close or ambiguous
         append_match_log(f"   [AI GEMINI] Evaluating {len(selected_pool)} candidate(s) with Gemini AI (top score: {top_score}pts, margin: {margin}pts)...", "INFO", "AI_GEMINI", "AI_EVAL")
@@ -623,11 +696,11 @@ class HighlightService:
             best = selected_pool[best_idx]
             backup_vid, backup_reg = find_backup_candidate(best["id"], selected_pool)
             append_match_log(f"   [AI MATCH] Gemini selected candidate #{best_idx + 1} ({best.get('heuristic_score', 0)}pts): '{best['title']}' ({best['channel']}) -> https://youtu.be/{best['id']}" + (f" (Backup: {backup_vid})" if backup_vid else ""), "SUCCESS", "AI_GEMINI", "LINKED")
-            return best["id"], best["region"], backup_vid, backup_reg
+            return best["id"], best["region"], backup_vid, backup_reg, build_ranked_videos(selected_pool)
 
         if best_idx == -1:
             append_match_log("AI explicitly rejected all candidates; no fallback acceptance.", "WARN", "AI_GEMINI", "AI_REJECTED")
-            return None, None, None, None
+            return None, None, None, None, []
 
         # 3. Deterministic Heuristic Fallback: Select candidate with highest mathematical score (> 0)
         valid_candidates = [c for c in selected_pool if c["heuristic_score"] > 0 and is_valid_highlight_candidate(c["title"])]
@@ -635,10 +708,10 @@ class HighlightService:
             best = valid_candidates[0]
             backup_vid, backup_reg = find_backup_candidate(best["id"], selected_pool)
             append_match_log(f"   [FALLBACK SELECT] Weighted Heuristic selected #{best['heuristic_score']}pts from {best['channel']}: '{best['title']}' -> https://youtu.be/{best['id']}" + (f" (Backup: {backup_vid})" if backup_vid else ""), "SUCCESS", "YOUTUBE", "LINKED")
-            return best["id"], best["region"], backup_vid, backup_reg
+            return best["id"], best["region"], backup_vid, backup_reg, build_ranked_videos(selected_pool)
 
         append_match_log(f"   [VALIDATION FAILED] Candidates do not match both {home} and {away} with verified highlight keywords. Skipped linking.", "WARN", "YOUTUBE", "REJECTED")
-        return None, None, None, None
+        return None, None, None, None, []
 
 
 
@@ -883,7 +956,7 @@ class HighlightService:
             m_date = str(match.get("utc_date", ""))[:10]
             append_event(log_events, f"[SEARCH] Searching official highlights for: {home} vs {away} ({m_date})", "INFO", "YOUTUBE", "SEARCH_START")
             try:
-                vid, reg, backup_vid, backup_reg = self.search_highlight_for_match(match, log_events, claimed_video_ids)
+                vid, reg, backup_vid, backup_reg, highlight_videos = self.search_highlight_for_match(match, log_events, claimed_video_ids)
                 if vid:
                     if vid in claimed_video_ids:
                         append_event(log_events, f"   [DUPLICATE DETECTED] Video {vid} already assigned to another fixture. Entering cooldown.", "WARN", "YOUTUBE", "DUPLICATE_CLAIM")
@@ -902,6 +975,8 @@ class HighlightService:
                         update_data["youtube_region_info"] = reg
                     if backup_reg is not None:
                         update_data["backup_youtube_region_info"] = backup_reg
+                    if highlight_videos:
+                        update_data["highlight_videos"] = highlight_videos
 
                     try:
                         supabase_client.table("matches").update(update_data).eq("id", match["id"]).execute()
@@ -915,6 +990,10 @@ class HighlightService:
                                 "last_youtube_check": now_iso
                             }).eq("id", match["id"]).execute()
                             continue
+                        elif "highlight_videos" in err_msg and "highlight_videos" in update_data:
+                            del update_data["highlight_videos"]
+                            supabase_client.table("matches").update(update_data).eq("id", match["id"]).execute()
+                            claimed_video_ids.add(vid)
                         elif "youtube_region_info" in err_msg and "youtube_region_info" in update_data:
                             del update_data["youtube_region_info"]
                             if "backup_youtube_region_info" in update_data:
@@ -1130,7 +1209,7 @@ class HighlightService:
             away = match.get("away_team_name", "Away")
             m_date = str(match.get("utc_date", ""))[:10]
             try:
-                vid, reg, backup_vid, backup_reg = self.search_highlight_for_match(match, log_events, claimed_video_ids, allow_search_api=True)
+                vid, reg, backup_vid, backup_reg, highlight_videos = self.search_highlight_for_match(match, log_events, claimed_video_ids, allow_search_api=True)
                 if vid:
                     if vid in claimed_video_ids:
                         supabase_client.table("matches").update({"last_youtube_check": now_iso}).eq("id", match["id"]).execute()
@@ -1146,6 +1225,8 @@ class HighlightService:
                         update_data["youtube_region_info"] = reg
                     if backup_reg is not None:
                         update_data["backup_youtube_region_info"] = backup_reg
+                    if highlight_videos:
+                        update_data["highlight_videos"] = highlight_videos
 
                     try:
                         supabase_client.table("matches").update(update_data).eq("id", match["id"]).execute()
@@ -1160,10 +1241,17 @@ class HighlightService:
                             "ARCHIVE_LINKED"
                         )
                     except Exception as e:
-                        if "23505" in str(e) or "uq_matches_highlight_video_id" in str(e):
+                        err_str = str(e)
+                        if "23505" in err_str or "uq_matches_highlight_video_id" in err_str:
                             claimed_video_ids.add(vid)
                             supabase_client.table("matches").update({"last_youtube_check": now_iso}).eq("id", match["id"]).execute()
-                        elif "youtube_region_info" in str(e) and "youtube_region_info" in update_data:
+                        elif "highlight_videos" in err_str and "highlight_videos" in update_data:
+                            del update_data["highlight_videos"]
+                            supabase_client.table("matches").update(update_data).eq("id", match["id"]).execute()
+                            claimed_video_ids.add(vid)
+                            linked_count += 1
+                            supabase_cloud_client.update_match_highlight(match["id"], vid, reg, now_iso)
+                        elif "youtube_region_info" in err_str and "youtube_region_info" in update_data:
                             del update_data["youtube_region_info"]
                             if "backup_youtube_region_info" in update_data:
                                 del update_data["backup_youtube_region_info"]

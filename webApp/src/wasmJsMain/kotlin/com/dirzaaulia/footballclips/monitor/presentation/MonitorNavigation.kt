@@ -44,7 +44,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-private val PRIMARY_PAGES = listOf("dashboard", "pipelines", "competitions")
+private val PRIMARY_PAGES = listOf("dashboard", "pipelines", "competitions", "clubs")
 
 @Composable
 internal fun MonitorRail(
