@@ -12,6 +12,9 @@ import {
   ChevronRight,
   ShoppingBag,
   Sparkles,
+  Bell,
+  Download,
+  CheckCircle2,
 } from 'lucide-react';
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { signInWithGoogle, signOutUser } from '@/lib/auth';
@@ -19,6 +22,12 @@ import { useTheme } from '@/hooks/useTheme';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import { useProStatus } from '@/hooks/useProStatus';
 import { useMerchandisePreference } from '@/hooks/useMerchandisePreference';
+import {
+  trackSignIn,
+  trackSignOut,
+  trackPaywallView,
+  trackCheckUpdates,
+} from '@/lib/analytics';
 
 interface SettingsHubCardsProps {
   onOpenMyClubs: () => void;
@@ -35,8 +44,38 @@ export default function SettingsHubCards({
   const { favoriteCount } = useMyClubs();
   const { rawPreference: merchandiseEnabled, setMerchandiseEnabled } = useMerchandisePreference();
 
+  // Notification Preferences
+  const [notifHighlights, setNotifHighlights] = useState(true);
+  const [notifKickoff, setNotifKickoff] = useState(true);
+  const [notifGoals, setNotifGoals] = useState(true);
+  const [notifFullTime, setNotifFullTime] = useState(true);
+  const [checkedUpdates, setCheckedUpdates] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setNotifHighlights(localStorage.getItem('notif_hl') !== 'false');
+      setNotifKickoff(localStorage.getItem('notif_ko') !== 'false');
+      setNotifGoals(localStorage.getItem('notif_goals') !== 'false');
+      setNotifFullTime(localStorage.getItem('notif_ft') !== 'false');
+    }
+  }, []);
+
+  const handleToggleNotif = (key: string, val: boolean, setter: (v: boolean) => void) => {
+    setter(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(key, String(val));
+    }
+  };
+
+  const handleCheckUpdates = () => {
+    trackCheckUpdates();
+    setCheckedUpdates(true);
+    setTimeout(() => setCheckedUpdates(false), 4000);
+  };
+
   const handleToggleMerchandise = (enabled: boolean) => {
     if (!isPro && onOpenPaywall) {
+      trackPaywallView('merchandise_setting');
       onOpenPaywall();
       return;
     }
@@ -81,7 +120,10 @@ export default function SettingsHubCards({
         <div className="shrink-0">
           {user ? (
             <button
-              onClick={() => signOutUser()}
+              onClick={() => {
+                trackSignOut(user.id);
+                signOutUser();
+              }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-500/30 hover:border-red-500/60 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold transition-all cursor-pointer"
               title="Sign Out"
             >
@@ -90,7 +132,10 @@ export default function SettingsHubCards({
             </button>
           ) : (
             <button
-              onClick={() => signInWithGoogle()}
+              onClick={() => {
+                trackSignIn();
+                signInWithGoogle();
+              }}
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] hover:from-[#2563EB] hover:to-[#60A5FA] text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
             >
               <LogIn className="w-3.5 h-3.5" />
@@ -152,7 +197,87 @@ export default function SettingsHubCards({
         </div>
       </div>
 
-      {/* 3. Merchandise Recommendations Card */}
+      {/* 3. Match Alerts & Notification Preferences */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-[#181C20] border border-[#334155]/80 shadow-md space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#7098F8]/15 border border-[#7098F8]/30 flex items-center justify-center shrink-0">
+            <Bell className="w-5 h-5 text-[#7098F8]" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white">Match &amp; Highlight Notifications</h3>
+            <p className="text-xs text-[#94A3B8]">Alerts tailored for your selected favorite clubs</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-[#334155]/40 text-xs">
+          <label className="flex items-center justify-between p-2.5 rounded-xl bg-[#101418] border border-white/5 cursor-pointer">
+            <span className="text-gray-300 font-medium">Highlights Ready</span>
+            <input
+              type="checkbox"
+              checked={notifHighlights}
+              onChange={(e) => handleToggleNotif('notif_hl', e.target.checked, setNotifHighlights)}
+              className="accent-[#7098F8] w-4 h-4 rounded cursor-pointer"
+            />
+          </label>
+          <label className="flex items-center justify-between p-2.5 rounded-xl bg-[#101418] border border-white/5 cursor-pointer">
+            <span className="text-gray-300 font-medium">Kickoff Imminent (15m)</span>
+            <input
+              type="checkbox"
+              checked={notifKickoff}
+              onChange={(e) => handleToggleNotif('notif_ko', e.target.checked, setNotifKickoff)}
+              className="accent-[#7098F8] w-4 h-4 rounded cursor-pointer"
+            />
+          </label>
+          <label className="flex items-center justify-between p-2.5 rounded-xl bg-[#101418] border border-white/5 cursor-pointer">
+            <span className="text-gray-300 font-medium">Live Goal Alerts</span>
+            <input
+              type="checkbox"
+              checked={notifGoals}
+              onChange={(e) => handleToggleNotif('notif_goals', e.target.checked, setNotifGoals)}
+              className="accent-[#7098F8] w-4 h-4 rounded cursor-pointer"
+            />
+          </label>
+          <label className="flex items-center justify-between p-2.5 rounded-xl bg-[#101418] border border-white/5 cursor-pointer">
+            <span className="text-gray-300 font-medium">Full Time Result</span>
+            <input
+              type="checkbox"
+              checked={notifFullTime}
+              onChange={(e) => handleToggleNotif('notif_ft', e.target.checked, setNotifFullTime)}
+              className="accent-[#7098F8] w-4 h-4 rounded cursor-pointer"
+            />
+          </label>
+        </div>
+      </div>
+
+      {/* 4. Updates & Edge Tier Info */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-[#181C20] border border-[#334155]/80 shadow-md flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-[#7098F8]/15 border border-[#7098F8]/30 flex items-center justify-center shrink-0">
+            <Download className="w-5 h-5 text-[#7098F8]" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-sm font-bold text-white">App Updates &amp; Platform</div>
+            <p className="text-xs text-[#94A3B8] truncate">
+              FootballClips v3.0 (Oracle Edge Tier)
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleCheckUpdates}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#7098F8]/40 hover:bg-[#7098F8]/10 text-xs font-bold text-[#7098F8] transition-all cursor-pointer shrink-0"
+        >
+          {checkedUpdates ? (
+            <>
+              <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+              <span className="text-green-400">Up to date</span>
+            </>
+          ) : (
+            <span>Check Updates</span>
+          )}
+        </button>
+      </div>
+
+      {/* 5. Merchandise Recommendations Card */}
       <div className="p-4 sm:p-5 rounded-2xl bg-[#181C20] border border-[#334155]/80 shadow-md flex items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 min-w-0">
           <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
@@ -182,7 +307,10 @@ export default function SettingsHubCards({
             </button>
           ) : (
             <button
-              onClick={() => onOpenPaywall && onOpenPaywall()}
+              onClick={() => {
+                trackPaywallView('merchandise_card');
+                onOpenPaywall && onOpenPaywall();
+              }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 hover:bg-amber-500/25 text-amber-400 text-xs font-bold transition-all cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5" />

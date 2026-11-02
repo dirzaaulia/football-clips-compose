@@ -38,6 +38,8 @@ data class MatchDto(
     @SerialName("away_team_crest") val awayTeamCrest: String? = null,
     @SerialName("home_score") val homeScore: Int? = null,
     @SerialName("away_score") val awayScore: Int? = null,
+    @SerialName("home_penalties") val homePenalties: Int? = null,
+    @SerialName("away_penalties") val awayPenalties: Int? = null,
     @SerialName("highlight_video_id") val highlightVideoId: String? = null,
     @SerialName("playback_mode") val playbackMode: String? = null,
     @SerialName("backup_highlight_video_id") val backupHighlightVideoId: String? = null,

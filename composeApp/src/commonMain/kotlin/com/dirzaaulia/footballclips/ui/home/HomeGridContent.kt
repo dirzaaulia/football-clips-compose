@@ -28,6 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
+import com.dirzaaulia.footballclips.data.model.competitionEmblemUrl
+import com.dirzaaulia.footballclips.data.model.competitionName
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
@@ -150,43 +152,61 @@ internal fun HomeGridContent(
                     onActionClick = onResetFilters,
                 )
             }
+        } else if (selectedLeagueId == null && viewModel.selectedLeagues.isEmpty()) {
+            val nonAds = gridItems.filter { it !is HighlightUiItem.BannerAd }
+            val groups = nonAds.groupBy { it.competitionName.ifBlank { "Other Competitions" } }
+                .toList()
+                .sortedBy { (compName, _) -> getCompetitionPriority(compName) }
+            groups.forEach { (compName, groupMatches) ->
+                val emblem = groupMatches.firstOrNull()?.competitionEmblemUrl
+                val displayMatches = groupMatches.take(20)
+                item(
+                    key = "sec-$compName",
+                    span = { GridItemSpan(maxLineSpan) },
+                ) {
+                    HomeCompetitionSectionHeader(
+                        competitionName = compName,
+                        competitionEmblemUrl = emblem,
+                        onSeeAll = { viewModel.selectCompetitionByName(compName) },
+                    )
+                }
+                items(
+                    items = displayMatches,
+                    key = { item -> item.uniqueId },
+                ) { item ->
+                    HighlightGridItem(
+                        item = item,
+                        revealedItemIds = revealedItemIds,
+                        isSpoilerFreeMode = isSpoilerFreeMode,
+                        showExternalHighlights = showExternalHighlights,
+                        viewModel = viewModel,
+                        onVideoClick = onVideoClick,
+                    )
+                }
+                item(
+                    key = "see-all-$compName",
+                    span = { GridItemSpan(maxLineSpan) },
+                ) {
+                    HomeSeeAllCompetitionCard(
+                        competitionName = compName,
+                        competitionEmblemUrl = emblem,
+                        onSeeAll = { viewModel.selectCompetitionByName(compName) },
+                    )
+                }
+            }
         } else {
             items(
                 items = gridItems,
                 key = { item -> item.uniqueId },
             ) { item ->
-                val itemUniqueId = item.uniqueId
-                val isRevealed = revealedItemIds.contains(itemUniqueId)
-
-                val handleVideoClick: () -> Unit = {
-                    onVideoClick(item) { isJumping ->
-                        viewModel.setPendingInterstitial(true)
-                        if (!isJumping) {
-                            viewModel.consumePendingInterstitial()
-                        }
-                    }
-                }
-
-                when (item) {
-                    is HighlightUiItem.OracleMatch, is HighlightUiItem.Highlight -> {
-                        WebHighlightCard(
-                            item = item,
-                            isSpoilerFree = isSpoilerFreeMode,
-                            isRevealed = isRevealed,
-                            onRevealClick = handleVideoClick,
-                            onClick = { handleVideoClick() },
-                        )
-                    }
-
-                    is HighlightUiItem.BannerAd -> {
-                        BannerAdItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(16 / 9f),
-                            style = if (showExternalHighlights) NativeAdStyle.HIGHLIGHT else NativeAdStyle.MATCH,
-                        )
-                    }
-                }
+                HighlightGridItem(
+                    item = item,
+                    revealedItemIds = revealedItemIds,
+                    isSpoilerFreeMode = isSpoilerFreeMode,
+                    showExternalHighlights = showExternalHighlights,
+                    viewModel = viewModel,
+                    onVideoClick = onVideoClick,
+                )
             }
         }
 
@@ -233,3 +253,43 @@ internal fun HomeGridContent(
         }
     }
 }
+
+@Composable
+private fun HighlightGridItem(
+    item: HighlightUiItem,
+    revealedItemIds: Set<String>,
+    isSpoilerFreeMode: Boolean,
+    showExternalHighlights: Boolean,
+    viewModel: HomeViewModel,
+    onVideoClick: (HighlightUiItem, (Boolean) -> Unit) -> Unit,
+) {
+    val isRevealed = revealedItemIds.contains(item.uniqueId)
+    val handleVideoClick: () -> Unit = {
+        onVideoClick(item) { isJumping ->
+            viewModel.setPendingInterstitial(true)
+            if (!isJumping) viewModel.consumePendingInterstitial()
+        }
+    }
+
+    when (item) {
+        is HighlightUiItem.OracleMatch, is HighlightUiItem.Highlight -> {
+            WebHighlightCard(
+                item = item,
+                isSpoilerFree = isSpoilerFreeMode,
+                isRevealed = isRevealed,
+                onRevealClick = handleVideoClick,
+                onClick = { handleVideoClick() },
+            )
+        }
+
+        is HighlightUiItem.BannerAd -> {
+            BannerAdItem(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16 / 9f),
+                style = if (showExternalHighlights) NativeAdStyle.HIGHLIGHT else NativeAdStyle.MATCH,
+            )
+        }
+    }
+}
+

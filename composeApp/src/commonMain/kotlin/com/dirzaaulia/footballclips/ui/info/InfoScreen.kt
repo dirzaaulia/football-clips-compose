@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dirzaaulia.footballclips.data.analytics.AppAnalytics
 import com.dirzaaulia.footballclips.data.local.PreferenceManager
 import com.dirzaaulia.footballclips.ui.components.common.MyClubsBottomSheet
 import com.dirzaaulia.footballclips.ui.components.paywall.PaywallBottomSheet
@@ -48,6 +49,7 @@ fun InfoScreen(
     val scrollState = rememberScrollState()
     val preferenceManager: PreferenceManager? = if (!isPreview) koinInject() else null
     val homeViewModel: HomeViewModel? = if (!isPreview) koinViewModel() else null
+    val analytics: AppAnalytics? = if (!isPreview) koinInject() else null
     val isPremium = homeViewModel?.isPremium?.collectAsState()?.value ?: true
     val isMerchandiseEnabled = homeViewModel?.isMerchandiseEnabled?.collectAsState()?.value
         ?: (preferenceManager?.isMerchandiseEnabled?.collectAsState(initial = true)?.value ?: true)
@@ -64,6 +66,10 @@ fun InfoScreen(
     val coroutineScope = rememberCoroutineScope()
     val onToggleMerchandise: (Boolean) -> Unit = { enabled ->
         coroutineScope.launch { preferenceManager?.setMerchandiseEnabled(enabled) }
+    }
+    val onCheckUpdates: () -> Unit = {
+        analytics?.trackEvent(name = "check_for_updates_clicked")
+        uriHandler.openUri("https://play.google.com/store/apps/details?id=com.dirzaaulia.footballclips")
     }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
@@ -101,12 +107,22 @@ fun InfoScreen(
                         isMerchandiseEnabled = isMerchandiseEnabled,
                         favoriteCount = favoriteClubs.size,
                         uriHandler = uriHandler,
-                        onSignIn = { homeViewModel?.signIn() },
-                        onSignOut = { homeViewModel?.signOut() },
+                        onSignIn = {
+                            analytics?.trackEvent("sign_in_attempt")
+                            homeViewModel?.signIn()
+                        },
+                        onSignOut = {
+                            analytics?.trackSignOut(profile?.id)
+                            homeViewModel?.signOut()
+                        },
                         onToggleDarkMode = { dark -> homeViewModel?.setDarkMode(dark) },
                         onOpenMyClubs = { showMyClubsSheet = true },
                         onToggleMerchandise = onToggleMerchandise,
-                        onShowPaywall = { showPaywall = true },
+                        onShowPaywall = {
+                            analytics?.trackPaywallView("settings")
+                            showPaywall = true
+                        },
+                        onCheckUpdates = onCheckUpdates,
                     )
                 } else if (isWide) {
                     InfoSettingsWideLayout(
@@ -117,12 +133,22 @@ fun InfoScreen(
                         favoriteCount = favoriteClubs.size,
                         scrollState = scrollState,
                         uriHandler = uriHandler,
-                        onSignIn = { homeViewModel?.signIn() },
-                        onSignOut = { homeViewModel?.signOut() },
+                        onSignIn = {
+                            analytics?.trackEvent("sign_in_attempt")
+                            homeViewModel?.signIn()
+                        },
+                        onSignOut = {
+                            analytics?.trackSignOut(profile?.id)
+                            homeViewModel?.signOut()
+                        },
                         onToggleDarkMode = { dark -> homeViewModel?.setDarkMode(dark) },
                         onOpenMyClubs = { showMyClubsSheet = true },
                         onToggleMerchandise = onToggleMerchandise,
-                        onShowPaywall = { showPaywall = true },
+                        onShowPaywall = {
+                            analytics?.trackPaywallView("settings")
+                            showPaywall = true
+                        },
+                        onCheckUpdates = onCheckUpdates,
                     )
                 } else {
                     InfoSettingsPortraitLayout(
@@ -133,12 +159,22 @@ fun InfoScreen(
                         favoriteCount = favoriteClubs.size,
                         scrollState = scrollState,
                         uriHandler = uriHandler,
-                        onSignIn = { homeViewModel?.signIn() },
-                        onSignOut = { homeViewModel?.signOut() },
+                        onSignIn = {
+                            analytics?.trackEvent("sign_in_attempt")
+                            homeViewModel?.signIn()
+                        },
+                        onSignOut = {
+                            analytics?.trackSignOut(profile?.id)
+                            homeViewModel?.signOut()
+                        },
                         onToggleDarkMode = { dark -> homeViewModel?.setDarkMode(dark) },
                         onOpenMyClubs = { showMyClubsSheet = true },
                         onToggleMerchandise = onToggleMerchandise,
-                        onShowPaywall = { showPaywall = true },
+                        onShowPaywall = {
+                            analytics?.trackPaywallView("settings")
+                            showPaywall = true
+                        },
+                        onCheckUpdates = onCheckUpdates,
                     )
                 }
             }
@@ -147,7 +183,11 @@ fun InfoScreen(
         if (showMyClubsSheet) {
             MyClubsBottomSheet(
                 selectedClubIds = favoriteClubs,
-                onToggleClub = { clubId -> homeViewModel?.toggleFavoriteClub(clubId) },
+                onToggleClub = { clubId ->
+                    val isFollowed = !favoriteClubs.contains(clubId)
+                    analytics?.trackClubFollow(clubId, followed = isFollowed)
+                    homeViewModel?.toggleFavoriteClub(clubId)
+                },
                 onDismissRequest = { showMyClubsSheet = false },
                 clubs = supportedClubs,
             )
@@ -161,7 +201,10 @@ fun InfoScreen(
                 offerings = offerings,
                 isLoading = isBillingLoading,
                 onSignInClick = { homeViewModel?.signIn() },
-                onPurchaseClick = { pkg -> homeViewModel?.purchasePackage(pkg) },
+                onPurchaseClick = { pkg ->
+                    analytics?.trackPurchaseAttempt("pro_subscription")
+                    homeViewModel?.purchasePackage(pkg)
+                },
                 onSignOutClick = { homeViewModel?.signOut() },
                 onDismiss = { showPaywall = false },
             )

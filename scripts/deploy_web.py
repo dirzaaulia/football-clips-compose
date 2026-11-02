@@ -24,11 +24,10 @@ def run_command(cmd, cwd=None):
 def main():
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     web_dir = os.path.join(root_dir, "web")
-    wasm_dir = os.path.join(root_dir, "webApp", "build", "dist", "wasmJs", "productionExecutable")
     out_telemetry_dir = os.path.join(web_dir, "out", "telemetry")
 
     print("==================================================")
-    print("⚽ Deploying Football Clips Web & WASM Telemetry")
+    print("⚽ Deploying Football Clips Web & Telemetry Hub")
     print("==================================================")
 
     # 1. Build Next.js
@@ -48,25 +47,24 @@ def main():
         print(f"📄 Verified Match Centre fallback shell at {match_index_path}")
 
     public_telemetry_dir = os.path.join(web_dir, "public", "telemetry")
+    telemetry_html_path = os.path.join(web_dir, "out", "telemetry.html")
+    telemetry_index_path = os.path.join(out_telemetry_dir, "index.html")
 
-    # 2. Build WASM telemetry distribution
-    print("\n📦 Building WASM Telemetry with Gradle...")
-    gradle_cmd = "gradlew.bat" if sys.platform == "win32" else "./gradlew"
-    run_command(f"{gradle_cmd} :webApp:wasmJsBrowserDistribution", cwd=root_dir)
+    # 2. Setup Next.js Telemetry distribution
+    print("\n📋 Preparing Next.js Telemetry Hub static assets...")
+    if not os.path.exists(out_telemetry_dir):
+        os.makedirs(out_telemetry_dir, exist_ok=True)
+    if os.path.exists(telemetry_html_path):
+        shutil.copyfile(telemetry_html_path, telemetry_index_path)
+        print(f"📄 Generated clean Telemetry Hub shell at {telemetry_index_path}")
+    elif os.path.exists(telemetry_index_path):
+        print(f"📄 Verified Telemetry Hub shell at {telemetry_index_path}")
 
-    print(f"\n📋 Syncing WASM Telemetry assets to {out_telemetry_dir} & {public_telemetry_dir}...")
-    for target_dir in [out_telemetry_dir, public_telemetry_dir]:
-        if os.path.exists(target_dir):
-            shutil.rmtree(target_dir)
-        shutil.copytree(wasm_dir, target_dir)
-        index_path = os.path.join(target_dir, "index.html")
-        if os.path.exists(index_path):
-            with open(index_path, "r", encoding="utf-8") as f:
-                content = f.read()
-            if "<head>" in content and "<base" not in content:
-                content = content.replace("<head>", '<head>\n    <base href="/telemetry/">')
-            with open(index_path, "w", encoding="utf-8") as f:
-                f.write(content)
+    # Also sync to public_telemetry_dir for local preview
+    if not os.path.exists(public_telemetry_dir):
+        os.makedirs(public_telemetry_dir, exist_ok=True)
+    if os.path.exists(telemetry_index_path):
+        shutil.copyfile(telemetry_index_path, os.path.join(public_telemetry_dir, "index.html"))
 
     # 3. Deploy to Firebase Hosting
     print("\n🔥 Deploying to Firebase Hosting (footballclips & telemetry)...")
@@ -75,7 +73,7 @@ def main():
     print("\n✅ Deployment completed successfully!")
     print("🌐 URLs:")
     print("   • Primary Custom Domain: https://fc.dirzaaulia.com")
-    print("   • Telemetry on Domain:   https://fc.dirzaaulia.com/telemetry")
+    print("   • Telemetry Console:     https://fc.dirzaaulia.com/telemetry")
     print("   • Standalone Telemetry:  https://footballclips-telemetry.web.app")
     print("   • Firebase Default URL:  https://footballclips.web.app")
 

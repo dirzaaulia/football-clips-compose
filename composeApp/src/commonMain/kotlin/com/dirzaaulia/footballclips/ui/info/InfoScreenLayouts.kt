@@ -37,6 +37,7 @@ internal fun InfoSettingsLandscapeGrid(
     onOpenMyClubs: () -> Unit,
     onToggleMerchandise: (Boolean) -> Unit,
     onShowPaywall: () -> Unit,
+    onCheckUpdates: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     LazyVerticalGrid(
@@ -82,6 +83,12 @@ internal fun InfoSettingsLandscapeGrid(
         }
         item { DataSourceCard(initialExpanded = false) }
         item { AccountPurchasesCard(initialExpanded = false) }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            NotificationSettingsCard()
+        }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            AppUpdatesCard(onCheckUpdates = onCheckUpdates)
+        }
         if (isMerchandiseEnabled) {
             item { AmazonAffiliateDisclosureCard(initialExpanded = false) }
         }
@@ -106,6 +113,7 @@ internal fun InfoSettingsWideLayout(
     onOpenMyClubs: () -> Unit,
     onToggleMerchandise: (Boolean) -> Unit,
     onShowPaywall: () -> Unit,
+    onCheckUpdates: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -140,6 +148,13 @@ internal fun InfoSettingsWideLayout(
                 favoriteCount = favoriteCount,
                 onOpenMyClubs = onOpenMyClubs,
                 modifier = Modifier.weight(1f).widthIn(min = 280.dp),
+            )
+            NotificationSettingsCard(
+                modifier = Modifier.fillMaxWidth(),
+            )
+            AppUpdatesCard(
+                onCheckUpdates = onCheckUpdates,
+                modifier = Modifier.fillMaxWidth(),
             )
             MerchandiseSettingsCard(
                 isEnabled = isMerchandiseEnabled,
@@ -196,6 +211,7 @@ internal fun InfoSettingsPortraitLayout(
     onOpenMyClubs: () -> Unit,
     onToggleMerchandise: (Boolean) -> Unit,
     onShowPaywall: () -> Unit,
+    onCheckUpdates: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -220,6 +236,8 @@ internal fun InfoSettingsPortraitLayout(
             favoriteCount = favoriteCount,
             onOpenMyClubs = onOpenMyClubs,
         )
+        NotificationSettingsCard()
+        AppUpdatesCard(onCheckUpdates = onCheckUpdates)
         MerchandiseSettingsCard(
             isEnabled = isMerchandiseEnabled,
             isPremium = isPremium,

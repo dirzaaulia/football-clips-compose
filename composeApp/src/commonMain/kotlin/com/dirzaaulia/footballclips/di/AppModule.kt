@@ -1,5 +1,7 @@
 package com.dirzaaulia.footballclips.di
 
+import com.dirzaaulia.footballclips.data.analytics.AppAnalytics
+import com.dirzaaulia.footballclips.data.analytics.AppAnalyticsImpl
 import com.dirzaaulia.footballclips.data.constants.DatabaseConstants
 import com.dirzaaulia.footballclips.data.repository.MiddlewareRepository
 import com.dirzaaulia.footballclips.data.repository.MiddlewareRepositoryImpl
@@ -45,6 +47,7 @@ val databaseModule = module {
 
 val dataModule = module {
     single { DeviceTelemetrySync(get()) }
+    single<AppAnalytics> { AppAnalyticsImpl(get()) }
     single<MiddlewareRepository> { MiddlewareRepositoryImpl(get()) }
     single<OracleVmRepository> { OracleVmRepositoryImpl(get()) }
     single<ProfilesRepository> { ProfilesRepositoryImpl(get(), get()) }
@@ -59,6 +62,7 @@ val viewModelModule = module {
             billingManager = get(),
             adMobManager = get(),
             profilesRepository = get(),
+            appAnalytics = get(),
         )
     }
     viewModel {

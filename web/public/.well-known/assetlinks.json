@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.dirzaaulia.footballclips",
+      "sha256_cert_fingerprints": [
+        "0B:43:E9:88:4F:05:DD:81:BA:EA:05:DF:3C:59:2C:01:82:B6:67:36:7C:1C:F0:37:55:3A:4A:17:6A:77:0D:7C"
+      ]
+    }
+  }
+]

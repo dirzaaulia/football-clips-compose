@@ -14,9 +14,11 @@ class Settings(BaseSettings):
 
     supabase_url: str = Field(default="", alias="SUPABASE_URL")
     supabase_service_role_key: str = Field(default="", alias="SUPABASE_SERVICE_ROLE_KEY")
-    football_data_api_key: str = Field(default="", alias="FOOTBALL_DATA_API_KEY")
     youtube_api_key: str = Field(default="", alias="YOUTUBE_API_KEY")
     gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")
+    ai_gateway_url: str = Field(default="http://footballclips-oracle:8080", alias="AI_GATEWAY_URL")
+    ai_gateway_model: str = Field(default="deepseek-coder-v2:16b", alias="AI_GATEWAY_MODEL")
+    ai_gateway_token: str | None = Field(default=None, alias="AI_GATEWAY_TOKEN")
     match_data_provider: str = Field(default="espn", alias="MATCH_DATA_PROVIDER")
     standings_provider: str = Field(default="espn", alias="STANDINGS_PROVIDER")
     r2_account_id: str | None = Field(default=None, alias="R2_ACCOUNT_ID")
@@ -32,9 +34,9 @@ class Settings(BaseSettings):
     ]
     big_five_competitions: list[str] = ["PL", "PD", "SA", "BL1", "FL1"]
 
-    # YouTube Quota & Durations
-    max_quota_per_day: int = 10000
-    youtube_target_daily_quota: int = 8500
+    # YouTube Quota & Durations (Google Cloud Monitoring quota: 60,000 units/day)
+    max_quota_per_day: int = 60000
+    youtube_target_daily_quota: int = 54000
     min_duration_seconds: int = 45
     max_duration_seconds: int = 1500
 
@@ -48,7 +50,6 @@ class Settings(BaseSettings):
     sleep_live_match: int = 60       # 60 seconds (1 minute) for near-live match & score sync
     sleep_near_match: int = 900      # 15 minutes when match kicks off soon
     sleep_normal: int = 7200         # 2 hours idle
-    youtube_live_standby_interval: int = 900  # 15 minutes minimum between YouTube highlight sweeps during live play
 
     @property
     def wib_tz(self):

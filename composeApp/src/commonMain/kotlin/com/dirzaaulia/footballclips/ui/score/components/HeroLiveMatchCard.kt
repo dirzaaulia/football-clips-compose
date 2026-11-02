@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.SubcomposeAsyncImage
 import com.dirzaaulia.footballclips.domain.model.Match
+import com.dirzaaulia.footballclips.ui.components.common.PulsingRadarDot
 import com.dirzaaulia.footballclips.ui.components.common.shimmerEffect
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
@@ -91,13 +92,22 @@ internal fun HeroLiveMatchCard(
                         shape = RoundedCornerShape(6.dp),
                         border = BorderStroke(1.dp, Color(0xFFEF4444)),
                     ) {
-                        Text(
-                            text = "LIVE ${match.displayClock ?: "In-Play"}",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Black,
-                            color = Color(0xFFEF4444),
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                        )
+                        ) {
+                            PulsingRadarDot(
+                                size = 5.dp,
+                                color = Color(0xFFEF4444),
+                            )
+                            Text(
+                                text = "LIVE ${match.displayClock ?: "In-Play"}",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFFEF4444),
+                            )
+                        }
                     }
                 }
             }

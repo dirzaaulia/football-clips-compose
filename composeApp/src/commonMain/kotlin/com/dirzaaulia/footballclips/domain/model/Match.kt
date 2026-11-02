@@ -20,6 +20,8 @@ data class Match(
     val awayTeamCrest: String?,
     val homeScore: Int?,
     val awayScore: Int?,
+    val homePenalties: Int? = null,
+    val awayPenalties: Int? = null,
     val highlightVideoId: String?,
     val backupHighlightVideoId: String? = null,
     val recapAnalysis: String? = null,
@@ -131,6 +133,9 @@ data class Match(
 
     val hasHighlight: Boolean
         get() = !highlightVideoId.isNullOrBlank()
+
+    val hasPenalties: Boolean
+        get() = homePenalties != null && awayPenalties != null
 }
 
 data class StarterPlayer(
@@ -205,6 +210,8 @@ fun MatchDto.toMatch(): Match {
         awayTeamCrest = awayTeamCrest,
         homeScore = homeScore,
         awayScore = awayScore,
+        homePenalties = homePenalties,
+        awayPenalties = awayPenalties,
         highlightVideoId = highlightVideoId,
         playbackMode = playbackMode,
         backupHighlightVideoId = backupHighlightVideoId,

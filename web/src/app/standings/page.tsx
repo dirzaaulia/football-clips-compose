@@ -126,6 +126,18 @@ export default function StandingsPage() {
   const [standings, setStandings] = useState<StandingRecord[]>([]);
   const [knockoutMatches, setKnockoutMatches] = useState<MatchRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  type SortColumn = 'position' | 'team_name' | 'played_games' | 'won' | 'draw' | 'lost' | 'goal_difference' | 'points';
+  const [sortCol, setSortCol] = useState<SortColumn>('position');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+  const handleSort = (col: SortColumn) => {
+    if (sortCol === col) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortCol(col);
+      setSortDir(col === 'position' || col === 'team_name' ? 'asc' : 'desc');
+    }
+  };
 
   // European Hybrid Stage Selector ('table' = 36-team single league phase, 'knockout' = bracket/rounds)
   const [hybridStage, setHybridStage] = useState<'table' | 'knockout'>('table');
@@ -165,6 +177,18 @@ export default function StandingsPage() {
     () => standings.some((t) => t.form && t.form.trim().length > 0),
     [standings]
   );
+
+  const sortedStandings = useMemo(() => {
+    return [...standings].sort((a, b) => {
+      let valA: any = a[sortCol];
+      let valB: any = b[sortCol];
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+      if (valA === valB) return (a.position || 0) - (b.position || 0);
+      if (sortDir === 'asc') return valA > valB ? 1 : -1;
+      return valA < valB ? 1 : -1;
+    });
+  }, [standings, sortCol, sortDir]);
 
   useEffect(() => {
     let isMounted = true;
@@ -386,14 +410,30 @@ export default function StandingsPage() {
             <table className="w-full text-left text-xs sm:text-sm text-[#F1F5F9]">
               <thead className="bg-[#101418] text-[11px] uppercase tracking-wider text-[#94A3B8] border-b border-[#334155]">
                 <tr>
-                  <th className="py-3.5 px-3 sm:px-4 font-bold text-center w-12">Pos</th>
-                  <th className="py-3.5 px-4 font-bold">Club</th>
-                  <th className="py-3.5 px-3 font-semibold text-center">P</th>
-                  <th className="py-3.5 px-3 font-semibold text-center">W</th>
-                  <th className="py-3.5 px-3 font-semibold text-center">D</th>
-                  <th className="py-3.5 px-3 font-semibold text-center">L</th>
-                  <th className="py-3.5 px-3 font-semibold text-center hidden md:table-cell">GD</th>
-                  <th className="py-3.5 px-4 font-bold text-center text-white">Pts</th>
+                  <th onClick={() => handleSort('position')} className="py-3.5 px-3 sm:px-4 font-bold text-center w-12 cursor-pointer select-none hover:text-white transition-colors">
+                    Pos {sortCol === 'position' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th onClick={() => handleSort('team_name')} className="py-3.5 px-4 font-bold cursor-pointer select-none hover:text-white transition-colors">
+                    Club {sortCol === 'team_name' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th onClick={() => handleSort('played_games')} className="py-3.5 px-3 font-semibold text-center cursor-pointer select-none hover:text-white transition-colors">
+                    P {sortCol === 'played_games' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th onClick={() => handleSort('won')} className="py-3.5 px-3 font-semibold text-center cursor-pointer select-none hover:text-white transition-colors">
+                    W {sortCol === 'won' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th onClick={() => handleSort('draw')} className="py-3.5 px-3 font-semibold text-center cursor-pointer select-none hover:text-white transition-colors">
+                    D {sortCol === 'draw' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th onClick={() => handleSort('lost')} className="py-3.5 px-3 font-semibold text-center cursor-pointer select-none hover:text-white transition-colors">
+                    L {sortCol === 'lost' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th onClick={() => handleSort('goal_difference')} className="py-3.5 px-3 font-semibold text-center hidden md:table-cell cursor-pointer select-none hover:text-white transition-colors">
+                    GD {sortCol === 'goal_difference' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
+                  <th onClick={() => handleSort('points')} className="py-3.5 px-4 font-bold text-center text-white cursor-pointer select-none hover:text-[#7098F8] transition-colors">
+                    Pts {sortCol === 'points' && (sortDir === 'asc' ? '▲' : '▼')}
+                  </th>
                   {hasFormData && (
                     <th className="py-3.5 px-4 font-semibold text-center hidden sm:table-cell">Form</th>
                   )}
@@ -406,14 +446,14 @@ export default function StandingsPage() {
                       <td colSpan={hasFormData ? 9 : 8} className="py-4 px-4 bg-[#1E2227]/30"></td>
                     </tr>
                   ))
-                ) : standings.length === 0 ? (
+                ) : sortedStandings.length === 0 ? (
                   <tr>
                     <td colSpan={hasFormData ? 9 : 8} className="py-12 text-center text-[#94A3B8]">
                       No standings table data available for this competition currently.
                     </td>
                   </tr>
                 ) : (
-                  standings.map((team) => (
+                  sortedStandings.map((team) => (
                     <tr
                       key={`${team.team_id || team.id}-${team.position}`}
                       className="hover:bg-[#1E2227]/80 transition-colors group"
@@ -439,7 +479,7 @@ export default function StandingsPage() {
                             size={28}
                             imageClassName="object-contain p-0.5"
                           />
-                          <span className="font-bold text-white group-hover:text-[#7098F8] transition-colors truncate">
+                          <span className="font-bold text-white group-hover:text-[#7098F8] transition-colors break-words whitespace-normal max-w-[200px]">
                             {team.team_name}
                           </span>
                         </div>

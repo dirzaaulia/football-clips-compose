@@ -12,20 +12,29 @@ def format_log_event(
     action: str = "RUN"
 ) -> str:
     """
-    Format a telemetry event with millisecond-precision WIB timestamp,
-    severity level, subsystem tag, and action verb without emojis.
+    Format a telemetry event with WIB timestamp and action verb without duplicate bracket noise or emojis.
     """
     now_wib = datetime.now(settings.wib_tz)
-    ts = now_wib.strftime("%H:%M:%S.%f")[:-3] + " WIB"
-    sub_action = f"{subsystem}:{action}" if subsystem else action
+    ts = now_wib.strftime("%H:%M:%S") + " WIB"
     clean_msg = EMOJI_REGEX.sub("", message).strip()
-    return f"[{ts}] [{level}] [{sub_action}] {clean_msg}"
+    # Strip redundant leading bracket if it echoes the action, level, or status
+    if clean_msg.startswith("[") and "]" in clean_msg:
+        lead = clean_msg[1:clean_msg.index("]")].strip().upper()
+        if lead in [action.upper(), level.upper(), subsystem.upper(), "STATUS", "INFO", "WARN"]:
+            clean_msg = clean_msg[clean_msg.index("]") + 1:].strip()
+    return f"[{ts}] [{subsystem}:{action}] {clean_msg}"
 
 
 class EventLine(str):
     def __new__(cls, text, record):
-        value = super().__new__(cls,text)
+        value = super().__new__(cls, text)
         value.record = record
+        value.match_id = record.get("match_id")
+        value.attributes = record.get("attributes") or {}
+        value.level = record.get("level", "INFO")
+        value.code = record.get("code", "RUN")
+        value.service = record.get("service", "WORKER")
+        value.created_at = record.get("created_at")
         return value
 
 

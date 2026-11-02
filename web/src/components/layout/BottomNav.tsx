@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Play, Calendar, Trophy, Newspaper, Info } from 'lucide-react';
+import { Play, Calendar, Trophy, Newspaper, Settings } from 'lucide-react';
 
 interface NavItem {
   href: string;
@@ -16,7 +16,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/fixtures', label: 'Fixtures', icon: Calendar },
   { href: '/articles', label: 'Analysis', icon: Newspaper },
   { href: '/standings', label: 'Standings', icon: Trophy },
-  { href: '/info', label: 'Info', icon: Info },
+  { href: '/info', label: 'Settings', icon: Settings },
 ];
 
 export default function BottomNav() {

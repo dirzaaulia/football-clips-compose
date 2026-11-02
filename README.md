@@ -10,7 +10,7 @@
 [![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.12.1-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://www.jetbrains.com/lp/compose-multiplatform/)
 [![Target Android SDK](https://img.shields.io/badge/Android%20Target-SDK%2037%20(AGP%209.4)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com)
 [![Next.js](https://img.shields.io/badge/Web%20Portal-Next.js%2016%20%2F%20React%2019-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://fc.dirzaaulia.com)
-[![Kotlin/Wasm](https://img.shields.io/badge/Telemetry-Kotlin%2FWasm-654FF0?style=for-the-badge&logo=webassembly&logoColor=white)](https://fc.dirzaaulia.com/telemetry)
+[![Next.js Telemetry](https://img.shields.io/badge/Telemetry-Next.js%20Console-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://fc.dirzaaulia.com/telemetry)
 [![Supabase](https://img.shields.io/badge/Backend-Supabase%203.8-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
 [![Google Play](https://img.shields.io/badge/Google%20Play-Production%20%2F%20Internal-34A853?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.dirzaaulia.footballclips)
 
@@ -83,8 +83,8 @@ Here are the official high-resolution marketing banners featured on the Google P
   - Floating pill navigation bar with dynamic badge indicators.
 - 🌐 **Modern Multi-Platform Architecture**: 
   - **Android Native App**: Jetpack Compose & Compose Multiplatform, hardware-accelerated inline and fullscreen YouTube player, heads-up FCM notifications.
-  - **Web Portal ([fc.dirzaaulia.com](https://fc.dirzaaulia.com))**: Built with **Next.js 16 (React 19 & Turbopack)** with Static Site Generation (SSG), Incremental Static Regeneration (ISR), Web Push service worker, and Google AdSense integration.
-  - **APM Command Center ([fc.dirzaaulia.com/telemetry](https://fc.dirzaaulia.com/telemetry))**: High-performance **Kotlin/Wasm** real-time observability platform with collapsible desktop navigation, WIB clock badge, inline 5-level hierarchy (`Pipeline → Cycle → Match → Video → Checks`), meaningful outcome indicators, and IndexedDB session-scoped scroll restoration.
+  - **Web Portal ([fc.dirzaaulia.com](https://fc.dirzaaulia.com))**: Built with **Next.js 16 (React 19 & Turbopack)** with Static Site Generation (SSG), Incremental Static Regeneration (ISR), live marquee scoreboard ticker, quick `Cmd+K` command palette, Web Push service worker, and Google AdSense integration.
+  - **APM Command Center ([fc.dirzaaulia.com/telemetry](https://fc.dirzaaulia.com/telemetry))**: Ultra-fast, responsive **Next.js 16 Telemetry Console** with live 60,000 units/day YouTube API quota gauges, per-match waterfall diagnostics, granular candidate accept/reject verdict inspector, and real-time Cloud Tasks queue monitor.
 - 💎 **Universal Account & In-App Purchase Sync**:
   - Google Native Sign-In via Supabase Auth.
   - Google Play In-App Billing (RevenueCat SDK 10.26) for Android.
@@ -109,14 +109,14 @@ Here are the official high-resolution marketing banners featured on the Google P
 | :--- | :--- | :--- |
 | **Presentation: Android** | Compose Multiplatform 1.12.1<br/>Jetpack Compose, SDK 37 | Material 3 Expressive UI, Hardware-accelerated YouTube player, FCM messaging service (`FootballClipsFirebaseMessagingService`), RevenueCat Google Play billing, NextGen AdMob. Dynamic track-based version naming (`3.0.1 (run_number)`). |
 | **Presentation: Web Portal** | Next.js 16, React 19, TypeScript<br/>Tailwind CSS, Turbopack | Primary public web portal (`fc.dirzaaulia.com`), SSG/ISR static export, Web Push background Service Worker (`firebase-messaging-sw.js`), Google AdSense ads, custom glassmorphic dropdowns, and global season selector. |
-| **Presentation: APM Command Center** | Kotlin/Wasm (WebAssembly)<br/>Compose Web Multiplatform | Real-time observability dashboard (`/telemetry`), live OpenMetrics stream (`/metrics`), interactive cycle dispatcher, instant Cloudflare cache invalidation, and edge benchmark tester. |
+| **Presentation: APM Command Center** | Next.js 16, React 19, Tailwind CSS<br/>Domain: `fc.dirzaaulia.com/telemetry` | Real-time observability dashboard (`/telemetry`), 60,000 units/day YouTube quota gauge, per-match waterfall traces, AI candidate evaluator cards, and Cloud Tasks queue monitor. |
 | **Global Edge Proxy & Dual Router** | Cloudflare Workers (`fc-edge-proxy`)<br/>Domain: `edge.fc.dirzaaulia.com` | Sub-15ms edge caching layer with dual-origin routing: routes high-volume match/standings data to Oracle Super-Node PostgreSQL (0 egress limits) and user auth to Supabase. Enforces enterprise security headers (HSTS, CSP, X-Frame-Options, Nosniff) and instant cache purge API (`/api/purge-cache`). |
 | **Cloud Backend & Database** | Supabase Cloud (PostgreSQL 15)<br/>Supabase Auth & Postgrest | GoTrue Google OAuth authentication, user profiles (`profiles` table), in-app purchase entitlements, and real-time sync. |
-| **Autonomous Super-Node & Orchestration** | Oracle Always Free (Ampere ARM64)<br/>PostgreSQL 16, PostgREST, n8n, Caddy | Dedicated 4-core, 24GB RAM super-node (`168.110.196.30`) hosting production PostgreSQL 16 datastore with `protect_archive_matches` immutability trigger preserving 3,420+ archive matches, `footballclips-operations` microservice (:8093), `footballclips-pgadmin` forward-auth GUI, `jarvis-n8n` autonomous hourly maintenance workflow (`fcOpsMaintenance`), Caddy auto-TLS, FileBrowser Quantum, and automated Backblaze B2 sync. |
+| **Autonomous Super-Node & Orchestration** | Oracle Always Free (Ampere ARM64)<br/>PostgreSQL 16, PostgREST, n8n, Caddy | Dedicated 4-core, 24GB RAM super-node (`168.110.196.30`) hosting production PostgreSQL 16 datastore with `protect_archive_matches` immutability trigger preserving 3,420+ archive matches, `footballclips-operations` microservice (:8093), AI Gateway (DeepSeek R1 / Ollama ARM64), `footballclips-pgadmin` forward-auth GUI, `jarvis-n8n` autonomous hourly maintenance workflow (`fcOpsMaintenance`), Caddy auto-TLS, FileBrowser Quantum, and automated Backblaze B2 sync. |
 | **Push Notification Network** | Firebase Cloud Messaging (FCM)<br/>Topic Architecture: `club_{id}` | Global edge fanout delivering goal alerts, match schedules, and highlight releases to millions of Android devices and Web browsers at **$0 infrastructure cost**. |
-| **Serverless AI Worker Engine** | Python 3.12/3.13, FastAPI, Asyncio<br/>Google Cloud Run (`fc-worker`) | Containerized serverless worker on Cloud Run with automated scale-to-zero, real-time YouTube WebSub push receiver, ESPN sports engine, and Gemini 3.8 Flash AI re-ranking. |
+| **Serverless AI Worker Engine** | Python 3.12/3.13, FastAPI, Asyncio<br/>Google Cloud Run (`fc-worker`) + Cloud Tasks | Containerized serverless worker on Cloud Run with Google Cloud Tasks per-match decoupled fanout, 60,000 quota management, Oracle VM AI Gateway reranking with Gemini Flash Lite fallback. |
 | **Offsite Backup & Cloud Storage** | Backblaze B2 + Rclone Sync<br/>Automated Cron Engine | Nightly automated synchronization from Backblaze B2 to the super-node cloud vault with encrypted storage and automated retention. |
-| **Cron Scheduling Fleet** | Google Cloud Scheduler<br/>3 Perpetual Free Jobs | Drives worker execution cadences (5m standard, 1m weekend peak live, weekly WebSub renewal) strictly within the 100% free perpetual tier. |
+| **Cron Scheduling Fleet** | Google Cloud Scheduler<br/>3 Perpetual Free Jobs | Drives worker execution cadences (1m live match tick, 15m highlight sweep, Cloud Tasks auto-retry) strictly within the 100% free perpetual tier. |
 
 ---
 
@@ -126,27 +126,27 @@ Here are the official high-resolution marketing banners featured on the Google P
 | :--- | :--- | :--- | :--- |
 | **Language** | **Kotlin** | `2.4.21` | Modern compiler with K2 engine & multiplatform targets |
 | **Build System** | **Android Gradle Plugin (AGP)** | `9.4.0` | Latest Gradle configuration with Target SDK 37 |
-| **UI Framework (Mobile/Wasm)** | **Compose Multiplatform** | `1.12.1` | Declarative UI for Android Native and WebAssembly |
-| **Web Portal Engine** | **Next.js (App Router)** | `16.4.0` | React 19, Turbopack, Tailwind CSS, Play Store Install Banner, SSG/ISR |
+| **UI Framework (Mobile)** | **Compose Multiplatform** | `1.12.1` | Declarative UI for Android Native (Material 3 Expressive, 2D Pitch Canvas) |
+| **Web Portal Engine** | **Next.js (App Router)** | `16.4.2` | React 19, Turbopack, Tailwind CSS, Live Ticker, Quick Command Palette (`Cmd+K`) |
 | **Target Platform (Android)** | **Android 16 / SDK 37** | SDK 37 | Min SDK 24, compile & target SDK 37 |
 | **Dependency Injection** | **Koin** | `4.2.2` | `koin-core`, `koin-compose`, `koin-compose-viewmodel` |
-| **Networking** | **Ktor Client** | `3.6.0` | HTTP client with OkHttp engine on Android and Fetch on Wasm |
+| **Networking** | **Ktor Client** | `3.6.0` | HTTP client with OkHttp engine on Android |
 | **Image Loading** | **Coil** | `3.6.3` | `coil-compose`, `coil-network-ktor3`, `coil-svg` |
 | **Global Edge Proxy** | **Cloudflare Workers** | Edge | Sub-15ms edge caching proxy (`fc-edge-proxy`) with instant cache purge |
 | **Primary Datastore** | **PostgreSQL 16 (Oracle VM)** | `16.4` | Enterprise PostgreSQL 16 on Oracle Super-Node with PostgREST 3000 (0 egress limits) |
-| **Dedicated Super-Node** | **Oracle Always Free ARM64** | Ubuntu 24.04 | 4 OCPUs, 24GB RAM, PostgreSQL 16, PostgREST API, Anti-Idle Shield |
+| **Dedicated Super-Node** | **Oracle Always Free ARM64** | Ubuntu 24.04 | 4 OCPUs, 24GB RAM, PostgreSQL 16, PostgREST API, DeepSeek AI Gateway |
 | **Legacy Auth Bridge** | **Supabase GoTrue** | `3.8.0` | Temporary auth bridge during transition to Direct Google Sign-In |
 | **Offsite Cloud Sync** | **Backblaze B2 & Rclone** | `1.60.1` | Automated disaster recovery synchronization to super-node cloud vault |
 | **Push Notifications** | **Firebase Messaging (FCM)** | `35.0.0` / `7.7.0` | Android FCM SDK, Web Push Worker, Python `firebase-admin` |
 | **In-App Billing** | **RevenueCat Purchases** | `10.26.0` | Google Play Store lifetime non-consumable billing |
 | **Mobile Ads** | **Google Mobile Ads NextGen** | `1.5.0` | Policy-compliant native ads & adaptive banner views |
 | **Web Ads** | **Google AdSense** | Cloud | Responsive display ads adhering to Google publisher policies |
-| **Serverless Worker Fleet** | **Google Cloud Run** | Revision 8 | Serverless container (`fc-worker`) with automated scale-to-zero |
-| **Scheduler Engine** | **Google Cloud Scheduler** | Cloud | 3 Free perpetual cron jobs (5m sync, 1m weekend live, Sunday WebSub renew) |
+| **Serverless Worker Fleet** | **Google Cloud Run** | Revision 37 (`fc-worker-00037-k4k`) | Serverless container (`fc-worker`) + Google Cloud Tasks asynchronous queue |
+| **Scheduler Engine** | **Google Cloud Scheduler** | Cloud | Perpetual cron jobs (1m match sync, 15m highlights sweep) |
 | **Sports Data Engine** | **ESPN Sports API** | Public | Zero rate limit, 0 API quota, full European 2026/2027 coverage |
-| **Video Highlight Ingestion** | **YouTube WebSub + RSS** | Zero Quota | Google PubSubHubbub push notifications + official channel RSS |
-| **AI Semantic Re-ranker** | **Google Gemini AI** | `gemini-3.8-flash` | Structured JSON semantic video matching with token-bucket rate limiter |
-| **Hosting & CDN** | **Firebase Hosting** | Multi-Site | Hosting targets for Next.js web portal and Wasm telemetry |
+| **Video Highlight Ingestion** | **YouTube Data API v3** | 60,000 units/day | Official approved enterprise quota + 2-stage embargo scheduler (T+15m, T+90m) |
+| **AI Semantic Re-ranker** | **DeepSeek-R1 / Gemini Flash** | AI Gateway | Oracle VM Ollama DeepSeek-R1 with Gemini 2.5 Flash Lite zero-latency fallback |
+| **Hosting & CDN** | **Firebase Hosting** | Multi-Site | Hosting targets for Next.js web portal and Next.js Telemetry Hub |
 
 ---
 
@@ -205,7 +205,7 @@ As of October 2026, because users update at different paces across Google Play, 
 ### Effortless Active Version Tracking (Zero Play Console Overhead)
 To track what version number users are actively running without navigating the Google Play Console:
 1. **Lightweight App Session Telemetry**: Android clients send a fire-and-forget ping to `${SUPABASE_URL}/rest/v1/app_sessions` containing `app_version`, `version_code`, and `platform`.
-2. **Real-Time Distribution View**: The Mission Control / WASM Telemetry Dashboard (`control.168.110.196.30.sslip.io` / `/telemetry`) displays a live 7-day version distribution (e.g. `v3.0.1: 82%`, `v3.0.0: 12%`, `v2.x: 6%`), enabling safe, data-driven decisions before retiring legacy bridges.
+2. **Real-Time Distribution View**: The Mission Control Next.js Telemetry Dashboard (`https://fc.dirzaaulia.com/telemetry`) displays a live 7-day version distribution (e.g. `v3.0.1: 82%`, `v3.0.0: 12%`, `v2.x: 6%`), enabling safe, data-driven decisions before retiring legacy bridges.
 
 ---
 
@@ -223,19 +223,16 @@ FootballClips/
 ├── composeApp/                 # Shared Kotlin Multiplatform codebase
 │   ├── src/commonMain/         # Shared Compose Multiplatform UI, ViewModels, & Repositories
 │   └── src/androidMain/        # Android-specific KMP implementations & Koin modules
-├── web/                        # Next.js 16 Web Portal (Primary Public Website)
-│   ├── src/app/                # App Router (pages: /, /fixtures, /standings, /match/[id])
-│   ├── src/components/         # React 19 UI components & My Clubs notification modal
+├── web/                        # Next.js 16 Web Portal & Telemetry Hub (App Router)
+│   ├── src/app/                # App Router (pages: /, /fixtures, /standings, /match/[id], /telemetry)
+│   ├── src/components/         # React 19 UI components & interactive @xyflow graphs
 │   ├── src/lib/firebase/       # Firebase Messaging client initialization
 │   ├── public/                 # Web Push service worker (firebase-messaging-sw.js)
 │   └── package.json            # Next.js dependencies & scripts
-├── webApp/                     # Kotlin/Wasm APM Observability & Command Center
-│   ├── src/wasmJsMain/kotlin/  # Live OpenMetrics viewer, Edge latency benchmark, Action toolbar
-│   └── build.gradle.kts        # Wasm browser distribution build config
 ├── worker/                     # Python Serverless Worker & APM Engine
 │   ├── clients/                # Supabase, ESPN, YouTube RSS, Gemini AI, and Edge Cache clients
 │   ├── services/               # Match, Highlight, Notification, Standings, & Maintenance services
-│   ├── tests/                  # Pytest unit tests (38/38 passing)
+│   ├── tests/                  # Pytest unit tests (54/54 passing)
 │   ├── server.py               # FastAPI server (/metrics, /health, /status, /run-cycle, /websub)
 │   ├── Dockerfile              # Container definition for Google Cloud Run
 │   └── main.py                 # Async worker loop & cycle orchestrator
@@ -248,7 +245,7 @@ FootballClips/
 │   ├── backup_postgres.sh      # Automated nightly PostgreSQL backup script
 │   └── README.md               # Node architecture & operations guide
 ├── scripts/                    # Deployment & ASO management utilities
-│   ├── deploy_web.py           # Unified Next.js & Wasm build/deploy script for Firebase Hosting
+│   ├── deploy_web.py           # Next.js Web & Telemetry build and deploy script for Firebase Hosting
 │   └── deploy_production.py    # Production deployment utility
 └── gradle/libs.versions.toml   # Centralized version catalog
 ```
@@ -293,19 +290,9 @@ npm run dev
 npm run build
 ```
 
-The web application will be accessible at `http://localhost:3000`.
+The web application and telemetry hub will be accessible at `http://localhost:3000` (and `http://localhost:3000/telemetry`).
 
-### 3. Build & Run Telemetry Dashboard (Kotlin/Wasm)
-
-```bash
-# Run local development server
-./gradlew :webApp:wasmJsBrowserDevelopmentRun
-
-# Build production distribution for deployment
-./gradlew :webApp:wasmJsBrowserDistribution
-```
-
-### 4. Run Background AI Worker Engine
+### 3. Run Background AI Worker Engine
 
 ```bash
 cd worker
@@ -320,9 +307,9 @@ uv run pytest
 uv run python main.py
 ```
 
-### 5. Deploy Web & Telemetry to Firebase Hosting
+### 4. Deploy Web & Telemetry to Firebase Hosting
 
-Run the unified deployment script to compile Next.js, bundle the Wasm telemetry dashboard, and deploy both to Firebase Hosting:
+Run the deployment script to compile Next.js and deploy the web portal and Telemetry Hub to Firebase Hosting:
 
 ```bash
 python scripts/deploy_web.py
@@ -336,8 +323,8 @@ python scripts/deploy_web.py
 - **Web & Telemetry (Firebase Hosting)**: Multi-site hosting targets:
   - **Main Web Portal**: [https://fc.dirzaaulia.com](https://fc.dirzaaulia.com) (Fallback: `https://footballclips.web.app`)
   - **Telemetry Dashboard**: [https://fc.dirzaaulia.com/telemetry](https://fc.dirzaaulia.com/telemetry) (Standalone: `https://footballclips-telemetry.web.app`)
-- **Worker Daemon & Automation**: Containerized serverless worker running on **Google Cloud Run** (`fc-worker` revision 8) with automated scale-to-zero, triggered by **Google Cloud Scheduler** across 3 perpetual free cron jobs.
-- **Always-Free Super-Node (Oracle Cloud ARM64)**: Autonomous super-node on Oracle Cloud (`168.110.196.30`) with Caddy TLS reverse proxy, hosting PostgreSQL 16, PostgREST API (`https://168.110.196.30.sslip.io`), FileBrowser Quantum (`https://files.168.110.196.30.sslip.io`), and automated Backblaze B2 disaster recovery sync.
+- **Worker Daemon & Automation**: Containerized serverless worker running on **Google Cloud Run** (`fc-worker`) in decoupled dual-engine pipeline mode (Fixture Sync + YouTube Scraper) with real-time YouTube WebSub webhooks and Gemini AI reranking.
+- **Production Edge Infrastructure**: High-performance architecture on Oracle Cloud & Cloudflare Anycast with Caddy TLS reverse proxy, hosting PostgreSQL 16, PostgREST (`https://edge.fc.dirzaaulia.com`), Operations API (`https://api.fc.dirzaaulia.com`), and automated Backblaze B2 disaster recovery sync.
 
 ---
 

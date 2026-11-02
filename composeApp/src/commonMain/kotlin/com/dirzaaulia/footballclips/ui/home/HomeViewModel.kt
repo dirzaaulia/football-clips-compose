@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import com.dirzaaulia.footballclips.data.analytics.AppAnalytics
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
@@ -31,6 +32,7 @@ class HomeViewModel(
     internal val billingManager: BillingManager,
     internal val adMobManager: AdMobManager,
     internal val profilesRepository: ProfilesRepository,
+    internal val appAnalytics: AppAnalytics,
 ) : ViewModel() {
 
     val competitions = oracleVmRepository.competitions

@@ -163,6 +163,14 @@ fun WebFixtureCard(
                                     fontWeight = FontWeight.Black,
                                     color = MaterialTheme.colorScheme.primary,
                                 )
+                                if (match.hasPenalties) {
+                                    Text(
+                                        text = "(${match.homePenalties} - ${match.awayPenalties} pen)",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                }
                                 if (match.isLive) {
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(

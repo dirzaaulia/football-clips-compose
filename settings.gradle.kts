@@ -25,5 +25,4 @@ dependencyResolutionManagement {
 rootProject.name = "FootballClips"
 include(":androidApp")
 include(":composeApp")
-include(":webApp")
 

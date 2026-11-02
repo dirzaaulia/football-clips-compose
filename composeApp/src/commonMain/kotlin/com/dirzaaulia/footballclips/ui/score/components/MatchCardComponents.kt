@@ -1,10 +1,5 @@
 package com.dirzaaulia.footballclips.ui.score.components
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,7 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
+import com.dirzaaulia.footballclips.ui.components.common.PulsingRadarDot
 import com.dirzaaulia.footballclips.ui.components.common.shimmerEffect
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
@@ -114,16 +109,6 @@ internal fun MatchStatusBadge(match: Match, isProminent: Boolean = false) {
 
 @Composable
 private fun LiveMatchStatusBadge(match: Match, isProminent: Boolean) {
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.4f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "alpha",
-    )
     val isPaused = match.status.equals("PAUSED", ignoreCase = true) || match.displayClock?.equals("HT", ignoreCase = true) == true
     val liveText = when {
         isPaused -> "HT"
@@ -146,11 +131,9 @@ private fun LiveMatchStatusBadge(match: Match, isProminent: Boolean) {
             ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(if (isProminent) 10.dp else 8.dp)
-                    .clip(CircleShape)
-                    .background(Color.Red.copy(alpha = alpha)),
+            PulsingRadarDot(
+                size = if (isProminent) 8.dp else 6.dp,
+                color = Color.Red,
             )
             Spacer(modifier = Modifier.width(if (isProminent) 8.dp else 6.dp))
             Text(
@@ -210,7 +193,9 @@ fun ScoreDisplay(
     isLive: Boolean = false,
     isSpoilerFree: Boolean = false,
     isRevealed: Boolean = false,
-    onRevealClick: (() -> Unit)? = null
+    homePenalties: Int? = null,
+    awayPenalties: Int? = null,
+    onRevealClick: (() -> Unit)? = null,
 ) {
     // Live matches never hide score; spoiler shielding is strictly for finished matches
     if (isSpoilerFree && !isRevealed && !isLive) {
@@ -222,16 +207,28 @@ fun ScoreDisplay(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Black,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            letterSpacing = 2.sp
+            letterSpacing = 2.sp,
         )
     } else {
-        Text(
-            text = "${homeScore ?: 0} - ${awayScore ?: 0}",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = if (isLive) Color.Red else MaterialTheme.colorScheme.onSurface,
-            letterSpacing = 2.sp,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+        ) {
+            Text(
+                text = "${homeScore ?: 0} - ${awayScore ?: 0}",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = if (isLive) Color.Red else MaterialTheme.colorScheme.onSurface,
+                letterSpacing = 2.sp,
+            )
+            if (homePenalties != null && awayPenalties != null) {
+                Text(
+                    text = "($homePenalties - $awayPenalties pen)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
     }
 }

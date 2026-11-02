@@ -109,8 +109,12 @@ export default function KnockoutBracketView({ matches, competitionName }: Knocko
                   const hasHighlight = Boolean(m.highlight_video_id || m.backup_highlight_video_id);
                   const isFinished = m.status === 'FINISHED';
                   const isLive = ['IN_PLAY', 'PAUSED', 'LIVE'].includes(m.status);
-                  const homeWinner = isFinished && (m.home_score ?? 0) > (m.away_score ?? 0);
-                  const awayWinner = isFinished && (m.away_score ?? 0) > (m.home_score ?? 0);
+                  const hScore = m.home_score ?? 0;
+                  const aScore = m.away_score ?? 0;
+                  const hPen = m.home_penalties ?? 0;
+                  const aPen = m.away_penalties ?? 0;
+                  const homeWinner = isFinished && (hScore > aScore || (hScore === aScore && hPen > aPen));
+                  const awayWinner = isFinished && (aScore > hScore || (hScore === aScore && aPen > hPen));
 
                   return (
                     <div
@@ -159,7 +163,9 @@ export default function KnockoutBracketView({ matches, competitionName }: Knocko
                           </span>
                         </div>
                         <span className={`text-xs font-black ml-2 ${homeWinner ? 'text-emerald-400' : isFinished ? 'text-white' : 'text-zinc-500'}`}>
-                          {m.home_score !== null && m.home_score !== undefined ? m.home_score : '-'}
+                          {m.home_score !== null && m.home_score !== undefined
+                            ? (m.home_penalties != null ? `${m.home_score} (${m.home_penalties})` : m.home_score)
+                            : '-'}
                         </span>
                       </div>
 
@@ -176,7 +182,9 @@ export default function KnockoutBracketView({ matches, competitionName }: Knocko
                           </span>
                         </div>
                         <span className={`text-xs font-black ml-2 ${awayWinner ? 'text-emerald-400' : isFinished ? 'text-white' : 'text-zinc-500'}`}>
-                          {m.away_score !== null && m.away_score !== undefined ? m.away_score : '-'}
+                          {m.away_score !== null && m.away_score !== undefined
+                            ? (m.away_penalties != null ? `${m.away_score} (${m.away_penalties})` : m.away_score)
+                            : '-'}
                         </span>
                       </div>
 

@@ -44,9 +44,13 @@ import com.dirzaaulia.footballclips.ui.home.HomeScreenFloatingActions
 import com.dirzaaulia.footballclips.ui.home.HomeViewModel
 import com.dirzaaulia.footballclips.ui.home.selectVideo
 import com.dirzaaulia.footballclips.ui.home.selectVideoById
+import com.dirzaaulia.footballclips.ui.home.setDarkMode
+import com.dirzaaulia.footballclips.ui.home.setSpoilerFreePreference
+import com.dirzaaulia.footballclips.ui.home.toggleFavoriteClub
 import com.dirzaaulia.footballclips.ui.info.InfoScreen
 import com.dirzaaulia.footballclips.ui.navigation.NavDestination
 import com.dirzaaulia.footballclips.ui.navigation.bottomNavItems
+import com.dirzaaulia.footballclips.ui.onboarding.OnboardingScreen
 import com.dirzaaulia.footballclips.ui.store.ClubStoreScreen
 import com.dirzaaulia.footballclips.ui.score.MatchStatusFilter
 import com.dirzaaulia.footballclips.ui.score.MatchesAndHighlightsScreen
@@ -170,6 +174,23 @@ fun AdaptiveMatchesScaffold(
                 launchSingleTop = true
             }
         }
+    }
+
+    val isSpoilerFreeConfigured by homeViewModel.isSpoilerFreeConfigured.collectAsState()
+    val supportedClubs by homeViewModel.supportedClubs.collectAsState()
+    val isDarkMode by homeViewModel.isDarkMode.collectAsState()
+
+    if (isSpoilerFreeConfigured == false) {
+        OnboardingScreen(
+            clubs = supportedClubs,
+            initialDarkMode = isDarkMode,
+            onComplete = { isSpoilerFree, isDark, selectedClubs ->
+                homeViewModel.setSpoilerFreePreference(isSpoilerFree)
+                homeViewModel.setDarkMode(isDark)
+                selectedClubs.forEach { homeViewModel.toggleFavoriteClub(it) }
+            },
+        )
+        return
     }
 
     Scaffold(

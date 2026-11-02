@@ -34,6 +34,9 @@ actual class PreferenceManager(
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val currentClubs = context.dataStore.data.first()[favoriteClubsKey] ?: emptySet()
+                for (cid in currentClubs) {
+                    FirebaseMessaging.getInstance().subscribeToTopic("club_$cid")
+                }
                 syncTelemetry(currentClubs)
             } catch (_: Exception) {
             }
@@ -51,6 +54,9 @@ actual class PreferenceManager(
     private val anonUserIdKey = stringPreferencesKey("telemetry_anon_user_id")
     private val selectedSeasonKey = intPreferencesKey("selected_season")
     private val merchandiseEnabledKey = booleanPreferencesKey("is_merchandise_enabled")
+    private val notifyLiveGoalsKey = booleanPreferencesKey("notify_live_goals")
+    private val notifyKickoffWhistleKey = booleanPreferencesKey("notify_kickoff_whistle")
+    private val notifyHighlightsKey = booleanPreferencesKey("notify_highlights")
 
     private val _inMemoryDarkMode = MutableStateFlow<Boolean?>(null)
     private val _inMemorySpoilerFree = MutableStateFlow<Boolean?>(null)
@@ -58,6 +64,9 @@ actual class PreferenceManager(
     private val _inMemoryFavoriteClubs = MutableStateFlow<Set<String>?>(null)
     private val _inMemorySelectedSeason = MutableStateFlow<Int?>(null)
     private val _inMemoryMerchandiseEnabled = MutableStateFlow<Boolean?>(null)
+    private val _inMemoryNotifyLiveGoals = MutableStateFlow<Boolean?>(null)
+    private val _inMemoryNotifyKickoffWhistle = MutableStateFlow<Boolean?>(null)
+    private val _inMemoryNotifyHighlights = MutableStateFlow<Boolean?>(null)
 
     actual val isAdsRemoved: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[adsRemovedKey] ?: false
@@ -195,6 +204,36 @@ actual class PreferenceManager(
             }
         } catch (_: Exception) {
         }
+    }
+
+    actual val notifyLiveGoals: Flow<Boolean> = combine(
+        context.dataStore.data.map { it[notifyLiveGoalsKey] ?: true },
+        _inMemoryNotifyLiveGoals,
+    ) { fromDisk, inMem -> inMem ?: fromDisk }
+
+    actual suspend fun setNotifyLiveGoals(enabled: Boolean) {
+        _inMemoryNotifyLiveGoals.value = enabled
+        try { context.dataStore.edit { it[notifyLiveGoalsKey] = enabled } } catch (_: Exception) {}
+    }
+
+    actual val notifyKickoffWhistle: Flow<Boolean> = combine(
+        context.dataStore.data.map { it[notifyKickoffWhistleKey] ?: true },
+        _inMemoryNotifyKickoffWhistle,
+    ) { fromDisk, inMem -> inMem ?: fromDisk }
+
+    actual suspend fun setNotifyKickoffWhistle(enabled: Boolean) {
+        _inMemoryNotifyKickoffWhistle.value = enabled
+        try { context.dataStore.edit { it[notifyKickoffWhistleKey] = enabled } } catch (_: Exception) {}
+    }
+
+    actual val notifyHighlights: Flow<Boolean> = combine(
+        context.dataStore.data.map { it[notifyHighlightsKey] ?: true },
+        _inMemoryNotifyHighlights,
+    ) { fromDisk, inMem -> inMem ?: fromDisk }
+
+    actual suspend fun setNotifyHighlights(enabled: Boolean) {
+        _inMemoryNotifyHighlights.value = enabled
+        try { context.dataStore.edit { it[notifyHighlightsKey] = enabled } } catch (_: Exception) {}
     }
 
     private suspend fun syncTelemetry(clubs: Set<String>) {

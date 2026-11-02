@@ -1,7 +1,6 @@
 import asyncio
 import os
 import sys
-import urllib.parse
 from typing import Any
 
 import httpx
@@ -10,12 +9,13 @@ from loguru import logger
 # Add root directory to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
+from worker.clients.database_client import db_client as supabase_client
 from worker.clients.youtube_client import youtube_client
-from worker.config.constants import EUROPEAN_CLUB_HANDLES, OFFICIAL_LEAGUE_CHANNELS
+from worker.repositories.channel_repository import channel_repository
 
 
 class WebSubSubscriber:
-    """Subscribes all official football club & league channels to Google WebSub Hub."""
+    """Subscribes all official football club, league & broadcaster channels to Google WebSub Hub."""
 
     GOOGLE_HUB_URL = "https://pubsubhubbub.appspot.com/subscribe"
     DEFAULT_CALLBACK = "https://fc-worker-519310318914.us-central1.run.app/websub"
@@ -49,23 +49,13 @@ class WebSubSubscriber:
             logger.error(f"Error subscribing {label} ({channel_id}): {e}")
             return False
 
+    async def collect_all_channels(self) -> dict[str, str]:
+        return await channel_repository.get_all_websub_channels()
+
     async def subscribe_all(self):
         logger.info(f"Starting batch WebSub subscription to callback: {self.callback_url}")
 
-        channel_map: dict[str, str] = {}
-
-        # 1. League channels
-        for comp, handle in OFFICIAL_LEAGUE_CHANNELS.items():
-            c_id = youtube_client.resolve_channel_id(handle)
-            if c_id and c_id not in channel_map:
-                channel_map[c_id] = f"League: {handle}"
-
-        # 2. Club channels
-        for club, handle in EUROPEAN_CLUB_HANDLES.items():
-            c_id = youtube_client.resolve_channel_id(handle)
-            if c_id and c_id not in channel_map:
-                channel_map[c_id] = f"Club: {club} ({handle})"
-
+        channel_map = await self.collect_all_channels()
         logger.info(f"Found {len(channel_map)} unique YouTube channels to subscribe.")
 
         success_count = 0
@@ -80,6 +70,31 @@ class WebSubSubscriber:
                     success_count += 1
 
         logger.info(f"Batch subscription complete: {success_count}/{len(channel_map)} channels successfully subscribed!")
+
+        # Record telemetry cycle strictly under WEBSUB_PUSH pipeline
+        try:
+            from worker.services.telemetry_service import telemetry_service
+            log_events = [
+                {
+                    "line": f"[WEBSUB RENEWAL] Discovered {len(channel_map)} unique official YouTube channels for WebSub push subscription across all supported leagues, clubs, and broadcasters.",
+                    "level": "INFO",
+                    "code": "WEBSUB_DISCOVERY",
+                },
+                {
+                    "line": f"[WEBSUB RENEWAL] Completed batch subscription: {success_count}/{len(channel_map)} channels accepted by Google WebSub Hub (Lease: 10 days).",
+                    "level": "SUCCESS" if success_count > 0 else "WARN",
+                    "code": "WEBSUB_COMPLETE",
+                },
+            ]
+            telemetry_service.record_cycle(
+                mode="WEBSUB_RENEWAL",
+                next_sleep_str="72h",
+                cycle_index=1,
+                steps_log=log_events,
+                pipeline_type="WEBSUB_PUSH",
+            )
+        except Exception as e:
+            logger.warning(f"Could not record WebSub renewal telemetry: {e}")
 
 
 websub_subscriber = WebSubSubscriber()

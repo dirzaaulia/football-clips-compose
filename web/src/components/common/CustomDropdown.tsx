@@ -138,7 +138,7 @@ export default function CustomDropdown<T extends string | number>({
           )}
           {!isIcon && (
             <span
-              className={`font-bold truncate max-w-[130px] sm:max-w-[170px] ${
+              className={`font-bold max-w-[220px] sm:max-w-[320px] truncate ${
                 isAmber ? 'text-amber-300' : 'text-white'
               }`}
             >

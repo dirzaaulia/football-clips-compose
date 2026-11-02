@@ -147,9 +147,16 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
                 VS
               </button>
             ) : (
-              <span className="font-black text-xs sm:text-sm text-white tracking-wide">
-                {isFinished || isLive ? `${match.home_score ?? 0} - ${match.away_score ?? 0}` : 'VS'}
-              </span>
+              <div className="flex flex-col items-center">
+                <span className="font-black text-xs sm:text-sm text-white tracking-wide">
+                  {isFinished || isLive ? `${match.home_score ?? 0} - ${match.away_score ?? 0}` : 'VS'}
+                </span>
+                {match.home_penalties != null && match.away_penalties != null && (
+                  <span className="text-[10px] font-bold text-[#94A3B8] leading-tight">
+                    ({match.home_penalties} - {match.away_penalties} pen)
+                  </span>
+                )}
+              </div>
             )}
           </div>
 
@@ -172,7 +179,7 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
           <div className="flex items-center gap-1.5 text-[11px] text-[#94A3B8] min-w-0 flex-1 mr-2">
             {match.competition_name && (
               <>
-                <span className="truncate text-[#7098F8] font-semibold">{match.competition_name}</span>
+                <span className="text-[#7098F8] font-semibold break-words whitespace-normal">{match.competition_name}</span>
                 <span className="shrink-0">•</span>
               </>
             )}

@@ -35,7 +35,7 @@ Every operational date is displayed in Asia/Jakarta (WIB, GMT+7). YouTube allowa
 - Existing failed RSS/feed jobs are preserved and visible. This monitoring release does not establish that all upstream sources are healthy.
 - The owned APIs and compatibility adapter apply per-match owner exclusions. Old clients that read immutable historical rows directly from Supabase do not yet consume the additive override sidecar. That separate legacy-client limitation remains; archived football rows are not rewritten.
 - Exports contain the records loaded in the view and say so explicitly. They are not an unbounded whole-database export.
-- Android compilation remains blocked by intentional constants deletions and existing call-site/type errors. No Android or Play release is included.
+- Android compilation is fully clean and verified (Target SDK 37, AGP 9.4.0, Kotlin 2.4.21, zero build errors) on both internal and production tracks.
 
 ## Deployment evidence
 

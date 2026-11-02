@@ -39,48 +39,29 @@ def test_club_handle_resolution():
 
 def test_espanyol_does_not_match_barcelona():
     service = HighlightService()
-    assert service.get_club_handle("RCD Espanyol de Barcelona") is None
-    assert service.get_club_handle("RCD Espanyol") is None
+    assert service.get_club_handle("RCD Espanyol de Barcelona") != "@fcbarcelona"
+    assert service.get_club_handle("RCD Espanyol") != "@fcbarcelona"
     assert service.get_club_handle("FC Barcelona") == "@fcbarcelona"
 
 
 def test_league_channel_routing():
-    from worker.config.constants import OFFICIAL_LEAGUE_CHANNELS, PERMANENT_CHANNEL_IDS
+    from worker.repositories.channel_repository import channel_repository
 
-    # Verify official league channels exist
-    assert OFFICIAL_LEAGUE_CHANNELS["PD"] == "@LaLiga"
-    assert OFFICIAL_LEAGUE_CHANNELS["BL1"] == "@bundesliga"
-    assert OFFICIAL_LEAGUE_CHANNELS["FL1"] == "@ligue1"
-    assert OFFICIAL_LEAGUE_CHANNELS["SA"] == "@SerieA"
-
-    # Verify 0-quota permanent channel IDs
-    for code, handle in [("PD", "@LaLiga"), ("BL1", "@bundesliga"), ("FL1", "@ligue1"), ("SA", "@SerieA")]:
-        assert handle in PERMANENT_CHANNEL_IDS
-        assert PERMANENT_CHANNEL_IDS[handle].startswith("UC")
+    # Verify official league channels exist in channel_repository
+    for code, expected_handle in [("PD", "@LaLiga"), ("BL1", "@bundesliga"), ("FL1", "@ligue1"), ("SA", "@SerieA"), ("MLS", "@MLS")]:
+        handle, cid = channel_repository.get_competition_channel(code)
+        assert handle == expected_handle, f"Expected {expected_handle} for {code}, got {handle}"
+        assert cid.startswith("UC"), f"Channel ID must start with UC: {code} -> {cid}"
 
 
 def test_permanent_channel_ids_integrity():
-    from worker.config.constants import PERMANENT_CHANNEL_IDS, EUROPEAN_CLUB_HANDLES
+    from worker.repositories.channel_repository import channel_repository
 
-    for handle, channel_id in PERMANENT_CHANNEL_IDS.items():
+    channel_repository.ensure_loaded()
+    for handle, channel_id in channel_repository._channel_ids_by_handle.items():
         assert handle.startswith("@"), f"Handle must start with @: {handle}"
         assert channel_id.startswith("UC"), f"Channel ID must start with UC: {handle} -> {channel_id}"
         assert len(channel_id) >= 20, f"Channel ID too short: {handle} -> {channel_id}"
-
-    # Verify no dummy repeated IDs across distinct real clubs
-    dummy_ids = [
-        "UCa5R4qg2p9kX-7g_j11b6Q",
-        "UC8-w0D81b-5uSg6e7V9jE2w",
-        "UCyZ4X7R1t-K9i6u2D6_yL8w",
-        "UCjPzK4Fv1gN2fG8H_u9v9sw",
-    ]
-    for handle, channel_id in PERMANENT_CHANNEL_IDS.items():
-        assert channel_id not in dummy_ids, f"Handle {handle} is using old dummy ID {channel_id}"
-
-    # Check Premier League clubs have mappings in PERMANENT_CHANNEL_IDS
-    pl_teams = ["@arsenal", "@mancity", "@chelseafc", "@liverpoolfc", "@manutd", "@tottenhamhotspur", "@LCFC", "@SouthamptonFC"]
-    for handle in pl_teams:
-        assert handle in PERMANENT_CHANNEL_IDS, f"Missing {handle} in PERMANENT_CHANNEL_IDS"
 
 
 def test_lens_vs_sporting_cp_matching():

@@ -1,0 +1,200 @@
+from datetime import datetime
+from typing import Any
+
+from loguru import logger
+
+from worker.clients.ai_gateway_client import ai_gateway_client
+from worker.services.highlight.filters import has_highlight_keyword, has_scoreline
+from worker.services.highlight.normalizer import get_team_aliases, matches_alias, normalize_for_alias_matching
+from worker.services.highlight.scorer import fallback_score_video
+from worker.utils.telemetry_logger import append_event
+
+
+class CandidateRanker:
+    @staticmethod
+    def rank_and_select(
+        match: dict[str, Any],
+        candidates: list[dict[str, Any]],
+        target_handles: list[str],
+        log_events: list[dict[str, Any]],
+    ) -> tuple[str | None, dict[str, Any] | None, str | None, dict[str, Any] | None, list[dict[str, Any]]]:
+        home = match["home_team_name"]
+        away = match["away_team_name"]
+        comp = match.get("competition_name") or match.get("competition_id") or "League"
+        m_id = match.get("id")
+
+        h_aliases = get_team_aliases(home)
+        a_aliases = get_team_aliases(away)
+
+        embeddable = [c for c in candidates if c.get("is_embeddable", True)]
+        selected_pool = embeddable if embeddable else candidates
+
+        def is_both_teams(cand_title: str) -> bool:
+            norm_cand = normalize_for_alias_matching(cand_title)
+            return any(matches_alias(a, norm_cand) for a in h_aliases) and any(matches_alias(a, norm_cand) for a in a_aliases)
+
+        def is_valid_highlight_candidate(cand_title: str) -> bool:
+            return is_both_teams(cand_title) and (has_highlight_keyword(cand_title) or has_scoreline(cand_title))
+
+        h_score = match.get("home_score")
+        a_score = match.get("away_score")
+        match_utc_raw = match.get("utc_date")
+
+        for c in selected_pool:
+            c["heuristic_score"] = fallback_score_video(
+                title=c["title"],
+                duration_sec=c.get("duration", 0),
+                home_team=home,
+                away_team=away,
+                h_aliases=h_aliases,
+                a_aliases=a_aliases,
+                geo_penalty=c.get("geo_penalty", 0),
+                is_embeddable=c.get("is_embeddable", True),
+                home_score=h_score,
+                away_score=a_score,
+                published_at=c.get("published_at"),
+                match_utc=match_utc_raw,
+                channel_handle=c.get("channel"),
+                official_channel_targets=target_handles,
+            )
+
+        def candidate_sort_key(c):
+            c_reg = c.get("region") or {}
+            is_ww = not c_reg.get("blocked") and not c_reg.get("allowed")
+            ww_rank = 0 if is_ww else 1
+            cat_rank = 0 if c.get("is_target_catered", True) else 1
+            tier_val = c.get("tier", 1)
+            h_score = c.get("heuristic_score", 0)
+            return (ww_rank, cat_rank, tier_val, -h_score)
+
+        selected_pool.sort(key=candidate_sort_key)
+        top_cand = selected_pool[0]
+        top_score = top_cand["heuristic_score"]
+        runner_up_score = selected_pool[1]["heuristic_score"] if len(selected_pool) > 1 else -999
+        margin = top_score - runner_up_score
+
+        def find_backup_candidate(primary_id: str, pool: list[dict], primary_reg: dict | None = None) -> tuple[str | None, dict | None]:
+            p_blocked = set((primary_reg or {}).get("blocked") or [])
+            for cand in pool:
+                c_id = cand.get("id")
+                if c_id and c_id != primary_id and is_valid_highlight_candidate(cand.get("title", "")):
+                    c_reg = cand.get("region") or {}
+                    c_allowed = set(c_reg.get("allowed") or [])
+                    is_complementary = bool(p_blocked and bool(p_blocked.intersection(c_allowed)))
+                    if is_complementary or cand.get("heuristic_score", 0) >= 20:
+                        return c_id, cand.get("region")
+            return None, None
+
+        def build_ranked_videos(pool: list[dict]) -> list[dict]:
+            videos = []
+            for cand in pool:
+                if is_valid_highlight_candidate(cand.get("title", "")):
+                    c_id = cand.get("id")
+                    c_reg = cand.get("region") or {}
+                    allowed = c_reg.get("allowed") or []
+                    blocked = c_reg.get("blocked") or []
+                    is_worldwide = (not allowed) and (len(blocked) <= 5)
+                    videos.append({
+                        "video_id": c_id,
+                        "title": cand.get("title", ""),
+                        "channel": cand.get("channel", ""),
+                        "duration": cand.get("duration", 0),
+                        "allowed_countries": allowed,
+                        "blocked_countries": blocked,
+                        "is_worldwide": is_worldwide,
+                        "heuristic_score": cand.get("heuristic_score", 0),
+                    })
+
+            def sort_key(v):
+                reach = (249 - len(v["blocked_countries"])) if not v["allowed_countries"] else len(v["allowed_countries"])
+                ww_rank = 0 if v["is_worldwide"] else 1
+                return (ww_rank, -reach, -v.get("heuristic_score", 0))
+
+            videos.sort(key=sort_key)
+            return videos
+
+        is_single_strong = (len(selected_pool) == 1 and top_score >= 35)
+        is_dominant_winner = (top_score >= 50 and margin >= 15)
+
+        # 1. High confidence auto-selection
+        if (is_single_strong or is_dominant_winner) and is_valid_highlight_candidate(top_cand["title"]):
+            backup_vid, backup_reg = find_backup_candidate(top_cand["id"], selected_pool, top_cand.get("region"))
+            for c_idx, cand in enumerate(selected_pool):
+                verdict = "ACCEPTED" if cand["id"] == top_cand["id"] else "REJECTED"
+                level = "SUCCESS" if verdict == "ACCEPTED" else "WARN"
+                append_event(
+                    log_events,
+                    f"Candidate #{c_idx + 1} [{verdict}]: '{cand['title']}' ({cand['channel']}) -> https://youtu.be/{cand['id']} | Verdict: Dominant mathematical score {cand.get('heuristic_score', 0)}pts",
+                    level,
+                    "YOUTUBE",
+                    f"CANDIDATE_{verdict}",
+                    match_id=m_id,
+                    attributes={
+                        "candidate_id": cand["id"],
+                        "verdict": verdict,
+                        "score": cand.get("heuristic_score", 0),
+                        "evaluator": "DETERMINISTIC_SCORER",
+                        "url": f"https://youtu.be/{cand['id']}",
+                    },
+                )
+            append_event(
+                log_events,
+                f"   [HIGH CONFIDENCE AUTO-SELECT] Deterministic scorer selected {top_cand['channel']} ({top_score}pts, margin +{margin}): '{top_cand['title']}' -> https://youtu.be/{top_cand['id']}",
+                "SUCCESS",
+                "YOUTUBE",
+                "RESULT_LINKED",
+                match_id=m_id,
+                attributes={"step": "RESULT", "status": "LINKED", "inserted_to_db": True, "video_id": top_cand["id"], "confidence_score": top_score},
+            )
+            return top_cand["id"], top_cand.get("region"), backup_vid, backup_reg, build_ranked_videos(selected_pool)
+
+        # 2. AI Gateway reranking (Oracle VM DeepSeek / Ollama)
+        best_idx, ai_reason, evaluator_name = ai_gateway_client.rerank_highlights(home, away, comp, selected_pool)
+        if best_idx is not None and 0 <= best_idx < len(selected_pool):
+            best = selected_pool[best_idx]
+            backup_vid, backup_reg = find_backup_candidate(best["id"], selected_pool, best.get("region"))
+            for c_idx, cand in enumerate(selected_pool):
+                verdict = "ACCEPTED" if c_idx == best_idx else "REJECTED"
+                level = "SUCCESS" if verdict == "ACCEPTED" else "WARN"
+                append_event(
+                    log_events,
+                    f"Candidate #{c_idx + 1} [{verdict}]: '{cand['title']}' ({cand['channel']}) -> https://youtu.be/{cand['id']} | Verdict: {ai_reason if verdict == 'ACCEPTED' else 'Not selected'}",
+                    level,
+                    "AI_GATEWAY",
+                    f"CANDIDATE_{verdict}",
+                    match_id=m_id,
+                    attributes={"candidate_id": cand["id"], "verdict": verdict, "evaluator": evaluator_name, "score": cand.get("heuristic_score", 100), "url": f"https://youtu.be/{cand['id']}"},
+                )
+            append_event(
+                log_events,
+                f"   [AI ACCEPTED] AI Gateway selected candidate #{best_idx + 1}: '{best['title']}' ({best['channel']}) -> https://youtu.be/{best['id']}",
+                "SUCCESS",
+                "AI_GATEWAY",
+                "RESULT_LINKED",
+                match_id=m_id,
+                attributes={"step": "RESULT", "status": "LINKED", "inserted_to_db": True, "video_id": best["id"], "confidence_score": best.get("heuristic_score", 100)},
+            )
+            return best["id"], best.get("region"), backup_vid, backup_reg, build_ranked_videos(selected_pool)
+
+        if best_idx == -1:
+            append_event(log_events, f"AI Gateway explicitly rejected all candidates: {ai_reason}", "WARN", "AI_GATEWAY", "RESULT_UNLINKED", match_id=m_id)
+            return None, None, None, None, []
+
+        # 3. Deterministic Heuristic Fallback
+        valid_candidates = [c for c in selected_pool if c["heuristic_score"] > 0 and is_valid_highlight_candidate(c["title"])]
+        if valid_candidates:
+            best = valid_candidates[0]
+            backup_vid, backup_reg = find_backup_candidate(best["id"], selected_pool, best.get("region"))
+            append_event(
+                log_events,
+                f"   [FALLBACK SELECT] Weighted Heuristic selected #{best['heuristic_score']}pts from {best['channel']}: '{best['title']}' -> https://youtu.be/{best['id']}",
+                "SUCCESS",
+                "YOUTUBE",
+                "RESULT_LINKED",
+                match_id=m_id,
+                attributes={"step": "RESULT", "status": "LINKED", "inserted_to_db": True, "video_id": best["id"], "confidence_score": best["heuristic_score"]},
+            )
+            return best["id"], best.get("region"), backup_vid, backup_reg, build_ranked_videos(selected_pool)
+
+        append_event(log_events, f"   [VALIDATION FAILED] Candidates do not match both teams with verified highlight keywords.", "WARN", "YOUTUBE", "RESULT_UNLINKED", match_id=m_id)
+        return None, None, None, None, []

@@ -2,7 +2,8 @@ from unittest.mock import MagicMock, patch
 from worker.services.notification_service import NotificationService
 
 
-def test_notification_deduplication():
+@patch("worker.services.notification_service.notification_logger.log_notification")
+def test_notification_deduplication(mock_log):
     service = NotificationService()
     # Mock _send_to_club_topics to avoid real FCM network calls in unit tests
     service._send_to_club_topics = MagicMock(return_value=2)
@@ -22,21 +23,26 @@ def test_notification_deduplication():
     sent1 = service.notify_match_event(sample_match, "score")
     assert sent1 is True
     service._send_to_club_topics.assert_called_once()
+    mock_log.assert_called_once()
 
     # Identical score event should be suppressed by deduplication
     service._send_to_club_topics.reset_mock()
+    mock_log.reset_mock()
     sent2 = service.notify_match_event(sample_match, "score")
     assert sent2 is False
     service._send_to_club_topics.assert_not_called()
+    mock_log.assert_not_called()
 
     # Different score should send
     sample_match["home_score"] = 2
     sent3 = service.notify_match_event(sample_match, "score")
     assert sent3 is True
     service._send_to_club_topics.assert_called_once()
+    mock_log.assert_called_once()
 
 
-def test_highlight_notification():
+@patch("worker.services.notification_service.notification_logger.log_notification")
+def test_highlight_notification(mock_log):
     service = NotificationService()
     service._send_to_club_topics = MagicMock(return_value=2)
 
@@ -52,12 +58,15 @@ def test_highlight_notification():
     assert sent is True
     service._send_to_club_topics.assert_called_once()
     assert service._send_to_club_topics.call_args[0][0] == [86, 81]
+    mock_log.assert_called_once()
 
     # Duplicate highlight send check
     service._send_to_club_topics.reset_mock()
+    mock_log.reset_mock()
     sent_dup = service.notify_highlight_ready(sample_match, "vid_abc123", "Highlights Video")
     assert sent_dup is False
     service._send_to_club_topics.assert_not_called()
+    mock_log.assert_not_called()
 
 
 def test_audience_aggregation_and_logging():
@@ -92,7 +101,9 @@ def test_audience_aggregation_and_logging():
 
     # Test logger without storage upload
     logger = NotificationLogger()
-    logger._storage_client = None  # in-memory only
+    logger._load_remote_history = lambda: []
+    logger._upload_history = lambda notifs: None
+    logger._recent_notifications.clear()
     entry = logger.log_notification(
         event_type="score",
         match={"id": 100, "home_team": "Arsenal", "away_team": "Chelsea"},

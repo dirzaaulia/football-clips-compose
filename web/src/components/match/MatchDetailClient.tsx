@@ -15,6 +15,7 @@ import MatchTacticalBoxscore from '@/components/match/MatchTacticalBoxscore';
 import MatchDayGearSection from '@/components/affiliate/MatchDayGearSection';
 import MatchCentreHero from '@/components/player/MatchCentreHero';
 import HorizontalMatchTimeline from '@/components/match/HorizontalMatchTimeline';
+import { trackMatchView } from '@/lib/analytics';
 
 interface MatchDetailClientProps {
   initialMatch: MatchRecord | null;
@@ -65,6 +66,9 @@ export default function MatchDetailClient({
   useEffect(() => {
     setHasHydrated(true);
     setIsScoreRevealed(!isSpoilerFree);
+    if (match?.id) {
+      trackMatchView(String(match.id), match.home_team_name || 'Home', match.away_team_name || 'Away');
+    }
   }, [isSpoilerFree, match?.id]);
 
   const isPendingMismatch =
@@ -216,13 +220,6 @@ export default function MatchDetailClient({
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />}
-                </div>
-                <div className="p-3 bg-[#101418] flex items-center justify-between text-xs text-[#94A3B8] border-t border-[#334155]/60">
-                  <span className="flex items-center gap-1.5 font-bold text-white">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    {match.availability_verified ? 'Verified highlight availability' : 'Highlight reference · availability unverified'}
-                  </span>
-                  <span className="text-[#4FC3F7] font-semibold">{match.competition_name || match.competition_id}</span>
                 </div>
               </div>
               <MatchCentreHero

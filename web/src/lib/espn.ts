@@ -41,6 +41,8 @@ export interface EspnSummaryResult {
   events?: MatchEvent[] | null;
   home_score?: number | null;
   away_score?: number | null;
+  home_penalties?: number | null;
+  away_penalties?: number | null;
   display_clock?: string | null;
   status?: string | null;
 }
@@ -146,6 +148,8 @@ export async function fetchEspnMatchSummary(
       const hScore = homeTeam?.score != null ? parseInt(String(homeTeam.score), 10) : null;
       const awayTeam = competitors.find((c: any) => c.homeAway === 'away');
       const aScore = awayTeam?.score != null ? parseInt(String(awayTeam?.score), 10) : null;
+      const hPen = homeTeam?.shootoutScore != null ? parseInt(String(homeTeam.shootoutScore), 10) : null;
+      const aPen = awayTeam?.shootoutScore != null ? parseInt(String(awayTeam?.shootoutScore), 10) : null;
       let liveStatus: string | null = null;
       if (statusType?.state === 'in') {
         liveStatus = statusType?.description?.toLowerCase().includes('half') ? 'PAUSED' : 'IN_PLAY';
@@ -162,6 +166,8 @@ export async function fetchEspnMatchSummary(
         events: parsedEvents.length > 0 ? parsedEvents : null,
         home_score: hScore,
         away_score: aScore,
+        home_penalties: hPen,
+        away_penalties: aPen,
         display_clock: displayClock,
         status: liveStatus,
       };

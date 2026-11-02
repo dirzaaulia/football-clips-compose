@@ -13,6 +13,8 @@ import LiveMatchSection from '@/components/live/LiveMatchSection';
 import HighlightCard from '@/components/feed/HighlightCard';
 import HighlightCardSkeleton from '@/components/feed/HighlightCardSkeleton';
 import NativeInFeedAdCard from '@/components/ads/NativeInFeedAdCard';
+import CompetitionSectionHeader from '@/components/feed/CompetitionSectionHeader';
+import SeeAllCompetitionCard from '@/components/feed/SeeAllCompetitionCard';
 import HomeModalsAndOverlays from '@/components/feed/HomeModalsAndOverlays';
 import SeasonSelector from '@/components/filter/SeasonSelector';
 import CompetitionFilterBar from '@/components/feed/CompetitionFilterBar';
@@ -125,6 +127,39 @@ export default function HomePage() {
   const activeFilterCount = (searchQuery ? 1 : 0) + selectedCountries.length + selectedLeagues.length;
   const feedMatches = displayedMatches;
 
+  const groupedFeedMatches = useMemo(() => {
+    if (selectedComp !== 'ALL') return null;
+    const groups: { compId: string; name: string; emblem?: string; matches: MatchRecord[] }[] = [];
+    const map = new Map<string, { compId: string; name: string; emblem?: string; matches: MatchRecord[] }>();
+
+    feedMatches.forEach((m) => {
+      const compId = m.competition_id || 'OTHER';
+      const name = m.competition_name || 'Other Competitions';
+      let entry = map.get(compId);
+      if (!entry) {
+        const compInfo = competitions.find((c) => c.competitionId === compId);
+        entry = {
+          compId,
+          name,
+          emblem: compInfo?.logo || m.country_logo || undefined,
+          matches: [],
+        };
+        map.set(compId, entry);
+        groups.push(entry);
+      }
+      entry.matches.push(m);
+    });
+
+    const COMPETITION_PRIORITY: Record<string, number> = {
+      CL: 1, EL: 2, ECL: 3, PL: 4, PD: 5, SA: 6, BL1: 7, FL1: 8,
+      FAC: 9, CDR: 10, CIT: 11, DFB: 12, EFL: 13,
+      DED: 14, PPL: 15, SPL: 16, MLS: 17, BRA: 18, ARG: 19, LIB: 20, SUD: 21, REC: 22, IDN: 23,
+    };
+    groups.sort((a, b) => (COMPETITION_PRIORITY[a.compId] || 99) - (COMPETITION_PRIORITY[b.compId] || 99));
+
+    return groups;
+  }, [feedMatches, selectedComp, competitions]);
+
   return (
     <div className="max-w-[1600px] w-full mx-auto px-3.5 sm:px-6 lg:px-8 2xl:px-10 py-4">
       {catalog.error ? <div role="alert" className="mb-4 rounded-xl border border-amber-700 p-4 text-amber-100">
@@ -166,6 +201,8 @@ export default function HomePage() {
           onOpenFilter={() => setIsFilterOpen(true)}
           activeFilterCount={activeFilterCount}
           scrollRef={scrollRef}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
         />
       </section>
 
@@ -217,6 +254,38 @@ export default function HomePage() {
           >
             Reset All Filters
           </button>
+        </div>
+      ) : groupedFeedMatches ? (
+        <div className="space-y-10 my-6">
+          {groupedFeedMatches.map((group) => {
+            const displayItems = group.matches.slice(0, 20);
+            return (
+              <div key={group.compId} className="space-y-4">
+                <CompetitionSectionHeader
+                  name={group.name}
+                  emblemUrl={group.emblem}
+                  onSeeAll={() => setSelectedComp(group.compId)}
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
+                  {displayItems.map((m) => (
+                    <HighlightCard
+                      key={m.id}
+                      match={m}
+                      onPlay={(selected) => {
+                        setActiveVideoMatch(selected);
+                        playVideo(selected);
+                      }}
+                    />
+                  ))}
+                </div>
+                <SeeAllCompetitionCard
+                  competitionName={group.name}
+                  competitionEmblem={group.emblem}
+                  onSeeAll={() => setSelectedComp(group.compId)}
+                />
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 my-6">

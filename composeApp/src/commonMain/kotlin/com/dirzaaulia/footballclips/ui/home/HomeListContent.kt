@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
+import com.dirzaaulia.footballclips.data.model.competitionEmblemUrl
+import com.dirzaaulia.footballclips.data.model.competitionName
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
@@ -52,6 +54,8 @@ internal fun HomeListContent(
     val liveMatches by viewModel.liveMatches.collectAsState()
     val favoriteClubs by viewModel.favoriteClubs.collectAsState()
     val supportedClubs by viewModel.supportedClubs.collectAsState()
+    val filterState by viewModel.filterState.collectAsState()
+    val isAllLeagues = filterState.selectedLeagues.isEmpty()
 
     LazyColumn(
         state = listState,
@@ -102,48 +106,55 @@ internal fun HomeListContent(
                     onActionClick = onResetFilters,
                 )
             }
+        } else if (isAllLeagues) {
+            val nonAds = items.filter { it !is HighlightUiItem.BannerAd }
+            val groups = nonAds.groupBy { it.competitionName.ifBlank { "Other Competitions" } }
+                .toList()
+                .sortedBy { (compName, _) -> getCompetitionPriority(compName) }
+            groups.forEach { (compName, groupMatches) ->
+                val emblem = groupMatches.firstOrNull()?.competitionEmblemUrl
+                val displayMatches = groupMatches.take(20)
+                item(key = "section-$compName") {
+                    HomeCompetitionSectionHeader(
+                        competitionName = compName,
+                        competitionEmblemUrl = emblem,
+                        onSeeAll = { viewModel.selectCompetitionByName(compName) },
+                    )
+                }
+                items(
+                    items = displayMatches,
+                    key = { item -> item.uniqueId },
+                ) { item ->
+                    HighlightItemRow(
+                        item = item,
+                        revealedItemIds = revealedItemIds,
+                        isSpoilerFreeMode = isSpoilerFreeMode,
+                        showExternalHighlights = showExternalHighlights,
+                        viewModel = viewModel,
+                        onVideoClick = onVideoClick,
+                    )
+                }
+                item(key = "see-all-$compName") {
+                    HomeSeeAllCompetitionCard(
+                        competitionName = compName,
+                        competitionEmblemUrl = emblem,
+                        onSeeAll = { viewModel.selectCompetitionByName(compName) },
+                    )
+                }
+            }
         } else {
             items(
                 items = items,
                 key = { item -> item.uniqueId },
             ) { item ->
-                val itemUniqueId = item.uniqueId
-                val isRevealed = revealedItemIds.contains(itemUniqueId)
-
-                val handleVideoClick: () -> Unit = {
-                    onVideoClick(item) { isJumping ->
-                        viewModel.setPendingInterstitial(true)
-                        if (!isJumping) viewModel.consumePendingInterstitial()
-                    }
-                }
-
-                when (item) {
-                    is HighlightUiItem.OracleMatch -> {
-                        MatchCard(
-                            match = item.match,
-                            isSpoilerFree = isSpoilerFreeMode,
-                            isRevealed = isRevealed,
-                            onRevealClick = handleVideoClick,
-                            onWatchHighlightClick = { handleVideoClick() },
-                        )
-                    }
-
-                    is HighlightUiItem.Highlight -> {
-                        WebHighlightCard(
-                            item = item,
-                            isSpoilerFree = isSpoilerFreeMode,
-                            isRevealed = isRevealed,
-                            onRevealClick = handleVideoClick,
-                            onClick = { handleVideoClick() },
-                        )
-                    }
-
-                    is HighlightUiItem.BannerAd -> {
-                        BannerAdItem(
-                            style = if (showExternalHighlights) NativeAdStyle.HIGHLIGHT else NativeAdStyle.MATCH,
-                        )
-                    }
-                }
+                HighlightItemRow(
+                    item = item,
+                    revealedItemIds = revealedItemIds,
+                    isSpoilerFreeMode = isSpoilerFreeMode,
+                    showExternalHighlights = showExternalHighlights,
+                    viewModel = viewModel,
+                    onVideoClick = onVideoClick,
+                )
             }
         }
 
@@ -185,3 +196,50 @@ internal fun HomeListContent(
         }
     }
 }
+
+@Composable
+private fun HighlightItemRow(
+    item: HighlightUiItem,
+    revealedItemIds: Set<String>,
+    isSpoilerFreeMode: Boolean,
+    showExternalHighlights: Boolean,
+    viewModel: HomeViewModel,
+    onVideoClick: (HighlightUiItem, (Boolean) -> Unit) -> Unit,
+) {
+    val isRevealed = revealedItemIds.contains(item.uniqueId)
+    val handleVideoClick: () -> Unit = {
+        onVideoClick(item) { isJumping ->
+            viewModel.setPendingInterstitial(true)
+            if (!isJumping) viewModel.consumePendingInterstitial()
+        }
+    }
+
+    when (item) {
+        is HighlightUiItem.OracleMatch -> {
+            MatchCard(
+                match = item.match,
+                isSpoilerFree = isSpoilerFreeMode,
+                isRevealed = isRevealed,
+                onRevealClick = handleVideoClick,
+                onWatchHighlightClick = { handleVideoClick() },
+            )
+        }
+
+        is HighlightUiItem.Highlight -> {
+            WebHighlightCard(
+                item = item,
+                isSpoilerFree = isSpoilerFreeMode,
+                isRevealed = isRevealed,
+                onRevealClick = handleVideoClick,
+                onClick = { handleVideoClick() },
+            )
+        }
+
+        is HighlightUiItem.BannerAd -> {
+            BannerAdItem(
+                style = if (showExternalHighlights) NativeAdStyle.HIGHLIGHT else NativeAdStyle.MATCH,
+            )
+        }
+    }
+}
+

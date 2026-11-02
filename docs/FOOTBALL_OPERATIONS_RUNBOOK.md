@@ -18,7 +18,7 @@
 | Cloud Run `fc-worker` | Bounded fixture/calendar runs, workload-identity quota reconciliation, Gemini review and existing FCM bridge |
 | Cloudflare proxy | Country-aware delivery, short conditional caching and versioned cache namespaces |
 | Existing Supabase | Sign-in and backward-compatible football data for older app versions |
-| Firebase Hosting | Next.js static website and Compose Wasm console |
+| Firebase Hosting | Next.js static website and Next.js 16 Telemetry Hub (`/telemetry`) |
 | n8n 2.43.6 | One private hourly maintenance workflow; no external messaging destinations |
 
 YouTube hosts playback. This pipeline stores references and metadata, not video files. No Modal work or new paid infrastructure was added.
@@ -40,11 +40,8 @@ Oracle operations is limited to one CPU and 1 GiB RAM, with four outbound reques
 - The private executor has limited table grants for this ingestion. Public anonymous database privileges were not expanded; row security restricts competition metadata writes to IDN.
 - Do not use the older scratch RSS importer as the authoritative fixture source: it assigns IDs by upload order and does not verify actual kickoff times.
 
-### Wasm loading recovery
-
-Hosting canonicalizes `/telemetry/` to `/telemetry`. The loader must never redirect back to the slash version. Its asset base remains `/telemetry/`, and the HTML route uses `no-cache, must-revalidate`.
-
-An already-open tab can retain the old redirect for its previous one-hour cache lifetime. A hard refresh, or opening `/telemetry?release=20261024`, loads the corrected document. Owner Google sign-in and live private data rendering were verified in the browser after this fix.
+### Next.js Telemetry Console Routing
+Hosting serves `/telemetry` as an isolated Next.js client-side dashboard with live server-side hydration. The asset base is routed with `no-cache, must-revalidate` for instant fresh operational updates. Owner Google sign-in and live private data rendering are authenticated directly.
 
 - **Overview:** actual freshness, failures, queues, measured latency and coverage.
 - **Investigate:** filter structured events by fixture/job/trace, inspect a timeline, save a private view, export bounded CSV/JSON.
@@ -149,3 +146,35 @@ Owner APIs under /api/ops/v1/monitor:
 Structured history is retained for 90 days before daily compaction. Candidate metadata continues to expire under the existing 29-day refresh policy. Keep the 20 GiB disk floor and optional-work thresholds. Do not equate a linked video, completed job or FCM acceptance with verified device delivery.
 
 Rollback keeps the pre-cycle backup and previous Hosting artifacts. The schema is additive; do not restore football tables or quota state just to undo a UI release. Reverting the fixture producer also requires its matching receiver; current receiver intentionally requires structured records.
+
+---
+
+## ⚡ Cloud Tasks Queue & Embargo Orchestration
+
+### 1. Highlight Processing Queue (`fc-highlight-queue`)
+All match highlight searches are decoupled from the 1-minute fixture sync cycle and dispatched as isolated Google Cloud Tasks:
+- **Queue**: `projects/highlightdata/locations/us-central1/queues/fc-highlight-queue`
+- **Target URL**: `https://fc-worker-519310318914.us-central1.run.app/tasks/process-highlight`
+- **Rate Limit**: 2 tasks/second (prevents YouTube API bursting)
+- **Retry Policy**: Maximum 3 attempts with exponential backoff (10s to 300s)
+
+### 2. Two-Stage Embargo Lifecycle
+To ensure domestic audiences (specifically Indonesia `ID`) receive match highlights within minutes of full-time while preserving 100% unrestricted worldwide club highlights:
+1. **Stage 1 ($T+15\text{m}$ Fast-Break)**: Dispatched immediately upon match `FINISHED`. Targets domestic and regional broadcasters (e.g. Vidio in `ID`) that upload recaps within 15–30 minutes of the final whistle. If playable in `ID`, the match is immediately linked.
+2. **Stage 2 ($T+90\text{m}$ Club Embargo Lift)**: Dispatched with `schedule_time = now + 90 min`. When official club embargoes lift, the processor automatically queries official club channels (`@realmadrid`, `@arsenal`, etc.). When a worldwide unrestricted highlight is found, it is automatically promoted to `highlight_video_id` and the regional video is moved to `backup_highlight_video_id`.
+
+### 3. Queue Management Commands
+```bash
+# Inspect current task queue status
+gcloud tasks queues describe fc-highlight-queue --location=us-central1 --project=highlightdata
+
+# Pause queue during maintenance
+gcloud tasks queues pause fc-highlight-queue --location=us-central1 --project=highlightdata
+
+# Resume queue processing
+gcloud tasks queues resume fc-highlight-queue --location=us-central1 --project=highlightdata
+
+# Purge stalled tasks if necessary
+gcloud tasks queues purge fc-highlight-queue --location=us-central1 --project=highlightdata
+```
+

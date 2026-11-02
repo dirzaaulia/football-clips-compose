@@ -42,6 +42,8 @@ export interface MatchRecord {
   away_team_crest?: string | null;
   home_score?: number | null;
   away_score?: number | null;
+  home_penalties?: number | null;
+  away_penalties?: number | null;
   highlight_video_id?: string | null;
   external_video_id?: string | null;
   viewer_availability?: 'available' | 'country_blocked' | 'not_found' | 'unavailable' | 'unknown' | null;
@@ -133,14 +135,33 @@ function normalizeMatch(row: any): MatchRecord {
   return { ...row, id: String(row.id), home_team: home, away_team: away, home_team_name: home, away_team_name: away };
 }
 
-export async function getRecentHighlights(limit = 24, offset = 0, competitionId?: string, season?: number): Promise<MatchRecord[]> {
+export interface HighlightCursor {
+  date: string;
+  id: string;
+}
+
+export async function getRecentHighlights(
+  limit = 24,
+  offsetOrCursor: number | HighlightCursor = 0,
+  competitionId?: string,
+  season?: number,
+  queryStr?: string
+): Promise<MatchRecord[]> {
   let query = database
     .from('matches')
     .select('*')
     .not('highlight_video_id', 'is', null)
     .order('utc_date', { ascending: false })
-    .order('id', { ascending: false })
-    .range(offset, offset + limit - 1);
+    .order('id', { ascending: false });
+
+  if (typeof offsetOrCursor === 'object' && offsetOrCursor !== null && offsetOrCursor.date) {
+    query = query
+      .or(`utc_date.lt.${offsetOrCursor.date},and(utc_date.eq.${offsetOrCursor.date},id.lt.${offsetOrCursor.id})`)
+      .limit(limit);
+  } else {
+    const offset = typeof offsetOrCursor === 'number' ? offsetOrCursor : 0;
+    query = query.range(offset, offset + limit - 1);
+  }
 
   if (competitionId && competitionId !== 'ALL') {
     query = query.ilike('competition_id', competitionId);
@@ -150,12 +171,31 @@ export async function getRecentHighlights(limit = 24, offset = 0, competitionId?
     query = query.eq('season', season);
   }
 
+  if (queryStr && queryStr.trim()) {
+    const q = queryStr.trim();
+    query = query.or(`home_team_name.ilike.%${q}%,away_team_name.ilike.%${q}%,competition_name.ilike.%${q}%`);
+  }
+
   const { data, error } = await query;
   if (error) {
     console.error('Error fetching highlights:', error);
     return [];
   }
   return (data || []).map(normalizeMatch);
+}
+
+export async function getTopHighlightsGroupedByCompetition(
+  competitionIds: string[],
+  season = 2026,
+  limitPerComp = 20
+): Promise<Record<string, MatchRecord[]>> {
+  const entries = await Promise.all(
+    competitionIds.map(async (compId) => {
+      const records = await getRecentHighlights(limitPerComp, 0, compId, season);
+      return [compId, records] as const;
+    })
+  );
+  return Object.fromEntries(entries);
 }
 
 export async function getMatchesBySeason(
@@ -190,20 +230,19 @@ export async function getMatchesBySeason(
 }
 
 export async function getMatchById(id: string): Promise<MatchRecord | null> {
-  if (/^-?\d+$/.test(id)) {
-    const { catalogRequest } = await import('./catalog-request');
-    const response = await catalogRequest(`https://fc-edge-proxy.dirzaaulia11.workers.dev/api/v2/matches/${encodeURIComponent(id)}`);
-    if (response.ok) return normalizeMatch((await response.json()).match);
-    if (response.status !== 404) throw new Error(`Match unavailable (${response.status}); retry.`);
-  }
-  const { data, error } = await database
-    .from('matches')
-    .select('*')
-    .eq('id', id)
-    .single();
+  try {
+    const { data, error } = await database
+      .from('matches')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-  if (error || !data) return null;
-  return normalizeMatch(data);
+    if (error || !data) return null;
+    return normalizeMatch(data);
+  } catch (e) {
+    console.error('Error fetching match by id:', e);
+    return null;
+  }
 }
 
 export async function getLiveMatches(): Promise<MatchRecord[]> {

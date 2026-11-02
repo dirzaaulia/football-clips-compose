@@ -1,8 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 from loguru import logger
-from worker.clients.supabase_client import supabase_client
-from worker.clients.supabase_cloud_client import supabase_cloud_client
+from worker.clients.database_client import db_client as supabase_client
 from worker.clients.youtube_client import youtube_client
 from worker.clients.youtube_rss_client import youtube_rss_client
 from worker.config.broadcaster_registry import GLOBAL_BROADCASTER_REGISTRY

@@ -15,3 +15,18 @@ val HighlightUiItem.uniqueId: String
         is HighlightUiItem.Highlight -> "hl-${highlight.id}"
         is HighlightUiItem.BannerAd -> "ad-${hashCode()}"
     }
+
+val HighlightUiItem.competitionName: String
+    get() = when (this) {
+        is HighlightUiItem.OracleMatch -> match.competitionName
+        is HighlightUiItem.Highlight -> highlight.leagueName
+        is HighlightUiItem.BannerAd -> ""
+    }
+
+val HighlightUiItem.competitionEmblemUrl: String?
+    get() = when (this) {
+        is HighlightUiItem.OracleMatch -> match.leagueEmblemUrl
+        is HighlightUiItem.Highlight -> highlight.leagueLogo
+        is HighlightUiItem.BannerAd -> null
+    }
+

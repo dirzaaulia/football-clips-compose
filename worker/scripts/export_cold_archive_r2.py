@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from loguru import logger
-from worker.clients.supabase_client import supabase_client
+from worker.clients.database_client import db_client as supabase_client
 from worker.config.settings import settings
 
 try:

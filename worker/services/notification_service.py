@@ -45,7 +45,7 @@ class NotificationService:
         title: str,
         body: str,
         data_payload: dict[str, str],
-        channel_id: str = "channel_live_scores"
+        channel_id: str = "fc_channel_live_scores"
     ) -> int:
         if not self._initialized or not messaging:
             return 0
@@ -95,6 +95,20 @@ class NotificationService:
 
         return dispatched
 
+    @staticmethod
+    def _extract_team_name(match: dict, side: str) -> str:
+        name = match.get(f"{side}_team_name")
+        if name and isinstance(name, str) and name.strip():
+            return name.strip()
+        team_obj = match.get(f"{side}_team") or match.get(f"{side}Team")
+        if isinstance(team_obj, dict):
+            val = team_obj.get("name") or team_obj.get("shortName") or team_obj.get("displayName")
+            if val and isinstance(val, str) and val.strip():
+                return val.strip()
+        elif isinstance(team_obj, str) and team_obj.strip():
+            return team_obj.strip()
+        return f"{side.capitalize()} Team"
+
     def notify_match_event(
         self,
         match: dict,
@@ -102,8 +116,8 @@ class NotificationService:
         log_events: list | None = None
     ) -> bool:
         match_id = str(match.get("id", ""))
-        home = match.get("home_team", "Home")
-        away = match.get("away_team", "Away")
+        home = self._extract_team_name(match, "home")
+        away = self._extract_team_name(match, "away")
         h_score = match.get("home_score")
         a_score = match.get("away_score")
         h_id = match.get("home_team_id")
@@ -114,7 +128,7 @@ class NotificationService:
         dedup_key = ""
         title = ""
         body = ""
-        channel_id = "channel_live_scores"
+        channel_id = "fc_channel_live_scores"
 
         if event_type == "kickoff":
             dedup_key = f"{match_id}:kickoff"
@@ -132,7 +146,7 @@ class NotificationService:
             dedup_key = f"{match_id}:upcoming"
             title = f"Match Starting Soon: {home} vs {away}"
             body = f"Kickoff in 30 minutes in {comp}. Starting lineups are out!"
-            channel_id = "channel_match_reminders"
+            channel_id = "fc_channel_reminders"
         else:
             return False
 
@@ -144,8 +158,10 @@ class NotificationService:
             "event_type": event_type,
             "home_team": home,
             "away_team": away,
+            "home_id": str(h_id) if h_id else "",
+            "away_id": str(a_id) if a_id else "",
             "score": score_text,
-            "url": f"/match/{match_id}"
+            "url": f"/match/{match_id}",
         }
 
         sent = self._send_to_club_topics([h_id, a_id], title, body, data_payload, channel_id)
@@ -184,8 +200,8 @@ class NotificationService:
         log_events: list | None = None
     ) -> bool:
         match_id = str(match.get("id", ""))
-        home = match.get("home_team", "Home")
-        away = match.get("away_team", "Away")
+        home = self._extract_team_name(match, "home")
+        away = self._extract_team_name(match, "away")
         h_id = match.get("home_team_id")
         a_id = match.get("away_team_id")
 
@@ -199,10 +215,12 @@ class NotificationService:
             "match_id": match_id,
             "video_id": video_id,
             "event_type": "highlight",
-            "url": f"/match/{match_id}?video={video_id}"
+            "home_id": str(h_id) if h_id else "",
+            "away_id": str(a_id) if a_id else "",
+            "url": f"/match/{match_id}?video={video_id}",
         }
 
-        sent = self._send_to_club_topics([h_id, a_id], title, body, data_payload, "channel_highlights")
+        sent = self._send_to_club_topics([h_id, a_id], title, body, data_payload, "fc_channel_highlights")
         self._sent_keys.add(dedup_key)
 
         if sent > 0:
@@ -215,7 +233,7 @@ class NotificationService:
                     body=body,
                     club_ids=[h_id, a_id],
                     audience=aud,
-                    channel_id="channel_highlights",
+                    channel_id="fc_channel_highlights",
                 )
             except Exception as e:
                 logger.debug(f"[NotificationService] Failed to log highlight telemetry: {e}")

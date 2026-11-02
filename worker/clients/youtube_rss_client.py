@@ -26,9 +26,9 @@ class YouTubeRSSClient:
     }
 
     def __init__(self):
+        # Clean standard headers; YouTube RSS servers reject browser User-Agents with 404 and Accept headers with 500
         self.headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "application/atom+xml,application/xml,text/xml",
+            "Accept": "*/*",
         }
 
     def fetch_channel_recent_videos(self, channel_id: str, timeout_seconds: float = 10.0) -> list[dict[str, Any]]:

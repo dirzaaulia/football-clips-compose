@@ -122,7 +122,8 @@ private fun LiveCardHeaderRow(match: Match) {
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF7098F8),
-                maxLines = 1,
+                maxLines = 2,
+                softWrap = true,
                 overflow = TextOverflow.Ellipsis,
             )
         }
@@ -191,7 +192,8 @@ private fun RowScope.LiveTeamItem(name: String, crestUrl: String?, isAway: Boole
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
-            maxLines = 1,
+            maxLines = 2,
+            softWrap = true,
             overflow = TextOverflow.Ellipsis,
         )
         if (isAway) {

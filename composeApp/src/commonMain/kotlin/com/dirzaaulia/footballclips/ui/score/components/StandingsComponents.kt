@@ -2,6 +2,7 @@ package com.dirzaaulia.footballclips.ui.score.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -94,24 +95,63 @@ fun OfficialJerseyCard(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun StandingsTableHeader(modifier: Modifier = Modifier) {
+fun StandingsTableHeader(
+    modifier: Modifier = Modifier,
+    activeSort: String = "POS",
+    isAsc: Boolean = true,
+    onSortClick: (String) -> Unit = {},
+) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
         shape = RoundedCornerShape(12.dp),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth(),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("#", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, modifier = Modifier.width(32.dp))
-            Text("Club", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text(
+                text = if (activeSort == "POS") (if (isAsc) "# ▲" else "# ▼") else "#",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.width(36.dp).clickable { onSortClick("POS") },
+            )
+            Text(
+                text = "Club",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f),
+            )
             Text("P", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.width(28.dp))
-            Text("W", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.width(28.dp))
+            Text(
+                text = if (activeSort == "W") (if (isAsc) "W ▲" else "W ▼") else "W",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(28.dp).clickable { onSortClick("W") },
+            )
             Text("D", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.width(28.dp))
-            Text("L", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.width(28.dp))
-            Text("GD", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.width(32.dp))
-            Text("PTS", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, modifier = Modifier.width(36.dp))
+            Text(
+                text = if (activeSort == "L") (if (isAsc) "L ▲" else "L ▼") else "L",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(28.dp).clickable { onSortClick("L") },
+            )
+            Text(
+                text = if (activeSort == "GD") (if (isAsc) "GD ▲" else "GD ▼") else "GD",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(32.dp).clickable { onSortClick("GD") },
+            )
+            Text(
+                text = if (activeSort == "PTS") (if (isAsc) "PTS ▲" else "PTS ▼") else "PTS",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(42.dp).clickable { onSortClick("PTS") },
+            )
         }
     }
 }

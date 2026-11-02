@@ -2,7 +2,7 @@ import re
 from datetime import UTC, datetime
 
 from loguru import logger
-from worker.clients.supabase_client import supabase_client
+from worker.clients.database_client import db_client as supabase_client
 from worker.config.settings import settings
 from worker.utils.telemetry_logger import append_event
 

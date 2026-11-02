@@ -1,7 +1,7 @@
 import time
 import httpx
 from loguru import logger
-from worker.clients.supabase_client import supabase_client
+from worker.clients.database_client import db_client as supabase_client
 
 ORACLE_POSTGREST_URL = "https://168.110.196.30.sslip.io"
 

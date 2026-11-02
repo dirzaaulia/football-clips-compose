@@ -35,13 +35,34 @@ class MainActivity : ComponentActivity() {
     private var deepLinkMatchId by mutableStateOf<String?>(null)
 
     private fun extractMatchId(intent: Intent?): String? {
-        val uri = intent?.data ?: return null
-        if (uri.scheme == "https" && uri.host == "fc.dirzaaulia.com" && uri.path?.startsWith("/match") == true) {
-            return uri.lastPathSegment
+        val uri = intent?.data
+        if (uri != null) {
+            if (uri.scheme == "https" && uri.host == "fc.dirzaaulia.com" && uri.path?.startsWith("/match") == true) {
+                val queryId = uri.getQueryParameter("id")
+                if (!queryId.isNullOrBlank()) return queryId
+                val segment = uri.lastPathSegment
+                if (segment != null && segment != "match") return segment
+            }
+            if (uri.scheme == "drzfc" && (uri.host == "match" || uri.path?.startsWith("/match") == true)) {
+                val queryId = uri.getQueryParameter("id")
+                if (!queryId.isNullOrBlank()) return queryId
+                val segment = uri.lastPathSegment
+                if (segment != null && segment != "match") return segment
+            }
         }
-        if (uri.scheme == "drzfc" && (uri.host == "match" || uri.path?.startsWith("/match") == true)) {
-            return uri.lastPathSegment
+
+        // Support background FCM notifications clicked from Android system tray
+        val extraMatchId = intent?.getStringExtra("match_id") ?: intent?.getStringExtra("EXTRA_MATCH_ID")
+        if (!extraMatchId.isNullOrBlank()) {
+            return extraMatchId
         }
+
+        val extraUrl = intent?.getStringExtra("url")
+        if (!extraUrl.isNullOrBlank() && extraUrl.startsWith("/match/")) {
+            val id = extraUrl.removePrefix("/match/").substringBefore('?').substringBefore('/')
+            if (id.isNotBlank()) return id
+        }
+
         return null
     }
 

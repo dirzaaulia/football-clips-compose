@@ -50,6 +50,7 @@ fun App(
                         initialMatchId = initialMatchId,
                         onMatchConsumed = onMatchConsumed,
                     )
+                    com.dirzaaulia.footballclips.ui.components.common.InAppGoalBannerOverlay()
                 }
             }
         }

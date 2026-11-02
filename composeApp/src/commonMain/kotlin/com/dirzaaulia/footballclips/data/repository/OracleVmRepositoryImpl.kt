@@ -50,7 +50,7 @@ class OracleVmRepositoryImpl(
                 header("Authorization", "Bearer $databaseApiKey")
 
                 url {
-                    parameters.append("select", "id,competition_id,competition_name,utc_date,status,matchday,home_team_id,home_team_name,home_team_crest,away_team_id,away_team_name,away_team_crest,home_score,away_score,highlight_video_id,backup_highlight_video_id,season,round_name,display_clock,youtube_region_info,backup_youtube_region_info")
+                    parameters.append("select", "id,competition_id,competition_name,utc_date,status,matchday,home_team_id,home_team_name,home_team_crest,away_team_id,away_team_name,away_team_crest,home_score,away_score,home_penalties,away_penalties,highlight_video_id,backup_highlight_video_id,season,round_name,display_clock,youtube_region_info,backup_youtube_region_info")
                     parameters.append("order", order)
                     parameters.append("limit", effectiveLimit.toString())
                     parameters.append("offset", offset.toString())
@@ -216,7 +216,7 @@ class OracleVmRepositoryImpl(
                 header("apikey", databaseApiKey)
                 header("Authorization", "Bearer $databaseApiKey")
                 url {
-                    parameters.append("select", "id,competition_id,competition_name,utc_date,status,matchday,home_team_id,home_team_name,home_team_crest,away_team_id,away_team_name,away_team_crest,home_score,away_score,highlight_video_id,backup_highlight_video_id,season,round_name,display_clock,youtube_region_info,backup_youtube_region_info")
+                    parameters.append("select", "id,competition_id,competition_name,utc_date,status,matchday,home_team_id,home_team_name,home_team_crest,away_team_id,away_team_name,away_team_crest,home_score,away_score,home_penalties,away_penalties,highlight_video_id,backup_highlight_video_id,season,round_name,display_clock,youtube_region_info,backup_youtube_region_info")
                     parameters.append("or", "(status.eq.IN_PLAY,status.eq.PAUSED,status.eq.LIVE)")
                     parameters.append("order", "utc_date.asc,id.asc")
                     parameters.append("limit", "50")

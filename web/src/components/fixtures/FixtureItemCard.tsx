@@ -126,13 +126,20 @@ export default function FixtureItemCard({ match, showLeagueHeader = false }: Fix
                   : 'bg-[#101418] border border-[#334155]'
               }`}
             >
-              <span
-                className={`text-xs sm:text-sm font-black tracking-wider ${
-                  isLive ? 'text-red-400' : 'text-white'
-                }`}
-              >
-                {isFinished || isLive ? `${match.home_score ?? 0} - ${match.away_score ?? 0}` : 'vs'}
-              </span>
+              <div className="flex flex-col items-center">
+                <span
+                  className={`text-xs sm:text-sm font-black tracking-wider ${
+                    isLive ? 'text-red-400' : 'text-white'
+                  }`}
+                >
+                  {isFinished || isLive ? `${match.home_score ?? 0} - ${match.away_score ?? 0}` : 'vs'}
+                </span>
+                {match.home_penalties != null && match.away_penalties != null && (
+                  <span className="text-[10px] font-bold text-[#94A3B8] leading-tight">
+                    ({match.home_penalties} - {match.away_penalties} pen)
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>

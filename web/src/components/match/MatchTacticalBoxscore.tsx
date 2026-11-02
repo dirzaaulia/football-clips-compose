@@ -6,6 +6,7 @@ import { MatchRecord } from '@/lib/database';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 import MatchEventsTimeline from './MatchEventsTimeline';
 import MatchLineupsView from './MatchLineupsView';
+import MatchMomentumChart from './MatchMomentumChart';
 
 interface MatchTacticalBoxscoreProps {
   match: MatchRecord;
@@ -214,6 +215,12 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
           {effectiveTab === 'stats' && (
             hasStats ? (
               <div className="space-y-4">
+                <MatchMomentumChart
+                  homeTeam={homeName}
+                  awayTeam={awayName}
+                  homeScore={match.home_score}
+                  awayScore={match.away_score}
+                />
                 <div className="flex items-center justify-between text-xs font-black text-white px-2">
                   <span className="text-[#7098F8] truncate max-w-[45%]">{homeName}</span>
                   <span className="text-[#94A3B8] text-[10px] uppercase tracking-wider">Metrics</span>

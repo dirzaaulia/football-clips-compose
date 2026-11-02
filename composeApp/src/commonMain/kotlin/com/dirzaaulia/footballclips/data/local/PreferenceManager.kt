@@ -30,4 +30,13 @@ expect class PreferenceManager {
 
     val isMerchandiseEnabled: Flow<Boolean>
     suspend fun setMerchandiseEnabled(enabled: Boolean)
+
+    val notifyLiveGoals: Flow<Boolean>
+    suspend fun setNotifyLiveGoals(enabled: Boolean)
+
+    val notifyKickoffWhistle: Flow<Boolean>
+    suspend fun setNotifyKickoffWhistle(enabled: Boolean)
+
+    val notifyHighlights: Flow<Boolean>
+    suspend fun setNotifyHighlights(enabled: Boolean)
 }

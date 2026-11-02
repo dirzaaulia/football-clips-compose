@@ -246,7 +246,32 @@ private fun ColumnScope.LeagueStandingsTable(
             description = "Standings data is currently unavailable for this league.",
         )
     } else {
-        StandingsTableHeader(modifier = Modifier.padding(vertical = 6.dp))
+        var sortCol by remember { mutableStateOf("POS") }
+        var isAsc by remember { mutableStateOf(true) }
+
+        val sortedList = remember(standings, sortCol, isAsc) {
+            when (sortCol) {
+                "W" -> if (isAsc) standings.sortedBy { it.won } else standings.sortedByDescending { it.won }
+                "L" -> if (isAsc) standings.sortedBy { it.lost } else standings.sortedByDescending { it.lost }
+                "GD" -> if (isAsc) standings.sortedBy { it.goalDifference } else standings.sortedByDescending { it.goalDifference }
+                "PTS" -> if (isAsc) standings.sortedBy { it.points } else standings.sortedByDescending { it.points }
+                else -> if (isAsc) standings.sortedBy { it.position } else standings.sortedByDescending { it.position }
+            }
+        }
+
+        StandingsTableHeader(
+            modifier = Modifier.padding(vertical = 6.dp),
+            activeSort = sortCol,
+            isAsc = isAsc,
+            onSortClick = { clicked ->
+                if (sortCol == clicked) {
+                    isAsc = !isAsc
+                } else {
+                    sortCol = clicked
+                    isAsc = (clicked == "POS")
+                }
+            },
+        )
 
         LazyColumn(
             modifier = Modifier
@@ -256,7 +281,7 @@ private fun ColumnScope.LeagueStandingsTable(
             contentPadding = PaddingValues(bottom = 8.dp),
         ) {
             items(
-                items = standings,
+                items = sortedList,
                 key = { "${it.competitionId}-${it.teamId}-${it.position}" },
             ) { standing ->
                 StandingRow(standing = standing, totalTeams = standings.size)

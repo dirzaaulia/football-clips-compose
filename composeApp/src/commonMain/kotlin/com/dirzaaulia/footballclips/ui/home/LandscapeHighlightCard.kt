@@ -117,7 +117,11 @@ internal fun extractMatchMeta(item: HighlightUiItem): MatchMeta {
     return when (item) {
         is HighlightUiItem.OracleMatch -> MatchMeta(
             scoreText = if (item.match.isFinished || item.match.isLive) {
-                "${item.match.homeScore ?: 0} - ${item.match.awayScore ?: 0}"
+                if (item.match.hasPenalties) {
+                    "${item.match.homeScore ?: 0} - ${item.match.awayScore ?: 0} (${item.match.homePenalties}-${item.match.awayPenalties} pen)"
+                } else {
+                    "${item.match.homeScore ?: 0} - ${item.match.awayScore ?: 0}"
+                }
             } else {
                 item.match.kickoffTime
             },

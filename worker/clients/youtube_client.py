@@ -7,7 +7,6 @@ import httpx
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from loguru import logger
-from worker.config.constants import PERMANENT_CHANNEL_IDS
 from worker.config.settings import settings
 
 
@@ -107,8 +106,11 @@ class YouTubeClient:
             json.dump({"pt_date": today_pt, "hits": hits}, f)
 
     def resolve_channel_id(self, handle: str) -> str | None:
-        if handle in PERMANENT_CHANNEL_IDS:
-            return PERMANENT_CHANNEL_IDS[handle]
+        from worker.repositories.channel_repository import channel_repository
+
+        cid = channel_repository.get_channel_id_for_handle(handle)
+        if cid:
+            return cid
         if handle in self.disk_channel_cache:
             return self.disk_channel_cache[handle]
 

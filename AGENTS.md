@@ -1,7 +1,7 @@
 # Android/Kotlin Development Rules
 
-## 1. Master Android & Compose Multiplatform (CMP) Standards
-Applies strictly to both **`composeApp` (Android Native)** and **`webApp` (WasmJs Telemetry)**:
+## 1. Master Android & Web Standards
+Applies strictly to **`composeApp` / `androidApp` (Android Native)** and **`web` (Next.js Web & Telemetry Hub)**:
 
 ### Hard Code Constraints & Line Budget Limits
 - **Maximum File Length**: **250 lines** (Hard ceiling: **300 lines** including imports and comments).
@@ -106,8 +106,8 @@ Applies strictly to both **`composeApp` (Android Native)** and **`webApp` (WasmJ
   - Strictly adhere to the step-by-step trace:
     1. `[PROCESS]`: Search start with query and official club channel targets.
     2. Candidate detection: Number of valid candidate videos found per channel.
-    3. `[AI GEMINI]`: AI reranking evaluation of candidates using Gemini 3.8 Flash.
-    4. `[FALLBACK SELECT]`: Title regex ranking if Gemini hits quota limits or timeouts.
+    3. `[AI EVAL]` / `[AI_ACCEPTED]`: AI reranking evaluation of candidates using Oracle VM AI Gateway (`jarvis-gateway:8080` / Ollama ARM64).
+    4. `[FALLBACK SELECT]` / `[DETERMINISTIC_FALLBACK]`: Title regex ranking if the AI Gateway is busy or unreachable.
     5. `[LINKED]` or `[NOT FOUND]`: Final YouTube video ID linked and saved to Supabase, or marked as unavailable.
 - **Sync Intervals & YouTube Quota Tiering**:
   - Live matches: 1 minute (60s) tick for semi-live score and status updates.
@@ -154,3 +154,33 @@ Whenever the user instructs this agent or any other AI agent with deployment com
 ### Deployment Safety Invariants
 - Never deploy without verifying `./gradlew :androidApp:compileReleaseKotlin` pre-flight check.
 - Never hardcode or reuse a `versionCode`. Always increment `VERSION_BUILD` in `version.properties` to ensure strict monotonicity.
+
+---
+
+## 6. Backend Enterprise Architecture, Clean Code & Ingestion Standards
+Applies strictly to all Python services (`worker/`, `scripts/`, `clients/`):
+
+### Clean Code, Modularity & Type Safety
+- **Zero Untyped Dictionary Passing**: Never pass raw `dict[str, Any]` across business logic or pipeline layers. All entities, incoming API payloads, and pipeline outputs must be modeled as strict **Pydantic v2** models (e.g. `MatchFixture`, `CandidateVideo`, `CandidateEvaluation`, `MatchTraceReport`).
+- **File Length Budget**: Target **250 lines**, hard ceiling **350 lines** per Python file. Decompose bloated monolithic files into single-responsibility modules (`domain/`, `use_cases/`, `adapters/`).
+- **Hexagonal Architecture Layering**:
+  - **Domain Layer**: Pure business logic, mathematical scorers, title filters, and Pydantic models. Zero network, database, or cloud dependencies.
+  - **Use Cases Layer**: Single-action interactors (`FindMatchHighlightUseCase`, `SyncLiveMatchesUseCase`).
+  - **Ports & Adapters Layer**: Abstract protocols and concrete adapters for ESPN, YouTube API/RSS, Oracle VM AI Gateway, and PostgreSQL.
+- **Fail-Safe Defensive Parsing**: Always use Pydantic validators or safe parsing helpers for nested JSON (e.g., `youtube_region_info`). Never invoke `.get()` on a variable that could be a serialized string.
+
+### Per-Match Waterfall Diagnostics
+- **Mandatory Granular Telemetry**: Every match highlight search MUST emit a structured waterfall trace containing:
+  1. `[CHANNELS]`: Official club, league, and broadcaster targets queried.
+  2. `[CANDIDATES]`: Complete list of discovered videos (ID, title, channel handle, duration, upload age).
+  3. `[AI_VERDICTS]`: Per-candidate evaluation result:
+     - `ACCEPTED`: Score (0-100) and exact AI rationale.
+     - `REJECTED`: Score (0-100) and exact AI rejection reason (e.g., press conference, wrong opponent, general highlights).
+  4. `[OUTCOME]`: Final video ID linked, duration, and worldwide watchability percentage.
+- **Telemetry UI Integration**: The Next.js Telemetry Hub (`web/src/app/telemetry`) renders these candidate cards with color-coded badges (Green for `ACCEPTED`, Red for `REJECTED`) so operators instantly know why a video was selected or dropped.
+
+### Fault Isolation & Execution Reliability
+- **Task Granularity**: Individual matches must run as isolated tasks (e.g. via Cloud Tasks or independent UseCase invocations). A failure, timeout, or weird title on Match #1 must never block, crash, or delay Match #2 through #50.
+- **Idempotency**: All highlight search operations must be idempotent. Repeating an execution for a finished match within its cooldown window must return cached results in $< 5\text{ms}$ with zero duplicate YouTube API quota consumption.
+- **Circuit Breakers**: External integrations (Oracle VM AI Gateway, YouTube API) must employ circuit-breaking: if 3 consecutive calls fail, automatically fall back to deterministic mathematical scoring (`scorer.py`) with zero latency.
+

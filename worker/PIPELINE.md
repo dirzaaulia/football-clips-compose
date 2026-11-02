@@ -79,17 +79,20 @@ sequenceDiagram
 - **Quota Cost**: **0 YouTube Data API quota**.
 - **Benefit**: Captures the video the minute the embargo expires without burning search API calls.
 
-### 3. Pathway 3: Daily Quota Maximizer & Scheduled Multi-Tier Ingestion
+### 3. Pathway 3: Daily Quota Maximizer & Scheduled Multi-Stage Ingestion
+- **Two-Stage Embargo Precision Scheduling**:
+  - **Stage 1 ($T+15\text{m}$ Fast-Break)**: Dispatched immediately via Cloud Tasks when full-time is confirmed. Prioritizes verified regional broadcasters across our core audience markets (`['ID', 'GB', 'US']`) to ensure target users have playable highlights within minutes after the final whistle.
+  - **Stage 2 ($T+90\text{m}$ Club Embargo Lift)**: Dispatched with a 90-minute delay. When official club channels release their highlights post-embargo, the pipeline automatically links the 100% unrestricted worldwide video and preserves regional clips in `backup_highlight_video_id`.
 - **Standard Ingestion Tiers & Cooldowns**:
   - **Tier 1 (< 6h post-match)**: Check at most once every **30 minutes** (cooldown: 30m).
   - **Tier 2 (6h–24h post-match)**: Check at most once every **2 hours** (cooldown: 120m).
   - **Tier 3 (24h–72h post-match)**: Check at most once every **6 hours** (cooldown: 360m).
   - **Tier 4 (> 72h post-match)**: Check at most once every **24 hours** (cooldown: 1440m).
-- **Daily Quota Maximizer**:
-  - **Goal**: Build high historical API utilization proof for Google Cloud YouTube Data API quota increase requests while strictly preventing quota exhaustion.
+- **Daily Quota Maximizer (60,000 Units/Day Approved Budget)**:
+  - **Approved Quota Capacity**: **60,000 units/day** (equivalent to 600 YouTube Data API search queries).
   - **Guardrails**:
-    - Daily Target: **8,500 units** (leaving a strict 1,500 unit emergency buffer out of the 10,000 daily limit).
-    - Hard floor: Halts immediately if remaining quota drops below **500 units**.
+    - Daily Target: **54,000 units** (leaving a strict 6,000 unit emergency buffer).
+    - Hard floor: Halts immediately if remaining quota drops below **2,000 units**.
     - Target Filter: Processes *only* matches that map to verified `EUROPEAN_CLUB_HANDLES` or `OFFICIAL_LEAGUE_CHANNELS`. Never wastes quota on unmapped matches.
     - Prestige Ranking: Prioritizes Marquee Matches (Tier 0: Big Club clash or $\ge 4$ goals; Tier 1: Single big club or $\ge 3$ goals).
 
@@ -118,9 +121,9 @@ Candidates matching any of the following patterns are instantly rejected:
 | **Full Match Replays** | `full match`, `full match replay`, `partido completo`, `ganzes spiel` |
 | **Gaming & Simulations** | `gameplay`, `fifa`, `efootball`, `fc 24`, `fc 25`, `simulation`, `pes` |
 
-### Stage 2: Gemini 3.8 Flash Semantic Re-ranking
-* **Engine**: Google Gemini 3.8 Flash with structured JSON output schema.
-* **Rate Limiter**: In-memory token bucket enforcing max **12 RPM** to avoid HTTP 429 quota exhaustion.
+### Stage 2: DeepSeek-R1 / Gemini 2.5 Flash Lite Semantic Re-ranking
+* **Engine**: Oracle VM AI Gateway (DeepSeek-R1 / Ollama ARM64) with zero API cost, paired with Google Gemini 2.5 Flash Lite fallback.
+* **Rate Limiter**: Sliding-window circuit breaker with 12 RPM throttling for external fallback to avoid HTTP 429 quota exhaustion.
 * **Scoring Dimensions**: Match verification (Home & Away names), competition context, and official highlight authenticity.
 * **Deterministic Heuristic Fallback**: If Gemini hits a rate limit or timeout, the worker automatically switches to the deterministic scoring engine:
   - Team 1 alias match: **+35 pts**

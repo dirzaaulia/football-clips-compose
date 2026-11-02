@@ -33,9 +33,21 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (min-width: 1440px) {
+  html {
+    font-size: 16.5px;
+  }
+}
+
+@media (min-width: 1920px) {
+  html {
+    font-size: 17.5px;
+  }
+}
+
 @media (min-width: 2560px) {
   html {
-    font-size: 18px;
+    font-size: 19px;
   }
 }
 

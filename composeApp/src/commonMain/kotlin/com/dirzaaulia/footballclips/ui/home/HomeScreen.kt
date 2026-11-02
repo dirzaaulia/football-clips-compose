@@ -31,7 +31,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.ui.components.common.MyClubsBottomSheet
-import com.dirzaaulia.footballclips.ui.components.player.SpoilerEducationDialog
 import io.github.jan.supabase.compose.auth.ComposeAuth
 import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
 import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle
@@ -243,12 +242,6 @@ fun HomeScreen(
                 onToggleClub = { viewModel.toggleFavoriteClub(it) },
                 onDismissRequest = { showMyClubsSheet = false; viewModel.setMyClubsSheetVisible(false) },
                 clubs = supportedClubs,
-            )
-        }
-
-        if (isSpoilerFreeConfigured == false) {
-            SpoilerEducationDialog(
-                onSelectPreference = { isSpoilerFree -> viewModel.setSpoilerFreePreference(isSpoilerFree) },
             )
         }
     }

@@ -16,6 +16,8 @@ class MatchPayload(BaseModel):
     away_team_crest: str | None = None
     home_score: int | None = None
     away_score: int | None = None
+    home_penalties: int | None = None
+    away_penalties: int | None = None
     highlight_video_id: str | None = None
     updated_at: str | None = None
     season: int = 2026
@@ -31,6 +33,8 @@ class MatchDbRecord(BaseModel):
     status: str
     home_score: int | None = None
     away_score: int | None = None
+    home_penalties: int | None = None
+    away_penalties: int | None = None
     highlight_video_id: str | None = None
     last_youtube_check: str | None = None
     season: int = 2026

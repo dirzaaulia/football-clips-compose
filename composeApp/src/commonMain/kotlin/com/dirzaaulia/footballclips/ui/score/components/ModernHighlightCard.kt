@@ -213,7 +213,9 @@ fun ModernHighlightCard(
                             awayScore = match.awayScore,
                             isSpoilerFree = isSpoilerFree,
                             isRevealed = isRevealed,
-                            onRevealClick = onRevealClick
+                            homePenalties = match.homePenalties,
+                            awayPenalties = match.awayPenalties,
+                            onRevealClick = onRevealClick,
                         )
                     } else {
                         Text(

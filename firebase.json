@@ -41,11 +41,15 @@
           ]
         },
         {
-          "source": "/**/*.wasm",
+          "source": "/.well-known/assetlinks.json",
           "headers": [
             {
               "key": "Content-Type",
-              "value": "application/wasm"
+              "value": "application/json"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
             }
           ]
         }
@@ -72,15 +76,15 @@
     },
     {
       "site": "footballclips-telemetry",
-      "public": "webApp/build/dist/wasmJs/productionExecutable",
+      "public": "web/out/telemetry",
       "cleanUrls": true,
       "headers": [
         {
-          "source": "/**/*.wasm",
+          "source": "/**",
           "headers": [
             {
-              "key": "Content-Type",
-              "value": "application/wasm"
+              "key": "Cache-Control",
+              "value": "no-store, max-age=0, must-revalidate"
             }
           ]
         }

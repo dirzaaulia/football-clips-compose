@@ -30,6 +30,19 @@ fun HomeViewModel.selectLeague(leagueId: Int?, competitionId: String?) {
     refreshData()
 }
 
+fun HomeViewModel.selectCompetitionByName(compName: String) {
+    val comp = oracleVmRepository.competitions.value.find {
+        it.name.equals(compName, ignoreCase = true) || it.shortName.equals(compName, ignoreCase = true)
+    }
+    if (comp != null) {
+        selectLeague(comp.leagueId, comp.competitionId)
+    } else {
+        selectedLeagues.clear()
+        selectedLeagues.add(compName)
+        updateUiState()
+    }
+}
+
 fun HomeViewModel.selectVideoById(itemId: String) {
     val cached = findVideoById(oracleMatches, allHighlights, itemId)
     if (cached != null) {
@@ -54,6 +67,14 @@ fun HomeViewModel.selectVideo(item: HighlightUiItem?) {
     if (item == null) {
         _relatedHighlights.value = emptyList()
         return
+    }
+    val (h, a) = when (item) {
+        is HighlightUiItem.OracleMatch -> item.match.homeTeamName to item.match.awayTeamName
+        is HighlightUiItem.Highlight -> item.highlight.homeTeam to item.highlight.awayTeam
+        is HighlightUiItem.BannerAd -> "Ad" to "Banner"
+    }
+    if (item !is HighlightUiItem.BannerAd) {
+        appAnalytics.trackMatchView(item.uniqueId, h, a)
     }
     val (related, compId) = calculateRelatedHighlights(item, oracleMatches, allHighlights, competitions.value)
     _relatedHighlights.value = related

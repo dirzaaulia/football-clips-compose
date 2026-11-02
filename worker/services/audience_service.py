@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from typing import Any
 import httpx
 from loguru import logger
-from worker.clients.supabase_client import supabase_client
+from worker.clients.database_client import db_client as supabase_client
 from worker.config.settings import settings
 
 AUDIENCE_STATE_URL = "https://edge.fc.dirzaaulia.com/rest/v1/telemetry_state?key=eq.audience&select=payload"
