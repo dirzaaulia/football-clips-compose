@@ -11,9 +11,12 @@ from worker.config.constants import PERMANENT_CHANNEL_IDS
 from worker.config.settings import settings
 
 
+import tempfile
+
+
 class YouTubeClient:
-    QUOTA_FILE = "youtube_quota.json"
-    DISK_CHANNEL_CACHE_FILE = "channel_cache.json"
+    QUOTA_FILE = os.path.join(tempfile.gettempdir(), "youtube_quota.json")
+    DISK_CHANNEL_CACHE_FILE = os.path.join(tempfile.gettempdir(), "channel_cache.json")
 
     def __init__(self):
         self.api_key = settings.youtube_api_key
@@ -34,7 +37,7 @@ class YouTubeClient:
             with open(self.DISK_CHANNEL_CACHE_FILE, "w") as f:
                 json.dump(self.disk_channel_cache, f)
         except Exception as e:
-            logger.warning(f"Gagal save disk channel cache: {e}")
+            logger.warning(f"Failed to save disk channel cache: {e}")
 
     def get_remaining_quota(self) -> int:
         hits = self._check_and_reset_quota()
@@ -45,6 +48,16 @@ class YouTubeClient:
         return self.get_remaining_quota()
 
     def get_quota_status(self) -> dict:
+        try:
+            from worker.clients.gcp_monitoring_client import gcp_monitoring_client
+
+            if gcp_monitoring_client.is_available():
+                gcp_status = gcp_monitoring_client.fetch_real_quota_status()
+                if gcp_status:
+                    return gcp_status
+        except Exception as e:
+            logger.debug(f"[YouTube Quota] Failed to fetch GCP Cloud Monitoring quota: {e}")
+
         now_pt = datetime.now(settings.pacific_tz)
         today_pt = now_pt.strftime("%Y-%m-%d")
         midnight_pt = (now_pt + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -58,6 +71,7 @@ class YouTubeClient:
             "pt_date": today_pt,
             "hours_until_reset": round(hours_until_reset, 1),
             "is_exhausted": remaining <= 0,
+            "source": "Local Accounting",
         }
 
     def mark_quota_exhausted(self):
@@ -171,7 +185,7 @@ class YouTubeClient:
         except Exception as e:
             if "quotaExceeded" in str(e) or "rateLimitExceeded" in str(e):
                 self.mark_quota_exhausted()
-            logger.error(f"Gagal get_video_details: {e}")
+            logger.error(f"Failed to get video details: {e}")
             return {}, {}, {}
 
     @staticmethod

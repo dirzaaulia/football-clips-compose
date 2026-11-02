@@ -209,12 +209,24 @@ class ESPNClient:
             # Scores (None if scheduled/timed)
             home_score = None
             away_score = None
+            home_penalties = None
+            away_penalties = None
             if status in ["IN_PLAY", "PAUSED", "FINISHED"]:
                 try:
                     home_score = int(home_team.get("score")) if home_team.get("score") is not None else 0
                     away_score = int(away_team.get("score")) if away_team.get("score") is not None else 0
                 except (ValueError, TypeError):
                     home_score, away_score = 0, 0
+
+                try:
+                    h_shoot = home_team.get("shootoutScore")
+                    if h_shoot is not None:
+                        home_penalties = int(float(h_shoot))
+                    a_shoot = away_team.get("shootoutScore")
+                    if a_shoot is not None:
+                        away_penalties = int(float(a_shoot))
+                except (ValueError, TypeError):
+                    pass
 
             # Matchday & Round Name resolution
             comp_type = league_info.get("type", "league")
@@ -251,6 +263,8 @@ class ESPNClient:
                 "away_team_crest": away_team_crest,
                 "home_score": home_score,
                 "away_score": away_score,
+                "home_penalties": home_penalties,
+                "away_penalties": away_penalties,
                 "provider": "espn",
             }
         except Exception as e:
