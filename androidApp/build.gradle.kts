@@ -41,7 +41,11 @@ val buildNumber = (System.getenv("BUILD_NUMBER")?.toIntOrNull()
     ?: versionProps.getProperty("VERSION_BUILD", "89832570").toInt())
 val targetTrack = providers.gradleProperty("track").orNull
     ?: System.getenv("TRACK")
-    ?: if (System.getenv("GITHUB_REF")?.startsWith("refs/tags/v") == true) "production" else "internal"
+    ?: "internal"
+
+val targetPriority = providers.gradleProperty("updatePriority").orNull?.toIntOrNull()
+    ?: System.getenv("UPDATE_PRIORITY")?.toIntOrNull()
+    ?: 0
 
 play {
     val playKeyPath = localProperties.getProperty("PLAY_SERVICE_ACCOUNT")
@@ -53,25 +57,8 @@ play {
     }
     defaultToAppBundles.set(true)
     track.set(targetTrack)
-}
-
-tasks.register("incrementBuildNumber") {
-    description = "Increments the build number in version.properties"
-    group = "versioning"
-    val propsFile = versionPropsFile
-    doLast {
-        val props = Properties()
-        if (propsFile.exists()) {
-            propsFile.inputStream().use { props.load(it) }
-        }
-        val current = props.getProperty("VERSION_BUILD", "1").toInt()
-        props.setProperty("VERSION_BUILD", (current + 1).toString())
-        propsFile.outputStream().use { props.store(it, "Auto-incremented by build runner") }
-    }
-}
-
-tasks.matching { it.name.startsWith("publish") && it.name.contains("Bundle") }.configureEach {
-    dependsOn("incrementBuildNumber")
+    updatePriority.set(targetPriority)
+    releaseStatus.set(com.github.triplet.gradle.androidpublisher.ReleaseStatus.COMPLETED)
 }
 
 android {

@@ -191,44 +191,36 @@ def main():
     print(f"\n📈 Incrementing VERSION_BUILD: {current_build} -> {target_build}...")
     increment_build_number(prop_path, props)
 
-    # 3. Commit and push version.properties
+    # 3. Commit and tag release
     commit_msg = f"chore(release): bump VERSION_BUILD to {target_build} [track: {track}, priority: {priority}]"
+    tag_name = (
+        f"v{major}.{minor}.{patch}-{target_build}"
+        if track == "production"
+        else f"v{major}.{minor}.{patch}-{track}.{target_build}"
+    )
+
     print(f"\n💾 Committing version bump: '{commit_msg}'...")
-    run_cmd(f'git add version.properties', cwd=root_dir)
+    run_cmd("git add version.properties", cwd=root_dir)
     run_cmd(f'git commit -m "{commit_msg}"', cwd=root_dir)
-    print("⬆️  Pushing to origin main...")
+
+    print(f"🏷️  Creating Git tag '{tag_name}'...")
+    run_cmd(f'git tag -a "{tag_name}" -m "Release {version_name}"', cwd=root_dir)
+
+    print("⬆️  Pushing commit and tag to origin main...")
     run_cmd("git push origin main", cwd=root_dir)
+    run_cmd(f'git push origin "{tag_name}"', cwd=root_dir)
 
-    # 4. Dispatch GitHub Actions workflow
-    print(f"\n🚀 Dispatching GitHub Actions 'play_console_deploy.yml'...")
-    dispatch_cmd = (
-        f"gh workflow run play_console_deploy.yml "
-        f"-f track={track} "
-        f"-f update_priority={priority} "
-        f"-f status=completed"
+    # 4. Build and publish release bundle via Gradle Play Publisher
+    print(f"\n🚀 Publishing Release Bundle to Google Play ({track.upper()}) via GPP...")
+    publish_cmd = (
+        f"{gradle_cmd} :androidApp:publishReleaseBundle "
+        f"-Ptrack={track} "
+        f"-PupdatePriority={priority}"
     )
-    run_cmd(dispatch_cmd, cwd=root_dir)
+    run_cmd(publish_cmd, cwd=root_dir)
 
-    # 5. Locate and monitor workflow run
-    print("\n⏳ Fetching triggered workflow run...")
-    time.sleep(4)
-    run_res = run_cmd(
-        "gh run list --workflow=play_console_deploy.yml --limit=1 --json databaseId,url,status",
-        cwd=root_dir,
-        capture=True,
-        check=False,
-    )
-
-    if run_res.returncode == 0 and run_res.stdout:
-        print(f"📋 Workflow Status:\n{run_res.stdout.strip()}")
-        m = re.search(r'"databaseId":\s*(\d+)', run_res.stdout)
-        if m:
-            run_id = m.group(1)
-            print(f"🔗 Monitoring workflow run: https://github.com/dirzaaulia/football-clips-compose/actions/runs/{run_id}")
-            print(f"💡 You can watch live logs using: gh run watch {run_id}")
-
-    print("\n🎉 Deployment triggered successfully!")
-    print(f"👉 Google Play will distribute version {target_build} on track '{track}' with In-App Update Priority {priority}.")
+    print("\n🎉 Google Play deployment completed successfully!")
+    print(f"👉 Google Play distributed version {target_build} ({version_name}) on track '{track}' with In-App Update Priority {priority}.")
 
 
 if __name__ == "__main__":
