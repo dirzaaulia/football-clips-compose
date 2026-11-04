@@ -219,7 +219,7 @@ private fun MyClubsSheetContent(
 }
 
 @Composable
-private fun ClubSelectionCard(
+internal fun ClubSelectionCard(
     club: SupportedClub,
     isSelected: Boolean,
     onToggle: () -> Unit,

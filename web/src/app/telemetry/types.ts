@@ -61,10 +61,42 @@ export interface CandidateVerdict {
   score: number;
 }
 
+export interface DiscoveredCandidate {
+  id: string;
+  title: string;
+  channel: string;
+  source: 'RSS' | 'API_PLAYLIST' | 'API_SEARCH';
+  url: string;
+  duration?: number;
+  isEmbeddable?: boolean;
+  reach?: string;
+}
+
+export interface MatchCycleRun {
+  cycleId?: number;
+  timestamp: string;
+  mode?: string;
+  query?: string;
+  step1Channels: string[];
+  step2Candidates: string[];
+  step3Verdicts: CandidateVerdict[];
+  step4Outcome: string;
+  outcomeVideoId?: string;
+  outcomeVideoUrl?: string;
+  status: 'LINKED' | 'COOLDOWN' | 'UNLINKED' | 'SEARCHED';
+  stoppedAtStep?: 1 | 2 | 3 | 4;
+  stoppedReason?: string;
+}
+
 export interface MatchWaterfall {
   matchId: string;
   title: string;
   date: string;
+  timestamp?: string;
+  homeScore?: number | null;
+  awayScore?: number | null;
+  competitionId?: string;
+  competitionName?: string;
   status: 'LINKED' | 'COOLDOWN' | 'UNLINKED' | 'SEARCHED';
   step1Channels: string[];
   step2Candidates: string[];
@@ -76,6 +108,19 @@ export interface MatchWaterfall {
   cooldownRemainingMinutes?: number;
   stoppedAtStep?: 1 | 2 | 3 | 4;
   stoppedReason?: string;
+  cycles?: MatchCycleRun[];
+}
+
+export interface WeekCompetitionGroup {
+  monthWeekKey: string;
+  weekStart: string;
+  weekEnd: string;
+  competitions: {
+    competitionId: string;
+    competitionName: string;
+    priority: number;
+    matches: MatchWaterfall[];
+  }[];
 }
 
 export interface TelemetryPayload {

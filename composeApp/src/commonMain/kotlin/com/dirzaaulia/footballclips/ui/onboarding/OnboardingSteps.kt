@@ -2,6 +2,7 @@ package com.dirzaaulia.footballclips.ui.onboarding
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,10 +28,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import footballclips.composeapp.generated.resources.Res
+import footballclips.composeapp.generated.resources.app_icon
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 internal fun WelcomeStep(modifier: Modifier = Modifier) {
@@ -39,20 +44,13 @@ internal fun WelcomeStep(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Surface(
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shape = CircleShape,
-            modifier = Modifier.size(72.dp),
-        ) {
-            Icon(
-                Icons.Rounded.SportsSoccer,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(18.dp),
-            )
-        }
+        Image(
+            painter = painterResource(Res.drawable.app_icon),
+            contentDescription = "Football Clips",
+            modifier = Modifier.size(72.dp).clip(RoundedCornerShape(18.dp)),
+        )
         Text(
-            text = "Welcome to FootballClips",
+            text = "Welcome to Football Clips",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onSurface,

@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -179,11 +180,11 @@ private fun ProductShopButton(onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().height(34.dp),
         shape = RoundedCornerShape(8.dp),
-        contentPadding = ButtonDefaults.ContentPadding,
+        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Icon(
                 imageVector = Icons.Default.ShoppingBag,
@@ -191,10 +192,13 @@ private fun ProductShopButton(onClick: () -> Unit) {
                 modifier = Modifier.size(13.dp),
             )
             Text(
-                text = "Shop on Amazon",
+                text = "Amazon",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 fontSize = 11.sp,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
             )
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.OpenInNew,

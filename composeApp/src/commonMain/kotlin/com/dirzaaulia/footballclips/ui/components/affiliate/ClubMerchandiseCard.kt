@@ -152,6 +152,8 @@ private fun ClubMerchandiseActionRow(
                 text = "Shop on Amazon",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                softWrap = false,
             )
             Spacer(modifier = Modifier.width(6.dp))
             Icon(

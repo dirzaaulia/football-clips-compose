@@ -2,21 +2,27 @@ package com.dirzaaulia.footballclips.ui.onboarding
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,9 +34,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.data.model.remote.SupportedClub
-import com.dirzaaulia.footballclips.util.toProxyUrl
+import com.dirzaaulia.footballclips.ui.components.common.ClubSelectionCard
 
 @Composable
 internal fun PreferencesStep(
@@ -41,35 +47,146 @@ internal fun PreferencesStep(
     clubs: List<SupportedClub>,
     modifier: Modifier = Modifier,
 ) {
-    var search by remember { mutableStateOf("") }
-    val filteredClubs = remember(search, clubs) {
-        if (search.isBlank()) clubs else clubs.filter { it.name.contains(search, ignoreCase = true) }
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedLeagueCode by remember { mutableStateOf<String?>("ALL") }
+
+    val filteredClubs = remember(clubs, searchQuery, selectedLeagueCode) {
+        clubs.filter { club ->
+            val matchesLeague = selectedLeagueCode == null ||
+                selectedLeagueCode == "ALL" ||
+                club.leagueCode == selectedLeagueCode
+            val matchesSearch = searchQuery.isBlank() ||
+                club.name.contains(searchQuery, ignoreCase = true) ||
+                (club.shortName?.contains(searchQuery, ignoreCase = true) == true) ||
+                club.aliases.any { it.contains(searchQuery, ignoreCase = true) }
+            matchesLeague && matchesSearch
+        }
     }
 
     Column(
-        modifier = modifier.padding(horizontal = 24.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
+        PreferencesHeader(selectedCount = selectedClubs.size)
+        Spacer(modifier = Modifier.height(10.dp))
+        ThemeSelectorRow(isDarkMode = isDarkMode, onSelect = onToggleDarkMode)
+        Spacer(modifier = Modifier.height(10.dp))
+        PreferencesSearchBar(searchQuery = searchQuery, onSearchQueryChange = { searchQuery = it })
+        Spacer(modifier = Modifier.height(10.dp))
+        PreferencesLeagueFilterBar(
+            selectedLeagueCode = selectedLeagueCode,
+            onSelectLeague = { selectedLeagueCode = it },
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        PreferencesClubsGrid(
+            clubs = filteredClubs,
+            selectedClubs = selectedClubs,
+            onToggleClub = onToggleClub,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun PreferencesHeader(selectedCount: Int) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = "Personalize Your Feed",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.ExtraBold,
         )
-        ThemeSelectorRow(isDarkMode = isDarkMode, onSelect = onToggleDarkMode)
-        OutlinedTextField(
-            value = search,
-            onValueChange = { search = it },
-            label = { Text("Search your favorite clubs") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            singleLine = true,
+        Text(
+            text = "$selectedCount clubs starred • Filter by league or search",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
         )
-        ClubsSelectionSection(
-            clubs = filteredClubs,
-            selectedClubs = selectedClubs,
-            onToggleClub = onToggleClub,
+    }
+}
+
+@Composable
+private fun PreferencesSearchBar(
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+) {
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = onSearchQueryChange,
+        placeholder = { Text("Search your favorite clubs...", style = MaterialTheme.typography.bodyMedium) },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(20.dp)) },
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+        ),
+    )
+}
+
+@Composable
+private fun PreferencesLeagueFilterBar(
+    selectedLeagueCode: String?,
+    onSelectLeague: (String) -> Unit,
+) {
+    val leagueTabs = remember {
+        listOf(
+            "ALL" to "All",
+            "PL" to "Premier League",
+            "PD" to "La Liga",
+            "SA" to "Serie A",
+            "BL1" to "Bundesliga",
+            "FL1" to "Ligue 1",
+            "SPL" to "Saudi Pro",
+            "MLS" to "MLS",
+            "DED" to "Eredivisie",
+            "PPL" to "Liga Portugal",
         )
+    }
+
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        items(leagueTabs) { (code, label) ->
+            val isSelected = selectedLeagueCode == code
+            FilterChip(
+                selected = isSelected,
+                onClick = { onSelectLeague(code) },
+                label = {
+                    Text(
+                        text = label,
+                        fontSize = 12.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    )
+                },
+                shape = RoundedCornerShape(20.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun PreferencesClubsGrid(
+    clubs: List<SupportedClub>,
+    selectedClubs: Set<String>,
+    onToggleClub: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Adaptive(minSize = 140.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalItemSpacing = 8.dp,
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        items(clubs, key = { it.id }) { club ->
+            ClubSelectionCard(
+                club = club,
+                isSelected = club.id in selectedClubs,
+                onToggle = { onToggleClub(club.id) },
+            )
+        }
     }
 }
 
@@ -111,34 +228,4 @@ private fun ThemeOptionChip(
         leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
         modifier = modifier,
     )
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun ClubsSelectionSection(
-    clubs: List<SupportedClub>,
-    selectedClubs: Set<String>,
-    onToggleClub: (String) -> Unit,
-) {
-    FlowRow(
-        modifier = Modifier.fillMaxWidth().height(160.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        clubs.take(15).forEach { club ->
-            val isSelected = club.id in selectedClubs
-            FilterChip(
-                selected = isSelected,
-                onClick = { onToggleClub(club.id) },
-                label = { Text(club.shortName ?: club.name) },
-                leadingIcon = {
-                    AsyncImage(
-                        model = club.crestUrl?.toProxyUrl(),
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                    )
-                },
-            )
-        }
-    }
 }

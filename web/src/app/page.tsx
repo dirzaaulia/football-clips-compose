@@ -23,7 +23,7 @@ import MyClubsStoreShelf from '@/components/affiliate/MyClubsStoreShelf';
 import { useSeason } from '@/hooks/useSeason';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { useMerchandisePreference } from '@/hooks/useMerchandisePreference';
-import { Trophy, Loader2, CheckCircle2, Archive } from 'lucide-react';
+import { Trophy, Loader2, CheckCircle2, Archive, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -266,23 +266,32 @@ export default function HomePage() {
                   emblemUrl={group.emblem}
                   onSeeAll={() => setSelectedComp(group.compId)}
                 />
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
+                <div className="flex gap-4 overflow-x-auto pb-4 pt-1 px-1 scrollbar-thin scrollbar-thumb-slate-700/60 snap-x snap-mandatory">
                   {displayItems.map((m) => (
-                    <HighlightCard
-                      key={m.id}
-                      match={m}
-                      onPlay={(selected) => {
-                        setActiveVideoMatch(selected);
-                        playVideo(selected);
-                      }}
-                    />
+                    <div key={m.id} className="w-[280px] sm:w-[320px] shrink-0 snap-start">
+                      <HighlightCard
+                        match={m}
+                        onPlay={(selected) => {
+                          setActiveVideoMatch(selected);
+                          playVideo(selected);
+                        }}
+                      />
+                    </div>
                   ))}
+                  <div className="w-[180px] shrink-0 snap-start flex items-stretch">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedComp(group.compId)}
+                      className="w-full flex flex-col items-center justify-center p-6 rounded-2xl bg-[#181C20]/80 border border-white/10 hover:border-[#7098F8]/50 hover:bg-[#1E2227] transition-all group cursor-pointer text-center"
+                    >
+                      <div className="w-12 h-12 rounded-full bg-[#1E3A8A]/30 border border-[#7098F8]/30 flex items-center justify-center text-[#7098F8] mb-3 group-hover:scale-110 transition-transform">
+                        <ChevronRight className="w-6 h-6" />
+                      </div>
+                      <span className="text-sm font-bold text-white group-hover:text-[#7098F8] transition-colors">See all</span>
+                      <span className="text-xs text-[#94A3B8] mt-1 line-clamp-1">{group.name}</span>
+                    </button>
+                  </div>
                 </div>
-                <SeeAllCompetitionCard
-                  competitionName={group.name}
-                  competitionEmblem={group.emblem}
-                  onSeeAll={() => setSelectedComp(group.compId)}
-                />
               </div>
             );
           })}

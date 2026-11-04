@@ -20,25 +20,31 @@ This comprehensive guide details the complete architecture, industry-grade tool 
 
 ---
 
-## 1. Database IDE Evaluation: DataGrip vs. DBeaver vs. pgAdmin
+## 1. Database Viewers & IDEs: NocoDB vs. DBeaver vs. DataGrip
 
-When interacting with our PostgreSQL 16 database, selecting the right tool directly affects developer productivity, query optimization, and schema safety. Here is how the industry standards compare:
+When interacting with our PostgreSQL 16 database, selecting the right tool directly affects developer productivity, query optimization, and schema safety.
 
-| Criteria | 🏆 **DataGrip (JetBrains)** | 🥇 **DBeaver Community** | 🥈 **pgAdmin 4** |
+### Web GUI (In-Browser Super-Viewer): NocoDB
+- **URL**: `https://db.168.110.196.30.sslip.io` (or `http://footballclips-oracle:8082`)
+- **Experience**: Supabase / Airtable-style modern spreadsheet view with instant filtering, sorting, relation links, and record editing.
+- **Decommissioning Notice**: Legacy **pgAdmin 4** was officially decommissioned and archived. NocoDB replaced it, offering a vastly cleaner, responsive interface while consuming significantly fewer system resources.
+
+### Desktop IDE Comparison: DBeaver vs. DataGrip
+
+| Criteria | 🏆 **DataGrip (JetBrains)** | 🥇 **DBeaver Community** | ⚡ **NocoDB (Web GUI)** |
 | :--- | :--- | :--- | :--- |
-| **Classification** | Commercial Enterprise IDE | Open-Source Universal Standard | Official PostgreSQL GUI |
-| **Cost** | Paid (JetBrains All Products Pack) | **$0.00 Free & Open-Source** | **$0.00 Free & Open-Source** |
-| **Autocompletion & Dialect** | Industry-leading contextual SQL engine | Very good (schema-aware) | Basic syntax highlighting |
-| **Schema Refactoring & DDL** | Automated migration diffs, smart rename | Manual DDL generators | Standard PostgreSQL object tree |
-| **Git / VCS Integration** | Native Git history, query branching | Basic file saving | None |
-| **Execution Plan Visualizer** | Interactive visual tree with bottleneck warnings | Visual explain graph | Visual explain tree |
-| **Multi-Engine Support** | Yes (Postgres, SQLite, DuckDB, Redis, etc.) | Yes (80+ databases supported) | PostgreSQL only |
-| **Resource Usage** | Moderate memory footprint | Moderate (Java/Eclipse platform) | High (embedded web application) |
+| **Classification** | Commercial Enterprise IDE | Open-Source Universal Standard | Modern Web Database / Airtable UI |
+| **Cost** | Paid (JetBrains All Products Pack) | **$0.00 Free & Open-Source** | **$0.00 Free & Self-Hosted** |
+| **Access Mode** | Desktop Application | Desktop Application | Browser Web GUI (`https://db...`) |
+| **Autocompletion & Dialect** | Industry-leading contextual SQL engine | Very good (schema-aware) | Spreadsheet / Filter bar UI |
+| **Schema Refactoring & DDL** | Automated migration diffs, smart rename | Manual DDL generators | Visual schema builder |
+| **Execution Plan Visualizer** | Interactive visual tree with bottleneck warnings | Visual explain graph | N/A (Admin & Table View) |
+| **Resource Usage** | Moderate memory footprint | Moderate (Java/Eclipse platform) | Ultra-light container (<150MB) |
 
 ### Recommendation
-- **Best $0.00 Industry-Standard Choice (Recommended)**: **DBeaver Community Edition**. It gives you 90% of DataGrip's capabilities with visual ER diagrams, CSV/JSON export wizards, and fast query execution without spending a dollar.
-- **Top Commercial Enterprise Choice**: **DataGrip** (if you already have a JetBrains subscription via IntelliJ IDEA Ultimate or the All Products Pack).
-- **pgAdmin 4**: Useful primarily for PostgreSQL-specific administrative tasks (such as inspecting running vacuums or table bloat), but noticeably slower for day-to-day query authoring.
+- **Best Web-Based Database Viewer (Recommended)**: **NocoDB** at `https://db.168.110.196.30.sslip.io`. Perfect for quickly inspecting highlights, fixtures, status changes, and club metadata in a modern table view.
+- **Best Free Desktop SQL IDE**: **DBeaver Community Edition**. Ideal for complex multi-table queries, EXPLAIN ANALYZE visualizations, and manual data exports.
+- **Top Commercial Desktop IDE**: **DataGrip** (if using JetBrains IntelliJ IDEA Ultimate or All Products Pack).
 
 ---
 
@@ -94,6 +100,7 @@ flowchart TD
 | **PostgreSQL 16** | `5432` | `footballclips-oracle:5432` | ❌ Blocked (Zero public exposure) | PostgreSQL Password |
 | **PostgREST API** | `3000` / `443` | `footballclips-oracle:3000` | 🌐 `https://fc-edge-proxy...` | `web_anon` (Read-only) |
 | **Tailscale SSH** | `22` | `ssh ubuntu@footballclips-oracle` | ❌ Blocked | Tailscale MFA / Web Auth |
+| **NocoDB Web UI** | `8082` | `http://footballclips-oracle:8082` | `https://db.168.110.196.30.sslip.io` | NocoDB Auth / Password |
 | **FileBrowser** | `8090` | `http://footballclips-oracle:8090` | `https://files.168.110.196.30.sslip.io` | Admin Password |
 | **AI Gateway** | `8080` | `http://footballclips-oracle:8080` | ❌ Blocked | Bearer Token / Open on Mesh |
 | **Ollama Inference** | `11434` | `http://footballclips-oracle:11434` | ❌ Blocked | Open on Tailscale Mesh |

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Play, Pause, Radio, Server } from 'lucide-react';
+import { RefreshCw, Play, Pause, Radio, Server, Trash2 } from 'lucide-react';
 
 interface TelemetryHeaderProps {
   onRefresh: () => void;
@@ -10,6 +10,8 @@ interface TelemetryHeaderProps {
   setAutoRefreshInterval: (interval: number) => void;
   lastUpdated?: string;
   onExportJson?: () => void;
+  onClearLogs?: () => void;
+  isClearingLogs?: boolean;
 }
 
 export function TelemetryHeader({
@@ -19,6 +21,8 @@ export function TelemetryHeader({
   setAutoRefreshInterval,
   lastUpdated,
   onExportJson,
+  onClearLogs,
+  isClearingLogs,
 }: TelemetryHeaderProps) {
   const [timeWib, setTimeWib] = useState('');
   const [countdown, setCountdown] = useState(autoRefreshInterval);
@@ -115,6 +119,18 @@ export function TelemetryHeader({
             title="Export full telemetry state JSON"
           >
             <span>{copied ? 'Copied Full JSON' : 'Export JSON'}</span>
+          </button>
+        )}
+
+        {onClearLogs && (
+          <button
+            onClick={onClearLogs}
+            disabled={isClearingLogs}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 transition border border-rose-800/60 disabled:opacity-50"
+            title="Clear all telemetry cycle traces from memory/storage"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+            <span>{isClearingLogs ? 'Clearing...' : 'Clear Logs'}</span>
           </button>
         )}
 

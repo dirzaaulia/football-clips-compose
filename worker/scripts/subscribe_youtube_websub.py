@@ -50,7 +50,7 @@ class WebSubSubscriber:
             return False
 
     async def collect_all_channels(self) -> dict[str, str]:
-        return await channel_repository.get_all_websub_channels()
+        return channel_repository.get_all_websub_channels()
 
     async def subscribe_all(self):
         logger.info(f"Starting batch WebSub subscription to callback: {self.callback_url}")

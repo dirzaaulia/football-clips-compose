@@ -2,7 +2,12 @@
 
 import { useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { MatchRecord, HighlightCursor, getRecentHighlights } from '@/lib/database';
+import {
+  MatchRecord,
+  HighlightCursor,
+  getRecentHighlights,
+  getTopHighlightsGroupedByCompetition,
+} from '@/lib/database';
 import { enrichDatabaseMatch } from '@/lib/middleware-highlights';
 
 export interface UseInfiniteHighlightsResult {
@@ -15,6 +20,12 @@ export interface UseInfiniteHighlightsResult {
   refresh: () => void;
 }
 
+const PRIORITY_COMPETITIONS = [
+  'CL', 'EL', 'ECL', 'PL', 'PD', 'SA', 'BL1', 'FL1',
+  'FAC', 'CDR', 'CIT', 'DFB', 'EFL',
+  'DED', 'PPL', 'SPL', 'MLS', 'BRA', 'ARG',
+];
+
 export function useInfiniteHighlights(
   selectedComp = 'ALL',
   season = 2026,
@@ -24,6 +35,15 @@ export function useInfiniteHighlights(
   const queryResult = useInfiniteQuery({
     queryKey: ['highlights', selectedComp, season, pageSize, query],
     queryFn: async ({ pageParam }) => {
+      if (selectedComp === 'ALL' && !query && !pageParam) {
+        const grouped = await getTopHighlightsGroupedByCompetition(
+          PRIORITY_COMPETITIONS,
+          season,
+          20
+        );
+        const allMatches = Object.values(grouped).flat();
+        return allMatches.map(enrichDatabaseMatch);
+      }
       const records = await getRecentHighlights(
         pageSize,
         pageParam as HighlightCursor | undefined,
@@ -35,6 +55,7 @@ export function useInfiniteHighlights(
     },
     initialPageParam: undefined as HighlightCursor | undefined,
     getNextPageParam: (lastPage) => {
+      if (selectedComp === 'ALL' && !query) return undefined;
       if (!lastPage || lastPage.length < pageSize) return undefined;
       const last = lastPage[lastPage.length - 1];
       if (!last || !last.utc_date || !last.id) return undefined;

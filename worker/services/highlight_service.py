@@ -119,6 +119,11 @@ class HighlightService:
 
         return process_websub_video(self, video_id, title, channel_id, author_name, log_events)
 
+    @staticmethod
+    def get_video_region_info(video_id: str) -> tuple[dict | None, int, bool]:
+        durations, regions, embeddables = youtube_client.get_video_details([video_id])
+        return regions.get(video_id), durations.get(video_id, 0), embeddables.get(video_id, True)
+
     # Re-export helper methods as class/instance attributes for test & caller compatibility
     clean_team_name_for_search = staticmethod(clean_team_name_for_search)
     get_club_handle = staticmethod(get_club_handle)

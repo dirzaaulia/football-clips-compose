@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -121,25 +123,37 @@ internal fun HomeListContent(
                         onSeeAll = { viewModel.selectCompetitionByName(compName) },
                     )
                 }
-                items(
-                    items = displayMatches,
-                    key = { item -> item.uniqueId },
-                ) { item ->
-                    HighlightItemRow(
-                        item = item,
-                        revealedItemIds = revealedItemIds,
-                        isSpoilerFreeMode = isSpoilerFreeMode,
-                        showExternalHighlights = showExternalHighlights,
-                        viewModel = viewModel,
-                        onVideoClick = onVideoClick,
-                    )
-                }
-                item(key = "see-all-$compName") {
-                    HomeSeeAllCompetitionCard(
-                        competitionName = compName,
-                        competitionEmblemUrl = emblem,
-                        onSeeAll = { viewModel.selectCompetitionByName(compName) },
-                    )
+                item(key = "row-$compName") {
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
+                    ) {
+                        items(
+                            items = displayMatches,
+                            key = { it.uniqueId },
+                        ) { item ->
+                            Box(modifier = Modifier.width(280.dp)) {
+                                HighlightItemRow(
+                                    item = item,
+                                    revealedItemIds = revealedItemIds,
+                                    isSpoilerFreeMode = isSpoilerFreeMode,
+                                    showExternalHighlights = showExternalHighlights,
+                                    viewModel = viewModel,
+                                    onVideoClick = onVideoClick,
+                                )
+                            }
+                        }
+                        item(key = "see-all-$compName") {
+                            Box(modifier = Modifier.width(200.dp)) {
+                                HomeSeeAllCompetitionCard(
+                                    competitionName = compName,
+                                    competitionEmblemUrl = emblem,
+                                    onSeeAll = { viewModel.selectCompetitionByName(compName) },
+                                )
+                            }
+                        }
+                    }
                 }
             }
         } else {

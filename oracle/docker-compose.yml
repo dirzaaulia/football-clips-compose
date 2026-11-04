@@ -217,6 +217,28 @@ services:
     networks:
       - jarvis_net
 
+  # 12. NocoDB (Modern Supabase/Airtable-like Database UI)
+  nocodb:
+    image: nocodb/nocodb:latest
+    container_name: jarvis-nocodb
+    restart: unless-stopped
+    environment:
+      - NC_DB=pg://postgres:5432?u=postgres&p=${POSTGRES_PASSWORD:-jarvis_postgres_secure_2026}&d=footballclips
+      - NC_AUTH_JWT_SECRET=${NOCODB_JWT_SECRET:-jarvis_nocodb_jwt_secret_2026}
+    volumes:
+      - ./storage/nocodb:/usr/app/data
+    ports:
+      - "8082:8080"
+    depends_on:
+      - postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 1G
+    networks:
+      - jarvis_net
+
 networks:
   jarvis_net:
     driver: bridge

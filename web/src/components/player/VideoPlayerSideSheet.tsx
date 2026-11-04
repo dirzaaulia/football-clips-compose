@@ -48,6 +48,7 @@ export default function VideoPlayerSideSheet({
   const [hasSwitchedToBackup, setHasSwitchedToBackup] = useState(false);
   const [errorState, setErrorState] = useState<PlayerErrorType>('NONE');
   const [retryNonce, setRetryNonce] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Sync and enrich match data if opened with partial data
   useEffect(() => {
@@ -142,27 +143,53 @@ export default function VideoPlayerSideSheet({
       setActiveVideoId(backupVideoId);
       setHasSwitchedToBackup(true);
       setErrorState('NONE');
+      setIsLoading(true);
     } else if (!isPrimaryAllowed && !isBackupAllowed) {
       setErrorState('REGION_BLOCKED');
+      setIsLoading(false);
     } else {
       setActiveVideoId(primaryVideoId);
       setHasSwitchedToBackup(false);
       setErrorState('NONE');
+      setIsLoading(true);
     }
   }, [match?.id, country, primaryVideoId, backupVideoId, isPrimaryAllowed, isBackupAllowed]);
 
-  // YouTube Iframe PostMessage Error Interceptor
+  // 7-Second Watchdog Timer for Stream Stalls
+  useEffect(() => {
+    if (!activeVideoId || errorState !== 'NONE' || !isLoading) return;
+    const timer = setTimeout(() => {
+      if (isLoading && errorState === 'NONE') {
+        if (backupVideoId && !hasSwitchedToBackup && backupVideoId !== activeVideoId && isBackupAllowed) {
+          setHasSwitchedToBackup(true);
+          setActiveVideoId(backupVideoId);
+          setIsLoading(true);
+        } else {
+          setErrorState('TIMEOUT_ERROR');
+          setIsLoading(false);
+        }
+      }
+    }, 7000);
+    return () => clearTimeout(timer);
+  }, [activeVideoId, errorState, isLoading, backupVideoId, hasSwitchedToBackup, isBackupAllowed, retryNonce]);
+
+  // YouTube Iframe PostMessage Error and Ready Interceptor
   useEffect(() => {
     function handleMessage(e: MessageEvent) {
       try {
         const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-        if (data?.event === 'onError' || data?.info === 101 || data?.info === 150) {
+        if (data?.event === 'onReady' || data?.info === 1) {
+          setIsLoading(false);
+        }
+        if (data?.event === 'onError' || data?.info === 101 || data?.info === 150 || data?.info === 100) {
+          setIsLoading(false);
           const code = Number(data?.info);
           if (code === 101 || code === 150 || code === 100) {
             if (backupVideoId && !hasSwitchedToBackup && backupVideoId !== activeVideoId && isBackupAllowed) {
               setHasSwitchedToBackup(true);
               setActiveVideoId(backupVideoId);
               setErrorState('NONE');
+              setIsLoading(true);
             } else {
               setErrorState('NOT_EMBEDDABLE');
             }
@@ -227,9 +254,14 @@ export default function VideoPlayerSideSheet({
               retryNonce={retryNonce}
               onRetry={() => {
                 setErrorState('NONE');
+                setIsLoading(true);
                 setRetryNonce((n) => n + 1);
               }}
               hasSwitchedToBackup={hasSwitchedToBackup}
+              isLoading={isLoading}
+              onIframeLoad={() => {
+                setTimeout(() => setIsLoading(false), 600);
+              }}
             />
 
             {/* Score & Teams Pill beneath video */}

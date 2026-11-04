@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items as rowItems
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -170,28 +172,40 @@ internal fun HomeGridContent(
                         onSeeAll = { viewModel.selectCompetitionByName(compName) },
                     )
                 }
-                items(
-                    items = displayMatches,
-                    key = { item -> item.uniqueId },
-                ) { item ->
-                    HighlightGridItem(
-                        item = item,
-                        revealedItemIds = revealedItemIds,
-                        isSpoilerFreeMode = isSpoilerFreeMode,
-                        showExternalHighlights = showExternalHighlights,
-                        viewModel = viewModel,
-                        onVideoClick = onVideoClick,
-                    )
-                }
                 item(
-                    key = "see-all-$compName",
+                    key = "row-$compName",
                     span = { GridItemSpan(maxLineSpan) },
                 ) {
-                    HomeSeeAllCompetitionCard(
-                        competitionName = compName,
-                        competitionEmblemUrl = emblem,
-                        onSeeAll = { viewModel.selectCompetitionByName(compName) },
-                    )
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
+                    ) {
+                        rowItems(
+                            items = displayMatches,
+                            key = { it.uniqueId },
+                        ) { item ->
+                            Box(modifier = Modifier.width(320.dp)) {
+                                HighlightGridItem(
+                                    item = item,
+                                    revealedItemIds = revealedItemIds,
+                                    isSpoilerFreeMode = isSpoilerFreeMode,
+                                    showExternalHighlights = showExternalHighlights,
+                                    viewModel = viewModel,
+                                    onVideoClick = onVideoClick,
+                                )
+                            }
+                        }
+                        item(key = "see-all-$compName") {
+                            Box(modifier = Modifier.width(220.dp)) {
+                                HomeSeeAllCompetitionCard(
+                                    competitionName = compName,
+                                    competitionEmblemUrl = emblem,
+                                    onSeeAll = { viewModel.selectCompetitionByName(compName) },
+                                )
+                            }
+                        }
+                    }
                 }
             }
         } else {
@@ -250,45 +264,6 @@ internal fun HomeGridContent(
 
         item(span = { GridItemSpan(maxLineSpan) }) {
             Spacer(modifier = Modifier.height(100.dp))
-        }
-    }
-}
-
-@Composable
-private fun HighlightGridItem(
-    item: HighlightUiItem,
-    revealedItemIds: Set<String>,
-    isSpoilerFreeMode: Boolean,
-    showExternalHighlights: Boolean,
-    viewModel: HomeViewModel,
-    onVideoClick: (HighlightUiItem, (Boolean) -> Unit) -> Unit,
-) {
-    val isRevealed = revealedItemIds.contains(item.uniqueId)
-    val handleVideoClick: () -> Unit = {
-        onVideoClick(item) { isJumping ->
-            viewModel.setPendingInterstitial(true)
-            if (!isJumping) viewModel.consumePendingInterstitial()
-        }
-    }
-
-    when (item) {
-        is HighlightUiItem.OracleMatch, is HighlightUiItem.Highlight -> {
-            WebHighlightCard(
-                item = item,
-                isSpoilerFree = isSpoilerFreeMode,
-                isRevealed = isRevealed,
-                onRevealClick = handleVideoClick,
-                onClick = { handleVideoClick() },
-            )
-        }
-
-        is HighlightUiItem.BannerAd -> {
-            BannerAdItem(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16 / 9f),
-                style = if (showExternalHighlights) NativeAdStyle.HIGHLIGHT else NativeAdStyle.MATCH,
-            )
         }
     }
 }

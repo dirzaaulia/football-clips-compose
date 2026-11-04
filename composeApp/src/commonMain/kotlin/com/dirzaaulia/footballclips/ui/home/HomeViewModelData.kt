@@ -1,9 +1,7 @@
 package com.dirzaaulia.footballclips.ui.home
 
-
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.NetworkResult
-import com.dirzaaulia.footballclips.data.model.remote.BigLeague
 import com.dirzaaulia.footballclips.data.model.remote.HighlightUiModel
 import com.dirzaaulia.footballclips.data.model.remote.toUiModel
 import com.dirzaaulia.footballclips.data.model.uniqueId
@@ -11,8 +9,39 @@ import com.dirzaaulia.footballclips.data.repository.MiddlewareRepository
 import com.dirzaaulia.footballclips.data.repository.OracleVmRepository
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.domain.model.toMatch
-import com.dirzaaulia.footballclips.util.extractVideoId
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+
+private val PRIORITY_COMPETITION_IDS = listOf(
+    "CL", "EL", "ECL", "PL", "PD", "SA", "BL1", "FL1",
+    "FAC", "CDR", "CIT", "DFB", "EFL", "DED", "PPL", "SPL", "MLS", "BRA", "ARG",
+)
+
+internal suspend fun fetchGroupedOracleHighlights(
+    oracleVmRepository: OracleVmRepository,
+    season: Int? = null,
+): List<Match> {
+    return coroutineScope {
+        PRIORITY_COMPETITION_IDS.map { compId ->
+            async {
+                val res = oracleVmRepository.getMatches(
+                    competitionId = compId,
+                    hasHighlight = true,
+                    ascending = false,
+                    limit = 20,
+                    season = season,
+                )
+                if (res is NetworkResult.Success) {
+                    res.data.map { it.toMatch() }
+                } else {
+                    emptyList()
+                }
+            }
+        }.awaitAll().flatten()
+    }
+}
 
 internal suspend fun fetchOracleMatches(
     oracleVmRepository: OracleVmRepository,
@@ -110,14 +139,21 @@ internal suspend fun HomeViewModel.getOracleHighlights(isRefresh: Boolean = true
         hasMoreOracle = true
     }
     if (!hasMoreOracle) return
-    val (newM, hasMore) = fetchOracleMatches(
-        oracleVmRepository = oracleVmRepository,
-        competitionId = _selectedCompetitionId.value,
-        limit = oracleLimit,
-        offset = oracleOffset,
-        season = selectedSeason.value,
-        query = searchQuery,
-    )
+
+    val (newM, hasMore) = if (_selectedCompetitionId.value == null && searchQuery.isBlank() && oracleOffset == 0) {
+        val grouped = fetchGroupedOracleHighlights(oracleVmRepository, selectedSeason.value)
+        Pair(grouped, false)
+    } else {
+        fetchOracleMatches(
+            oracleVmRepository = oracleVmRepository,
+            competitionId = _selectedCompetitionId.value,
+            limit = oracleLimit,
+            offset = oracleOffset,
+            season = selectedSeason.value,
+            query = searchQuery,
+        )
+    }
+
     val exIds = oracleMatches.map { it.id }.toSet()
     val exVideos = oracleMatches.mapNotNull { it.highlightVideoId }.toSet()
     val deduplicated = newM.filter { it.id !in exIds && (it.highlightVideoId == null || it.highlightVideoId !in exVideos) }
@@ -208,93 +244,4 @@ internal fun extractAllFilters(
         currentQuery = searchQuery,
         selectedLeagues = selectedLeagues,
     ).copy(totalMatchesLoaded = totalMatchesLoaded)
-}
-
-internal fun findVideoById(
-    oracleMatches: List<Match>,
-    allHighlights: List<HighlightUiModel>,
-    itemId: String,
-): HighlightUiItem? {
-    val match = oracleMatches.firstOrNull { it.id.toString() == itemId }
-    if (match != null) return HighlightUiItem.OracleMatch(match)
-    val hl = allHighlights.firstOrNull { it.id.toString() == itemId }
-    if (hl != null) return HighlightUiItem.Highlight(hl)
-    return null
-}
-
-internal fun calculateRelatedHighlights(
-    item: HighlightUiItem,
-    oracleMatches: List<Match>,
-    allHighlights: List<HighlightUiModel>,
-    competitions: List<BigLeague> = emptyList(),
-): Pair<List<HighlightUiItem>, String?> {
-    val selectedItemUniqueId = item.uniqueId
-    val competitionName = if (item is HighlightUiItem.OracleMatch) item.match.competitionName else (item as? HighlightUiItem.Highlight)?.highlight?.leagueName
-
-    val selectedComp = competitions.firstOrNull { it.name.equals(competitionName, ignoreCase = true) }
-    val competitionId = if (item is HighlightUiItem.OracleMatch) {
-        item.match.competitionId
-    } else {
-        selectedComp?.competitionId
-    }
-
-    val fromOracle = oracleMatches
-        .filter { m ->
-            m.id.toString() != selectedItemUniqueId && (
-                competitionId == null || m.competitionId == competitionId || m.competitionName == competitionName
-                )
-        }
-        .map { HighlightUiItem.OracleMatch(it) }
-
-    val fromExternal = allHighlights
-        .filter { h ->
-            h.id.toString() != selectedItemUniqueId && (
-                competitionName == null || h.leagueName == competitionName
-                )
-        }
-        .map { HighlightUiItem.Highlight(it) }
-
-    val combined = (fromOracle + fromExternal).distinctBy { it.uniqueId }.take(10)
-    return Pair(combined, competitionId)
-}
-
-internal fun filterHighlights(
-    oracleMatches: List<Match>,
-    allHighlights: List<HighlightUiModel>,
-    selectedLeagues: Set<String>,
-    searchQuery: String,
-    showExternalHighlights: Boolean,
-): List<HighlightUiItem> {
-    val queryLower = searchQuery.trim().lowercase()
-
-    val filteredOracle = oracleMatches.filter { match ->
-        val matchesLeague = selectedLeagues.isEmpty() || match.competitionName in selectedLeagues
-        val matchesQuery = queryLower.isEmpty() ||
-            match.homeTeamName.lowercase().contains(queryLower) ||
-            match.awayTeamName.lowercase().contains(queryLower) ||
-            match.competitionName.lowercase().contains(queryLower)
-        matchesLeague && matchesQuery
-    }
-
-    val filteredExternal = allHighlights.filter { highlight ->
-        val matchesLeague = selectedLeagues.isEmpty() || highlight.leagueName in selectedLeagues
-        val matchesQuery = queryLower.isEmpty() ||
-            highlight.title.lowercase().contains(queryLower) ||
-            (highlight.leagueName.lowercase().contains(queryLower))
-        matchesLeague && matchesQuery
-    }
-
-    val items = mutableListOf<HighlightUiItem>()
-    items.addAll(filteredOracle.map { HighlightUiItem.OracleMatch(it) })
-
-    if (showExternalHighlights || allHighlights.isNotEmpty() || oracleMatches.isEmpty()) {
-        val existingVideoIds = filteredOracle.mapNotNull { it.highlightVideoId }.toSet()
-        val deduplicatedExternal = filteredExternal.filter { hl ->
-            val videoId = extractVideoId(hl.videoUrl)
-            videoId == null || videoId !in existingVideoIds
-        }
-        items.addAll(deduplicatedExternal.map { HighlightUiItem.Highlight(it) })
-    }
-
-    return items
 }

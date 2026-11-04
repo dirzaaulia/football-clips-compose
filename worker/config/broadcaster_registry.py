@@ -40,7 +40,7 @@ GLOBAL_BROADCASTER_REGISTRY: list[dict[str, Any]] = [
         "broadcaster_id": "cbs_golazo_us",
         "name": "CBS Sports Golazo",
         "channel_handle": "@CBSSportsGolazo",
-        "channel_id": "UCX_tjI6Q_4JD1E3234CwemA",
+        "channel_id": "UCET00YnetHT7tOpu12v8jxg",
         "competitions": ["CL", "EL", "ECL", "SA", "EFL"],
         "allowed_countries": ["US", "PR", "GU", "VI", "AS"],
         "contract_start_year": 2024,
@@ -88,27 +88,29 @@ GLOBAL_BROADCASTER_REGISTRY: list[dict[str, Any]] = [
     # ---------------------------------------------------------
     # Indonesia & Southeast Asia
     # ---------------------------------------------------------
+    # Southeast Asia (Vidio, beIN Asia)
+    # ---------------------------------------------------------
     {
         "broadcaster_id": "vidio_id",
         "name": "Vidio",
         "channel_handle": "@vidio_sports",
-        "channel_id": "UC_Vidio_Sports_Placeholder",
+        "channel_id": "UCoRuKUdWlO77YDg8XoTArjQ",
         "competitions": ["PL", "CL", "EL", "ECL"],
         "allowed_countries": ["ID"],
         "contract_start_year": 2022,
         "contract_end_year": 2028,
-        "status": "MONITORING",
+        "status": "ACTIVE",
     },
     {
         "broadcaster_id": "bein_sports_asia",
         "name": "beIN SPORTS Asia",
         "channel_handle": "@beINSPORTSAsia",
-        "channel_id": "UC_beIN_Sports_Asia_Placeholder",
+        "channel_id": "UCYtNSrfGdXooZYu_hkq18_w",
         "competitions": ["CL", "EL", "PD", "SA", "FL1"],
         "allowed_countries": ["ID", "MY", "SG", "TH", "PH", "HK"],
         "contract_start_year": 2024,
         "contract_end_year": 2027,
-        "status": "MONITORING",
+        "status": "ACTIVE",
     },
 
     # ---------------------------------------------------------
@@ -159,7 +161,7 @@ GLOBAL_BROADCASTER_REGISTRY: list[dict[str, Any]] = [
         "broadcaster_id": "optus_sport_au",
         "name": "Optus Sport",
         "channel_handle": "@OptusSport",
-        "channel_id": "UC_Optus_Sport_Placeholder",
+        "channel_id": None,
         "competitions": ["PL", "PD", "FAC"],
         "allowed_countries": ["AU"],
         "contract_start_year": 2022,

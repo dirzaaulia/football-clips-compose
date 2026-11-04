@@ -135,17 +135,26 @@ class TelemetryAggregator:
             cid = c.get("id") or c.get("cycle_id")
             return "websub" in val or "websub" in m or (isinstance(cid, int) and cid >= 200000)
 
-        combined_cycles = [new_cycle] + [c for c in existing_cycles if c.get("id") != unique_cycle_id]
-        yt_cycles = [c for c in combined_cycles if is_yt(c)][:50]
-        ws_cycles = [c for c in combined_cycles if is_ws(c)][:50]
-        fx_cycles = [c for c in combined_cycles if not is_yt(c) and not is_ws(c)][:50]
+        from datetime import UTC, timedelta
+        cutoff_30d = (datetime.now(UTC) - timedelta(days=30)).isoformat()
+
+        combined_cycles = [new_cycle] + [
+            c for c in existing_cycles
+            if c.get("id") != unique_cycle_id and (c.get("created_at") or "") >= cutoff_30d
+        ]
+        yt_cycles = [c for c in combined_cycles if is_yt(c)][:150]
+        ws_cycles = [c for c in combined_cycles if is_ws(c)][:100]
+        fx_cycles = [c for c in combined_cycles if not is_yt(c) and not is_ws(c)][:150]
         pruned_cycles = yt_cycles + fx_cycles + ws_cycles
         pruned_cycles.sort(key=lambda c: c.get("created_at") or c.get("timestamp") or "", reverse=True)
         retained_ids = {c.get("id") for c in pruned_cycles if c.get("id") is not None}
 
-        combined_events = new_events + existing_events
-        yt_events = [e for e in combined_events if is_yt(e) and e.get("cycle_id") in retained_ids][:2500]
-        ws_events = [e for e in combined_events if is_ws(e) and e.get("cycle_id") in retained_ids][:1000]
-        fx_events = [e for e in combined_events if not is_yt(e) and not is_ws(e) and e.get("cycle_id") in retained_ids][:2500]
+        combined_events = [
+            e for e in (new_events + existing_events)
+            if (e.get("created_at") or "") >= cutoff_30d and e.get("cycle_id") in retained_ids
+        ]
+        yt_events = [e for e in combined_events if is_yt(e)][:3000]
+        ws_events = [e for e in combined_events if is_ws(e)][:1000]
+        fx_events = [e for e in combined_events if not is_yt(e) and not is_ws(e)][:3000]
         pruned_events = yt_events + fx_events + ws_events
         return pruned_cycles, pruned_events

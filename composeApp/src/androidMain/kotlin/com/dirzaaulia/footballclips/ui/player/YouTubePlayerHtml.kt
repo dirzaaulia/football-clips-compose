@@ -36,8 +36,16 @@ internal fun buildYouTubeHtml(videoId: String): String {
                             'enablejsapi': 1
                         },
                         events: {
-                            'onReady': function(event) { event.target.playVideo(); },
-                            'onError': function(event) { window.location.href = "fc-error://" + event.data; }
+                            'onReady': function(event) {
+                                window.location.href = "fc-ready://ready";
+                                event.target.playVideo();
+                            },
+                            'onStateChange': function(event) {
+                                window.location.href = "fc-state://" + event.data;
+                            },
+                            'onError': function(event) {
+                                window.location.href = "fc-error://" + event.data;
+                            }
                         }
                     });
                 }

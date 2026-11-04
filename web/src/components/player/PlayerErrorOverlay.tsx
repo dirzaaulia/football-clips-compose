@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Globe, Play, ExternalLink, AlertCircle, RefreshCw } from 'lucide-react';
+import { Globe, Play, ExternalLink, AlertCircle, RefreshCw, WifiOff } from 'lucide-react';
 
-export type PlayerErrorType = 'NONE' | 'REGION_BLOCKED' | 'NOT_EMBEDDABLE' | 'USER_SIDE_ERROR';
+export type PlayerErrorType = 'NONE' | 'REGION_BLOCKED' | 'NOT_EMBEDDABLE' | 'USER_SIDE_ERROR' | 'TIMEOUT_ERROR';
 
 interface PlayerErrorOverlayProps {
   errorState: PlayerErrorType;
@@ -22,10 +22,10 @@ export default function PlayerErrorOverlay({
 
   if (errorState === 'REGION_BLOCKED') {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[#101418]">
+      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-[#101418]">
         <Globe className="w-10 h-10 text-[#F59E0B] mb-2.5 animate-pulse" />
         <h4 className="text-sm font-bold text-white mb-1">Not Available in Your Region</h4>
-        <p className="text-xs text-[#94A3B8] max-w-[300px]">
+        <p className="text-xs text-[#94A3B8] max-w-[320px]">
           This official match highlight is restricted in your country {country ? `(${country})` : ''} due to regional broadcasting rights.
         </p>
       </div>
@@ -34,12 +34,12 @@ export default function PlayerErrorOverlay({
 
   if (errorState === 'NOT_EMBEDDABLE') {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[#101418]">
+      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-[#101418]">
         <div className="w-10 h-10 rounded-full bg-[#EF4444]/20 border border-[#EF4444]/40 flex items-center justify-center mb-2.5">
           <Play className="w-5 h-5 text-[#EF4444] ml-0.5 fill-[#EF4444]" />
         </div>
         <h4 className="text-sm font-bold text-white mb-1">Playback Restricted in Embeds</h4>
-        <p className="text-xs text-[#94A3B8] max-w-[300px] mb-4">
+        <p className="text-xs text-[#94A3B8] max-w-[320px] mb-4">
           The rights holder requires this highlight to be watched directly on official YouTube channels.
         </p>
         <a
@@ -55,21 +55,43 @@ export default function PlayerErrorOverlay({
     );
   }
 
-  if (errorState === 'USER_SIDE_ERROR') {
+  if (errorState === 'TIMEOUT_ERROR' || errorState === 'USER_SIDE_ERROR') {
+    const isTimeout = errorState === 'TIMEOUT_ERROR';
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[#101418]">
-        <AlertCircle className="w-10 h-10 text-[#7098F8] mb-2.5" />
-        <h4 className="text-sm font-bold text-white mb-1">Playback Error</h4>
-        <p className="text-xs text-[#94A3B8] max-w-[300px] mb-4">
-          Unable to load video. Please check your internet connection and try again.
+      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center bg-[#101418]">
+        {isTimeout ? (
+          <WifiOff className="w-10 h-10 text-[#F59E0B] mb-2.5" />
+        ) : (
+          <AlertCircle className="w-10 h-10 text-[#7098F8] mb-2.5" />
+        )}
+        <h4 className="text-sm font-bold text-white mb-1">
+          {isTimeout ? 'Connection Timed Out' : 'Playback Error'}
+        </h4>
+        <p className="text-xs text-[#94A3B8] max-w-[320px] mb-4">
+          {isTimeout
+            ? 'The highlight stream took too long to connect. Check your internet connection and try again.'
+            : 'Unable to load video. Please check your internet connection and try again.'}
         </p>
-        <button
-          onClick={onRetry}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[#1E3A8A] hover:bg-[#7098F8] text-white transition-all cursor-pointer shadow-md"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Try Again</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onRetry}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[#1E3A8A] hover:bg-[#7098F8] text-white transition-all cursor-pointer shadow-md"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Try Again</span>
+          </button>
+          {activeVideoId && (
+            <a
+              href={`https://www.youtube.com/watch?v=${activeVideoId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white transition-all"
+            >
+              <span>YouTube</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
+        </div>
       </div>
     );
   }

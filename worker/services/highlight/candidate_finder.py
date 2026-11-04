@@ -142,9 +142,29 @@ class CandidateFinder:
 
                     matched_items = []
                     is_league = bool(league_handle and handle.lower() == league_handle.lower())
+                    source_mode = "rss"
                     raw_items = youtube_rss_client.fetch_channel_recent_videos(c_id)
-                    if not raw_items and self.get_safe_quota() >= 10:
+                    if raw_items:
+                        append_event(
+                            log_events,
+                            f"   [RSS DISCOVERY] Scanned {len(raw_items)} uploads from channel {handle} (0 quota units)",
+                            "INFO",
+                            "YOUTUBE",
+                            "RSS_DISCOVERY",
+                            match_id=match.get("id"),
+                        )
+                    elif self.get_safe_quota() >= 10:
+                        source_mode = "api_playlist"
                         raw_items = youtube_client.get_playlist_recent_videos(c_id, max_results=scan_limit)
+                        if raw_items:
+                            append_event(
+                                log_events,
+                                f"   [API PLAYLIST] Fetched {len(raw_items)} uploads from {handle} via YouTube Data API (Cost: 1 quota)",
+                                "INFO",
+                                "YOUTUBE",
+                                "API_CHANNEL_FALLBACK",
+                                match_id=match.get("id"),
+                            )
 
                     for it in raw_items or []:
                         snip = it.get("snippet", {})
@@ -166,20 +186,78 @@ class CandidateFinder:
                         has_h = any(matches_alias(a, norm_t) for a in h_aliases)
                         has_a = any(matches_alias(a, norm_t) for a in a_aliases)
 
+                        is_matched = False
                         if has_h and has_a:
                             if is_league or has_highlight_keyword(title) or has_scoreline(title):
-                                matched_items.append({"id": {"videoId": v_id}, "snippet": snip})
+                                is_matched = True
                         elif not is_league:
                             target_a = a_aliases if handle == get_club_handle(home) else h_aliases
                             if any(matches_alias(a, norm_t) for a in target_a) and has_highlight_keyword(title):
-                                matched_items.append({"id": {"videoId": v_id}, "snippet": snip})
+                                is_matched = True
+
+                        if is_matched:
+                            matched_items.append({"id": {"videoId": v_id}, "snippet": snip, "source": source_mode})
+                            src_name = "RSS" if source_mode == "rss" else "API"
+                            append_event(
+                                log_events,
+                                f"   [{src_name} ITEM] Discovered from {handle} [{src_name}]: '{title}' -> https://youtu.be/{v_id}",
+                                "INFO",
+                                "YOUTUBE",
+                                "CANDIDATE_ITEM",
+                                match_id=match.get("id"),
+                                attributes={
+                                    "candidate_id": v_id,
+                                    "title": title,
+                                    "channel": handle,
+                                    "source": src_name,
+                                    "url": f"https://youtu.be/{v_id}",
+                                },
+                            )
 
                     if (
                         not matched_items
                         and (allow_search_api or (self.cycle_search_api_calls < 3 and self.get_safe_quota() >= 1500))
                     ):
                         self.cycle_search_api_calls += 1
-                        matched_items = youtube_client.search_videos(query, c_id, pub_after, pub_before)
+                        append_event(
+                            log_events,
+                            f"   [API SEARCH] Querying YouTube Data API: '{query}' for channel {handle} (Cost: 100 quota)",
+                            "INFO",
+                            "YOUTUBE",
+                            "API_GENERAL_SEARCH",
+                            match_id=match.get("id"),
+                        )
+                        api_search_items = youtube_client.search_videos(query, c_id, pub_after, pub_before)
+                        if api_search_items:
+                            append_event(
+                                log_events,
+                                f"   [API RESULT] Discovered {len(api_search_items)} search results from {handle}",
+                                "INFO",
+                                "YOUTUBE",
+                                "API_GENERAL_SEARCH",
+                                match_id=match.get("id"),
+                            )
+                            for it in api_search_items:
+                                it["source"] = "api_search"
+                                matched_items.append(it)
+                                s_vid = it.get("id", {}).get("videoId")
+                                s_title = html.unescape(it.get("snippet", {}).get("title", ""))
+                                if s_vid:
+                                    append_event(
+                                        log_events,
+                                        f"   [API RESULT] Discovered from {handle} [API]: '{s_title}' -> https://youtu.be/{s_vid}",
+                                        "INFO",
+                                        "YOUTUBE",
+                                        "CANDIDATE_ITEM",
+                                        match_id=match.get("id"),
+                                        attributes={
+                                            "candidate_id": s_vid,
+                                            "title": s_title,
+                                            "channel": handle,
+                                            "source": "API",
+                                            "url": f"https://youtu.be/{s_vid}",
+                                        },
+                                    )
 
                     if not matched_items:
                         append_event(
@@ -213,12 +291,35 @@ class CandidateFinder:
                             continue
 
                         tier_num, tier_desc = classify_candidate_tier(handle, v_reg)
+                        watchability = get_worldwide_watchability_score(v_reg)
+                        is_embed = embeds.get(vid, True)
+                        src_tag = "RSS" if item.get("source") == "rss" else "API"
+
+                        append_event(
+                            log_events,
+                            f"   [CANDIDATE] Discovered from {handle} [{src_tag}]: '{title}' -> https://youtu.be/{vid} ({dur}s, embed={is_embed}, reach={watchability:.0f}%)",
+                            "INFO",
+                            "YOUTUBE",
+                            "CANDIDATE_ITEM",
+                            match_id=match.get("id"),
+                            attributes={
+                                "candidate_id": vid,
+                                "title": title,
+                                "channel": handle,
+                                "source": src_tag,
+                                "duration": dur,
+                                "is_embeddable": is_embed,
+                                "url": f"https://youtu.be/{vid}",
+                                "watchability_score": watchability,
+                            },
+                        )
+
                         candidates.append({
                             "id": vid,
                             "title": title,
                             "published_at": item.get("snippet", {}).get("publishedAt"),
                             "duration": dur,
-                            "is_embeddable": embeds.get(vid, True),
+                            "is_embeddable": is_embed,
                             "region": v_reg,
                             "geo_penalty": penalty,
                             "geo_desc": desc,
@@ -226,7 +327,8 @@ class CandidateFinder:
                             "tier": tier_num,
                             "tier_desc": tier_desc,
                             "is_target_catered": is_target_market_catered(v_reg),
-                            "watchability_score": get_worldwide_watchability_score(v_reg),
+                            "watchability_score": watchability,
+                            "source": item.get("source", "rss"),
                         })
                 except Exception as e:
                     logger.debug(f"[CandidateFinder] Channel {handle} scan error: {e}")

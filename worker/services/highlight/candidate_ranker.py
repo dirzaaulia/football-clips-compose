@@ -59,13 +59,11 @@ class CandidateRanker:
             )
 
         def candidate_sort_key(c):
-            c_reg = c.get("region") or {}
-            is_ww = not c_reg.get("blocked") and not c_reg.get("allowed")
-            ww_rank = 0 if is_ww else 1
+            embed_rank = 0 if c.get("is_embeddable", True) else 1
+            watchability = c.get("watchability_score", 0.0)
             cat_rank = 0 if c.get("is_target_catered", True) else 1
-            tier_val = c.get("tier", 1)
             h_score = c.get("heuristic_score", 0)
-            return (ww_rank, cat_rank, tier_val, -h_score)
+            return (embed_rank, -watchability, cat_rank, -h_score)
 
         selected_pool.sort(key=candidate_sort_key)
         top_cand = selected_pool[0]

@@ -10,7 +10,7 @@ from loguru import logger
 from worker.clients.ai_gateway_client import ai_gateway_client
 from worker.clients.database_client import db_client as supabase_client
 from worker.clients.edge_cache_client import edge_cache_client
-from worker.services.highlight.filters import is_target_country_catered
+from worker.services.highlight.filters import get_worldwide_watchability_score, is_target_country_catered
 from worker.services.notification_service import notification_service
 from worker.services.telemetry_service import telemetry_service
 from worker.utils.telemetry_logger import append_event
@@ -306,14 +306,34 @@ def process_websub_video(
         return {"status": "AI_REJECTED", "reason": ai_reason}
 
     reg = None
+    duration_sec = 0
+    embeddable = True
     try:
         reg, duration_sec, embeddable = highlight_service.get_video_region_info(video_id)
         if not embeddable:
             return {"status": "EMBED_RESTRICTED"}
         if duration_sec and duration_sec < 45:
             return {"status": "TOO_SHORT"}
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"Failed to fetch region info for {video_id}: {e}")
+
+    existing_vid = match.get("highlight_video_id")
+    existing_reg = match.get("youtube_region_info")
+    existing_watchability = get_worldwide_watchability_score(existing_reg) if existing_vid else 0.0
+    new_watchability = get_worldwide_watchability_score(reg)
+
+    if existing_vid and existing_watchability >= 95.0:
+        if not embeddable or new_watchability < existing_watchability:
+            append_event(
+                log_events,
+                f"   [OVERWRITE BLOCKED] Existing video {existing_vid} ({existing_watchability}%) beats candidate {video_id} ({new_watchability}%, embed={embeddable})",
+                "INFO",
+                "YOUTUBE",
+                "REGRESSION_BLOCKED",
+                match_id=match_id,
+            )
+            _persist_websub_events(log_events)
+            return {"status": "OVERWRITE_PREVENTED"}
 
     target_markets = ["ID", "GB", "US"]
     if not is_target_country_catered(reg, target_markets):
@@ -321,10 +341,11 @@ def process_websub_video(
         _persist_websub_events(log_events)
         return {"status": "GEO_BLOCKED"}
 
-    existing_vid = match.get("highlight_video_id")
     update_data = {"highlight_video_id": video_id, "last_youtube_check": now_iso}
     if existing_vid and existing_vid != video_id:
         update_data["backup_highlight_video_id"] = existing_vid
+        if existing_reg:
+            update_data["backup_youtube_region_info"] = existing_reg
     if reg is not None:
         update_data["youtube_region_info"] = reg
 

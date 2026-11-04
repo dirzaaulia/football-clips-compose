@@ -1,20 +1,18 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Layers, List } from 'lucide-react';
 import { database } from '@/lib/database';
 import {
-  TelemetryPayload,
-  MatchWaterfall,
-  NotificationsPayload,
-  SubscriptionsPayload,
-  TelemetryTab,
-  UserAnalyticsEvent,
+  TelemetryPayload, MatchWaterfall, NotificationsPayload,
+  SubscriptionsPayload, TelemetryTab, UserAnalyticsEvent,
 } from './types';
 import { buildMatchWaterfalls } from './mapper';
+import { groupWaterfallsByWeekAndCompetition } from './grouping';
 import { TelemetryHeader } from './components/TelemetryHeader';
 import { QuotaGaugeCard } from './components/QuotaGaugeCard';
 import { WaterfallCard } from './components/WaterfallCard';
+import { GroupedWaterfallsView } from './components/GroupedWaterfallsView';
 import PipelineFlowGraph from './components/PipelineFlowGraph';
 import { TelemetryNavigationRail } from './components/TelemetryNavigationRail';
 import { LiveScoresPipelineView } from './components/LiveScoresPipelineView';
@@ -31,9 +29,11 @@ export default function TelemetryPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isClearingLogs, setIsClearingLogs] = useState(false);
   const [autoRefreshInterval, setAutoRefreshInterval] = useState(15);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'LINKED' | 'COOLDOWN' | 'UNLINKED'>('ALL');
+  const [viewMode, setViewMode] = useState<'grouped' | 'flat'>('grouped');
 
   const fetchTelemetry = useCallback(async () => {
     setIsRefreshing(true);
@@ -45,13 +45,9 @@ export default function TelemetryPage() {
 
       if (!error && rows) {
         for (const row of rows) {
-          if (row.key === 'telemetry') {
-            setData(row.payload as TelemetryPayload);
-          } else if (row.key === 'notifications') {
-            setNotifications(row.payload as NotificationsPayload);
-          } else if (row.key === 'subscriptions') {
-            setSubscriptions(row.payload as SubscriptionsPayload);
-          }
+          if (row.key === 'telemetry') setData(row.payload as TelemetryPayload);
+          else if (row.key === 'notifications') setNotifications(row.payload as NotificationsPayload);
+          else if (row.key === 'subscriptions') setSubscriptions(row.payload as SubscriptionsPayload);
         }
       }
 
@@ -73,46 +69,47 @@ export default function TelemetryPage() {
     fetchTelemetry();
   }, [fetchTelemetry]);
 
-  const waterfalls = useMemo(() => {
-    if (!data?.events) return [];
-    return buildMatchWaterfalls(data.events);
-  }, [data]);
+  const handleClearLogs = async () => {
+    if (!confirm('Are you sure you want to clear all telemetry cycle traces?')) return;
+    setIsClearingLogs(true);
+    try {
+      if (data) {
+        const clearedPayload = { ...data, events: [], cycle_count: 0 };
+        await database.from('telemetry_state').upsert({ key: 'telemetry', payload: clearedPayload });
+      }
+      await fetchTelemetry();
+    } catch (e) {
+      console.error('Failed to clear telemetry logs:', e);
+    } finally {
+      setIsClearingLogs(false);
+    }
+  };
+
+  const waterfalls = useMemo(() => (!data?.events ? [] : buildMatchWaterfalls(data.events)), [data]);
 
   const filteredWaterfalls = useMemo(() => {
     return waterfalls.filter((wf: MatchWaterfall) => {
-      const matchesSearch =
-        !searchQuery ||
-        wf.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        wf.matchId.includes(searchQuery);
+      const matchesSearch = !searchQuery || wf.title.toLowerCase().includes(searchQuery.toLowerCase()) || wf.matchId.includes(searchQuery);
       const matchesStatus = statusFilter === 'ALL' || wf.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [waterfalls, searchQuery, statusFilter]);
 
-  const unlinkedCount = useMemo(() => {
-    return waterfalls.filter((w) => w.status === 'UNLINKED' || w.status === 'COOLDOWN').length;
-  }, [waterfalls]);
+  const groupedWaterfalls = useMemo(() => groupWaterfallsByWeekAndCompetition(filteredWaterfalls), [filteredWaterfalls]);
+
+  const unlinkedCount = useMemo(() => waterfalls.filter((w) => w.status === 'UNLINKED' || w.status === 'COOLDOWN').length, [waterfalls]);
 
   const liveMatchesCount = useMemo(() => {
     if (!data?.events) return 0;
     const liveSet = new Set<string>();
     for (const ev of data.events) {
-      if (
-        ev.attributes &&
-        ev.attributes.status &&
-        ['IN_PLAY', 'PAUSED', 'LIVE'].includes(String(ev.attributes.status))
-      ) {
+      if (ev.attributes?.status && ['IN_PLAY', 'PAUSED', 'LIVE'].includes(String(ev.attributes.status))) {
         const id = String(ev.match_id || ev.attributes.id || '');
         if (id) liveSet.add(id);
       }
     }
     return liveSet.size;
   }, [data]);
-
-  const handleExportJson = () => {
-    const fullState = { telemetry: data, notifications, subscriptions };
-    navigator.clipboard.writeText(JSON.stringify(fullState, null, 2));
-  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans p-4 sm:p-6 lg:p-8">
@@ -123,13 +120,14 @@ export default function TelemetryPage() {
           autoRefreshInterval={autoRefreshInterval}
           setAutoRefreshInterval={setAutoRefreshInterval}
           lastUpdated={data?.updated_at ? new Date(data.updated_at).toLocaleTimeString() : undefined}
-          onExportJson={handleExportJson}
+          onExportJson={() => navigator.clipboard.writeText(JSON.stringify({ telemetry: data, notifications, subscriptions }, null, 2))}
+          onClearLogs={handleClearLogs}
+          isClearingLogs={isClearingLogs}
         />
 
         {data?.quota && <QuotaGaugeCard quota={data.quota} />}
 
         <div className="flex flex-col lg:flex-row items-start gap-6">
-          {/* Left Navigation Console Rail */}
           <TelemetryNavigationRail
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -141,7 +139,6 @@ export default function TelemetryPage() {
             isLiveActive={liveMatchesCount > 0}
           />
 
-          {/* Right Active View Deck */}
           <main className="flex-1 min-w-0 w-full space-y-5">
             {activeTab === 'highlights' && (
               <>
@@ -150,7 +147,6 @@ export default function TelemetryPage() {
                   onNodeClick={(key) => setSearchQuery((prev) => (prev === key ? '' : key))}
                 />
 
-                {/* Filter & Search Bar */}
                 <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
                   <div className="relative flex-1">
                     <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -164,16 +160,31 @@ export default function TelemetryPage() {
                   </div>
 
                   <div className="flex items-center gap-2 overflow-x-auto">
+                    <div className="flex items-center bg-slate-950 border border-slate-800 rounded-lg p-0.5 mr-1">
+                      <button
+                        onClick={() => setViewMode('grouped')}
+                        className={`p-1.5 rounded text-xs font-mono flex items-center gap-1 transition ${viewMode === 'grouped' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                        title="Grouped by Week & Priority"
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Grouped</span>
+                      </button>
+                      <button
+                        onClick={() => setViewMode('flat')}
+                        className={`p-1.5 rounded text-xs font-mono flex items-center gap-1 transition ${viewMode === 'flat' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                        title="Flat List View"
+                      >
+                        <List className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Flat</span>
+                      </button>
+                    </div>
+
                     <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
                     {(['ALL', 'LINKED', 'COOLDOWN', 'UNLINKED'] as const).map((st) => (
                       <button
                         key={st}
                         onClick={() => setStatusFilter(st)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold tracking-wide transition shrink-0 ${
-                          statusFilter === st
-                            ? 'bg-indigo-600 text-white shadow-sm'
-                            : 'bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700'
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition shrink-0 ${statusFilter === st ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700'}`}
                       >
                         {st}
                       </button>
@@ -181,63 +192,38 @@ export default function TelemetryPage() {
                   </div>
                 </div>
 
-                {/* Waterfalls List */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-xs text-slate-400 px-1 font-mono">
-                    <span>
-                      Diagnosed Match Waterfall Traces ({filteredWaterfalls.length} of {waterfalls.length})
-                    </span>
-                    <span>Click any match card to expand verification steps</span>
+                    <span>Diagnosed Match Waterfall Traces ({filteredWaterfalls.length} of {waterfalls.length})</span>
+                    <span>Click any match card to inspect diagnostic steps</span>
                   </div>
 
                   {isLoading ? (
                     <div className="p-12 text-center text-slate-500 font-mono text-sm bg-slate-900/40 rounded-xl border border-slate-800">
                       Loading real-time telemetry stream...
                     </div>
+                  ) : viewMode === 'grouped' ? (
+                    <GroupedWaterfallsView
+                      groups={groupedWaterfalls}
+                      onOverrideSuccess={fetchTelemetry}
+                    />
                   ) : filteredWaterfalls.length === 0 ? (
                     <div className="p-12 text-center text-slate-500 font-mono text-sm bg-slate-900/40 rounded-xl border border-slate-800">
-                      No matching match waterfalls found for current search/filter.
+                      No matching waterfalls found for current search/filter.
                     </div>
                   ) : (
-                    filteredWaterfalls.map((wf: MatchWaterfall) => (
-                      <WaterfallCard
-                        key={wf.matchId}
-                        waterfall={wf}
-                        onOverrideSuccess={fetchTelemetry}
-                      />
+                    filteredWaterfalls.map((wf) => (
+                      <WaterfallCard key={wf.matchId} waterfall={wf} onOverrideSuccess={fetchTelemetry} />
                     ))
                   )}
                 </div>
               </>
             )}
 
-            {activeTab === 'fixtures' && (
-              <LiveScoresPipelineView
-                pipelineInfo={data?.pipelines?.fixtures}
-                events={data?.events || []}
-              />
-            )}
-
-            {activeTab === 'websub' && (
-              <WebSubPipelineView
-                pipelineInfo={data?.pipelines?.websub}
-                events={data?.events || []}
-              />
-            )}
-
-            {activeTab === 'notifications' && (
-              <NotificationsPipelineView
-                notificationsPayload={notifications}
-                subscriptions={subscriptions?.items || []}
-              />
-            )}
-
-            {activeTab === 'analytics' && (
-              <AnalyticsPipelineView
-                events={analyticsEvents}
-                isLoading={isLoading}
-              />
-            )}
+            {activeTab === 'fixtures' && <LiveScoresPipelineView pipelineInfo={data?.pipelines?.fixtures} events={data?.events || []} />}
+            {activeTab === 'websub' && <WebSubPipelineView pipelineInfo={data?.pipelines?.websub} events={data?.events || []} />}
+            {activeTab === 'notifications' && <NotificationsPipelineView notificationsPayload={notifications} subscriptions={subscriptions?.items || []} />}
+            {activeTab === 'analytics' && <AnalyticsPipelineView events={analyticsEvents} isLoading={isLoading} />}
           </main>
         </div>
       </div>
