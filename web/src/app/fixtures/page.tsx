@@ -170,15 +170,23 @@ export default function FixturesPage() {
     >();
 
     filteredFixtures.forEach((m) => {
-      const rawName = m.competition_name || m.competition_id || 'Other Competitions';
-      const normName = rawName;
+      const matchedLeague = competitions.find(
+        (b) => b.competitionId !== 'ALL' && (
+          b.competitionId === m.competition_id ||
+          b.name === m.competition_name ||
+          isLeagueMatch(b.name, m.competition_name)
+        )
+      );
+
+      // Only display matches belonging to supported competitions
+      if (!matchedLeague && !m.competition_id) return;
+
+      const normName = matchedLeague?.name || m.competition_name || m.competition_id || '';
+      if (!normName) return;
 
       if (!map.has(normName)) {
-        const matchedLeague = competitions.find(
-          (b) => b.competitionId !== 'ALL' && (b.name === normName || isLeagueMatch(b.name, normName))
-        );
         map.set(normName, {
-          competitionId: m.competition_id || 'OTHER',
+          competitionId: matchedLeague?.competitionId || m.competition_id || 'COMP',
           competitionName: normName,
           logo: matchedLeague?.logo,
           matches: [],
@@ -188,8 +196,18 @@ export default function FixturesPage() {
       map.get(normName)!.matches.push(m);
     });
 
-    return Array.from(map.values());
-  }, [filteredFixtures]);
+    return Array.from(map.values()).sort((a, b) => {
+      const idxA = competitions.findIndex(
+        (c) => c.competitionId === a.competitionId || c.name === a.competitionName
+      );
+      const idxB = competitions.findIndex(
+        (c) => c.competitionId === b.competitionId || c.name === b.competitionName
+      );
+      const orderA = idxA >= 0 ? idxA : 999;
+      const orderB = idxB >= 0 ? idxB : 999;
+      return orderA - orderB;
+    });
+  }, [filteredFixtures, competitions]);
 
   return (
     <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 py-6">

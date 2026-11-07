@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -14,9 +16,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
+import com.dirzaaulia.footballclips.data.model.matchesLeague
+import com.dirzaaulia.footballclips.data.model.remote.BigLeague
 import com.dirzaaulia.footballclips.data.model.remote.SupportedClub
 import com.dirzaaulia.footballclips.data.model.remote.isMatchForFavoriteClubs
 import com.dirzaaulia.footballclips.data.model.uniqueId
@@ -36,7 +41,30 @@ fun FixturesContentList(
     onVideoClick: (HighlightUiItem, (Boolean) -> Unit) -> Unit,
     modifier: Modifier = Modifier,
     isAdsRemoved: Boolean = false,
+    dynamicCompetitions: List<BigLeague> = emptyList(),
+    selectedCompetitionId: String? = null,
 ) {
+    val groupedItems = remember(matches, dynamicCompetitions, selectedCompetitionId) {
+        if (!selectedCompetitionId.isNullOrEmpty()) {
+            listOf(null to matches)
+        } else {
+            val remaining = matches.toMutableList()
+            val groups = mutableListOf<Pair<BigLeague?, List<HighlightUiItem>>>()
+
+            dynamicCompetitions.forEach { comp ->
+                val compMatches = remaining.filter { it.matchesLeague(comp) }
+                if (compMatches.isNotEmpty()) {
+                    groups.add(comp to compMatches)
+                    remaining.removeAll(compMatches)
+                }
+            }
+            if (remaining.isNotEmpty()) {
+                groups.add(null to remaining)
+            }
+            groups
+        }
+    }
+
     if (isGrid) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 320.dp),
@@ -46,34 +74,45 @@ fun FixturesContentList(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            items(
-                items = matches,
-                key = { it.uniqueId },
-                span = { item ->
-                    if (item is HighlightUiItem.BannerAd) {
-                        GridItemSpan(maxLineSpan)
-                    } else {
-                        GridItemSpan(1)
-                    }
-                },
-            ) { item ->
-                when (item) {
-                    is HighlightUiItem.OracleMatch -> {
-                        val isFav = item.match.isMatchForFavoriteClubs(favoriteClubs, supportedClubs)
-                        WebFixtureCard(
-                            match = item.match,
-                            isSpoilerFree = isSpoilerFreeMode,
-                            isRevealed = revealedMatchIds.contains(item.match.id),
-                            isFavorite = isFav,
-                            onRevealClick = { onVideoClick(item) {} },
-                            onClick = { onVideoClick(item) {} },
+            groupedItems.forEach { (comp, compMatches) ->
+                if (comp != null) {
+                    item(key = "header-${comp.id}", span = { GridItemSpan(maxLineSpan) }) {
+                        LeagueHeader(
+                            competitionName = comp.name,
+                            competitionEmblemUrl = comp.logo,
+                            competitionId = comp.competitionId,
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
                         )
                     }
-
-                    is HighlightUiItem.BannerAd -> {
-                        if (!isAdsRemoved) BannerAdItem()
+                }
+                items(
+                    items = compMatches,
+                    key = { it.uniqueId },
+                    span = { item ->
+                        if (item is HighlightUiItem.BannerAd) {
+                            GridItemSpan(maxLineSpan)
+                        } else {
+                            GridItemSpan(1)
+                        }
+                    },
+                ) { item ->
+                    when (item) {
+                        is HighlightUiItem.OracleMatch -> {
+                            val isFav = item.match.isMatchForFavoriteClubs(favoriteClubs, supportedClubs)
+                            WebFixtureCard(
+                                match = item.match,
+                                isSpoilerFree = isSpoilerFreeMode,
+                                isRevealed = revealedMatchIds.contains(item.match.id),
+                                isFavorite = isFav,
+                                onRevealClick = { onVideoClick(item) {} },
+                                onClick = { onVideoClick(item) {} },
+                            )
+                        }
+                        is HighlightUiItem.BannerAd -> {
+                            if (!isAdsRemoved) BannerAdItem()
+                        }
+                        else -> {}
                     }
-                    else -> {}
                 }
             }
             item(span = { GridItemSpan(maxLineSpan) }) {
@@ -87,27 +126,38 @@ fun FixturesContentList(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            items(
-                items = matches,
-                key = { it.uniqueId },
-            ) { item ->
-                when (item) {
-                    is HighlightUiItem.OracleMatch -> {
-                        val isFav = item.match.isMatchForFavoriteClubs(favoriteClubs, supportedClubs)
-                        StandardMatchCard(
-                            match = item.match,
-                            isSpoilerFree = isSpoilerFreeMode,
-                            isRevealed = revealedMatchIds.contains(item.match.id),
-                            isFavorite = isFav,
-                            onRevealClick = { onVideoClick(item) {} },
-                            onWatchHighlightClick = { onVideoClick(item) {} },
+            groupedItems.forEach { (comp, compMatches) ->
+                if (comp != null) {
+                    item(key = "header-${comp.id}") {
+                        LeagueHeader(
+                            competitionName = comp.name,
+                            competitionEmblemUrl = comp.logo,
+                            competitionId = comp.competitionId,
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
                         )
                     }
-
-                    is HighlightUiItem.BannerAd -> {
-                        if (!isAdsRemoved) BannerAdItem()
+                }
+                items(
+                    items = compMatches,
+                    key = { it.uniqueId },
+                ) { item ->
+                    when (item) {
+                        is HighlightUiItem.OracleMatch -> {
+                            val isFav = item.match.isMatchForFavoriteClubs(favoriteClubs, supportedClubs)
+                            StandardMatchCard(
+                                match = item.match,
+                                isSpoilerFree = isSpoilerFreeMode,
+                                isRevealed = revealedMatchIds.contains(item.match.id),
+                                isFavorite = isFav,
+                                onRevealClick = { onVideoClick(item) {} },
+                                onWatchHighlightClick = { onVideoClick(item) {} },
+                            )
+                        }
+                        is HighlightUiItem.BannerAd -> {
+                            if (!isAdsRemoved) BannerAdItem()
+                        }
+                        else -> {}
                     }
-                    else -> {}
                 }
             }
             item {

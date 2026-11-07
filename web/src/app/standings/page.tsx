@@ -13,6 +13,7 @@ import { useSeason } from '@/hooks/useSeason';
 import { useCompetitions } from '@/hooks/useCompetitions';
 import CompetitionLogo from '@/components/common/CompetitionLogo';
 import GlassLogoBadge from '@/components/common/GlassLogoBadge';
+import { getZoneForPosition, getQualificationZones } from '@/lib/standingsQualification';
 
 interface CompetitionDef {
   code: string;
@@ -453,79 +454,93 @@ export default function StandingsPage() {
                     </td>
                   </tr>
                 ) : (
-                  sortedStandings.map((team) => (
-                    <tr
-                      key={`${team.team_id || team.id}-${team.position}`}
-                      className="hover:bg-[#1E2227]/80 transition-colors group"
-                    >
-                      <td className="py-3 px-3 sm:px-4 text-center">
-                        <span
-                          className={`inline-flex items-center justify-center w-6 h-6 rounded-full font-bold text-xs ${
-                            team.position <= 4
-                              ? 'bg-[#1E3A8A]/50 text-[#7098F8] border border-[#7098F8]/40 shadow-sm'
-                              : team.position >= (standings.length - 2) && standings.length >= 18
-                              ? 'bg-rose-950/40 text-rose-400 border border-rose-800/40'
-                              : 'text-[#94A3B8]'
-                          }`}
-                        >
-                          {team.position}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <GlassLogoBadge
-                            src={team.crest_url}
-                            alt={team.team_name}
-                            size={28}
-                            imageClassName="object-contain p-0.5"
-                          />
-                          <span className="font-bold text-white group-hover:text-[#7098F8] transition-colors break-words whitespace-normal max-w-[200px]">
-                            {team.team_name}
+                  sortedStandings.map((team) => {
+                    const zone = getZoneForPosition(selectedComp, team.position, standings.length);
+                    return (
+                      <tr
+                        key={`${team.team_id || team.id}-${team.position}`}
+                        className="hover:bg-[#1E2227]/80 transition-colors group"
+                      >
+                        <td className="py-3 px-3 sm:px-4 text-center">
+                          <span
+                            className={`inline-flex items-center justify-center w-6 h-6 rounded-full font-bold text-xs ${
+                              zone ? zone.badgeClass : 'text-[#94A3B8]'
+                            }`}
+                          >
+                            {team.position}
                           </span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-3 text-center text-[#94A3B8]">{team.played_games}</td>
-                      <td className="py-3 px-3 text-center text-[#94A3B8]">{team.won}</td>
-                      <td className="py-3 px-3 text-center text-[#94A3B8]">{team.draw}</td>
-                      <td className="py-3 px-3 text-center text-[#94A3B8]">{team.lost}</td>
-                      <td className="py-3 px-3 text-center text-[#94A3B8] hidden md:table-cell font-mono">
-                        {team.goal_difference > 0 ? `+${team.goal_difference}` : team.goal_difference}
-                      </td>
-                      <td className="py-3 px-4 text-center font-black text-white text-sm sm:text-base">
-                        {team.points}
-                      </td>
-                      {hasFormData && (
-                        <td className="py-3 px-4 text-center hidden sm:table-cell">
-                          <div className="flex items-center justify-center gap-1">
-                            {(team.form || '')
-                              .split(',')
-                              .slice(-5)
-                              .map((f, idx) => {
-                                const formChar = f.trim().toUpperCase();
-                                const colorClass =
-                                  formChar === 'W'
-                                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                                    : formChar === 'D'
-                                    ? 'bg-zinc-700/50 text-zinc-300 border-zinc-600/40'
-                                    : 'bg-rose-500/20 text-rose-400 border-rose-500/40';
-                                return (
-                                  <span
-                                    key={idx}
-                                    className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-black border ${colorClass}`}
-                                  >
-                                    {formChar || '-'}
-                                  </span>
-                                );
-                              })}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <GlassLogoBadge
+                              src={team.crest_url}
+                              alt={team.team_name}
+                              size={28}
+                              imageClassName="object-contain p-0.5"
+                            />
+                            <span className="font-bold text-white group-hover:text-[#7098F8] transition-colors break-words whitespace-normal max-w-[200px]">
+                              {team.team_name}
+                            </span>
                           </div>
                         </td>
-                      )}
-                    </tr>
-                  ))
+                        <td className="py-3 px-3 text-center text-[#94A3B8]">{team.played_games}</td>
+                        <td className="py-3 px-3 text-center text-[#94A3B8]">{team.won}</td>
+                        <td className="py-3 px-3 text-center text-[#94A3B8]">{team.draw}</td>
+                        <td className="py-3 px-3 text-center text-[#94A3B8]">{team.lost}</td>
+                        <td className="py-3 px-3 text-center text-[#94A3B8] hidden md:table-cell font-mono">
+                          {team.goal_difference > 0 ? `+${team.goal_difference}` : team.goal_difference}
+                        </td>
+                        <td className="py-3 px-4 text-center font-black text-white text-sm sm:text-base">
+                          {team.points}
+                        </td>
+                        {hasFormData && (
+                          <td className="py-3 px-4 text-center hidden sm:table-cell">
+                            <div className="flex items-center justify-center gap-1">
+                              {(team.form || '')
+                                .split(',')
+                                .slice(-5)
+                                .map((f, idx) => {
+                                  const formChar = f.trim().toUpperCase();
+                                  const colorClass =
+                                    formChar === 'W'
+                                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                                      : formChar === 'D'
+                                      ? 'bg-zinc-700/50 text-zinc-300 border-zinc-600/40'
+                                      : 'bg-rose-500/20 text-rose-400 border-rose-500/40';
+                                  return (
+                                    <span
+                                      key={idx}
+                                      className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-black border ${colorClass}`}
+                                    >
+                                      {formChar || '-'}
+                                    </span>
+                                  );
+                                })}
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
           </div>
+
+          {/* Standings Qualification Legend */}
+          {!isLoading && sortedStandings.length > 0 && (
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 p-4 bg-[#101418] border-t border-[#334155]/60 text-xs">
+              {getQualificationZones(selectedComp, standings.length).map((zone, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: zone.dotColor }}
+                  />
+                  <span className="text-[#94A3B8] font-medium">{zone.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
