@@ -23,17 +23,19 @@ async def websub_handshake(
         logger.info(f"[WebSub Handshake] Confirmed {hub_mode} for topic: {hub_topic}")
         try:
             telemetry_service.record_cycle(
+                "WEBSUB_HANDSHAKE",
+                "0s",
+                1,
                 [{
                     "line": f"[WEBSUB HANDSHAKE] Verified Google Hub challenge for topic: {hub_topic}",
                     "level": "SUCCESS",
                     "subsystem": "WEBSUB_PUSH",
                     "code": "HANDSHAKE_OK",
                 }],
-                mode="WEBSUB_HANDSHAKE",
                 pipeline_type="WEBSUB_PUSH",
             )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"[WebSub Handshake] Telemetry recording error: {e}")
         return PlainTextResponse(content=hub_challenge, status_code=200)
     return PlainTextResponse(content="Invalid handshake request", status_code=400)
 
@@ -57,29 +59,50 @@ async def websub_notification(
         title_match = re.search(r"<title[^>]*>(.*?)</title>", entry_content, re.IGNORECASE)
         chan_match = re.search(r"<(?:yt:)?channelId[^>]*>(.*?)</(?:yt:)?channelId>", entry_content, re.IGNORECASE)
         author_match = re.search(r"<name[^>]*>(.*?)</name>", entry_content, re.IGNORECASE)
+        pub_match = re.search(r"<published[^>]*>(.*?)</published>", entry_content, re.IGNORECASE)
 
         video_id = vid_match.group(1).strip() if vid_match else None
         title = title_match.group(1).strip() if title_match else None
         channel_id = chan_match.group(1).strip() if chan_match else None
         author_name = author_match.group(1).strip() if author_match else None
+        published_at = pub_match.group(1).strip() if pub_match else None
 
-        logger.info(f"[WebSub Push] Received upload notification: {video_id} ('{title}') from channel {channel_id}")
+        from worker.repositories.channel_repository import channel_repository
+        channel_handle = channel_repository.get_handle_for_channel_id(channel_id or "") or author_name or channel_id or "YouTube Hub"
+
+        logger.info(f"[WebSub Push] Received upload notification: {video_id} ('{title}') from {channel_handle} (published: {published_at})")
         try:
             telemetry_service.record_cycle(
+                "WEBSUB_PUSH",
+                "0s",
+                1,
                 [{
-                    "line": f"[WEBSUB PUSH RECEIVED] Ingested webhook for '{title}' ({video_id}) channel: {channel_id}",
+                    "line": f"[WEBSUB PUSH RECEIVED] Ingested webhook for '{title}' ({video_id}) channel: {channel_handle}",
                     "level": "INFO",
                     "subsystem": "WEBSUB_PUSH",
                     "code": "PUSH_RECEIVED",
+                    "attributes": {
+                        "video_id": video_id,
+                        "title": title,
+                        "channel": channel_handle,
+                        "channel_id": channel_id,
+                        "published_at": published_at,
+                    },
                 }],
-                mode="WEBSUB_PUSH",
                 pipeline_type="WEBSUB_PUSH",
             )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"[WebSub Push] Telemetry recording error: {e}")
 
         if video_id and title:
-            background_tasks.add_task(highlight_service.process_websub_video, video_id, title, channel_id or "", author_name or "")
+            background_tasks.add_task(
+                highlight_service.process_websub_video,
+                video_id,
+                title,
+                channel_id or "",
+                channel_handle,
+                published_at,
+            )
         else:
             background_tasks.add_task(highlight_service.sync_unlinked_highlights, max_batch=10)
 

@@ -26,6 +26,7 @@ import com.dirzaaulia.footballclips.data.model.remote.SupportedClub
 import com.dirzaaulia.footballclips.data.model.remote.isMatchForFavoriteClubs
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
+import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
 
 @Composable
 fun FixturesContentList(
@@ -74,7 +75,7 @@ fun FixturesContentList(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            groupedItems.forEach { (comp, compMatches) ->
+            groupedItems.forEachIndexed { groupIndex, (comp, compMatches) ->
                 if (comp != null) {
                     item(key = "header-${comp.id}", span = { GridItemSpan(maxLineSpan) }) {
                         LeagueHeader(
@@ -109,9 +110,18 @@ fun FixturesContentList(
                             )
                         }
                         is HighlightUiItem.BannerAd -> {
-                            if (!isAdsRemoved) BannerAdItem()
+                            if (!isAdsRemoved) BannerAdItem(style = NativeAdStyle.MATCH)
                         }
                         else -> {}
+                    }
+                }
+
+                if (!isAdsRemoved && (groupIndex + 1) % 3 == 0 && groupIndex < groupedItems.size - 1) {
+                    item(key = "ad-between-${comp?.id ?: groupIndex}", span = { GridItemSpan(maxLineSpan) }) {
+                        BannerAdItem(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            style = NativeAdStyle.MATCH,
+                        )
                     }
                 }
             }
@@ -126,7 +136,7 @@ fun FixturesContentList(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            groupedItems.forEach { (comp, compMatches) ->
+            groupedItems.forEachIndexed { groupIndex, (comp, compMatches) ->
                 if (comp != null) {
                     item(key = "header-${comp.id}") {
                         LeagueHeader(
@@ -154,9 +164,18 @@ fun FixturesContentList(
                             )
                         }
                         is HighlightUiItem.BannerAd -> {
-                            if (!isAdsRemoved) BannerAdItem()
+                            if (!isAdsRemoved) BannerAdItem(style = NativeAdStyle.MATCH)
                         }
                         else -> {}
+                    }
+                }
+
+                if (!isAdsRemoved && (groupIndex + 1) % 3 == 0 && groupIndex < groupedItems.size - 1) {
+                    item(key = "ad-between-${comp?.id ?: groupIndex}") {
+                        BannerAdItem(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            style = NativeAdStyle.MATCH,
+                        )
                     }
                 }
             }

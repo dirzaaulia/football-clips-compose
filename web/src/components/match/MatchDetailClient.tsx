@@ -15,7 +15,7 @@ import MatchTacticalBoxscore from '@/components/match/MatchTacticalBoxscore';
 import MatchDayGearSection from '@/components/affiliate/MatchDayGearSection';
 import MatchCentreHero from '@/components/player/MatchCentreHero';
 import HorizontalMatchTimeline from '@/components/match/HorizontalMatchTimeline';
-import { trackMatchView } from '@/lib/analytics';
+import { trackMatchView, trackMatchClick, trackVideoPlay, trackScreenView } from '@/lib/analytics';
 
 interface MatchDetailClientProps {
   initialMatch: MatchRecord | null;
@@ -67,7 +67,14 @@ export default function MatchDetailClient({
     setHasHydrated(true);
     setIsScoreRevealed(!isSpoilerFree);
     if (match?.id) {
-      trackMatchView(String(match.id), match.home_team_name || 'Home', match.away_team_name || 'Away');
+      const h = match.home_team_name || 'Home';
+      const a = match.away_team_name || 'Away';
+      trackScreenView('Match Detail', match.competition_name);
+      trackMatchView(String(match.id), h, a);
+      trackMatchClick(String(match.id), `${h} vs ${a}`, match.competition_name);
+      if (match.highlight_video_id) {
+        trackVideoPlay(match.highlight_video_id, `${h} vs ${a}`);
+      }
     }
   }, [isSpoilerFree, match?.id]);
 

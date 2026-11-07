@@ -8,19 +8,45 @@ import {
   Users,
   Smartphone,
 } from 'lucide-react';
-import { NotificationItem, NotificationsPayload, SubscriptionItem } from '../types';
+import { NotificationItem, NotificationsPayload, AudiencePayload } from '../types';
 
 interface NotificationsPipelineViewProps {
   notificationsPayload?: NotificationsPayload | null;
-  subscriptions?: SubscriptionItem[];
+  audiencePayload?: AudiencePayload | null;
 }
 
 export function NotificationsPipelineView({
   notificationsPayload,
-  subscriptions = [],
+  audiencePayload,
 }: NotificationsPipelineViewProps) {
   const [filterType, setFilterType] = useState<string>('ALL');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const audienceStats = useMemo(() => {
+    const devices = Object.values(audiencePayload?.devices || {});
+    const totalDevices = audiencePayload?.total_registered_devices || devices.length;
+    const androidDevices = devices.filter((d) => d.platform === 'android').length || devices.length;
+    const webDevices = devices.filter((d) => d.platform === 'web').length;
+    const totalUsers = audiencePayload?.total_registered_users || 0;
+
+    const clubCounts = new Map<number, number>();
+    for (const d of devices) {
+      for (const cid of d.favorite_clubs || []) {
+        clubCounts.set(cid, (clubCounts.get(cid) || 0) + 1);
+      }
+    }
+    if (audiencePayload?.clubs) {
+      for (const [cidStr, cObj] of Object.entries(audiencePayload.clubs)) {
+        const cid = Number(cidStr);
+        if (!clubCounts.has(cid)) clubCounts.set(cid, cObj.total_devices || 0);
+      }
+    }
+    const topClubs = Array.from(clubCounts.entries())
+      .map(([clubId, count]) => ({ clubId, count }))
+      .sort((a, b) => b.count - a.count);
+
+    return { totalDevices, androidDevices, webDevices, totalUsers, topClubs };
+  }, [audiencePayload]);
 
   // Filter out any 0-device, dummy, or corrupt test items
   const realNotifications = useMemo(() => {
@@ -68,22 +94,43 @@ export function NotificationsPipelineView({
       {/* Metrics Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-          <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Dispatched Alerts</p>
-          <p className="text-xl font-bold font-mono text-white mt-1">{metrics.total}</p>
+          <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Registered Devices</p>
+          <div className="flex items-baseline gap-2 mt-1">
+            <p className="text-xl font-bold font-mono text-cyan-400">{audienceStats.totalDevices}</p>
+            <span className="text-[11px] font-mono text-slate-400">({audienceStats.androidDevices} Android)</span>
+          </div>
+        </div>
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
+          <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Favorited Clubs</p>
+          <p className="text-xl font-bold font-mono text-indigo-400 mt-1">{audienceStats.topClubs.length} Active</p>
         </div>
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
           <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Goal Alerts</p>
           <p className="text-xl font-bold font-mono text-emerald-400 mt-1">{metrics.goals}</p>
         </div>
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-          <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Kickoff Alerts</p>
-          <p className="text-xl font-bold font-mono text-indigo-400 mt-1">{metrics.kickoffs}</p>
-        </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-          <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Active Devices</p>
-          <p className="text-xl font-bold font-mono text-cyan-400 mt-1">{subscriptions.length}</p>
+          <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Dispatched FCM</p>
+          <p className="text-xl font-bold font-mono text-white mt-1">{metrics.total}</p>
         </div>
       </div>
+
+      {/* Top Favorited Clubs Cards */}
+      {audienceStats.topClubs.length > 0 && (
+        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 space-y-2">
+          <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Top Subscribed Club IDs</p>
+          <div className="flex flex-wrap gap-2">
+            {audienceStats.topClubs.map(({ clubId, count }) => (
+              <span
+                key={clubId}
+                className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 rounded-lg text-xs font-mono"
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Club #{clubId}: {count} device{count === 1 ? '' : 's'}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">

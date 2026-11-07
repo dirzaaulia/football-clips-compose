@@ -1,198 +1,231 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   BarChart3,
   Smartphone,
   Globe,
   Users,
-  Copy,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Filter,
+  EyeOff,
+  Eye,
+  ShieldCheck,
 } from 'lucide-react';
-import { UserAnalyticsEvent } from '../types';
+import { UserAnalyticsEvent, AppSessionItem } from '../types';
+import { AnalyticsFunnel } from './analytics/AnalyticsFunnel';
+import { SessionJourneyExplorer } from './analytics/SessionJourneyExplorer';
+import { ActivityNarrativeStream } from './analytics/ActivityNarrativeStream';
+import { DeviceLocationTable } from './analytics/DeviceLocationTable';
 
 interface AnalyticsPipelineViewProps {
   events: UserAnalyticsEvent[];
+  appSessions?: AppSessionItem[];
+  totalAnalyticsCount?: number;
+  totalSessionsCount?: number;
   isLoading?: boolean;
 }
 
 export function AnalyticsPipelineView({
   events,
+  appSessions = [],
+  totalAnalyticsCount = 0,
+  totalSessionsCount = 0,
   isLoading = false,
 }: AnalyticsPipelineViewProps) {
-  const [filterType, setFilterType] = useState<string>('ALL');
-  const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [copiedId, setCopiedId] = useState<number | null>(null);
+  const [platformTab, setPlatformTab] = useState<'all' | 'android' | 'web'>('all');
+  const [excludeMyDevice, setExcludeMyDevice] = useState(false);
+  const [myDeviceId, setMyDeviceId] = useState<string | null>(null);
 
-  const stats = useMemo(() => {
-    const total = events.length;
-    const android = events.filter((e) => e.platform === 'android').length;
-    const web = events.filter((e) => e.platform === 'web').length;
-    const distinctUsers = new Set(events.map((e) => e.user_id).filter(Boolean)).size;
-    return { total, android, web, distinctUsers };
-  }, [events]);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const devId = localStorage.getItem('fc_device_id') || localStorage.getItem('fc-telemetry-device-id');
+      if (devId) setMyDeviceId(devId);
+    }
+  }, []);
 
-  const eventTypes = useMemo(() => {
-    const types = Array.from(new Set(events.map((e) => e.event_name)));
-    return ['ALL', ...types];
-  }, [events]);
+  // Filter out developer's own sessions if toggle is enabled
+  const effectiveSessions = useMemo(() => {
+    if (!excludeMyDevice || !myDeviceId) return appSessions;
+    return appSessions.filter((s) => s.device_id !== myDeviceId);
+  }, [appSessions, excludeMyDevice, myDeviceId]);
+
+  const effectiveEvents = useMemo(() => {
+    if (!excludeMyDevice || !myDeviceId) return events;
+    return events.filter((e) => e.device_id !== myDeviceId);
+  }, [events, excludeMyDevice, myDeviceId]);
 
   const filteredEvents = useMemo(() => {
-    if (filterType === 'ALL') return events;
-    return events.filter((e) => e.event_name === filterType);
-  }, [events, filterType]);
+    if (platformTab === 'android') return effectiveEvents.filter((e) => e.platform === 'android');
+    if (platformTab === 'web') return effectiveEvents.filter((e) => e.platform === 'web');
+    return effectiveEvents;
+  }, [effectiveEvents, platformTab]);
 
-  const handleCopy = (ev: UserAnalyticsEvent) => {
-    navigator.clipboard.writeText(JSON.stringify(ev, null, 2));
-    setCopiedId(ev.id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
+  const filteredSessions = useMemo(() => {
+    if (platformTab === 'web') return [];
+    return effectiveSessions;
+  }, [effectiveSessions, platformTab]);
+
+  const stats = useMemo(() => {
+    const realAndroidTotal = Math.max(totalSessionsCount, appSessions.length);
+    const realWebTotal = Math.max(totalAnalyticsCount, events.length);
+    const totalAggregate = realAndroidTotal + realWebTotal;
+
+    const allDeviceIds = new Set<string>();
+    effectiveSessions.forEach((s) => s.device_id && allDeviceIds.add(s.device_id));
+    effectiveEvents.forEach((e) => (e.device_id || e.user_id) && allDeviceIds.add(e.device_id || e.user_id!));
+
+    const versionCounts = new Map<string, number>();
+    for (const s of effectiveSessions) {
+      const v = s.app_version || '3.0.1';
+      versionCounts.set(v, (versionCounts.get(v) || 0) + 1);
+    }
+    const topVersions = Array.from(versionCounts.entries())
+      .map(([version, count]) => ({ version, count }))
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      realAndroidTotal,
+      realWebTotal,
+      totalAggregate,
+      distinctDevices: allDeviceIds.size,
+      topVersions,
+    };
+  }, [effectiveSessions, effectiveEvents, totalSessionsCount, totalAnalyticsCount, appSessions.length, events.length]);
 
   return (
     <div className="space-y-5">
-      {/* Metrics Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div>
-          <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Total Events</p>
-          <div className="flex items-center gap-1.5 mt-1">
-            <BarChart3 className="w-4 h-4 text-emerald-400" />
-            <p className="text-sm font-bold text-slate-100">{stats.total}</p>
-          </div>
-        </div>
-        <div>
-          <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Android App</p>
-          <div className="flex items-center gap-1.5 mt-1">
-            <Smartphone className="w-4 h-4 text-cyan-400" />
-            <p className="text-sm font-bold text-cyan-400">{stats.android}</p>
-          </div>
-        </div>
-        <div>
-          <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Web Portal</p>
-          <div className="flex items-center gap-1.5 mt-1">
-            <Globe className="w-4 h-4 text-indigo-400" />
-            <p className="text-sm font-bold text-indigo-400">{stats.web}</p>
-          </div>
-        </div>
-        <div>
-          <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Distinct Users</p>
-          <div className="flex items-center gap-1.5 mt-1">
-            <Users className="w-4 h-4 text-purple-400" />
-            <p className="text-sm font-bold text-purple-400">{stats.distinctUsers}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Filter Chips */}
-      {eventTypes.length > 1 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
-          {eventTypes.map((t) => (
+      {/* High-Density Header Banner & Controls */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          {/* Sub-Tabs: All vs Android vs Web */}
+          <div className="flex items-center gap-1.5 overflow-x-auto">
             <button
-              key={t}
-              onClick={() => setFilterType(t)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition shrink-0 ${
-                filterType === t
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-800'
+              onClick={() => setPlatformTab('all')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition shrink-0 ${
+                platformTab === 'all'
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
               }`}
             >
-              {t}
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>All ({stats.totalAggregate})</span>
             </button>
-          ))}
+
+            <button
+              onClick={() => setPlatformTab('android')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition shrink-0 ${
+                platformTab === 'android'
+                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+              }`}
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>Android ({stats.realAndroidTotal})</span>
+            </button>
+
+            <button
+              onClick={() => setPlatformTab('web')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition shrink-0 ${
+                platformTab === 'web'
+                  ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>Web ({stats.realWebTotal})</span>
+            </button>
+          </div>
+
+          {/* Exclude My Device Toggle */}
+          <button
+            onClick={() => setExcludeMyDevice((prev) => !prev)}
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition border shrink-0 ${
+              excludeMyDevice
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border-slate-700'
+            }`}
+            title={myDeviceId ? `Current Device: ${myDeviceId}` : 'Auto-detected browser device'}
+          >
+            {excludeMyDevice ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5 text-slate-400" />}
+            <span>{excludeMyDevice ? 'Excluding You (External Only)' : 'Exclude My Device'}</span>
+          </button>
         </div>
-      )}
 
-      {/* Event Stream List */}
-      <div className="space-y-3">
-        {isLoading ? (
-          <div className="p-12 text-center text-slate-500 font-mono text-sm bg-slate-900/40 rounded-xl border border-slate-800">
-            Loading analytics events...
+        {/* Compact 4-Metric Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
+            <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Total Activity Events</p>
+            <div className="flex items-center gap-1.5 mt-1">
+              <BarChart3 className="w-4 h-4 text-emerald-400" />
+              <p className="text-base font-bold font-mono text-slate-100">{stats.totalAggregate}</p>
+            </div>
           </div>
-        ) : filteredEvents.length === 0 ? (
-          <div className="p-12 text-center text-slate-500 font-mono text-sm bg-slate-900/40 rounded-xl border border-slate-800">
-            No analytics events logged yet. Real user actions (screen views, club follows, video plays) will stream here.
-          </div>
-        ) : (
-          filteredEvents.map((ev) => {
-            const isExpanded = expandedId === ev.id;
-            const isAndroid = ev.platform === 'android';
 
-            return (
-              <div
-                key={ev.id}
-                className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition"
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
+            <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Android Sessions</p>
+            <div className="flex items-center gap-1.5 mt-1">
+              <Smartphone className="w-4 h-4 text-cyan-400" />
+              <p className="text-base font-bold font-mono text-cyan-400">{stats.realAndroidTotal}</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
+            <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Web Portal Actions</p>
+            <div className="flex items-center gap-1.5 mt-1">
+              <Globe className="w-4 h-4 text-indigo-400" />
+              <p className="text-base font-bold font-mono text-indigo-400">{stats.realWebTotal}</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
+            <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Distinct Devices</p>
+            <div className="flex items-center gap-1.5 mt-1">
+              <Users className="w-4 h-4 text-purple-400" />
+              <p className="text-base font-bold font-mono text-purple-400">{stats.distinctDevices}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Active Versions Inline Chips */}
+        {stats.topVersions.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <span className="text-[11px] font-mono text-slate-400">Android Versions:</span>
+            {stats.topVersions.slice(0, 5).map(({ version, count }) => (
+              <span
+                key={version}
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-cyan-950/40 text-cyan-300 border border-cyan-800/60 rounded-md text-[11px] font-mono"
               >
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <span
-                      className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase tracking-wider ${
-                        isAndroid
-                          ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                          : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
-                      }`}
-                    >
-                      {ev.platform}
-                    </span>
-
-                    <span className="font-mono text-xs font-bold text-white bg-slate-800 px-2.5 py-0.5 rounded border border-slate-700">
-                      {ev.event_name}
-                    </span>
-
-                    {ev.user_id && (
-                      <span className="text-[11px] font-mono text-slate-400 truncate max-w-[120px]">
-                        user:{ev.user_id}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-                    <span>
-                      {new Date(ev.created_at).toLocaleTimeString('id-ID', {
-                        timeZone: 'Asia/Jakarta',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })}{' '}
-                      WIB
-                    </span>
-
-                    <button
-                      onClick={() => handleCopy(ev)}
-                      title="Copy JSON"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-800"
-                    >
-                      {copiedId === ev.id ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-
-                    <button
-                      onClick={() => setExpandedId(isExpanded ? null : ev.id)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-800"
-                    >
-                      {isExpanded ? (
-                        <ChevronUp className="w-3.5 h-3.5" />
-                      ) : (
-                        <ChevronDown className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {isExpanded && (
-                  <div className="mt-3 pt-3 border-t border-slate-800/80 bg-slate-950/40 p-3 rounded-lg font-mono text-[11px] text-slate-300 overflow-x-auto">
-                    <pre>{JSON.stringify(ev.payload, null, 2)}</pre>
-                  </div>
-                )}
-              </div>
-            );
-          })
+                <span>v{version}</span>
+                <span className="text-cyan-500 font-bold">({count})</span>
+              </span>
+            ))}
+          </div>
         )}
+      </div>
+
+      {/* Device Models & Geographic Breakdown Table */}
+      <DeviceLocationTable
+        appSessions={filteredSessions}
+        events={filteredEvents}
+        myDeviceId={myDeviceId}
+      />
+
+      {/* Behavioral Conversion Funnel */}
+      <AnalyticsFunnel events={filteredEvents} appSessions={filteredSessions} />
+
+      {/* Session Journey Explorer */}
+      <SessionJourneyExplorer events={filteredEvents} appSessions={filteredSessions} />
+
+      {/* Live Behavioral Activity Feed */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold font-mono text-slate-100 uppercase tracking-wider">
+            Live Behavioral Activity Feed
+          </h4>
+          <span className="text-xs font-mono text-slate-500">
+            {filteredEvents.length} logged actions
+          </span>
+        </div>
+        <ActivityNarrativeStream events={filteredEvents} isLoading={isLoading} />
       </div>
     </div>
   );

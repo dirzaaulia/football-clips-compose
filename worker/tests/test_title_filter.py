@@ -31,6 +31,9 @@ def test_forbidden_titles():
         ("What goes into feeding a football team? 🍽️ #newcastle #football #premierleague", "BTS"),
         ("Arsenal vs Chelsea | Full Match Replay | Premier League", "Full Match Replay"),
         ("Real Madrid vs Barcelona - Full Match Replay", "Full Match Replay"),
+        ("Como DESTROY Lens 9-1 in UCL! | Is Como Setting the Standard for Italian Football?", "Pundit Debate"),
+        ("Real Madrid COMEBACK 3-2 Away vs. AEK Athens | Is Jude Bellingham Mourinho's BEST Player?", "Pundit Debate"),
+        ("Fenerbahce SHOCKS Liverpool in 3-2 Win! | Did Iraola get the Tactics Wrong?", "Pundit Debate"),
     ]
 
     for title, expected_reason in forbidden_cases:
@@ -73,10 +76,17 @@ def test_highlight_keyword_validation():
 
 
 def test_is_youtube_short_detection():
+    from unittest.mock import MagicMock, patch
     from worker.clients.youtube_client import youtube_client
-    # nFCeu8-Bydg is Brighton's vertical 125 anniversary short (verified status=200 on /shorts/)
-    assert youtube_client.is_youtube_short("nFCeu8-Bydg") is True
-    # Standard horizontal highlights (redirects to /watch?v=...)
-    assert youtube_client.is_youtube_short("PX_Z58lDe84") is False
+
     assert youtube_client.is_youtube_short("") is False
+
+    with patch("httpx.Client.head") as mock_head:
+        # Mock Short (HTTP 200)
+        mock_head.return_value = MagicMock(status_code=200)
+        assert youtube_client.is_youtube_short("nFCeu8-Bydg") is True
+
+        # Mock Standard video (HTTP 303 redirect)
+        mock_head.return_value = MagicMock(status_code=303)
+        assert youtube_client.is_youtube_short("PX_Z58lDe84") is False
 

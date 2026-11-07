@@ -4,7 +4,7 @@ from typing import Any
 from loguru import logger
 
 from worker.clients.ai_gateway_client import ai_gateway_client
-from worker.services.highlight.filters import has_highlight_keyword, has_scoreline
+from worker.services.highlight.filters import check_forbidden_title, has_highlight_keyword, has_scoreline
 from worker.services.highlight.normalizer import get_team_aliases, matches_alias, normalize_for_alias_matching
 from worker.services.highlight.scorer import fallback_score_video
 from worker.utils.telemetry_logger import append_event
@@ -29,12 +29,40 @@ class CandidateRanker:
         embeddable = [c for c in candidates if c.get("is_embeddable", True)]
         selected_pool = embeddable if embeddable else candidates
 
-        def is_both_teams(cand_title: str) -> bool:
-            norm_cand = normalize_for_alias_matching(cand_title)
-            return any(matches_alias(a, norm_cand) for a in h_aliases) and any(matches_alias(a, norm_cand) for a in a_aliases)
+        def is_both_teams(cand: dict[str, Any] | str) -> bool:
+            if isinstance(cand, dict):
+                cand_title = cand.get("title", "")
+                cand_desc = cand.get("description", "")
+                cand_chan = cand.get("channel", "")
+            else:
+                cand_title = str(cand)
+                cand_desc = ""
+                cand_chan = ""
 
-        def is_valid_highlight_candidate(cand_title: str) -> bool:
-            return is_both_teams(cand_title) and (has_highlight_keyword(cand_title) or has_scoreline(cand_title))
+            norm_cand = normalize_for_alias_matching(cand_title)
+            norm_desc = normalize_for_alias_matching(cand_desc) if cand_desc else ""
+
+            has_h = any(matches_alias(a, norm_cand) for a in h_aliases)
+            has_a = any(matches_alias(a, norm_cand) for a in a_aliases)
+
+            if has_h and has_a:
+                return True
+
+            is_club_channel = bool(cand_chan and target_handles and cand_chan in target_handles)
+            if is_club_channel:
+                has_desc_h = any(matches_alias(a, norm_desc) for a in h_aliases)
+                has_desc_a = any(matches_alias(a, norm_desc) for a in a_aliases)
+                if has_a or has_desc_a or has_h or has_desc_h:
+                    return True
+
+            return False
+
+        def is_valid_highlight_candidate(cand: dict[str, Any] | str) -> bool:
+            cand_title = cand.get("title", "") if isinstance(cand, dict) else str(cand)
+            is_forbidden, _ = check_forbidden_title(cand_title)
+            if is_forbidden:
+                return False
+            return is_both_teams(cand) and has_highlight_keyword(cand_title)
 
         h_score = match.get("home_score")
         a_score = match.get("away_score")
@@ -56,6 +84,7 @@ class CandidateRanker:
                 match_utc=match_utc_raw,
                 channel_handle=c.get("channel"),
                 official_channel_targets=target_handles,
+                description=c.get("description", ""),
             )
 
         def candidate_sort_key(c):
@@ -66,16 +95,12 @@ class CandidateRanker:
             return (embed_rank, -watchability, cat_rank, -h_score)
 
         selected_pool.sort(key=candidate_sort_key)
-        top_cand = selected_pool[0]
-        top_score = top_cand["heuristic_score"]
-        runner_up_score = selected_pool[1]["heuristic_score"] if len(selected_pool) > 1 else -999
-        margin = top_score - runner_up_score
 
         def find_backup_candidate(primary_id: str, pool: list[dict], primary_reg: dict | None = None) -> tuple[str | None, dict | None]:
             p_blocked = set((primary_reg or {}).get("blocked") or [])
             for cand in pool:
                 c_id = cand.get("id")
-                if c_id and c_id != primary_id and is_valid_highlight_candidate(cand.get("title", "")):
+                if c_id and c_id != primary_id and is_valid_highlight_candidate(cand):
                     c_reg = cand.get("region") or {}
                     c_allowed = set(c_reg.get("allowed") or [])
                     is_complementary = bool(p_blocked and bool(p_blocked.intersection(c_allowed)))
@@ -86,7 +111,7 @@ class CandidateRanker:
         def build_ranked_videos(pool: list[dict]) -> list[dict]:
             videos = []
             for cand in pool:
-                if is_valid_highlight_candidate(cand.get("title", "")):
+                if is_valid_highlight_candidate(cand):
                     c_id = cand.get("id")
                     c_reg = cand.get("region") or {}
                     allowed = c_reg.get("allowed") or []
@@ -111,42 +136,7 @@ class CandidateRanker:
             videos.sort(key=sort_key)
             return videos
 
-        is_single_strong = (len(selected_pool) == 1 and top_score >= 35)
-        is_dominant_winner = (top_score >= 50 and margin >= 15)
-
-        # 1. High confidence auto-selection
-        if (is_single_strong or is_dominant_winner) and is_valid_highlight_candidate(top_cand["title"]):
-            backup_vid, backup_reg = find_backup_candidate(top_cand["id"], selected_pool, top_cand.get("region"))
-            for c_idx, cand in enumerate(selected_pool):
-                verdict = "ACCEPTED" if cand["id"] == top_cand["id"] else "REJECTED"
-                level = "SUCCESS" if verdict == "ACCEPTED" else "WARN"
-                append_event(
-                    log_events,
-                    f"Candidate #{c_idx + 1} [{verdict}]: '{cand['title']}' ({cand['channel']}) -> https://youtu.be/{cand['id']} | Verdict: Dominant mathematical score {cand.get('heuristic_score', 0)}pts",
-                    level,
-                    "YOUTUBE",
-                    f"CANDIDATE_{verdict}",
-                    match_id=m_id,
-                    attributes={
-                        "candidate_id": cand["id"],
-                        "verdict": verdict,
-                        "score": cand.get("heuristic_score", 0),
-                        "evaluator": "DETERMINISTIC_SCORER",
-                        "url": f"https://youtu.be/{cand['id']}",
-                    },
-                )
-            append_event(
-                log_events,
-                f"   [HIGH CONFIDENCE AUTO-SELECT] Deterministic scorer selected {top_cand['channel']} ({top_score}pts, margin +{margin}): '{top_cand['title']}' -> https://youtu.be/{top_cand['id']}",
-                "SUCCESS",
-                "YOUTUBE",
-                "RESULT_LINKED",
-                match_id=m_id,
-                attributes={"step": "RESULT", "status": "LINKED", "inserted_to_db": True, "video_id": top_cand["id"], "confidence_score": top_score},
-            )
-            return top_cand["id"], top_cand.get("region"), backup_vid, backup_reg, build_ranked_videos(selected_pool)
-
-        # 2. AI Gateway reranking (Oracle VM DeepSeek / Ollama)
+        # Mandatory AI Gateway Evaluation (Zero bypass: Every candidate pool goes to LLM)
         best_idx, ai_reason, evaluator_name = ai_gateway_client.rerank_highlights(home, away, comp, selected_pool)
         if best_idx is not None and 0 <= best_idx < len(selected_pool):
             best = selected_pool[best_idx]
@@ -174,18 +164,34 @@ class CandidateRanker:
             )
             return best["id"], best.get("region"), backup_vid, backup_reg, build_ranked_videos(selected_pool)
 
-        if best_idx == -1:
-            append_event(log_events, f"AI Gateway explicitly rejected all candidates: {ai_reason}", "WARN", "AI_GATEWAY", "RESULT_UNLINKED", match_id=m_id)
+        if evaluator_name != "DETERMINISTIC_FALLBACK":
+            # AI Gateway was online and evaluated the candidates, but no candidate was accepted
+            append_event(
+                log_events,
+                f"AI Gateway explicitly rejected all candidates: {ai_reason or 'No candidate qualified as genuine match highlight'}",
+                "WARN",
+                "AI_GATEWAY",
+                "RESULT_UNLINKED",
+                match_id=m_id,
+            )
             return None, None, None, None, []
 
-        # 3. Deterministic Heuristic Fallback
-        valid_candidates = [c for c in selected_pool if c["heuristic_score"] > 0 and is_valid_highlight_candidate(c["title"])]
+        # 3. Emergency Circuit-Breaker (AI Gateway unreachable / network outage)
+        append_event(
+            log_events,
+            "   [CIRCUIT BREAKER] AI Gateway offline/unavailable, evaluating candidates via hardened deterministic heuristic",
+            "WARN",
+            "YOUTUBE",
+            "CIRCUIT_BREAKER",
+            match_id=m_id,
+        )
+        valid_candidates = [c for c in selected_pool if c["heuristic_score"] > 0 and is_valid_highlight_candidate(c)]
         if valid_candidates:
             best = valid_candidates[0]
             backup_vid, backup_reg = find_backup_candidate(best["id"], selected_pool, best.get("region"))
             append_event(
                 log_events,
-                f"   [FALLBACK SELECT] Weighted Heuristic selected #{best['heuristic_score']}pts from {best['channel']}: '{best['title']}' -> https://youtu.be/{best['id']}",
+                f"   [FALLBACK SELECT] Circuit-breaker heuristic selected #{best['heuristic_score']}pts from {best['channel']}: '{best['title']}' -> https://youtu.be/{best['id']}",
                 "SUCCESS",
                 "YOUTUBE",
                 "RESULT_LINKED",

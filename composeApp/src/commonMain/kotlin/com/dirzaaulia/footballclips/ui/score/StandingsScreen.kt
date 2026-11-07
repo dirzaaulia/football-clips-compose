@@ -7,10 +7,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,6 +43,8 @@ import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 import com.dirzaaulia.footballclips.ui.components.filter.LeagueDropdownSelector
 import com.dirzaaulia.footballclips.ui.components.filter.SeasonDropdownSelector
+import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
+import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
 import com.dirzaaulia.footballclips.ui.score.components.KnockoutBracketView
 import com.dirzaaulia.footballclips.ui.score.components.LeagueStandingsTable
 
@@ -68,11 +74,14 @@ fun StandingsScreen(
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
+                    val statusBarInset = if (isLandscape) 0.dp else WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
                     TopAppBar(
+                        modifier = if (isLarge) Modifier else Modifier.height(50.dp + statusBarInset),
                         title = {
                             Text(
                                 text = "Standings",
@@ -171,6 +180,14 @@ fun StandingsScreen(
                                             .fillMaxWidth()
                                             .weight(1f),
                                     )
+                                    if (!isPremium) {
+                                        BannerAdItem(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 4.dp),
+                                            style = NativeAdStyle.STANDINGS,
+                                        )
+                                    }
                                 }
                             }
                         } else if (isHybrid) {
@@ -206,11 +223,20 @@ fun StandingsScreen(
                                             .fillMaxWidth()
                                             .weight(1f),
                                     )
+                                    if (!isPremium) {
+                                        BannerAdItem(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 4.dp),
+                                            style = NativeAdStyle.STANDINGS,
+                                        )
+                                    }
                                 } else {
                                     LeagueStandingsTable(
                                         standings = state.standings,
                                         bottomLegendPadding = bottomLegendPadding,
                                         selectedCompetitionId = selectedCompetitionId,
+                                        isAdsRemoved = isPremium,
                                     )
                                 }
                             }
@@ -224,6 +250,7 @@ fun StandingsScreen(
                                     standings = state.standings,
                                     bottomLegendPadding = bottomLegendPadding,
                                     selectedCompetitionId = selectedCompetitionId,
+                                    isAdsRemoved = isPremium,
                                 )
                             }
                         }

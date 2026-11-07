@@ -26,6 +26,7 @@ internal fun bindAdView(ctx: Context, nativeView: NativeAdView, nativeAd: Native
         NativeAdStyle.HERO_LANDSCAPE -> createLandscapeHeroAdView(ctx, nativeView, nativeAd)
         NativeAdStyle.MATCH -> createMatchAdView(ctx, nativeView, nativeAd)
         NativeAdStyle.HIGHLIGHT -> createHighlightAdView(ctx, nativeView, nativeAd)
+        NativeAdStyle.STANDINGS -> createStandingsAdView(ctx, nativeView, nativeAd)
     }
     nativeView.post {
         nativeView.requestLayout()

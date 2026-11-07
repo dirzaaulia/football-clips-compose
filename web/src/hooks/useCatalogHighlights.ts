@@ -22,8 +22,8 @@ export interface UseInfiniteHighlightsResult {
 
 const PRIORITY_COMPETITIONS = [
   'CL', 'EL', 'ECL', 'PL', 'PD', 'SA', 'BL1', 'FL1',
-  'FAC', 'CDR', 'CIT', 'DFB', 'EFL',
-  'DED', 'PPL', 'SPL', 'MLS', 'BRA', 'ARG',
+  'SPL', 'MLS', 'DED', 'PPL', 'IDN', 'BRA', 'ARG',
+  'FAC', 'EFL', 'CDR', 'DFB', 'CIT', 'LIB', 'SUD', 'REC',
 ];
 
 export function useInfiniteHighlights(

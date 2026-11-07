@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     youtube_api_key: str = Field(default="", alias="YOUTUBE_API_KEY")
     gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")
     ai_gateway_url: str = Field(default="http://footballclips-oracle:8080", alias="AI_GATEWAY_URL")
-    ai_gateway_model: str = Field(default="deepseek-coder-v2:16b", alias="AI_GATEWAY_MODEL")
+    ai_gateway_model: str = Field(default="auto", alias="AI_GATEWAY_MODEL")
     ai_gateway_token: str | None = Field(default=None, alias="AI_GATEWAY_TOKEN")
     match_data_provider: str = Field(default="espn", alias="MATCH_DATA_PROVIDER")
     standings_provider: str = Field(default="espn", alias="STANDINGS_PROVIDER")

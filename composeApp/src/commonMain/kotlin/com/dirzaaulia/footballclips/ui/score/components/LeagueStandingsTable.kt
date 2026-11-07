@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.model.remote.StandingDto
+import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
+import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 
 @Composable
@@ -23,6 +25,7 @@ fun ColumnScope.LeagueStandingsTable(
     standings: List<StandingDto>,
     bottomLegendPadding: Dp,
     selectedCompetitionId: String? = null,
+    isAdsRemoved: Boolean = false,
 ) {
     if (standings.isEmpty()) {
         EmptyState(
@@ -74,6 +77,15 @@ fun ColumnScope.LeagueStandingsTable(
                     competitionId = selectedCompetitionId,
                 )
             }
+        }
+
+        if (!isAdsRemoved && standings.isNotEmpty()) {
+            BannerAdItem(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp),
+                style = NativeAdStyle.STANDINGS,
+            )
         }
 
         StandingsLegend(

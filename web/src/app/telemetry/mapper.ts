@@ -1,84 +1,11 @@
-import { CandidateVerdict, MatchCycleRun, MatchWaterfall, TelemetryEvent } from './types';
-
-const HIGHLIGHT_CODES = new Set([
-  'SEARCH_START', 'CHANNEL_SCAN', 'CANDIDATE_ITEM', 'AI_EVAL', 'COOLDOWN',
-  'LINKED', 'NOT_FOUND', 'DISCOVERY', 'RSS_DISCOVERY', 'API_CHANNEL_FALLBACK',
-  'API_GENERAL_SEARCH', 'CANDIDATE_ACCEPTED', 'CANDIDATE_REJECTED', 'UPGRADE_ATTEMPT',
-]);
-
-function isHighlightEvent(ev: TelemetryEvent): boolean {
-  const pipe = (ev.pipeline || '').toLowerCase();
-  if (pipe === 'youtube' || pipe === 'highlight') return true;
-  const sub = (ev.subsystem || '').toUpperCase();
-  if (sub === 'YOUTUBE' || sub === 'HIGHLIGHT') return true;
-  if (ev.code && HIGHLIGHT_CODES.has(ev.code)) return true;
-  const text = ev.event_text || '';
-  return (
-    text.includes('YOUTUBE') || text.includes('Searching official highlights') ||
-    text.includes('Cooldown guardrail active') || text.includes('CANDIDATE') ||
-    text.includes('CHANNEL SCAN') || text.includes('RSS DISCOVERY') || text.includes('[COOLDOWN]')
-  );
-}
-
-function parseCandidateVerdict(text: string, index: number): CandidateVerdict | null {
-  const isAccepted = text.includes('[ACCEPTED]');
-  const isRejected = text.includes('[REJECTED]');
-  if (!isAccepted && !isRejected) return null;
-
-  const titleMatch = text.match(/'([^']+)'/);
-  const title = titleMatch ? titleMatch[1] : 'Candidate Video';
-  const channelMatch = text.match(/\(([^)]+)\)/);
-  const channel = channelMatch ? channelMatch[1] : 'Official Channel';
-  const urlMatch = text.match(/->\s*(https:\/\/youtu\.be\/[a-zA-Z0-9_-]{11})/);
-  const url = urlMatch ? urlMatch[1] : '';
-  const candidateId = url ? url.substring(url.lastIndexOf('/') + 1) : `cand-${index}`;
-  const verdictReason = text.includes('| Verdict: ')
-    ? text.split('| Verdict: ')[1].trim()
-    : isAccepted ? 'Accepted by AI evaluation' : 'Not selected';
-
-  return {
-    candidateId,
-    index,
-    title,
-    channel,
-    url,
-    isAccepted,
-    verdictReason,
-    evaluator: isAccepted ? 'AI / Gateway Evaluator' : 'Scorer',
-    score: isAccepted ? 100 : 0,
-  };
-}
-
-function extractMatchTitleFromText(text: string): string | null {
-  if (text.includes('Searching official highlights for:')) {
-    return text.replace(/.*Searching official highlights for:\s*/i, '').replace(/\s*\(\d{4}-\d{2}-\d{2}\).*/, '').trim();
-  }
-  const cooldownMatch = text.match(/Cooldown guardrail active for ([^:]+):/i);
-  if (cooldownMatch) return cooldownMatch[1].trim();
-
-  const directCooldown = text.match(/\[COOLDOWN\]\s*([^:]+):/i);
-  if (directCooldown) return directCooldown[1].trim();
-
-  // Support Unicode letters to prevent slicing names like "Atlético" -> "tico"
-  const vsMatch = text.match(/([\p{L}\p{N}\s.'-]+ vs [\p{L}\p{N}\s.'-]+)/iu);
-  if (vsMatch) return vsMatch[1].replace(/\.+$/, '').trim();
-
-  return null;
-}
-
-function extractTimestampFromText(text: string, fallback?: string): string {
-  const match = text.match(/\[(\d{2}:\d{2}:\d{2}\s*WIB)\]/);
-  if (match) return match[1];
-  if (fallback) {
-    try {
-      const d = new Date(fallback);
-      return d.toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta' }) + ' WIB';
-    } catch {
-      return fallback;
-    }
-  }
-  return '';
-}
+import { CandidateVerdict, DbFinishedMatch, MatchCycleRun, MatchWaterfall, ScannedVideo, TelemetryEvent } from './types';
+import { computeNextCycleSchedule } from './scheduleHelper';
+import {
+  isHighlightEvent,
+  parseCandidateVerdict,
+  extractMatchTitleFromText,
+  extractTimestampFromText,
+} from './mapperHelper';
 
 function processCycleEvents(events: TelemetryEvent[], cycleId?: number): MatchCycleRun {
   const step1Channels: string[] = [];
@@ -90,44 +17,39 @@ function processCycleEvents(events: TelemetryEvent[], cycleId?: number): MatchCy
   let outcomeReason = '';
   let timestamp = '';
   let query: string | undefined;
+  const scannedUploads: Record<string, ScannedVideo[]> = {};
 
   for (const ev of events) {
     const text = ev.event_text || '';
     const code = ev.code || '';
     const detail = text.replace(/^(\[[^\]]+\]\s*)+/, '').trim();
+    if (!timestamp) timestamp = extractTimestampFromText(text, ev.created_at);
 
-    if (!timestamp) {
-      timestamp = extractTimestampFromText(text, ev.created_at);
+    if (ev.attributes?.scanned_videos && Array.isArray(ev.attributes.scanned_videos)) {
+      const rawCh = String(ev.attributes.channel || ev.attributes.channel_handle || '').trim();
+      if (rawCh) {
+        const chKey = rawCh.startsWith('@') ? rawCh : `@${rawCh}`;
+        scannedUploads[chKey] = ev.attributes.scanned_videos as ScannedVideo[];
+      }
     }
 
-    if (text.includes('Searching official highlights for:')) {
-      if (!seenChannels.has(detail)) {
-        seenChannels.add(detail);
-        step1Channels.push(detail);
-      }
-    } else if (text.includes('CHANNEL_SCAN') || text.includes('Checking channel') || text.includes('CHANNEL SCAN')) {
+    if (text.includes('Searching official') || text.includes('CHANNEL_SCAN') || text.includes('Checking channel')) {
       if (!seenChannels.has(detail)) {
         seenChannels.add(detail);
         step1Channels.push(detail);
       }
     } else if (text.includes('CANDIDATE_ACCEPTED') || text.includes('CANDIDATE_REJECTED')) {
       const v = parseCandidateVerdict(text, step3Verdicts.length + 1);
-      if (v && !step3Verdicts.some((ex) => ex.candidateId === v.candidateId)) {
-        step3Verdicts.push(v);
-      }
-    } else if (
-      text.includes('CANDIDATE') || text.includes('DISCOVERY') || text.includes('API SEARCH') ||
-      text.includes('API RESULT') || text.includes('API PLAYLIST') || code === 'CANDIDATE_ITEM' ||
-      code === 'RSS_DISCOVERY' || code === 'API_CHANNEL_FALLBACK' || code === 'API_GENERAL_SEARCH'
-    ) {
-      const cleanCand = text.replace(/^\s+/, '').trim();
-      if (!step2Candidates.includes(cleanCand)) {
+      if (v && !step3Verdicts.some((ex) => ex.candidateId === v.candidateId)) step3Verdicts.push(v);
+    } else if (text.includes('CANDIDATE') || text.includes('DISCOVERY') || text.includes('API SEARCH') ||
+               text.includes('API PLAYLIST') || code === 'CANDIDATE_ITEM' || code === 'RSS_DISCOVERY') {
+      const cleanCand = text.trim();
+      const isSummaryLine = text.includes('Scanned') || text.includes('Fetched') || text.includes('quota units');
+      if (!isSummaryLine && !step2Candidates.includes(cleanCand)) {
         step2Candidates.push(cleanCand);
       }
-      if (text.includes('Querying YouTube Data API:')) {
-        const qm = text.match(/'([^']+)'/);
-        if (qm) query = qm[1];
-      }
+      const qm = text.match(/Querying YouTube Data API:\s*'(.+?)'\s+for channel/i) || text.match(/'([^']+)'/);
+      if (qm && text.includes('Querying YouTube')) query = qm[1];
     } else if (code === 'DB_LINKED' || code === 'RESULT_LINKED' || text.includes('HIGHLIGHT LINKED') || text.includes('LINKED')) {
       outcomeReason = detail;
       const vidMatch = text.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
@@ -137,32 +59,22 @@ function processCycleEvents(events: TelemetryEvent[], cycleId?: number): MatchCy
       }
     } else if (code === 'COOLDOWN_PROTECTED' || code === 'COOLDOWN' || text.includes('COOLDOWN')) {
       outcomeReason = detail;
-    } else if (code === 'NOT_FOUND' || code === 'RESULT_EMPTY' || text.includes('NO HIGHLIGHT FOUND') || text.includes('NOT AVAILABLE YET')) {
+    } else if (code === 'RESULT_EMPTY' || code === 'RESULT_UNLINKED' || text.includes('No eligible highlight candidates found')) {
+      outcomeReason = detail || 'No eligible highlight candidates found';
+    } else if (code === 'CHANNEL_EMPTY' || text.includes('0 matching videos') || text.includes('0 public uploads')) {
+      if (!outcomeReason) outcomeReason = detail || 'Official channels scanned with no highlight videos found';
+    } else if (code === 'NOT_FOUND' || text.includes('NO HIGHLIGHT FOUND')) {
       outcomeReason = detail || 'No verified highlight video found';
     }
   }
 
-  const isCooldownStatus = outcomeReason.toLowerCase().includes('cooldown');
-  const status: MatchCycleRun['status'] = outcomeId ? 'LINKED' : isCooldownStatus ? 'COOLDOWN' : outcomeReason ? 'UNLINKED' : 'SEARCHED';
-
-  let stoppedAtStep: 1 | 2 | 3 | 4 | undefined;
-  let stoppedReason: string | undefined;
-
-  if (status === 'UNLINKED' || status === 'SEARCHED') {
-    if (step1Channels.length <= 1) {
-      stoppedAtStep = 1;
-      stoppedReason = 'No official YouTube channels mapped in database for clubs or league.';
-    } else if (step2Candidates.length === 0) {
-      stoppedAtStep = 2;
-      stoppedReason = 'Zero candidate videos uploaded by official channels within match window (-2h to +96h).';
-    } else if (step3Verdicts.length > 0 && !step3Verdicts.some((v) => v.isAccepted)) {
-      stoppedAtStep = 3;
-      stoppedReason = 'All detected candidate videos rejected during AI semantic reranking.';
-    } else {
-      stoppedAtStep = step2Candidates.length === 0 ? 2 : 3;
-      stoppedReason = outcomeReason || 'No verified official highlights matched this fixture.';
-    }
-  }
+  const totalCandCount = Object.values(scannedUploads).reduce((acc, list) => acc + list.length, 0) + step2Candidates.length;
+  const isCd = outcomeReason.toLowerCase().includes('cooldown');
+  const status: MatchCycleRun['status'] = outcomeId ? 'LINKED' : isCd ? 'COOLDOWN' : outcomeReason ? 'UNLINKED' : 'SEARCHED';
+  const stoppedAtStep = status === 'UNLINKED' || status === 'SEARCHED' ? (totalCandCount === 0 ? 2 : 3) : undefined;
+  const stoppedReason = stoppedAtStep
+    ? (outcomeReason || (status === 'SEARCHED' ? 'Search completed with no candidate accepted' : 'No verified official highlights matched'))
+    : undefined;
 
   return {
     cycleId,
@@ -177,12 +89,23 @@ function processCycleEvents(events: TelemetryEvent[], cycleId?: number): MatchCy
     status,
     stoppedAtStep,
     stoppedReason,
+    scannedUploads: Object.keys(scannedUploads).length > 0 ? scannedUploads : undefined,
   };
 }
 
-export function buildMatchWaterfalls(events: TelemetryEvent[]): MatchWaterfall[] {
-  const matchMap = new Map<string, TelemetryEvent[]>();
+export function buildMatchWaterfalls(
+  events: TelemetryEvent[],
+  dbMatches: DbFinishedMatch[] = [],
+): MatchWaterfall[] {
+  const dbMap = new Map<string, DbFinishedMatch>();
+  const dbTitleMap = new Map<string, DbFinishedMatch>();
+  for (const dm of dbMatches) {
+    dbMap.set(String(dm.id), dm);
+    const titleKey = `${dm.home_team_name} vs ${dm.away_team_name}`.toLowerCase().trim();
+    dbTitleMap.set(titleKey, dm);
+  }
 
+  const matchMap = new Map<string, TelemetryEvent[]>();
   for (const ev of events) {
     if (!isHighlightEvent(ev)) continue;
     const text = ev.event_text || '';
@@ -198,15 +121,12 @@ export function buildMatchWaterfalls(events: TelemetryEvent[]): MatchWaterfall[]
   const results: MatchWaterfall[] = [];
 
   for (const [key, rawEvList] of matchMap.entries()) {
-    // Group events by cycle_id or search boundary
     const cycleMap = new Map<number | string, TelemetryEvent[]>();
     let currentSyntheticCycle = 1;
 
     for (let i = 0; i < rawEvList.length; i++) {
       const ev = rawEvList[i];
-      const text = ev.event_text || '';
-      const code = ev.code || '';
-      if (i > 0 && (code === 'SEARCH_START' || text.includes('Searching official highlights for:'))) {
+      if (i > 0 && (ev.code === 'SEARCH_START' || (ev.event_text || '').includes('Searching official'))) {
         currentSyntheticCycle++;
       }
       const cId = ev.cycle_id ?? `synth-${currentSyntheticCycle}`;
@@ -216,20 +136,22 @@ export function buildMatchWaterfalls(events: TelemetryEvent[]): MatchWaterfall[]
 
     const cycles: MatchCycleRun[] = [];
     for (const [cId, cEvents] of cycleMap.entries()) {
-      const numericCycle = typeof cId === 'number' ? cId : undefined;
-      cycles.push(processCycleEvents(cEvents, numericCycle));
+      cycles.push(processCycleEvents(cEvents, typeof cId === 'number' ? cId : undefined));
     }
-
-    // Sort newest cycle first
     cycles.reverse();
     const latest = cycles[0] || processCycleEvents(rawEvList);
 
-    let title = /^\d+$/.test(key) ? '' : key;
-    let matchDate = '';
-    let compId: string | undefined;
-    let compName: string | undefined;
-    let homeScore: number | null = null;
-    let awayScore: number | null = null;
+    let dm = dbMap.get(key);
+    if (!dm) {
+      dm = dbTitleMap.get(key.toLowerCase().trim());
+    }
+
+    let title = dm ? `${dm.home_team_name} vs ${dm.away_team_name}` : (/^\d+$/.test(key) ? '' : key);
+    let matchDate = dm?.utc_date ? dm.utc_date.split('T')[0] : '';
+    let compId = dm?.competition_id;
+    let compName = dm?.competition_name;
+    let homeScore = dm?.home_score ?? null;
+    let awayScore = dm?.away_score ?? null;
 
     for (const ev of rawEvList) {
       const attrs = ev.attributes as Record<string, any> | undefined;
@@ -242,14 +164,35 @@ export function buildMatchWaterfalls(events: TelemetryEvent[]): MatchWaterfall[]
         if (awayScore === null && attrs.away_score !== undefined) awayScore = Number(attrs.away_score);
       }
       if (!matchDate) {
-        const dateMatch = (ev.event_text || '').match(/\b\d{4}-\d{2}-\d{2}\b/);
-        if (dateMatch) matchDate = dateMatch[0];
+        const dmMatch = (ev.event_text || '').match(/\b\d{4}-\d{2}-\d{2}\b/);
+        if (dmMatch) matchDate = dmMatch[0];
       }
     }
 
     if (!title) {
-      const fromText = extractMatchTitleFromText(rawEvList[0]?.event_text || '');
-      if (fromText) title = fromText;
+      for (const ev of rawEvList) {
+        const t = extractMatchTitleFromText(ev.event_text || '');
+        if (t) { title = t; break; }
+      }
+    }
+
+    const dbOutcomeId = dm?.highlight_video_id || undefined;
+    const outcomeId = latest.outcomeVideoId || dbOutcomeId;
+    const isLinked = Boolean(outcomeId);
+
+    if (isLinked) {
+      latest.status = 'LINKED';
+      latest.outcomeVideoId = outcomeId;
+      latest.outcomeVideoUrl = `https://youtu.be/${outcomeId}`;
+      latest.stoppedAtStep = undefined;
+      latest.stoppedReason = undefined;
+    }
+
+    const finalStatus: MatchWaterfall['status'] = isLinked ? 'LINKED' : latest.status;
+    const sched = !isLinked ? computeNextCycleSchedule(dm?.utc_date, dm?.last_youtube_check) : undefined;
+    if (sched && latest) {
+      latest.nextCycleEta = sched.nextCycleEta;
+      latest.nextCycleTimestamp = sched.nextCycleTimestamp;
     }
 
     if (title && !/^\d+$/.test(title) && title !== 'General Routine' && title !== 'global') {
@@ -262,18 +205,69 @@ export function buildMatchWaterfalls(events: TelemetryEvent[]): MatchWaterfall[]
         awayScore,
         competitionId: compId,
         competitionName: compName,
-        status: latest.status,
+        status: finalStatus,
         step1Channels: latest.step1Channels,
         step2Candidates: latest.step2Candidates,
         step3Verdicts: latest.step3Verdicts,
         step4Outcome: latest.step4Outcome,
-        outcomeVideoId: latest.outcomeVideoId,
-        outcomeVideoUrl: latest.outcomeVideoUrl,
+        outcomeVideoId: outcomeId,
+        outcomeVideoUrl: outcomeId ? `https://youtu.be/${outcomeId}` : undefined,
         stoppedAtStep: latest.stoppedAtStep,
         stoppedReason: latest.stoppedReason,
+        nextCycleEta: sched?.nextCycleEta,
+        nextCycleTimestamp: sched?.nextCycleTimestamp,
         cycles,
       });
     }
+  }
+
+  // Synthesize finished matches from database that are not yet in telemetry events buffer
+  for (const dm of dbMatches) {
+    const idStr = String(dm.id);
+    if (matchMap.has(idStr)) continue;
+
+    const title = `${dm.home_team_name} vs ${dm.away_team_name}`;
+    const date = dm.utc_date ? dm.utc_date.split('T')[0] : '';
+    const outcomeId = dm.highlight_video_id || undefined;
+    const isLinked = Boolean(outcomeId);
+    const sched = !isLinked ? computeNextCycleSchedule(dm.utc_date, dm.last_youtube_check) : undefined;
+
+    results.push({
+      matchId: idStr,
+      title,
+      date,
+      timestamp: date ? `${date} Final` : 'Recently',
+      homeScore: dm.home_score,
+      awayScore: dm.away_score,
+      competitionId: dm.competition_id,
+      competitionName: dm.competition_name,
+      status: isLinked ? 'LINKED' : 'UNLINKED',
+      step1Channels: isLinked ? ['Official Broadcaster Linked in Database'] : ['Awaiting Highlight Sweep'],
+      step2Candidates: [],
+      step3Verdicts: [],
+      step4Outcome: isLinked ? `Linked video ${outcomeId}` : 'Match finished in DB, awaiting next highlight processor run',
+      outcomeVideoId: outcomeId,
+      outcomeVideoUrl: outcomeId ? `https://youtu.be/${outcomeId}` : undefined,
+      stoppedAtStep: isLinked ? undefined : 1,
+      stoppedReason: isLinked ? undefined : 'Scheduled for upcoming background highlight search',
+      nextCycleEta: sched?.nextCycleEta,
+      nextCycleTimestamp: sched?.nextCycleTimestamp,
+      cycles: [{
+        cycleId: undefined,
+        timestamp: date || 'Recently',
+        step1Channels: isLinked ? ['Official Broadcaster Linked in Database'] : ['Awaiting Highlight Sweep'],
+        step2Candidates: [],
+        step3Verdicts: [],
+        step4Outcome: isLinked ? `Linked video ${outcomeId}` : 'Match finished in DB, awaiting next highlight processor run',
+        outcomeVideoId: outcomeId,
+        outcomeVideoUrl: outcomeId ? `https://youtu.be/${outcomeId}` : undefined,
+        status: isLinked ? 'LINKED' : 'UNLINKED',
+        stoppedAtStep: isLinked ? undefined : 1,
+        stoppedReason: isLinked ? undefined : 'Scheduled for upcoming background highlight search',
+        nextCycleEta: sched?.nextCycleEta,
+        nextCycleTimestamp: sched?.nextCycleTimestamp,
+      }],
+    });
   }
 
   return results;

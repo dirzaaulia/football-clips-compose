@@ -1,0 +1,13 @@
+{
+  "en": ["highlights", "highlight", "extended highlights", "mini match", "all goals", "goals"],
+  "es": ["resumen", "goles", "mejores momentos", "jugadas"],
+  "pt": ["resumo", "melhores momentos", "gols", "lances"],
+  "fr": ["résumé", "resume", "buts", "temps forts", "mini match"],
+  "de": ["zusammenfassung", "highlights", "tore", "alle tore"],
+  "it": ["sintesi", "gol", "highlights"],
+  "nl": ["samenvatting", "goals", "hoogtepunten"],
+  "el": ["στιγμιότυπα", "στιγμιοτυπα", "φάσεις", "φασεις", "γκολ"],
+  "tr": ["özet", "ozet", "goller", "maç özeti"],
+  "ar": ["ملخص", "أهداف", "اهداف", "جميع الاهداف"],
+  "id": ["cuplikan pertandingan", "ringkasan pertandingan", "cuplikan", "gol"]
+}

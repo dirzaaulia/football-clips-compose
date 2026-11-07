@@ -8,6 +8,7 @@ enum class NativeAdStyle {
     HERO_LANDSCAPE,
     MATCH,
     HIGHLIGHT,
+    STANDINGS,
 }
 
 @Composable

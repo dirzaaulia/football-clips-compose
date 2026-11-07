@@ -80,7 +80,7 @@ export default function QuickCommandPalette() {
       setSelectedIndex((prev) => (prev > 0 ? prev - 1 : 0));
     } else if (e.key === 'Enter' && results[selectedIndex]) {
       e.preventDefault();
-      router.push(`/match?id=${results[selectedIndex].id}`);
+      router.push(`/match/${results[selectedIndex].id}`);
       setIsOpen(false);
     }
   }
@@ -136,7 +136,7 @@ export default function QuickCommandPalette() {
             <div
               key={match.id}
               onClick={() => {
-                router.push(`/match?id=${match.id}`);
+                router.push(`/match/${match.id}`);
                 setIsOpen(false);
               }}
               onMouseEnter={() => setSelectedIndex(idx)}

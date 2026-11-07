@@ -146,6 +146,68 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
       'To breach these reinforced barriers, top Premier League managers have developed synchronized third-man run mechanisms. An attacking midfielder checks toward the ball to draw out an aggressive center-back, while a full-back or inverted winger simultaneously bursts through the vacated channel into the penalty area to receive a first-time pass.',
       'Furthermore, the role of set-piece routines has skyrocketed in tactical importance. With over a third of goals against low-block teams originating from choreographed corner kicks and indirect free-kicks, specialized set-piece coaching has become an indispensable element of top-tier football management.'
     ]
+  },
+  {
+    slug: 'serie-a-tactical-renaissance-pressing-and-asymmetric-fullbacks',
+    title: 'Serie A’s Tactical Renaissance: How High-Pressing and Asymmetric Fullbacks Revolutionized Italian Football in 2026',
+    subtitle: 'From Catenaccio Stereotypes to Europe\'s Most Tactically Progressive League: How Inzaghi, Motta, and Fabregas Redefined Calcio.',
+    author: {
+      name: 'Dirza Aulia',
+      role: 'Editorial Contributor',
+      avatar: '/favicon.png',
+      bio: 'Football Highlights & Clips editorial contributor covering European tactical structures and match analysis.',
+    },
+    publishedAt: '2026-10-25T10:00:00Z',
+    updatedAt: '2026-11-01T12:00:00Z',
+    readTime: '8 min read',
+    category: 'Tactical Analysis',
+    tags: ['Serie A', 'Tactics', 'Inter', 'Juventus', 'Como', 'Calcio'],
+    excerpt: 'An in-depth study of Italian football\'s tactical revolution, exploring how modern Serie A managers discarded defensive passivity in favor of fluid fluid rotations, 3-2-5 in possession, and intense counter-pressing.',
+    heroImage: 'https://images.unsplash.com/photo-1517927033932-b3d18e61fb3a?auto=format&fit=crop&w=1200&q=80',
+    keyTacticalTakeaways: [
+      'Serie A ranks highest among Europe\'s top five leagues in progressive passing distance from central center-backs.',
+      'Asymmetric fullbacks operate as central box-to-box midfielders during buildup phase.',
+      'Newly promoted clubs like Como 1907 deploy aggressive high-pressing midfields, averaging 56%+ possession.',
+      'Underlapping center-backs provide unexpected third-man overloads in the final third.'
+    ],
+    relatedLeague: 'Serie A',
+    content: [
+      'The outdated myth that Italian football is defined by cautious Catenaccio has been completely dismantled. In 2026, Serie A has emerged as Europe\'s most tactically inventive laboratory, driven by a new generation of managers who treat positional rigidity as an obsolete artifact.',
+      'At the forefront is the widespread adoption of asymmetric rotational structures. Teams no longer maintain static four or three-man backlines; when building out from the back, fullbacks frequently invert into central midfield pockets, freeing central midfielders to advance directly into forward half-spaces.',
+      'Even newly arrived sides, epitomized by Cesc Fàbregas\' Como 1907, demonstrate fearlessness against established powerhouses. Rather than retreating into low blocks, they press aggressively from kickoff, winning possession high and isolating wingers in 1v1 situations.',
+      'Tracking metrics highlight that Serie A matches in 2026 generate more open-play high turnovers per game than any other top-flight European league, cementing its status as a thrilling vanguard of modern tactical evolution.'
+    ]
+  },
+  {
+    slug: 'the-set-piece-arms-race-in-modern-football',
+    title: 'The Set-Piece Arms Race: Inside the Choreographed Routines Deciding European Titles',
+    subtitle: 'From Near-Post Flick-Ons to Goalkeeper Blocking Screens: How Specialized Dead-Ball Coaches Changed Modern Match Outcomes.',
+    author: {
+      name: 'Dirza Aulia',
+      role: 'Editorial Contributor',
+      avatar: '/favicon.png',
+      bio: 'Football Highlights & Clips editorial contributor covering European tactical structures and match analysis.',
+    },
+    publishedAt: '2026-10-28T14:30:00Z',
+    updatedAt: '2026-11-02T16:00:00Z',
+    readTime: '6 min read',
+    category: 'Tactical Breakdown',
+    tags: ['Set Pieces', 'Tactics', 'Premier League', 'Champions League', 'Analytics'],
+    excerpt: 'How corner kicks, wide free kicks, and long throw-ins evolved into meticulously choreographed routines that generate over 35% of decisive goals across top-tier European competitions.',
+    heroImage: 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?auto=format&fit=crop&w=1200&q=80',
+    keyTacticalTakeaways: [
+      'Set-piece expected goals (xG) have increased by 28% over the past three seasons.',
+      'Goalkeeper screening routines force defensive coordinators into hybrid man-and-zone systems.',
+      'Near-post delivery with two decoy runners accounts for 44% of set-piece goals.',
+      'Dedicated set-piece coaching staff are now standard across 90% of Champions League participants.'
+    ],
+    relatedLeague: 'Premier League',
+    content: [
+      'In elite European football, where open-play margins between top clubs are narrower than ever, set pieces have transformed from secondary dead-ball situations into primary game-winning weapons.',
+      'Teams analyze opposition defensive setups using computer vision and GPS tracking, identifying specific spatial gaps in zonal setups. By executing decoy runs that drag primary defenders toward the front post, an open corridor is generated at the penalty spot for incoming headers.',
+      'Furthermore, psychological pressure on opposition goalkeepers during corner kicks has become heavily choreographed: positioning physically dominant players in the six-yard box to impede clean punching lanes without committing fouls.',
+      'As defensive structures become increasingly resilient in open play, the master architects of set pieces will continue to dictate who lifts domestic and continental trophies.'
+    ]
   }
 ];
 

@@ -113,11 +113,12 @@ class HighlightService:
         title: str,
         channel_id: str,
         author_name: str = "",
+        published_at: str | None = None,
         log_events: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
-        from worker.services.single_highlight_processor import process_websub_video
+        from worker.services.websub_processor import process_websub_video
 
-        return process_websub_video(self, video_id, title, channel_id, author_name, log_events)
+        return process_websub_video(self, video_id, title, channel_id, author_name, published_at, log_events)
 
     @staticmethod
     def get_video_region_info(video_id: str) -> tuple[dict | None, int, bool]:

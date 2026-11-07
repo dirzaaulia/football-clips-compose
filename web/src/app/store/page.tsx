@@ -27,23 +27,8 @@ export default function StorePage() {
   const { country } = useUserRegion();
   const marketplace = resolveAmazonMarketplace(country);
 
-  useEffect(() => {
-    if (!isMerchandiseEnabled) {
-      router.replace('/');
-    }
-  }, [isMerchandiseEnabled, router]);
-
   const [search, setSearch] = useState('');
   const [selectedLeague, setSelectedLeague] = useState('ALL');
-
-  if (!isMerchandiseEnabled) {
-    return (
-      <div className="py-24 text-center space-y-3 max-w-md mx-auto px-4">
-        <p className="text-sm font-semibold text-white">Club Store &amp; Merchandise are disabled</p>
-        <p className="text-xs text-[#94A3B8]">Redirecting to Highlights...</p>
-      </div>
-    );
-  }
 
   const followedClubs = useMemo(() => {
     return allClubs.filter((c) => favoriteClubs.has(c.id));

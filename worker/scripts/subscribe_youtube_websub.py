@@ -91,7 +91,7 @@ class WebSubSubscriber:
                 next_sleep_str="72h",
                 cycle_index=1,
                 steps_log=log_events,
-                pipeline_type="WEBSUB_PUSH",
+                pipeline_type="WEBSUB_RENEWAL",
             )
         except Exception as e:
             logger.warning(f"Could not record WebSub renewal telemetry: {e}")

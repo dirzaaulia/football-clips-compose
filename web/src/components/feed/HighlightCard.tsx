@@ -46,15 +46,24 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
   };
 
   return (
-    <div className="group relative bg-[#1E2227] border border-[#334155] hover:border-[#7098F8]/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_4px_24px_rgba(112,152,248,0.18)] hover:-translate-y-1 flex flex-col justify-between">
+    <div
+      onClick={() => router.push(`/match/${match.id}`)}
+      className="group relative bg-[#1E2227] border border-[#334155] hover:border-[#7098F8]/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_4px_24px_rgba(112,152,248,0.18)] hover:-translate-y-1 flex flex-col justify-between cursor-pointer"
+    >
       {/* Thumbnail Header Area with Glass-Blur Spoiler Box */}
       <SpoilerThumbnailBox
         isSpoilerFree={isSpoilerFree}
         isRevealed={isRevealed}
         onRevealClick={() => router.push(`/match/${match.id}`)}
-        className="w-full aspect-video bg-[#101418] cursor-pointer"
+        className="w-full aspect-video bg-[#101418]"
       >
-        <div className="relative w-full h-full" onClick={handlePlay}>
+        <div
+          className="relative w-full h-full"
+          onClick={(e) => {
+            e.stopPropagation();
+            handlePlay();
+          }}
+        >
           <Image
             src={thumbnailUrl}
             alt={`${homeName} vs ${awayName} Highlights`}
@@ -202,7 +211,10 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
               </a>
             ) : match.highlight_video_id ? (
               <button
-                onClick={() => onPlay(match)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPlay(match);
+                }}
                 className="text-[#7098F8] font-bold hover:underline cursor-pointer text-xs"
               >
                 Watch
@@ -218,7 +230,10 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
             )}
             {match.id && !String(match.id).startsWith('mw-') ? (
               <button
-                onClick={() => onPlay(match)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/match/${match.id}`);
+                }}
                 className="text-[#94A3B8] hover:text-white flex items-center gap-1 transition-colors text-[11px] font-medium cursor-pointer"
               >
                 <Sparkles className="w-3 h-3 text-[#4FC3F7]" />

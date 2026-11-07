@@ -75,6 +75,7 @@ export default function Footer() {
             </div>
             <div className="flex flex-col space-y-2 text-xs">
               <Link href="/about" className="text-white font-bold hover:underline">About Us &amp; Masthead</Link>
+              <Link href="/tools" className="text-[#7098F8] font-bold hover:underline">Tactical Tools Suite (H2H &amp; Form)</Link>
               <Link href="/articles" className="text-[#4FC3F7] font-bold hover:underline">Analysis Hub &amp; News</Link>
               <Link href="/editorial-standards" className="text-emerald-400 font-bold hover:underline">Editorial Standards &amp; Verification</Link>
               <Link href="/info" className="text-[#7098F8] font-bold hover:underline">Info, Data Sources &amp; Support</Link>

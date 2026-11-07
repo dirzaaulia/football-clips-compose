@@ -70,7 +70,7 @@ class BatchCoordinator:
         now_iso = now_utc.isoformat()
         thirty_days_ago = (now_utc - timedelta(days=30)).isoformat()
 
-        # 1. Matches without highlights (last 30 days)
+        # 1. Priority 1: Unlinked matches (last 30 days)
         res_unlinked = (
             db_client.table("matches")
             .select("id, home_team_name, away_team_name, competition_id, competition_name, utc_date, last_youtube_check, highlight_video_id, youtube_region_info, home_score, away_score")
@@ -81,9 +81,9 @@ class BatchCoordinator:
             .limit(80)
             .execute()
         )
-        unlinked = [m for m in (res_unlinked.data or []) if not self.is_terminal(m)]
+        unlinked_p1 = [m for m in (res_unlinked.data or []) if not self.is_terminal(m)]
 
-        # 2. Restricted matches seeking upgrades
+        # 2. Priority 2: Current month matches seeking Tier 1 / 99%+ upgrades
         res_restricted = (
             db_client.table("matches")
             .select("id, home_team_name, away_team_name, competition_id, competition_name, utc_date, last_youtube_check, highlight_video_id, youtube_region_info, home_score, away_score")
@@ -95,54 +95,84 @@ class BatchCoordinator:
             .limit(40)
             .execute()
         )
-        upgrade_candidates = [
+        upgrades_p2 = [
             m for m in (res_restricted.data or [])
             if not self.is_terminal(m) and get_worldwide_watchability_score(m.get("youtube_region_info")) < 99.0
         ]
 
-        all_candidates = unlinked + upgrade_candidates
+        # 3. Priority 3: Old matches & Season 2025 archive
+        archive_p3 = []
+        try:
+            res_archive = (
+                db_client.table("matches")
+                .select("id, home_team_name, away_team_name, competition_id, competition_name, utc_date, last_youtube_check, highlight_video_id, youtube_region_info, home_score, away_score")
+                .eq("status", "FINISHED")
+                .lt("season", "2026")
+                .is_("highlight_video_id", "null")
+                .order("season", desc=True)
+                .order("utc_date", desc=True)
+                .limit(40)
+                .execute()
+            )
+            archive_p3 = [am for am in (res_archive.data or []) if not self.is_terminal(am)]
+        except Exception as e:
+            logger.warning(f"Error querying archive matches: {e}")
+
+        all_candidates = unlinked_p1 + upgrades_p2 + archive_p3
         if not all_candidates:
             append_event(log_events, "All FINISHED fixtures within 30 days have 99%+ worldwide official highlights.", "INFO", "YOUTUBE", "ALL_LINKED")
             return 0
 
         eligible_matches = []
         cooldown_skipped = []
-        for m in all_candidates:
-            ok, reason = should_check_youtube_for_match(m, now_utc)
-            if ok:
-                eligible_matches.append(m)
-            else:
-                cooldown_skipped.append((m, reason))
 
-        if cooldown_skipped:
+        def collect_eligible(candidates_list: list[dict[str, Any]]):
+            sorted_tier = sort_unlinked_matches_by_priority(candidates_list, now_utc)
+            for m in sorted_tier:
+                if len(eligible_matches) >= max_batch:
+                    break
+                ok, reason = should_check_youtube_for_match(m, now_utc)
+                if ok:
+                    eligible_matches.append(m)
+                else:
+                    cooldown_skipped.append((m, reason))
+
+        # Fill batch strictly by Priority 1 -> Priority 2 -> Priority 3
+        collect_eligible(unlinked_p1)
+        if len(eligible_matches) < max_batch:
+            collect_eligible(upgrades_p2)
+        if len(eligible_matches) < max_batch:
+            collect_eligible(archive_p3)
+
+        # Dynamic Cooldown Bypass: if batch has capacity and quota is abundant (>= 500)
+        try:
+            safe_quota = youtube_client.get_quota_status().get("remaining", 5000)
+        except Exception:
+            safe_quota = 5000
+        if len(eligible_matches) < max_batch and safe_quota >= 500 and cooldown_skipped:
+            bypassed = []
+            for m, _ in cooldown_skipped:
+                if m not in eligible_matches:
+                    eligible_matches.append(m)
+                    bypassed.append(m)
+                    if len(eligible_matches) >= max_batch:
+                        break
+            if bypassed:
+                append_event(
+                    log_events,
+                    f"Quota abundant ({safe_quota} units). Bypassed cooldown for {len(bypassed)} fixture(s).",
+                    "INFO",
+                    "YOUTUBE",
+                    "COOLDOWN_BYPASSED",
+                )
+
+        if cooldown_skipped and not (len(eligible_matches) >= max_batch and safe_quota >= 500):
             tier_counter = Counter()
             for m, r in cooldown_skipped:
                 t_match = r.split(" active")[0].strip() if " active" in r else "Active"
                 tier_counter[t_match] += 1
             tier_summary = ", ".join(f"{cnt} in {t}" for t, cnt in tier_counter.items())
             append_event(log_events, f"Cooldown guardrail: {len(cooldown_skipped)} fixture(s) protected ({tier_summary}).", "INFO", "YOUTUBE", "COOLDOWN_SUMMARY")
-
-        # Archive fallback if eligible is empty
-        if not eligible_matches:
-            try:
-                res_archive = (
-                    db_client.table("matches")
-                    .select("id, home_team_name, away_team_name, competition_id, competition_name, utc_date, last_youtube_check, highlight_video_id, youtube_region_info, home_score, away_score")
-                    .eq("status", "FINISHED")
-                    .lt("season", "2026")
-                    .is_("highlight_video_id", "null")
-                    .order("season", desc=True)
-                    .order("utc_date", desc=True)
-                    .limit(40)
-                    .execute()
-                )
-                for am in (res_archive.data or []):
-                    if not self.is_terminal(am):
-                        ok, _ = should_check_youtube_for_match(am, now_utc)
-                        if ok:
-                            eligible_matches.append(am)
-            except Exception as e:
-                logger.warning(f"Error querying archive matches: {e}")
 
         # Claimed video IDs
         try:
@@ -151,8 +181,7 @@ class BatchCoordinator:
         except Exception:
             claimed_video_ids = set()
 
-        sorted_matches = sort_unlinked_matches_by_priority(eligible_matches, now_utc) if eligible_matches else []
-        filtered_batch = sorted_matches[:max_batch]
+        filtered_batch = eligible_matches[:max_batch]
         linked_count = 0
 
         for match in filtered_batch:

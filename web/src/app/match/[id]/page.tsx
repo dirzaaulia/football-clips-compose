@@ -55,7 +55,7 @@ export async function generateStaticParams() {
       .from('matches')
       .select('id')
       .order('utc_date', { ascending: false })
-      .limit(30);
+      .limit(100);
     if (data && data.length > 0) {
       return data.map((m) => ({ id: String(m.id) }));
     }
@@ -109,12 +109,83 @@ export default async function MatchDetailPage({ params }: MatchPageProps) {
   const relatedPromise = getRelatedMatches(match.competition_id, match.id, 8);
   const [recapAnalysis, related] = await Promise.all([recapPromise, relatedPromise]);
 
+  const homeName = match.home_team_name || match.home_team || 'Home';
+  const awayName = match.away_team_name || match.away_team || 'Away';
+  const eventSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'SportsEvent',
+    name: `${homeName} vs ${awayName}`,
+    startDate: match.utc_date,
+    competitor: [
+      { '@type': 'SportsTeam', name: homeName },
+      { '@type': 'SportsTeam', name: awayName },
+    ],
+    ...(match.highlight_video_id
+      ? {
+          video: {
+            '@type': 'VideoObject',
+            name: `${homeName} vs ${awayName} Official Match Highlights`,
+            description: `Official match highlights and tactical recap for ${homeName} vs ${awayName}.`,
+            thumbnailUrl: `https://i.ytimg.com/vi/${match.highlight_video_id}/hqdefault.jpg`,
+            uploadDate: match.utc_date,
+            embedUrl: `https://www.youtube-nocookie.com/embed/${match.highlight_video_id}`,
+          },
+        }
+      : {}),
+  };
+
+  const isFinished = match.status === 'FINISHED';
+  const scoreText = isFinished
+    ? `${homeName} scored ${match.home_score ?? 0} and ${awayName} scored ${match.away_score ?? 0}.`
+    : `Kickoff scheduled for ${new Date(match.utc_date).toUTCString()}.`;
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `Where can I watch official highlights for ${homeName} vs ${awayName}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Official match highlights for ${homeName} vs ${awayName} are curated from verified broadcaster channels on Football Highlights & Clips with zero spam.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `What was the final score of ${homeName} against ${awayName}?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `${scoreText} The match took place in the ${match.competition_name || 'official competition'}.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `What tactical setup did ${homeName} and ${awayName} deploy?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Read our comprehensive tactical analysis and formation breakdown detailing pressing triggers, transitional lanes, and key match momentum phases.`,
+        },
+      },
+    ],
+  };
+
   return (
-    <MatchDetailClient
-      initialMatch={match}
-      initialRecap={recapAnalysis}
-      initialRelated={related}
-      expectedId={id}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <MatchDetailClient
+        initialMatch={match}
+        initialRecap={recapAnalysis}
+        initialRelated={related}
+        expectedId={id}
+      />
+    </>
   );
 }

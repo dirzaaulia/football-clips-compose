@@ -23,7 +23,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -199,10 +200,9 @@ fun AdaptiveMatchesScaffold(
         return
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-    ) { innerPadding ->
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    val bottomNavPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val isLandscape = maxHeight < 500.dp
             val isExpanded = maxWidth >= 840.dp
             val shouldUseNavRail = isLandscape || isExpanded
@@ -266,7 +266,7 @@ fun AdaptiveMatchesScaffold(
                         Row(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
-                                .padding(bottom = innerPadding.calculateBottomPadding())
+                                .padding(bottom = bottomNavPadding)
                                 .padding(horizontal = 12.dp, vertical = verticalPadding)
                                 .animateContentSize(),
                             horizontalArrangement = Arrangement.Center,
@@ -315,8 +315,8 @@ fun AdaptiveMatchesScaffold(
                 homeViewModel = homeViewModel,
                 scoreViewModel = scoreViewModel,
                 isLandscape = isLandscape,
-                bottomPadding = innerPadding.calculateBottomPadding(),
+                bottomPadding = bottomNavPadding,
             )
         }
     }
-}
+

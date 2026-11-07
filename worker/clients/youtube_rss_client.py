@@ -92,6 +92,7 @@ class YouTubeRSSClient:
                 published_el = entry.find("atom:published", self.ATOM_NS)
                 author_name_el = entry.find("atom:author/atom:name", self.ATOM_NS)
                 channel_id_el = entry.find("yt:channelId", self.ATOM_NS)
+                desc_el = entry.find("media:group/media:description", self.ATOM_NS)
 
                 if video_id_el is None or not video_id_el.text:
                     continue
@@ -101,12 +102,14 @@ class YouTubeRSSClient:
                 published_at = published_el.text.strip() if published_el is not None and published_el.text else ""
                 channel_name = author_name_el.text.strip() if author_name_el is not None and author_name_el.text else ""
                 c_id = channel_id_el.text.strip() if channel_id_el is not None and channel_id_el.text else fallback_channel_id
+                description = html.unescape(desc_el.text).strip()[:300] if desc_el is not None and desc_el.text else ""
 
                 # Match format of playlistItems.list snippet for 100% pipeline compatibility
                 results.append({
                     "id": {"videoId": vid},
                     "snippet": {
                         "title": title,
+                        "description": description,
                         "publishedAt": published_at,
                         "channelId": c_id,
                         "channelTitle": channel_name,

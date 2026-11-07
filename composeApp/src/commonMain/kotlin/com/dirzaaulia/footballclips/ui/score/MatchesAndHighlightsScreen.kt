@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -102,6 +103,7 @@ fun MatchesAndHighlightsScreen(
         } else {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 topBar = {
                     MatchesTopBar(
                         isWeb = isGrid,

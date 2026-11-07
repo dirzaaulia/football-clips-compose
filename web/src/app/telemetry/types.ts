@@ -86,6 +86,9 @@ export interface MatchCycleRun {
   status: 'LINKED' | 'COOLDOWN' | 'UNLINKED' | 'SEARCHED';
   stoppedAtStep?: 1 | 2 | 3 | 4;
   stoppedReason?: string;
+  nextCycleEta?: string;
+  nextCycleTimestamp?: string;
+  scannedUploads?: Record<string, ScannedVideo[]>;
 }
 
 export interface MatchWaterfall {
@@ -108,6 +111,8 @@ export interface MatchWaterfall {
   cooldownRemainingMinutes?: number;
   stoppedAtStep?: 1 | 2 | 3 | 4;
   stoppedReason?: string;
+  nextCycleEta?: string;
+  nextCycleTimestamp?: string;
   cycles?: MatchCycleRun[];
 }
 
@@ -121,6 +126,20 @@ export interface WeekCompetitionGroup {
     priority: number;
     matches: MatchWaterfall[];
   }[];
+}
+
+export interface DbFinishedMatch {
+  id: string | number;
+  competition_id?: string;
+  competition_name?: string;
+  utc_date?: string;
+  status: string;
+  home_team_name: string;
+  away_team_name: string;
+  home_score?: number | null;
+  away_score?: number | null;
+  highlight_video_id?: string | null;
+  last_youtube_check?: string | null;
 }
 
 export interface TelemetryPayload {
@@ -160,18 +179,65 @@ export interface NotificationsPayload {
   notifications: NotificationItem[];
 }
 
-export interface SubscriptionItem {
+export interface ScannedVideo {
   id: string;
-  timestamp: string;
-  platform: string;
-  device_name: string;
-  action: string;
-  club_ids: number[];
+  title: string;
+  publishedAt?: string;
+  source?: 'rss' | 'api' | 'api_playlist';
 }
 
-export interface SubscriptionsPayload {
+export interface AudienceDevice {
+  device_id: string;
+  user_id: string;
+  platform: string;
+  device_name: string;
+  app_version: string;
+  last_active: string;
+  favorite_clubs: number[];
+}
+
+export interface AudiencePayload {
   updated_at: string;
-  items: SubscriptionItem[];
+  total_registered_users: number;
+  total_registered_devices: number;
+  clubs?: Record<string, {
+    club_id: number;
+    total_devices: number;
+    distinct_users: number;
+    platform_breakdown?: { android?: number; web?: number };
+  }>;
+  devices?: Record<string, AudienceDevice>;
+}
+
+export interface AppSessionItem {
+  id?: number;
+  device_id: string;
+  app_version: string;
+  version_code: number;
+  platform: string;
+  created_at: string;
+  last_active?: string;
+  device_name?: string | null;
+  country?: string | null;
+  city?: string | null;
+  ip_address?: string | null;
+}
+
+export interface WebSubNotificationItem {
+  id: string;
+  videoId: string;
+  title: string;
+  channel?: string;
+  verdict: 'LINKED' | 'REJECTED' | 'IGNORED';
+  reason?: string;
+  matchedMatch?: {
+    id: string;
+    homeTeam: string;
+    awayTeam: string;
+    comp: string;
+  };
+  evaluator?: string;
+  timestamp: string;
 }
 
 export interface UserAnalyticsEvent {
@@ -182,6 +248,11 @@ export interface UserAnalyticsEvent {
   platform: string;
   payload: Record<string, any>;
   created_at: string;
+  device_name?: string | null;
+  country?: string | null;
+  city?: string | null;
+  ip_address?: string | null;
 }
 
 export type TelemetryTab = 'highlights' | 'fixtures' | 'websub' | 'notifications' | 'analytics';
+

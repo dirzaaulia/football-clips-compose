@@ -61,7 +61,7 @@ export function groupWaterfallsByWeekAndCompetition(
     const compMap = new Map<string, { competitionId: string; competitionName: string; priority: number; matches: MatchWaterfall[] }>();
 
     for (const m of matches) {
-      const compName = m.competitionName || 'Other Competitions';
+      const compName = m.competitionName || m.competitionId || 'Supported Competition';
       const compId = m.competitionId || compName;
       if (!compMap.has(compId)) {
         compMap.set(compId, {

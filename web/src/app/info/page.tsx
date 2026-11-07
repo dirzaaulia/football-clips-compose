@@ -86,7 +86,7 @@ export default function SettingsPage() {
             All match highlights are embedded strictly from verified, official league and club channels on YouTube in full compliance with the official YouTube IFrame Player API. Live match fixtures, scores, and schedules are provided by the ESPN Live Sports Engine and official league feeds.
           </p>
           <p>
-            All team and league crests are retrieved from verified official club assets and sports media networks. Match tactical debriefs are powered by advanced AI sports intelligence.
+            All team crests and competition emblems are delivered through verified official media CDN assets with edge caching. Match tactical debriefs are powered by advanced AI sports intelligence.
           </p>
         </div>
       </CollapsibleCard>

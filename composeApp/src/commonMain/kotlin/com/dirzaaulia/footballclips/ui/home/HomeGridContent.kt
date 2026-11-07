@@ -31,6 +31,8 @@ import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.matchesLeague
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.card.HeroCarousel
+import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
+import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 import com.dirzaaulia.footballclips.ui.score.components.getLeagueEmblemUrl
@@ -125,7 +127,7 @@ internal fun HomeGridContent(
             }
         } else if (selectedLeagueId == null && viewModel.selectedLeagues.isEmpty()) {
             val nonAds = gridItems.filter { it !is HighlightUiItem.BannerAd }
-            competitions.forEach { league ->
+            competitions.forEachIndexed { index, league ->
                 val compName = league.name
                 val emblem = league.logo.ifBlank { league.emblemUrl ?: getLeagueEmblemUrl(compName) }
                 val displayMatches = nonAds.filter { it.matchesLeague(league) }.take(20)
@@ -202,6 +204,20 @@ internal fun HomeGridContent(
                                 )
                             }
                         }
+                    }
+                }
+
+                if (!isAdsRemoved && (index + 1) % 3 == 0 && index < competitions.size - 1) {
+                    item(
+                        key = "ad-between-${league.id}",
+                        span = { GridItemSpan(maxLineSpan) },
+                    ) {
+                        BannerAdItem(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            style = NativeAdStyle.MATCH,
+                        )
                     }
                 }
             }

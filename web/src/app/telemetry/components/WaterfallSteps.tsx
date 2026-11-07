@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import { ExternalLink, Edit3, ShieldAlert } from 'lucide-react';
+import { ExternalLink, Edit3, ShieldAlert, AlertCircle } from 'lucide-react';
 import { MatchCycleRun } from '../types';
 import { CandidateCard } from './CandidateCard';
+import { CandidateGroupList } from './CandidateGroupList';
 
 interface WaterfallStepsProps {
   cycle: MatchCycleRun;
@@ -15,6 +16,9 @@ interface WaterfallStepsProps {
 export function WaterfallSteps({ cycle, matchId, matchTitle, onOpenOverride }: WaterfallStepsProps) {
   const isLinked = cycle.status === 'LINKED';
   const isCooldown = cycle.status === 'COOLDOWN';
+
+  const totalScanned = Object.values(cycle.scannedUploads || {}).reduce((sum, list) => sum + list.length, 0);
+  const totalCandidatesCount = totalScanned + cycle.step2Candidates.length;
 
   return (
     <div className="space-y-4 pt-2">
@@ -33,6 +37,14 @@ export function WaterfallSteps({ cycle, matchId, matchTitle, onOpenOverride }: W
           <p className="text-slate-300 text-[12px] leading-relaxed">
             {cycle.step4Outcome || 'YouTube search bypassed to conserve daily API quota.'}
           </p>
+          {cycle.nextCycleEta && (
+            <div className="flex items-center gap-1.5 text-sky-400 font-mono text-[11px] pt-0.5">
+              <span>⏳ {cycle.nextCycleEta}</span>
+              {cycle.nextCycleTimestamp && (
+                <span className="text-slate-400">· {cycle.nextCycleTimestamp}</span>
+              )}
+            </div>
+          )}
           <div className="pt-1 flex items-center justify-end">
             <button
               onClick={onOpenOverride}
@@ -45,26 +57,63 @@ export function WaterfallSteps({ cycle, matchId, matchTitle, onOpenOverride }: W
         </div>
       )}
 
+      {/* Unlinked / Stopped Step Diagnostics Alert */}
+      {!isLinked && !isCooldown && (
+        <div className="bg-rose-950/20 border border-rose-800/40 rounded-xl p-3 flex items-start gap-2.5 text-xs text-rose-300">
+          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+          <div className="space-y-1 flex-1">
+            <div className="font-semibold text-rose-200 flex items-center justify-between flex-wrap gap-1">
+              <span>
+                {cycle.stoppedAtStep
+                  ? `Search Stopped at Step ${cycle.stoppedAtStep}`
+                  : cycle.status === 'SEARCHED'
+                    ? 'Search Completed (No Highlight Linked)'
+                    : 'Highlight Search Incomplete'}
+              </span>
+              {(cycle.nextCycleEta || cycle.nextCycleTimestamp) && (
+                <span className="text-[10px] font-mono text-sky-400 font-normal">
+                  ⏳ {cycle.nextCycleEta || 'Scheduled'}
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-rose-300/90 leading-relaxed font-mono">
+              {cycle.stoppedReason || cycle.step4Outcome || 'No eligible highlight candidates found yet.'}
+            </p>
+            {cycle.nextCycleTimestamp && (
+              <p className="text-[10px] text-slate-400 font-mono pt-0.5">
+                {cycle.nextCycleTimestamp}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Step 1: Channels */}
       <div className="text-xs space-y-1.5">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-1">
           <p className="font-semibold text-slate-200 uppercase tracking-wide text-[11px] flex items-center gap-1.5">
             <span className="w-5 h-5 rounded-full bg-blue-950 border border-blue-500/40 inline-flex items-center justify-center text-[10px] text-blue-400 font-mono font-bold">1</span>
             Official Broadcaster Targets ({cycle.step1Channels.length})
           </p>
           {cycle.query && (
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700 truncate max-w-[200px]" title={cycle.query}>
-              Query: {cycle.query}
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700 max-w-[280px] sm:max-w-md truncate" title={cycle.query}>
+              Query: &quot;{cycle.query}&quot;
             </span>
           )}
         </div>
-        <div className="bg-slate-900/90 rounded-lg p-2.5 text-slate-300 font-mono text-xs border border-slate-800 flex flex-wrap gap-1.5">
+        <div className="bg-slate-900/90 rounded-lg p-2.5 text-slate-300 font-mono text-xs border border-slate-800 flex flex-wrap gap-2">
           {cycle.step1Channels.length > 0 ? (
-            cycle.step1Channels.map((ch, idx) => (
-              <span key={idx} className="px-2 py-1 rounded bg-slate-800 text-slate-300 text-[11px] border border-slate-700/60 font-sans">
-                {ch.replace(/^Checking\s+(channel\s+)?/i, '').replace(/\s+uploads\.\.\.$/i, '')}
-              </span>
-            ))
+            cycle.step1Channels.map((ch, idx) => {
+              const handle = ch.replace(/^Checking\s+(channel\s+)?/i, '').replace(/\s+uploads\.\.\.$/i, '').trim();
+              return (
+                <span
+                  key={idx}
+                  className="px-2.5 py-1 rounded-lg bg-slate-800/80 text-slate-300 text-[11px] border border-slate-700/60 font-mono"
+                >
+                  {handle}
+                </span>
+              );
+            })
           ) : (
             <p className="text-slate-500 italic">Target channels awaiting sweep</p>
           )}
@@ -76,7 +125,7 @@ export function WaterfallSteps({ cycle, matchId, matchTitle, onOpenOverride }: W
         <div className="flex items-center justify-between">
           <p className="font-semibold text-slate-200 uppercase tracking-wide text-[11px] flex items-center gap-1.5">
             <span className="w-5 h-5 rounded-full bg-indigo-950 border border-indigo-500/40 inline-flex items-center justify-center text-[10px] text-indigo-400 font-mono font-bold">2</span>
-            Discovered Candidates ({cycle.step2Candidates.length})
+            Discovered Candidates ({totalCandidatesCount})
           </p>
           {cycle.stoppedAtStep === 2 && (
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
@@ -84,52 +133,10 @@ export function WaterfallSteps({ cycle, matchId, matchTitle, onOpenOverride }: W
             </span>
           )}
         </div>
-        {cycle.step2Candidates.length > 0 ? (
-          <div className="bg-slate-900/90 rounded-lg p-2.5 text-slate-300 font-mono space-y-2 border border-slate-800 max-h-48 overflow-y-auto">
-            {cycle.step2Candidates.map((cand, idx) => {
-              const isRss = cand.includes('RSS');
-              const isApi = cand.includes('API');
-              const urlMatch = cand.match(/->\s*(https:\/\/youtu\.be\/[a-zA-Z0-9_-]{11})/);
-              let displayLine = cand
-                .replace(/^(\[[^\]]+\]\s*)+/, '')
-                .replace(/\[(RSS|API)[^\]]*\]\s*/i, '')
-                .trim();
-              if (urlMatch) {
-                displayLine = displayLine.replace(/->\s*https:\/\/youtu\.be\/[a-zA-Z0-9_-]{11}/, '').trim();
-              }
-              return (
-                <div key={idx} className="flex items-center justify-between gap-2 p-1.5 rounded hover:bg-slate-800/60 text-[11px]">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    {isRss && (
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-bold border border-emerald-500/30 shrink-0">
-                        RSS 0-quota
-                      </span>
-                    )}
-                    {isApi && (
-                      <span className="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[9px] font-bold border border-blue-500/30 shrink-0">
-                        API Data
-                      </span>
-                    )}
-                    <span className="truncate text-slate-300 font-sans">{displayLine}</span>
-                  </div>
-                  {urlMatch && (
-                    <a
-                      href={urlMatch[1]}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 text-blue-400 hover:text-blue-300 hover:bg-slate-700 text-[10px] font-bold shrink-0 border border-slate-700"
-                    >
-                      <span>Watch</span>
-                      <ExternalLink className="w-2.5 h-2.5" />
-                    </a>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-slate-500 italic pl-6 text-xs">Zero preliminary uploads detected</p>
-        )}
+        <CandidateGroupList
+          scannedUploads={cycle.scannedUploads}
+          directCandidates={cycle.step2Candidates}
+        />
       </div>
 
       {/* Step 3: Verdicts */}

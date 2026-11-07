@@ -20,6 +20,7 @@ def fallback_score_video(
     match_utc: str | datetime | None = None,
     channel_handle: str | None = None,
     official_channel_targets: list[str] | None = None,
+    description: str = "",
 ) -> int:
     """
     Hardened deterministic mathematical heuristic scorer (Tier 1 Autonomous Engine).
@@ -100,19 +101,34 @@ def fallback_score_video(
 
     # 3. Team Alias Verification
     norm_title = normalize_for_alias_matching(title)
+    norm_desc = normalize_for_alias_matching(description) if description else ""
+
     has_h = any(matches_alias(a, norm_title) for a in h_aliases)
     has_a = any(matches_alias(a, norm_title) for a in a_aliases)
 
+    is_club_channel = bool(channel_handle and official_channel_targets and channel_handle in official_channel_targets)
+
+    if is_club_channel and not (has_h and has_a):
+        has_desc_h = any(matches_alias(a, norm_desc) for a in h_aliases)
+        has_desc_a = any(matches_alias(a, norm_desc) for a in a_aliases)
+        if has_a or has_desc_a:
+            has_h = True
+            has_a = True
+        elif has_h or has_desc_h:
+            has_h = True
+            has_a = True
+
     if has_h and has_a:
         score += 35
+        if is_club_channel:
+            score += 15
     elif has_h or has_a:
-        is_club_channel = bool(channel_handle and official_channel_targets and channel_handle in official_channel_targets)
         if is_club_channel:
             score += 15
         else:
             score -= 30
     else:
-        # Neither team present in video title -> completely reject unrelated video
+        # Neither team present in video title or description -> completely reject unrelated video
         return -100
 
     # 4. Scoreline Alignment

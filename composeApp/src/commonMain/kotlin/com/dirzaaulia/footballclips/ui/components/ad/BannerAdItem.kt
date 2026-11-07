@@ -42,12 +42,21 @@ fun BannerAdItem(
             NativeAdStyle.HERO,
             NativeAdStyle.HERO_LANDSCAPE,
             -> if (isLandscape) 180.dp else 240.dp
-            NativeAdStyle.MATCH -> if (isLandscape) 180.dp else 250.dp
+            NativeAdStyle.MATCH -> if (isLandscape) 130.dp else 150.dp
             NativeAdStyle.HIGHLIGHT -> if (isLandscape) 120.dp else 145.dp
+            NativeAdStyle.STANDINGS -> if (isLandscape) 110.dp else 130.dp
         }
 
-    val shape = if (style == NativeAdStyle.MATCH) RoundedCornerShape(14.dp) else RoundedCornerShape(14.dp)
-    val border = if (style == NativeAdStyle.MATCH) BorderStroke(1.dp, Color(0xFFD4AF37).copy(alpha = 0.35f)) else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        val shape = when (style) {
+            NativeAdStyle.MATCH -> RoundedCornerShape(14.dp)
+            NativeAdStyle.STANDINGS -> RoundedCornerShape(12.dp)
+            else -> RoundedCornerShape(16.dp)
+        }
+        val border = when (style) {
+            NativeAdStyle.MATCH -> BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+            NativeAdStyle.STANDINGS -> BorderStroke(1.dp, Color(0xFF334155).copy(alpha = 0.6f))
+            else -> BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        }
 
     Card(
         modifier = modifier

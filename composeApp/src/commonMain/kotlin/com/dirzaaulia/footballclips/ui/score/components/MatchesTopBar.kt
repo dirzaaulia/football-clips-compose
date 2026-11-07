@@ -3,7 +3,11 @@ package com.dirzaaulia.footballclips.ui.score.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -61,7 +65,9 @@ fun MatchesTopBar(
     ) {
         Column {
             if (!isWeb) {
+                val statusBarInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
                 TopAppBar(
+                    modifier = Modifier.height(50.dp + statusBarInset),
                     title = {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,

@@ -6,6 +6,7 @@ import { Radio, ArrowRight, Shield } from 'lucide-react';
 import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 import { MatchRecord } from '@/lib/database';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
+import Link from 'next/link';
 
 interface LiveMatchSectionProps {
   liveMatches: MatchRecord[];
@@ -55,8 +56,9 @@ export default function LiveMatchSection({ liveMatches, className = '' }: LiveMa
   const groupedLive = React.useMemo(() => {
     if (!liveMatches || liveMatches.length === 0) return [];
     const map = new Map<string, MatchRecord[]>();
-    liveMatches.forEach(m => {
-      const comp = m.competition_name || 'Other Competitions';
+    liveMatches.forEach((m) => {
+      const comp = m.competition_name || m.competition_id || '';
+      if (!comp) return;
       if (!map.has(comp)) map.set(comp, []);
       map.get(comp)!.push(m);
     });
@@ -173,13 +175,13 @@ export default function LiveMatchSection({ liveMatches, className = '' }: LiveMa
                         <span className="text-xs text-[#94A3B8] font-medium">
                           {isPaused ? 'Half-time interval' : m.display_clock ? `${m.display_clock}' in progress` : 'Match in progress'}
                         </span>
-                        <button
-                          onClick={() => playVideo(m)}
+                        <Link
+                          href={`/match/${m.id}`}
                           className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-xs font-bold shadow-[0_0_12px_rgba(239,68,68,0.35)] transition-all cursor-pointer"
                         >
                           <span>Match Centre</span>
                           <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   );

@@ -5,7 +5,7 @@ import { Search, Filter, Layers, List } from 'lucide-react';
 import { database } from '@/lib/database';
 import {
   TelemetryPayload, MatchWaterfall, NotificationsPayload,
-  SubscriptionsPayload, TelemetryTab, UserAnalyticsEvent,
+  AudiencePayload, AppSessionItem, TelemetryTab, UserAnalyticsEvent, DbFinishedMatch,
 } from './types';
 import { buildMatchWaterfalls } from './mapper';
 import { groupWaterfallsByWeekAndCompetition } from './grouping';
@@ -23,9 +23,13 @@ import { AnalyticsPipelineView } from './components/AnalyticsPipelineView';
 export default function TelemetryPage() {
   const [activeTab, setActiveTab] = useState<TelemetryTab>('highlights');
   const [data, setData] = useState<TelemetryPayload | null>(null);
+  const [dbFinishedMatches, setDbFinishedMatches] = useState<DbFinishedMatch[]>([]);
   const [notifications, setNotifications] = useState<NotificationsPayload | null>(null);
-  const [subscriptions, setSubscriptions] = useState<SubscriptionsPayload | null>(null);
+  const [audience, setAudience] = useState<AudiencePayload | null>(null);
   const [analyticsEvents, setAnalyticsEvents] = useState<UserAnalyticsEvent[]>([]);
+  const [appSessions, setAppSessions] = useState<AppSessionItem[]>([]);
+  const [totalAnalyticsCount, setTotalAnalyticsCount] = useState<number>(0);
+  const [totalSessionsCount, setTotalSessionsCount] = useState<number>(0);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -41,22 +45,41 @@ export default function TelemetryPage() {
       const { data: rows, error } = await database
         .from('telemetry_state')
         .select('key, payload')
-        .in('key', ['telemetry', 'notifications', 'subscriptions']);
+        .in('key', ['telemetry', 'notifications', 'audience']);
 
       if (!error && rows) {
         for (const row of rows) {
           if (row.key === 'telemetry') setData(row.payload as TelemetryPayload);
           else if (row.key === 'notifications') setNotifications(row.payload as NotificationsPayload);
-          else if (row.key === 'subscriptions') setSubscriptions(row.payload as SubscriptionsPayload);
+          else if (row.key === 'audience') setAudience(row.payload as AudiencePayload);
         }
       }
 
-      const { data: aRows } = await database
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const { data: mRows } = await database
+        .from('matches')
+        .select('id, competition_id, competition_name, utc_date, status, home_team_name, away_team_name, home_score, away_score, highlight_video_id, last_youtube_check')
+        .eq('status', 'FINISHED')
+        .gte('utc_date', thirtyDaysAgo.toISOString())
+        .order('utc_date', { ascending: false });
+      if (mRows) setDbFinishedMatches(mRows as DbFinishedMatch[]);
+
+      const { data: aRows, count: aCount } = await database
         .from('user_analytics_events')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(200);
       if (aRows) setAnalyticsEvents(aRows as UserAnalyticsEvent[]);
+      if (typeof aCount === 'number') setTotalAnalyticsCount(aCount);
+
+      const { data: sRows, count: sCount } = await database
+        .from('app_sessions')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .limit(200);
+      if (sRows) setAppSessions(sRows as AppSessionItem[]);
+      if (typeof sCount === 'number') setTotalSessionsCount(sCount);
     } catch (e) {
       console.error('Failed to fetch telemetry data:', e);
     } finally {
@@ -85,7 +108,10 @@ export default function TelemetryPage() {
     }
   };
 
-  const waterfalls = useMemo(() => (!data?.events ? [] : buildMatchWaterfalls(data.events)), [data]);
+  const waterfalls = useMemo(
+    () => buildMatchWaterfalls(data?.events || [], dbFinishedMatches),
+    [data, dbFinishedMatches]
+  );
 
   const filteredWaterfalls = useMemo(() => {
     return waterfalls.filter((wf: MatchWaterfall) => {
@@ -120,7 +146,7 @@ export default function TelemetryPage() {
           autoRefreshInterval={autoRefreshInterval}
           setAutoRefreshInterval={setAutoRefreshInterval}
           lastUpdated={data?.updated_at ? new Date(data.updated_at).toLocaleTimeString() : undefined}
-          onExportJson={() => navigator.clipboard.writeText(JSON.stringify({ telemetry: data, notifications, subscriptions }, null, 2))}
+          onExportJson={() => navigator.clipboard.writeText(JSON.stringify({ telemetry: data, notifications, audience }, null, 2))}
           onClearLogs={handleClearLogs}
           isClearingLogs={isClearingLogs}
         />
@@ -134,7 +160,7 @@ export default function TelemetryPage() {
             unlinkedCount={unlinkedCount}
             liveMatchesCount={liveMatchesCount}
             notificationsCount={notifications?.notifications?.length ?? 0}
-            analyticsCount={analyticsEvents.length}
+            analyticsCount={(totalSessionsCount || appSessions.length) + (totalAnalyticsCount || analyticsEvents.length)}
             websubStatus={data?.pipelines?.websub?.status}
             isLiveActive={liveMatchesCount > 0}
           />
@@ -222,8 +248,16 @@ export default function TelemetryPage() {
 
             {activeTab === 'fixtures' && <LiveScoresPipelineView pipelineInfo={data?.pipelines?.fixtures} events={data?.events || []} />}
             {activeTab === 'websub' && <WebSubPipelineView pipelineInfo={data?.pipelines?.websub} events={data?.events || []} />}
-            {activeTab === 'notifications' && <NotificationsPipelineView notificationsPayload={notifications} subscriptions={subscriptions?.items || []} />}
-            {activeTab === 'analytics' && <AnalyticsPipelineView events={analyticsEvents} isLoading={isLoading} />}
+            {activeTab === 'notifications' && <NotificationsPipelineView notificationsPayload={notifications} audiencePayload={audience} />}
+            {activeTab === 'analytics' && (
+              <AnalyticsPipelineView
+                events={analyticsEvents}
+                appSessions={appSessions}
+                totalAnalyticsCount={totalAnalyticsCount}
+                totalSessionsCount={totalSessionsCount}
+                isLoading={isLoading}
+              />
+            )}
           </main>
         </div>
       </div>

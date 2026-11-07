@@ -6,7 +6,6 @@ from loguru import logger
 
 from worker.clients.youtube_client import youtube_client
 from worker.clients.youtube_rss_client import youtube_rss_client
-from worker.config.broadcaster_registry import GLOBAL_BROADCASTER_REGISTRY
 from worker.config.settings import settings
 from worker.repositories.channel_repository import channel_repository
 from worker.services.highlight.filters import (
@@ -18,6 +17,7 @@ from worker.services.highlight.filters import (
     has_scoreline,
     is_target_market_catered,
 )
+from worker.services.highlight.handle_resolver import resolve_target_handles
 from worker.services.highlight.normalizer import (
     clean_team_name_for_search,
     get_club_handle,
@@ -28,52 +28,30 @@ from worker.services.highlight.normalizer import (
 from worker.utils.telemetry_logger import append_event
 
 
+def _build_scanned_summary(raw_items: list[dict[str, Any]] | None, source: str) -> list[dict[str, Any]]:
+    summary = []
+    for it in (raw_items or []):
+        vid = (
+            it.get("snippet", {}).get("resourceId", {}).get("videoId")
+            or (it.get("id", {}).get("videoId") if isinstance(it.get("id"), dict) else it.get("id") if isinstance(it.get("id"), str) else "")
+        )
+        if vid:
+            summary.append({
+                "id": vid,
+                "title": html.unescape(it.get("snippet", {}).get("title", "")),
+                "publishedAt": it.get("snippet", {}).get("publishedAt"),
+                "source": source,
+            })
+    return summary
+
+
 class CandidateFinder:
     def __init__(self, quota_checker):
         self.get_safe_quota = quota_checker
         self.cycle_search_api_calls = 0
 
     def resolve_target_handles(self, home: str, away: str, comp_id: str, comp_name: str) -> tuple[list[str], list[str], list[str]]:
-        comp_name_upper = comp_name.upper()
-        comp_id_upper = comp_id.upper()
-
-        tier1 = []
-        h_h = get_club_handle(home)
-        a_h = get_club_handle(away)
-        if h_h:
-            tier1.append(h_h)
-        if a_h and a_h not in tier1:
-            tier1.append(a_h)
-
-        league_h, _ = channel_repository.get_competition_channel(comp_id_upper)
-        if not league_h:
-            league_h, _ = channel_repository.get_competition_channel(comp_name_upper)
-        if league_h and league_h not in tier1:
-            tier1.append(league_h)
-
-        tier2 = []
-        backups = channel_repository.get_competition_backups(comp_id_upper) or channel_repository.get_competition_backups(comp_name_upper)
-        for bh in backups:
-            if bh not in tier1 and bh not in tier2:
-                tier2.append(bh)
-
-        for b in GLOBAL_BROADCASTER_REGISTRY:
-            comps = b.get("competitions", [])
-            if comp_id_upper in comps or comp_name_upper in comps:
-                h = b.get("channel_handle")
-                if h and h not in tier1 and h not in tier2:
-                    if len(b.get("allowed_countries", [])) > 1 or not b.get("allowed_countries"):
-                        tier2.append(h)
-
-        tier3 = []
-        for b in GLOBAL_BROADCASTER_REGISTRY:
-            comps = b.get("competitions", [])
-            if comp_id_upper in comps or comp_name_upper in comps:
-                h = b.get("channel_handle")
-                if h and h not in tier1 and h not in tier2 and h not in tier3:
-                    tier3.append(h)
-
-        return tier1, tier2, tier3
+        return resolve_target_handles(home, away, comp_id, comp_name)
 
     def find_candidates(
         self,
@@ -144,6 +122,8 @@ class CandidateFinder:
                     is_league = bool(league_handle and handle.lower() == league_handle.lower())
                     source_mode = "rss"
                     raw_items = youtube_rss_client.fetch_channel_recent_videos(c_id)
+                    scanned_summary = _build_scanned_summary(raw_items, "rss")
+
                     if raw_items:
                         append_event(
                             log_events,
@@ -152,10 +132,12 @@ class CandidateFinder:
                             "YOUTUBE",
                             "RSS_DISCOVERY",
                             match_id=match.get("id"),
+                            attributes={"scanned_videos": scanned_summary, "channel": handle},
                         )
                     elif self.get_safe_quota() >= 10:
                         source_mode = "api_playlist"
                         raw_items = youtube_client.get_playlist_recent_videos(c_id, max_results=scan_limit)
+                        scanned_summary = _build_scanned_summary(raw_items, "api_playlist")
                         if raw_items:
                             append_event(
                                 log_events,
@@ -164,7 +146,28 @@ class CandidateFinder:
                                 "YOUTUBE",
                                 "API_CHANNEL_FALLBACK",
                                 match_id=match.get("id"),
+                                attributes={"scanned_videos": scanned_summary, "channel": handle},
                             )
+                        else:
+                            append_event(
+                                log_events,
+                                f"   [CHANNEL EMPTY] 0 public uploads available on channel {handle}",
+                                "INFO",
+                                "YOUTUBE",
+                                "CHANNEL_EMPTY",
+                                match_id=match.get("id"),
+                                attributes={"scanned_videos": [], "channel": handle},
+                            )
+                    else:
+                        append_event(
+                            log_events,
+                            f"   [CHANNEL EMPTY] 0 public uploads available on channel {handle}",
+                            "INFO",
+                            "YOUTUBE",
+                            "CHANNEL_EMPTY",
+                            match_id=match.get("id"),
+                            attributes={"scanned_videos": [], "channel": handle},
+                        )
 
                     for it in raw_items or []:
                         snip = it.get("snippet", {})
@@ -192,7 +195,10 @@ class CandidateFinder:
                                 is_matched = True
                         elif not is_league:
                             target_a = a_aliases if handle == get_club_handle(home) else h_aliases
-                            if any(matches_alias(a, norm_t) for a in target_a) and has_highlight_keyword(title):
+                            desc = snip.get("description", "")
+                            norm_d = normalize_for_alias_matching(desc)
+                            opponent_found = any(matches_alias(a, norm_t) for a in target_a) or any(matches_alias(a, norm_d) for a in target_a)
+                            if opponent_found and has_highlight_keyword(title):
                                 is_matched = True
 
                         if is_matched:
@@ -216,7 +222,7 @@ class CandidateFinder:
 
                     if (
                         not matched_items
-                        and (allow_search_api or (self.cycle_search_api_calls < 3 and self.get_safe_quota() >= 1500))
+                        and (allow_search_api or self.get_safe_quota() >= 500)
                     ):
                         self.cycle_search_api_calls += 1
                         append_event(
@@ -317,6 +323,7 @@ class CandidateFinder:
                         candidates.append({
                             "id": vid,
                             "title": title,
+                            "description": item.get("snippet", {}).get("description", "")[:300],
                             "published_at": item.get("snippet", {}).get("publishedAt"),
                             "duration": dur,
                             "is_embeddable": is_embed,

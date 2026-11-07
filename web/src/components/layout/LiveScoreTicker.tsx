@@ -72,7 +72,7 @@ export default function LiveScoreTicker() {
           {liveMatches.map((match) => (
             <Link
               key={match.id}
-              href={`/match?id=${match.id}`}
+              href={`/match/${match.id}`}
               className="flex items-center gap-2 bg-[#161B22]/80 hover:bg-[#21262D] border border-white/5 hover:border-white/20 transition-all rounded-lg px-2.5 py-1 text-xs shrink-0 group"
             >
               <span className="text-gray-400 text-[10px] font-mono font-bold group-hover:text-red-400 transition-colors">

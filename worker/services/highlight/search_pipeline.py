@@ -65,7 +65,14 @@ class SearchPipeline:
                 "YOUTUBE",
                 "NO_HANDLE",
                 match_id=m_id,
-                attributes={"step": "RESULT", "status": "NO_HANDLE", "reason": f"No official YouTube handles mapped for {home} vs {away}"},
+                attributes={
+                    "step": "RESULT",
+                    "status": "NO_HANDLE",
+                    "reason": f"No official YouTube handles mapped for {home} vs {away}",
+                    "match_title": f"{home} vs {away}",
+                    "home_team": home,
+                    "away_team": away,
+                },
             )
             return None, None, None, None, []
 
@@ -77,12 +84,23 @@ class SearchPipeline:
                 "YOUTUBE",
                 "RESULT_EMPTY",
                 match_id=m_id,
-                attributes={"step": "RESULT", "status": "NOT_INSERTED", "inserted_to_db": False},
+                attributes={
+                    "step": "RESULT",
+                    "status": "NOT_INSERTED",
+                    "inserted_to_db": False,
+                    "match_title": f"{home} vs {away}",
+                    "home_team": home,
+                    "away_team": away,
+                },
             )
             return None, None, None, None, []
 
         if claimed_video_ids:
-            candidates = [c for c in candidates if c.get("id") not in claimed_video_ids]
+            current_vid = match.get("highlight_video_id")
+            candidates = [
+                c for c in candidates
+                if c.get("id") not in claimed_video_ids or (current_vid and c.get("id") == current_vid)
+            ]
             if not candidates:
                 append_event(
                     log_events,
@@ -91,7 +109,14 @@ class SearchPipeline:
                     "YOUTUBE",
                     "CLAIMED",
                     match_id=m_id,
-                    attributes={"step": "RESULT", "status": "NOT_INSERTED", "inserted_to_db": False},
+                    attributes={
+                        "step": "RESULT",
+                        "status": "NOT_INSERTED",
+                        "inserted_to_db": False,
+                        "match_title": f"{home} vs {away}",
+                        "home_team": home,
+                        "away_team": away,
+                    },
                 )
                 return None, None, None, None, []
 

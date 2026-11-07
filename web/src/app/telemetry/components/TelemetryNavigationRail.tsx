@@ -64,7 +64,7 @@ export function TelemetryNavigationRail({
     },
     {
       id: 'analytics' as TelemetryTab,
-      label: 'App & Web Analytics',
+      label: 'Analytics',
       subtitle: 'User Events & Actions',
       icon: BarChart3,
       badge: analyticsCount > 0 ? `${analyticsCount}` : undefined,

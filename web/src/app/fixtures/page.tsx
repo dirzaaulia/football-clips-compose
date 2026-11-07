@@ -332,42 +332,49 @@ export default function FixturesPage() {
         </div>
       ) : (
         <div className="space-y-5">
-          {groupedFixtures.map((group) => (
-            <div key={group.competitionName} className="space-y-2">
-              {/* League Header */}
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-2">
-                  {group.logo ? (
-                    <div className="relative w-6 h-6 rounded-full bg-white p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-slate-200/20">
-                      <div className="relative w-full h-full">
-                        <Image
-                          src={group.logo}
-                          alt={group.competitionName}
-                          fill
-                          className="object-contain"
-                          unoptimized
-                        />
+          {groupedFixtures.map((group, groupIdx) => (
+            <React.Fragment key={group.competitionName}>
+              <div className="space-y-2">
+                {/* League Header */}
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    {group.logo ? (
+                      <div className="relative w-6 h-6 rounded-full bg-white p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-slate-200/20">
+                        <div className="relative w-full h-full">
+                          <Image
+                            src={group.logo}
+                            alt={group.competitionName}
+                            fill
+                            className="object-contain"
+                            unoptimized
+                          />
+                        </div>
                       </div>
-                    </div>
-                  ) : (
-                    <Trophy className="w-4 h-4 text-[#7098F8]" />
-                  )}
-                  <h3 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">
-                    {group.competitionName}
-                  </h3>
+                    ) : (
+                      <Trophy className="w-4 h-4 text-[#7098F8]" />
+                    )}
+                    <h3 className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">
+                      {group.competitionName}
+                    </h3>
+                  </div>
+                  <span className="text-[10px] font-bold text-[#94A3B8] bg-[#1E2227] px-2 py-0.5 rounded-full border border-[#334155]/60">
+                    {group.matches.length} {group.matches.length === 1 ? 'match' : 'matches'}
+                  </span>
                 </div>
-                <span className="text-[10px] font-bold text-[#94A3B8] bg-[#1E2227] px-2 py-0.5 rounded-full border border-[#334155]/60">
-                  {group.matches.length} {group.matches.length === 1 ? 'match' : 'matches'}
-                </span>
+
+                {/* Fixture Items Connected Container */}
+                <div className="bg-[#181C20] border border-[#334155]/70 rounded-2xl overflow-hidden divide-y divide-[#334155]/40 shadow-sm">
+                  {group.matches.map((m) => (
+                    <FixtureItemCard key={m.id} match={m} showLeagueHeader={false} />
+                  ))}
+                </div>
               </div>
 
-              {/* Fixture Items Connected Container */}
-              <div className="bg-[#181C20] border border-[#334155]/70 rounded-2xl overflow-hidden divide-y divide-[#334155]/40 shadow-sm">
-                {group.matches.map((m) => (
-                  <FixtureItemCard key={m.id} match={m} showLeagueHeader={false} />
-                ))}
-              </div>
-            </div>
+              {/* Ad between competition sections every 2-3 sections */}
+              {(groupIdx + 1) % 3 === 0 && groupIdx < groupedFixtures.length - 1 && (
+                <AdSenseBanner slotId="5616816386" format="auto" className="my-5" />
+              )}
+            </React.Fragment>
           ))}
         </div>
       )}

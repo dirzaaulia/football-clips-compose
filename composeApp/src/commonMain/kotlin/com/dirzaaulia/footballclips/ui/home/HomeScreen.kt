@@ -138,7 +138,7 @@ fun HomeScreen(
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            contentWindowInsets = if (isLandscape) WindowInsets(0, 0, 0, 0) else ScaffoldDefaults.contentWindowInsets,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             snackbarHost = { SnackbarHost(hostState = snackbarHostState, modifier = Modifier.padding(bottom = 120.dp)) },
             topBar = {
                 HomeScreenTopBar(

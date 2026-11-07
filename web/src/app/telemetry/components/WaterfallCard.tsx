@@ -37,7 +37,7 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
       }];
 
   const activeCycle = cycles[selectedCycleIdx] || cycles[0];
-  const isLinked = activeCycle.status === 'LINKED';
+  const isLinked = activeCycle.status === 'LINKED' || (selectedCycleIdx === 0 && waterfall.status === 'LINKED');
   const isCooldown = activeCycle.status === 'COOLDOWN';
 
   const handleCopyCardJson = (e: React.MouseEvent) => {
@@ -65,10 +65,14 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
   );
 
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden transition-all duration-200">
+    <div className="bg-slate-900/80 border border-slate-800 rounded-xl transition-all duration-200">
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-800/40 select-none transition"
+        className={`flex items-center justify-between p-4 cursor-pointer select-none transition ${
+          isOpen
+            ? 'sticky top-24 z-10 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/90 rounded-t-xl shadow-md'
+            : 'hover:bg-slate-800/40 rounded-xl'
+        }`}
       >
         <div className="flex flex-col gap-1 min-w-0 pr-3">
           <div className="flex items-center gap-2 flex-wrap">
@@ -105,13 +109,22 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
+          {!isLinked && (activeCycle.nextCycleEta || waterfall.nextCycleEta) && (
+            <span
+              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0"
+              title={activeCycle.nextCycleTimestamp || waterfall.nextCycleTimestamp}
+            >
+              <Clock className="w-3 h-3 text-sky-400" />
+              <span>{activeCycle.nextCycleEta || waterfall.nextCycleEta}</span>
+            </span>
+          )}
           {statusBadge}
           {isOpen ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
         </div>
       </div>
 
       {isOpen && (
-        <div className="px-4 pb-4 pt-2 border-t border-slate-800/80 space-y-3 bg-slate-950/40">
+        <div className="px-4 pb-4 pt-2 border-t border-slate-800/80 space-y-3 bg-slate-950/40 rounded-b-xl">
           {/* Cycle Selector Bar: Visible when multiple execution runs exist */}
           {cycles.length > 1 && (
             <div className="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono">

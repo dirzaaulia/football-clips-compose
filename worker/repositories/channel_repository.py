@@ -4,12 +4,20 @@ Loads from PostgreSQL `competitions` and `supported_clubs` via PostgREST
 with 1-hour in-memory cache TTL. 100% database-driven.
 """
 
+import re
 import time
 from typing import Any
 from loguru import logger
 
 from worker.clients.database_client import db_client as supabase_client
 from worker.config.broadcaster_registry import GLOBAL_BROADCASTER_REGISTRY
+
+GENERIC_CLUB_STOP_WORDS = {
+    "club", "atletico", "real", "deportivo", "sporting", "racing",
+    "city", "united", "inter", "union", "fc", "cf", "ac", "sc",
+    "dynamo", "dinamo", "wanderers", "athletic", "rovers", "town",
+    "county", "al", "el", "la", "de", "san", "santa",
+}
 
 
 class ChannelRepository:
@@ -22,6 +30,7 @@ class ChannelRepository:
         self._clubs_by_id: dict[str, dict[str, Any]] = {}
         self._clubs_by_name: dict[str, dict[str, Any]] = {}
         self._channel_ids_by_handle: dict[str, str] = {}
+        self._handles_by_channel_id: dict[str, str] = {}
         self._last_loaded_time: float = 0.0
         self._initialized = False
 
@@ -104,6 +113,7 @@ class ChannelRepository:
                 self._clubs_by_name = new_clubs_by_name
             if new_channel_ids:
                 self._channel_ids_by_handle = new_channel_ids
+                self._handles_by_channel_id = {cid: h for h, cid in new_channel_ids.items() if not cid.startswith("UC_")}
 
             self._last_loaded_time = now
             self._initialized = True
@@ -134,22 +144,29 @@ class ChannelRepository:
         return []
 
     def get_club_channel(self, club_name: str, short_name: str = "") -> tuple[str, str]:
-        """Returns (handle, channel_id) for a club."""
+        """Returns (handle, channel_id) for a club with strict word-boundary matching."""
         self.ensure_loaded()
         norm_name = club_name.lower().strip()
         norm_short = short_name.lower().strip() if short_name else ""
+        norm_clean = re.sub(r"\s*\([^)]*\)", "", norm_name).strip()
 
         match = self._clubs_by_name.get(norm_name) or (self._clubs_by_name.get(norm_short) if norm_short else None)
+        if not match and norm_clean != norm_name:
+            match = self._clubs_by_name.get(norm_clean)
+
         if not match:
-            clean = norm_name.replace(" fc", "").replace(" cf", "").replace(" ac", "").strip()
+            clean = norm_clean.replace(" fc", "").replace(" cf", "").replace(" ac", "").strip()
             match = self._clubs_by_name.get(clean)
 
         if not match:
-            # Substring match across clubs
+            # Word-boundary match across clubs to avoid intra-word collisions (e.g. 'gent' in 'argentinos')
             for k, row in self._clubs_by_name.items():
-                if len(k) >= 4 and (k in norm_name or norm_name in k):
-                    match = row
-                    break
+                if len(k) >= 4 and k not in GENERIC_CLUB_STOP_WORDS:
+                    k_pat = rf"\b{re.escape(k)}\b"
+                    norm_pat = rf"\b{re.escape(norm_clean)}\b"
+                    if re.search(k_pat, norm_clean) or re.search(norm_pat, k):
+                        match = row
+                        break
 
         if match:
             return (match.get("youtube_handle") or "", match.get("youtube_channel_id") or "")
@@ -165,20 +182,25 @@ class ChannelRepository:
         self.ensure_loaded()
         norm_name = club_name.lower().strip()
         norm_short = short_name.lower().strip() if short_name else ""
+        norm_clean = re.sub(r"\s*\([^)]*\)", "", norm_name).strip()
 
         match = self._clubs_by_name.get(norm_name) or (self._clubs_by_name.get(norm_short) if norm_short else None)
+        if not match and norm_clean != norm_name:
+            match = self._clubs_by_name.get(norm_clean)
         if not match:
-            clean = norm_name.replace(" fc", "").replace(" cf", "").replace(" ac", "").strip()
+            clean = norm_clean.replace(" fc", "").replace(" cf", "").replace(" ac", "").strip()
             match = self._clubs_by_name.get(clean)
 
         if match and match.get("aliases"):
             aliases = list(match["aliases"])
             if match.get("short_name") and match["short_name"].lower() not in aliases:
                 aliases.append(match["short_name"].lower())
+            if norm_clean not in aliases:
+                aliases.append(norm_clean)
             return aliases
 
-        # Default fallback to normalized club name
-        return [norm_name]
+        # Default fallback to normalized club name without parentheticals
+        return [norm_clean] if norm_clean else [norm_name]
 
     def get_channel_id_for_handle(self, handle: str) -> str | None:
         """Returns YouTube channel ID for a given handle if known in database."""
@@ -186,6 +208,13 @@ class ChannelRepository:
         if not handle:
             return None
         return self._channel_ids_by_handle.get(handle.lower().strip())
+
+    def get_handle_for_channel_id(self, channel_id: str) -> str | None:
+        """Returns YouTube @handle for a given channel ID if known in database."""
+        self.ensure_loaded()
+        if not channel_id:
+            return None
+        return self._handles_by_channel_id.get(channel_id.strip())
 
     def get_all_websub_channels(self) -> dict[str, str]:
         """Returns all verified channel_id -> label mapping across leagues, clubs, and broadcasters."""

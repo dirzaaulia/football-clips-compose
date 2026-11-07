@@ -59,25 +59,29 @@ def is_target_market_catered(region_info: Any) -> bool:
         return False
     allowed = set(r_dict.get("allowed") or [])
     if allowed:
-        primary = {"ID", "GB", "US"}
-        return primary.issubset(allowed)
+        return bool(allowed.intersection(KEY_FOOTBALL_MARKETS))
     return True
 
 
-def is_target_country_catered(region_info: Any, country_or_countries: str | list[str] = "ID") -> bool:
+TOP_FOOTBALL_FAN_MARKETS: list[str] = sorted(list(KEY_FOOTBALL_MARKETS))
+
+
+def is_target_country_catered(region_info: Any, country_or_countries: str | list[str] | set[str] | None = None) -> bool:
     """
-    Checks if a video is playable in a target country or at least one target country in a list
-    (e.g. ['ID', 'GB', 'US']). Returns True if playable in ANY target country.
+    Checks if a video is playable in major football fan markets or specified countries.
+    Returns True if playable in ANY target market.
     """
     r_dict = _parse_region_info(region_info)
     if not r_dict:
         return True
 
-    targets = (
-        [country_or_countries.upper()]
-        if isinstance(country_or_countries, str)
-        else [c.upper() for c in country_or_countries]
-    )
+    if country_or_countries is None:
+        targets = TOP_FOOTBALL_FAN_MARKETS
+    elif isinstance(country_or_countries, (list, set)):
+        targets = [c.upper() for c in country_or_countries]
+    else:
+        targets = [country_or_countries.upper()]
+
     blocked = set(r_dict.get("blocked") or [])
     allowed = set(r_dict.get("allowed") or [])
 
@@ -94,9 +98,9 @@ def get_catered_target_countries(
     region_info: Any,
     target_countries: list[str] | None = None,
 ) -> list[str]:
-    """Returns the exact list of target countries (e.g. ['ID', 'GB', 'US']) where this video is watchable."""
+    """Returns the exact list of target countries where this video is watchable."""
     if target_countries is None:
-        target_countries = ["ID", "GB", "US"]
+        target_countries = TOP_FOOTBALL_FAN_MARKETS
     r_dict = _parse_region_info(region_info)
     if not r_dict:
         return target_countries

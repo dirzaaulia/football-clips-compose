@@ -543,6 +543,8 @@ export default function StandingsPage() {
           )}
         </div>
       )}
+
+      <AdSenseBanner slotId="5616816386" format="auto" className="my-6" />
     </div>
   );
 }
