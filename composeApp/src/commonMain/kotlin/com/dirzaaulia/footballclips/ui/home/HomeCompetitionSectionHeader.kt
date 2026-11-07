@@ -2,6 +2,7 @@ package com.dirzaaulia.footballclips.ui.home
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.dirzaaulia.footballclips.util.toProxyUrl
@@ -60,15 +63,12 @@ fun HomeCompetitionSectionHeader(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f),
             ) {
-                if (!competitionEmblemUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model = competitionEmblemUrl.toProxyUrl(),
-                        contentDescription = competitionName,
-                        modifier = Modifier.size(24.dp),
-                        contentScale = ContentScale.Fit,
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                }
+                CompetitionEmblem(
+                    competitionName = competitionName,
+                    competitionEmblemUrl = competitionEmblemUrl,
+                    size = 24.dp,
+                )
+                Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = competitionName,
                     style = MaterialTheme.typography.titleMedium,
@@ -129,15 +129,12 @@ fun HomeSeeAllCompetitionCard(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f),
             ) {
-                if (!competitionEmblemUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model = competitionEmblemUrl.toProxyUrl(),
-                        contentDescription = competitionName,
-                        modifier = Modifier.size(28.dp),
-                        contentScale = ContentScale.Fit,
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                }
+                CompetitionEmblem(
+                    competitionName = competitionName,
+                    competitionEmblemUrl = competitionEmblemUrl,
+                    size = 28.dp,
+                )
+                Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
                         text = "See all $competitionName",
@@ -163,6 +160,37 @@ fun HomeSeeAllCompetitionCard(
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp),
             )
+        }
+    }
+}
+
+@Composable
+private fun CompetitionEmblem(
+    competitionName: String,
+    competitionEmblemUrl: String?,
+    size: Dp,
+) {
+    if (!competitionEmblemUrl.isNullOrBlank()) {
+        AsyncImage(
+            model = competitionEmblemUrl.toProxyUrl(),
+            contentDescription = competitionName,
+            modifier = Modifier.size(size),
+            contentScale = ContentScale.Fit,
+        )
+    } else {
+        Surface(
+            shape = RoundedCornerShape(6.dp),
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier.size(size),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    text = competitionName.take(2).uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
         }
     }
 }

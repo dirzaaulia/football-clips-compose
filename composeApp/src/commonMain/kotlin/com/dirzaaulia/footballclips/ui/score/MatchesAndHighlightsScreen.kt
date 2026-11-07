@@ -168,6 +168,7 @@ fun MatchesAndHighlightsScreen(
                                     revealedMatchIds = revealedMatchIds,
                                     onRevealMatch = { id -> revealedMatchIds = revealedMatchIds + id },
                                     onVideoClick = onVideoClick,
+                                    isAdsRemoved = state.isAdsRemoved,
                                 )
                             }
                         }

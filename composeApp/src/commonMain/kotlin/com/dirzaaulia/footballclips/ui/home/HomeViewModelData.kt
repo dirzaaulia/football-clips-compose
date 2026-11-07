@@ -16,15 +16,21 @@ import kotlinx.coroutines.delay
 
 private val PRIORITY_COMPETITION_IDS = listOf(
     "CL", "EL", "ECL", "PL", "PD", "SA", "BL1", "FL1",
-    "FAC", "CDR", "CIT", "DFB", "EFL", "DED", "PPL", "SPL", "MLS", "BRA", "ARG",
+    "SPL", "MLS", "DED", "PPL", "IDN", "BRA", "ARG",
+    "FAC", "EFL", "CDR", "DFB", "CIT", "LIB", "SUD", "REC",
 )
 
 internal suspend fun fetchGroupedOracleHighlights(
     oracleVmRepository: OracleVmRepository,
     season: Int? = null,
 ): List<Match> {
+    val dynamicIds = oracleVmRepository.competitions.value
+        .map { it.id }
+        .filter { it.isNotBlank() }
+    val compIds = if (dynamicIds.isNotEmpty()) dynamicIds else PRIORITY_COMPETITION_IDS
+
     return coroutineScope {
-        PRIORITY_COMPETITION_IDS.map { compId ->
+        compIds.map { compId ->
             async {
                 val res = oracleVmRepository.getMatches(
                     competitionId = compId,
@@ -139,6 +145,10 @@ internal suspend fun HomeViewModel.getOracleHighlights(isRefresh: Boolean = true
         hasMoreOracle = true
     }
     if (!hasMoreOracle) return
+
+    if (oracleVmRepository.competitions.value.isEmpty()) {
+        oracleVmRepository.refreshCompetitions()
+    }
 
     val (newM, hasMore) = if (_selectedCompetitionId.value == null && searchQuery.isBlank() && oracleOffset == 0) {
         val grouped = fetchGroupedOracleHighlights(oracleVmRepository, selectedSeason.value)

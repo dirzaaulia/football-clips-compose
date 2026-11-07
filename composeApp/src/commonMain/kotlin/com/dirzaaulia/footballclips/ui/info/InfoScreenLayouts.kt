@@ -28,12 +28,14 @@ internal fun InfoSettingsLandscapeGrid(
     profile: Profile?,
     isPremium: Boolean,
     isDarkMode: Boolean,
+    isSpoilerFree: Boolean,
     isMerchandiseEnabled: Boolean,
     favoriteCount: Int,
     uriHandler: UriHandler,
     onSignIn: () -> Unit,
     onSignOut: () -> Unit,
     onToggleDarkMode: (Boolean) -> Unit,
+    onToggleSpoilerFree: (Boolean) -> Unit,
     onOpenMyClubs: () -> Unit,
     onToggleMerchandise: (Boolean) -> Unit,
     onShowPaywall: () -> Unit,
@@ -59,6 +61,12 @@ internal fun InfoSettingsLandscapeGrid(
             ThemeSettingsCard(
                 isDarkMode = isDarkMode,
                 onToggleDarkMode = onToggleDarkMode,
+            )
+        }
+        item {
+            SpoilerFreeSettingsCard(
+                isSpoilerFree = isSpoilerFree,
+                onToggleSpoilerFree = onToggleSpoilerFree,
             )
         }
         item {
@@ -103,6 +111,7 @@ internal fun InfoSettingsWideLayout(
     profile: Profile?,
     isPremium: Boolean,
     isDarkMode: Boolean,
+    isSpoilerFree: Boolean,
     isMerchandiseEnabled: Boolean,
     favoriteCount: Int,
     scrollState: ScrollState,
@@ -110,6 +119,7 @@ internal fun InfoSettingsWideLayout(
     onSignIn: () -> Unit,
     onSignOut: () -> Unit,
     onToggleDarkMode: (Boolean) -> Unit,
+    onToggleSpoilerFree: (Boolean) -> Unit,
     onOpenMyClubs: () -> Unit,
     onToggleMerchandise: (Boolean) -> Unit,
     onShowPaywall: () -> Unit,
@@ -142,6 +152,11 @@ internal fun InfoSettingsWideLayout(
             ThemeSettingsCard(
                 isDarkMode = isDarkMode,
                 onToggleDarkMode = onToggleDarkMode,
+                modifier = Modifier.weight(1f).widthIn(min = 280.dp),
+            )
+            SpoilerFreeSettingsCard(
+                isSpoilerFree = isSpoilerFree,
+                onToggleSpoilerFree = onToggleSpoilerFree,
                 modifier = Modifier.weight(1f).widthIn(min = 280.dp),
             )
             MyClubsSettingsCard(
@@ -201,6 +216,7 @@ internal fun InfoSettingsPortraitLayout(
     profile: Profile?,
     isPremium: Boolean,
     isDarkMode: Boolean,
+    isSpoilerFree: Boolean,
     isMerchandiseEnabled: Boolean,
     favoriteCount: Int,
     scrollState: ScrollState,
@@ -208,6 +224,7 @@ internal fun InfoSettingsPortraitLayout(
     onSignIn: () -> Unit,
     onSignOut: () -> Unit,
     onToggleDarkMode: (Boolean) -> Unit,
+    onToggleSpoilerFree: (Boolean) -> Unit,
     onOpenMyClubs: () -> Unit,
     onToggleMerchandise: (Boolean) -> Unit,
     onShowPaywall: () -> Unit,
@@ -231,6 +248,10 @@ internal fun InfoSettingsPortraitLayout(
         ThemeSettingsCard(
             isDarkMode = isDarkMode,
             onToggleDarkMode = onToggleDarkMode,
+        )
+        SpoilerFreeSettingsCard(
+            isSpoilerFree = isSpoilerFree,
+            onToggleSpoilerFree = onToggleSpoilerFree,
         )
         MyClubsSettingsCard(
             favoriteCount = favoriteCount,

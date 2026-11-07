@@ -155,6 +155,7 @@ class ScoreViewModel(
             oracleVmRepository.refreshCompetitions()
         }
         _selectedDate.value = availableDates.firstOrNull { it.isToday }?.date
+        observeAdsRemoved()
         viewModelScope.launch {
             preferenceManager.selectedSeason.collect {
                 getMatches()

@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,16 +28,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
-import com.dirzaaulia.footballclips.data.model.competitionEmblemUrl
-import com.dirzaaulia.footballclips.data.model.competitionName
+import com.dirzaaulia.footballclips.data.model.matchesLeague
 import com.dirzaaulia.footballclips.data.model.uniqueId
-import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
-import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
 import com.dirzaaulia.footballclips.ui.components.card.HeroCarousel
-import com.dirzaaulia.footballclips.ui.components.card.WebHighlightCard
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
-import com.dirzaaulia.footballclips.ui.components.filter.BigLeaguesQuickFilterBar
+import com.dirzaaulia.footballclips.ui.score.components.getLeagueEmblemUrl
 
 @Composable
 internal fun HomeGridContent(
@@ -63,6 +57,8 @@ internal fun HomeGridContent(
     val liveMatches by viewModel.liveMatches.collectAsState()
     val favoriteClubs by viewModel.favoriteClubs.collectAsState()
     val supportedClubs by viewModel.supportedClubs.collectAsState()
+    val competitions by viewModel.competitions.collectAsState()
+    val selectedSeason by viewModel.selectedSeason.collectAsState()
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 220.dp),
@@ -111,39 +107,12 @@ internal fun HomeGridContent(
         }
 
         item(span = { GridItemSpan(maxLineSpan) }) {
-            val competitions by viewModel.competitions.collectAsState()
-            if (isAdsRemoved) {
-                BigLeaguesQuickFilterBar(
-                    selectedLeagueId = selectedLeagueId,
-                    dynamicCompetitions = competitions,
-                    onLeagueSelected = onLeagueSelected,
-                )
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        BigLeaguesQuickFilterBar(
-                            selectedLeagueId = selectedLeagueId,
-                            dynamicCompetitions = competitions,
-                            onLeagueSelected = onLeagueSelected,
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .width(280.dp)
-                            .height(140.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        BannerAdItem(
-                            style = NativeAdStyle.HIGHLIGHT,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    }
-                }
-            }
+            HomeGridFilterBar(
+                isAdsRemoved = isAdsRemoved,
+                selectedLeagueId = selectedLeagueId,
+                competitions = competitions,
+                onLeagueSelected = onLeagueSelected,
+            )
         }
 
         if (items.isEmpty()) {
@@ -156,24 +125,29 @@ internal fun HomeGridContent(
             }
         } else if (selectedLeagueId == null && viewModel.selectedLeagues.isEmpty()) {
             val nonAds = gridItems.filter { it !is HighlightUiItem.BannerAd }
-            val groups = nonAds.groupBy { it.competitionName.ifBlank { "Other Competitions" } }
-                .toList()
-                .sortedBy { (compName, _) -> getCompetitionPriority(compName) }
-            groups.forEach { (compName, groupMatches) ->
-                val emblem = groupMatches.firstOrNull()?.competitionEmblemUrl
-                val displayMatches = groupMatches.take(20)
+            competitions.forEach { league ->
+                val compName = league.name
+                val emblem = league.logo.ifBlank { league.emblemUrl ?: getLeagueEmblemUrl(compName) }
+                val displayMatches = nonAds.filter { it.matchesLeague(league) }.take(20)
+
                 item(
-                    key = "sec-$compName",
+                    key = "sec-${league.id}",
                     span = { GridItemSpan(maxLineSpan) },
                 ) {
                     HomeCompetitionSectionHeader(
                         competitionName = compName,
                         competitionEmblemUrl = emblem,
-                        onSeeAll = { viewModel.selectCompetitionByName(compName) },
+                        onSeeAll = {
+                            if (league.leagueId != null) {
+                                viewModel.selectLeague(league.leagueId, league.competitionId)
+                            } else {
+                                viewModel.selectCompetitionByName(compName)
+                            }
+                        },
                     )
                 }
                 item(
-                    key = "row-$compName",
+                    key = "row-${league.id}",
                     span = { GridItemSpan(maxLineSpan) },
                 ) {
                     LazyRow(
@@ -181,27 +155,50 @@ internal fun HomeGridContent(
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                         contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                     ) {
-                        rowItems(
-                            items = displayMatches,
-                            key = { it.uniqueId },
-                        ) { item ->
-                            Box(modifier = Modifier.width(320.dp)) {
-                                HighlightGridItem(
-                                    item = item,
-                                    revealedItemIds = revealedItemIds,
-                                    isSpoilerFreeMode = isSpoilerFreeMode,
-                                    showExternalHighlights = showExternalHighlights,
-                                    viewModel = viewModel,
-                                    onVideoClick = onVideoClick,
-                                )
+                        if (displayMatches.isNotEmpty()) {
+                            rowItems(
+                                items = displayMatches,
+                                key = { it.uniqueId },
+                            ) { item ->
+                                Box(modifier = Modifier.width(320.dp)) {
+                                    HighlightGridItem(
+                                        item = item,
+                                        revealedItemIds = revealedItemIds,
+                                        isSpoilerFreeMode = isSpoilerFreeMode,
+                                        showExternalHighlights = showExternalHighlights,
+                                        viewModel = viewModel,
+                                        onVideoClick = onVideoClick,
+                                    )
+                                }
                             }
-                        }
-                        item(key = "see-all-$compName") {
-                            Box(modifier = Modifier.width(220.dp)) {
-                                HomeSeeAllCompetitionCard(
-                                    competitionName = compName,
-                                    competitionEmblemUrl = emblem,
-                                    onSeeAll = { viewModel.selectCompetitionByName(compName) },
+                            item(key = "see-all-${league.id}") {
+                                Box(modifier = Modifier.width(220.dp)) {
+                                    HomeSeeAllCompetitionCard(
+                                        competitionName = compName,
+                                        competitionEmblemUrl = emblem,
+                                        onSeeAll = {
+                                            if (league.leagueId != null) {
+                                                viewModel.selectLeague(league.leagueId, league.competitionId)
+                                            } else {
+                                                viewModel.selectCompetitionByName(compName)
+                                            }
+                                        },
+                                    )
+                                }
+                            }
+                        } else {
+                            item(key = "empty-${league.id}") {
+                                UpcomingCompetitionCard(
+                                    league = league,
+                                    selectedSeason = selectedSeason,
+                                    onSeeAll = {
+                                        if (league.leagueId != null) {
+                                            viewModel.selectLeague(league.leagueId, league.competitionId)
+                                        } else {
+                                            viewModel.selectCompetitionByName(compName)
+                                        }
+                                    },
+                                    onSwitchSeason = { viewModel.setSeason(it) },
                                 )
                             }
                         }

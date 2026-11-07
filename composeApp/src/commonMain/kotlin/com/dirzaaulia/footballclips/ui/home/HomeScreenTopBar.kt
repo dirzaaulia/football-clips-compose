@@ -23,16 +23,11 @@ import com.dirzaaulia.footballclips.util.isDebugBuild
 internal fun HomeScreenTopBar(
     isWeb: Boolean,
     isLandscape: Boolean = false,
-    isDarkMode: Boolean,
     isPremium: Boolean,
-    isSpoilerFreeMode: Boolean,
     favoriteClubsCount: Int = 0,
-    isScrolled: Boolean = false,
     selectedSeason: Int = 2026,
     onSeasonSelected: (Int) -> Unit = {},
     onTitleTap: () -> Unit,
-    onDarkModeToggle: (Boolean) -> Unit,
-    onToggleSpoilerFree: () -> Unit,
     onShowMyClubs: () -> Unit = {},
     onShowPaywall: () -> Unit,
     onShowFilter: () -> Unit,
@@ -66,24 +61,13 @@ internal fun HomeScreenTopBar(
         actions = {
             if (isWeb) {
                 HomeScreenTopBarWebActions(
-                    isDarkMode = isDarkMode,
                     isPremium = isPremium,
-                    isSpoilerFreeMode = isSpoilerFreeMode,
-                    favoriteClubsCount = favoriteClubsCount,
-                    onDarkModeToggle = onDarkModeToggle,
-                    onToggleSpoilerFree = onToggleSpoilerFree,
-                    onShowMyClubs = onShowMyClubs,
                     onShowPaywall = onShowPaywall,
                 )
             } else {
                 HomeScreenTopBarMobileActions(
-                    isDarkMode = isDarkMode,
                     isPremium = isPremium,
-                    isSpoilerFreeMode = isSpoilerFreeMode,
                     favoriteClubsCount = favoriteClubsCount,
-                    isScrolled = isScrolled,
-                    onDarkModeToggle = onDarkModeToggle,
-                    onToggleSpoilerFree = onToggleSpoilerFree,
                     onShowMyClubs = onShowMyClubs,
                     onShowPaywall = onShowPaywall,
                     onShowFilter = onShowFilter,

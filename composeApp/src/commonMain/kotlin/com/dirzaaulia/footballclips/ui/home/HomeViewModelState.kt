@@ -100,6 +100,13 @@ fun HomeViewModel.setForceNonPremium(isForce: Boolean) {
 }
 
 fun HomeViewModel.toggleFavoriteClub(clubId: String) {
+    val isFollowing = favoriteClubs.value.contains(clubId)
+    val clubName = supportedClubs.value.find { it.id == clubId }?.name ?: clubId
+    appAnalytics.trackClubFavorite(
+        clubId = clubId,
+        clubName = clubName,
+        action = if (isFollowing) "remove" else "add",
+    )
     viewModelScope.launch { preferenceManager.toggleFavoriteClub(clubId) }
 }
 

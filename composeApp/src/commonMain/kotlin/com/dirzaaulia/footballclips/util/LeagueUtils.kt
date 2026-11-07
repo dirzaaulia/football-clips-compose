@@ -84,16 +84,17 @@ fun String.normalizeLeagueName(): String {
         trimmed.equals("Recopa", ignoreCase = true) ||
         trimmed.equals("REC", ignoreCase = true) -> "CONMEBOL Recopa"
 
-        trimmed.equals("Brasileirão Série A", ignoreCase = true) ||
-        trimmed.equals("Brasileirao Serie A", ignoreCase = true) ||
-        trimmed.equals("Brasileirão", ignoreCase = true) ||
-        trimmed.equals("Brasileirao", ignoreCase = true) ||
+        trimmed.contains("Brasileir", ignoreCase = true) ||
         trimmed.equals("BRA", ignoreCase = true) -> "Brasileirão Série A"
 
         trimmed.equals("Argentine Liga Profesional", ignoreCase = true) ||
         trimmed.equals("Liga Profesional de Fútbol", ignoreCase = true) ||
         trimmed.equals("Liga Argentina", ignoreCase = true) ||
         trimmed.equals("ARG", ignoreCase = true) -> "Argentine Liga Profesional"
+
+        trimmed.contains("Indonesia", ignoreCase = true) ||
+        trimmed.contains("BRI", ignoreCase = true) ||
+        trimmed.equals("IDN", ignoreCase = true) -> "BRI Super League (Liga Indonesia)"
 
         else -> trimmed
     }

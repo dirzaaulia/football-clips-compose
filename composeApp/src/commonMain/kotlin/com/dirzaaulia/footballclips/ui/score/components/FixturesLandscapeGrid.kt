@@ -136,7 +136,7 @@ internal fun FixturesLandscapeGrid(
                             if (liveItems.isNotEmpty()) {
                                 val liveGrouped = liveItems
                                     .filterIsInstance<HighlightUiItem.OracleMatch>()
-                                    .groupBy { it.match.competitionName.ifBlank { "Other Competitions" } }
+                                    .groupBy { it.match.competitionName.ifBlank { it.match.competitionId } }
 
                                 LazyColumn(
                                     modifier = Modifier.fillMaxSize(),
@@ -219,7 +219,9 @@ internal fun FixturesLandscapeGrid(
                                                     onWatchHighlightClick = { onVideoClick(item) { } },
                                                 )
                                             }
-                                            is HighlightUiItem.BannerAd -> BannerAdItem()
+                                            is HighlightUiItem.BannerAd -> {
+                                                if (!uiState.isAdsRemoved) BannerAdItem()
+                                            }
                                             else -> {}
                                         }
                                     }

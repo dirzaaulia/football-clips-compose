@@ -46,7 +46,7 @@ data class Match(
     val leagueEmblemUrl: String
         get() = when (competitionId.uppercase()) {
             "CL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2.png"
-            "EL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2487.png"
+            "EL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2310.png"
             "ECL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/20296.png"
             "PL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/23.png"
             "PD" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/15.png"
@@ -62,7 +62,7 @@ data class Match(
             "EFL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/41.png"
             "CDR" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/80.png"
             "DFB" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2061.png"
-            "CIT" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/270.png"
+            "CIT" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/83.png"
             "LIB" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/58.png"
             "SUD" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/1208.png"
             "REC" -> "https://a.espncdn.com/i/leaguelogos/soccer/500/2335.png"
@@ -200,7 +200,7 @@ fun MatchDto.toMatch(): Match {
     return Match(
         id = id,
         competitionId = competitionId,
-        competitionName = competitionName.normalizeLeagueName(),
+        competitionName = competitionName.ifBlank { competitionId }.normalizeLeagueName(),
         utcDate = utcDate,
         status = status,
         matchday = matchday,

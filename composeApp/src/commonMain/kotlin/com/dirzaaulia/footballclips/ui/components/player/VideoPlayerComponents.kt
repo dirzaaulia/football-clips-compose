@@ -3,9 +3,11 @@ package com.dirzaaulia.footballclips.ui.components.player
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
@@ -63,9 +65,10 @@ internal fun VideoMetadata(
             VideoMetadataTeamsRow(
                 homeName = (item as? HighlightUiItem.OracleMatch)?.match?.homeTeamName.orEmpty(),
                 homeCrest = meta.homeCrest,
+                homeScore = meta.homeScore,
                 awayName = (item as? HighlightUiItem.OracleMatch)?.match?.awayTeamName.orEmpty(),
                 awayCrest = meta.awayCrest,
-                scoreText = meta.scoreText,
+                awayScore = meta.awayScore,
                 isSpoilerFree = isGuarded,
                 onRevealClick = onRevealClick,
             )
@@ -120,7 +123,8 @@ private fun VideoMetadataMerchandise(
 
 private data class MetadataValues(
     val title: String, val leagueName: String, val date: String,
-    val recapAnalysis: String?, val homeCrest: String?, val awayCrest: String?, val scoreText: String?,
+    val recapAnalysis: String?, val homeCrest: String?, val awayCrest: String?,
+    val homeScore: Int?, val awayScore: Int?, val scoreText: String?,
 )
 
 private fun resolveMetadata(item: HighlightUiItem): MetadataValues? = when (item) {
@@ -133,6 +137,8 @@ private fun resolveMetadata(item: HighlightUiItem): MetadataValues? = when (item
             recapAnalysis = MatchAnalysisUtils.getSummaryOrPreview(item.match),
             homeCrest = item.match.homeTeamCrest,
             awayCrest = item.match.awayTeamCrest,
+            homeScore = item.match.homeScore,
+            awayScore = item.match.awayScore,
             scoreText = score,
         )
     }
@@ -143,6 +149,8 @@ private fun resolveMetadata(item: HighlightUiItem): MetadataValues? = when (item
         recapAnalysis = null,
         homeCrest = null,
         awayCrest = null,
+        homeScore = null,
+        awayScore = null,
         scoreText = null,
     )
     else -> null
@@ -200,46 +208,132 @@ private fun VideoMetadataHeader(
 
 @Composable
 private fun VideoMetadataTeamsRow(
-    homeName: String, homeCrest: String,
-    awayName: String, awayCrest: String,
-    scoreText: String, isSpoilerFree: Boolean,
+    homeName: String,
+    homeCrest: String,
+    homeScore: Int?,
+    awayName: String,
+    awayCrest: String,
+    awayScore: Int?,
+    isSpoilerFree: Boolean,
     onRevealClick: () -> Unit,
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(14.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
-                GlassLogoBadge(model = homeCrest.toProxyUrl(), contentDescription = homeName, size = 30.dp, padding = 3.dp)
-                Text(text = homeName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, maxLines = 2, minLines = 1, lineHeight = 16.sp, overflow = TextOverflow.Ellipsis)
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    GlassLogoBadge(
+                        model = homeCrest.toProxyUrl(),
+                        contentDescription = homeName,
+                        size = 26.dp,
+                        padding = 2.dp,
+                    )
+                    Text(
+                        text = homeName,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    GlassLogoBadge(
+                        model = awayCrest.toProxyUrl(),
+                        contentDescription = awayName,
+                        size = 26.dp,
+                        padding = 2.dp,
+                    )
+                    Text(
+                        text = awayName,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
-            VideoScoreBadge(scoreText = scoreText, isSpoilerFree = isSpoilerFree, onRevealClick = onRevealClick)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End), modifier = Modifier.weight(1f)) {
-                Text(text = awayName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, maxLines = 2, minLines = 1, lineHeight = 16.sp, overflow = TextOverflow.Ellipsis)
-                GlassLogoBadge(model = awayCrest.toProxyUrl(), contentDescription = awayName, size = 30.dp, padding = 3.dp)
-            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            VideoScoreColumn(
+                homeScore = homeScore,
+                awayScore = awayScore,
+                isSpoilerFree = isSpoilerFree,
+                onRevealClick = onRevealClick,
+            )
         }
     }
 }
 
 @Composable
-private fun VideoScoreBadge(scoreText: String, isSpoilerFree: Boolean, onRevealClick: () -> Unit) {
+private fun VideoScoreColumn(
+    homeScore: Int?,
+    awayScore: Int?,
+    isSpoilerFree: Boolean,
+    onRevealClick: () -> Unit,
+) {
     if (isSpoilerFree) {
-        Surface(onClick = onRevealClick, color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)) {
-                Icon(imageVector = Icons.Default.VisibilityOff, contentDescription = "Reveal Score", modifier = Modifier.size(13.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(text = "? - ?", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 1.sp)
+        Surface(
+            onClick = onRevealClick,
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            shape = RoundedCornerShape(8.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.VisibilityOff,
+                    contentDescription = "Reveal Score",
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = "Reveal",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     } else {
-        Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(8.dp)) {
-            Text(text = scoreText, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+        Column(
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = (homeScore ?: "-").toString(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = (awayScore ?: "-").toString(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }

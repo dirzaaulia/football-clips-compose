@@ -58,6 +58,10 @@ fun HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
+    LaunchedEffect(Unit) {
+        viewModel.appAnalytics.trackSessionStart()
+    }
+
     val isDarkMode by viewModel.isDarkMode.collectAsState()
     val isSpoilerFreeMode by viewModel.isSpoilerFreeMode.collectAsState()
     val isSpoilerFreeConfigured by viewModel.isSpoilerFreeConfigured.collectAsState()
@@ -140,11 +144,8 @@ fun HomeScreen(
                 HomeScreenTopBar(
                     isWeb = isGrid,
                     isLandscape = isLandscape,
-                    isDarkMode = isDarkMode,
                     isPremium = isPremium,
-                    isSpoilerFreeMode = isSpoilerFreeMode,
                     favoriteClubsCount = favoriteClubs.size,
-                    isScrolled = isScrolled,
                     selectedSeason = selectedSeason,
                     onSeasonSelected = { viewModel.setSeason(it) },
                     onTitleTap = {
@@ -153,8 +154,6 @@ fun HomeScreen(
                         lastTitleTapTime = now
                         if (titleTapCount >= 3) { titleTapCount = 0; showDevScreen = true }
                     },
-                    onDarkModeToggle = { dark -> viewModel.setDarkMode(dark) },
-                    onToggleSpoilerFree = { viewModel.toggleSpoilerFreeMode() },
                     onShowMyClubs = { showMyClubsSheet = true },
                     onShowPaywall = { showPaywall = true },
                     onShowFilter = { showFilterSheet = true },

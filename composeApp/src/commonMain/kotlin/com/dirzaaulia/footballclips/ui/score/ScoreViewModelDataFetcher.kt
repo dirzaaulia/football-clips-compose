@@ -7,6 +7,7 @@ import com.dirzaaulia.footballclips.data.model.remote.StandingDto
 import com.dirzaaulia.footballclips.data.model.remote.isMatchForFavoriteClubs
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.domain.model.toMatch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
@@ -208,4 +209,19 @@ fun ScoreViewModel.buildFixtureListWithAds(
         }
     }
     return result
+}
+
+fun ScoreViewModel.observeAdsRemoved() {
+    viewModelScope.launch {
+        isAdsRemoved.collectLatest { removed ->
+            val current = _uiState.value
+            if (current is ScoreState.Success) {
+                val nonAds = current.matches.filter { it !is HighlightUiItem.BannerAd }
+                _uiState.value = current.copy(
+                    matches = buildFixtureListWithAds(nonAds, removed),
+                    isAdsRemoved = removed,
+                )
+            }
+        }
+    }
 }

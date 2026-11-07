@@ -2,46 +2,20 @@ package com.dirzaaulia.footballclips.ui.score.components
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.ui.adaptive.LocalAnimatedVisibilityScope
 import com.dirzaaulia.footballclips.ui.adaptive.LocalSharedTransitionScope
-import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
-import com.dirzaaulia.footballclips.ui.components.player.SpoilerThumbnailBox
-import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -53,240 +27,53 @@ fun ModernHighlightCard(
     isRevealed: Boolean = false,
     isFavorite: Boolean = false,
     showTeamName: Boolean = true,
-    onRevealClick: (() -> Unit)? = null
+    onRevealClick: (() -> Unit)? = null,
 ) {
     val sharedTransitionScope = LocalSharedTransitionScope.current
     val animatedVisibilityScope = LocalAnimatedVisibilityScope.current
 
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        val isLandscape = maxWidth < 300.dp || maxHeight < 300.dp
-        val shouldShowName = showTeamName && !isLandscape
-
-        val isPlayable = !match.highlightVideoId.isNullOrEmpty()
-        val isUnverified = false
-
-        Surface(
-            onClick = {
-                if (isPlayable) {
-                    onWatchHighlightClick(match.highlightVideoId.orEmpty())
-                } else if (isUnverified) {
-                    onWatchHighlightClick(match.externalVideoId.orEmpty())
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(
+    Surface(
+        onClick = {
+            if (!match.highlightVideoId.isNullOrEmpty()) {
+                onWatchHighlightClick(match.highlightVideoId)
+            }
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
                 if (sharedTransitionScope != null && animatedVisibilityScope != null && match.highlightVideoId != null) {
                     with(sharedTransitionScope) {
                         Modifier.sharedElement(
                             rememberSharedContentState(key = "player-${HighlightUiItem.OracleMatch(match).uniqueId}"),
-                            animatedVisibilityScope = animatedVisibilityScope
+                            animatedVisibilityScope = animatedVisibilityScope,
                         )
                     }
-                } else Modifier
+                } else {
+                    Modifier
+                },
             ),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(
             width = if (isFavorite) 1.5.dp else 1.dp,
-            color = if (isFavorite) Color(0xFFFFB300).copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            color = if (isFavorite) Color(0xFFFFB300).copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
         ),
-        shadowElevation = 2.dp
+        shadowElevation = 2.dp,
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-            ) {
-                SpoilerThumbnailBox(
-                    isSpoilerFree = isSpoilerFree,
-                    isRevealed = isRevealed,
-                    onRevealClick = onRevealClick,
-                    badgeAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    AsyncImage(
-                        model = "https://img.youtube.com/vi/${match.highlightVideoId}/maxresdefault.jpg".toProxyUrl(),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                    
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Black.copy(alpha = 0.4f),
-                                        Color.Transparent,
-                                        Color.Black.copy(alpha = 0.3f)
-                                    )
-                                )
-                            )
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        LeagueHeader(
-                            competitionName = match.competitionName,
-                            competitionId = match.competitionId,
-                            isDark = true
-                        )
-                        if (isFavorite) {
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = "Favorite",
-                                tint = Color(0xFFFFB300),
-                                modifier = Modifier.size(14.dp)
-                            )
-                        }
-                    }
-                    
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = match.dateOnly,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.9f),
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-                        if (match.isLive) {
-                            MatchStatusBadge(match = match)
-                        }
-                    }
-                }
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    if (match.homeTeamCrest != null) {
-                        GlassLogoBadge(
-                            model = match.homeTeamCrest.toProxyUrl(),
-                            contentDescription = match.homeTeamName,
-                            size = 28.dp,
-                            padding = 2.dp,
-                        )
-                        if (shouldShowName) {
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
-                    }
-                    if (shouldShowName) {
-                        Text(
-                            text = match.homeTeamName,
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.ExtraBold,
-                            softWrap = true,
-                            modifier = Modifier.weight(1f, fill = false)
-                        )
-                    }
-                }
-
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                ) {
-                    if (match.isFinished || match.isLive) {
-                        ScoreDisplay(
-                            homeScore = match.homeScore,
-                            awayScore = match.awayScore,
-                            isSpoilerFree = isSpoilerFree,
-                            isRevealed = isRevealed,
-                            homePenalties = match.homePenalties,
-                            awayPenalties = match.awayPenalties,
-                            onRevealClick = onRevealClick,
-                        )
-                    } else {
-                        Text(
-                            text = match.formattedLocalKickoff,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Black,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    if (shouldShowName) {
-                        Text(
-                            text = match.awayTeamName,
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.ExtraBold,
-                            softWrap = true,
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.weight(1f, fill = false)
-                        )
-                    }
-                    if (match.awayTeamCrest != null) {
-                        if (shouldShowName) {
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
-                        GlassLogoBadge(
-                            model = match.awayTeamCrest.toProxyUrl(),
-                            contentDescription = match.awayTeamName,
-                            size = 28.dp,
-                            padding = 2.dp,
-                        )
-                    }
-                }
-            }
+            HighlightThumbnailBox(
+                match = match,
+                isSpoilerFree = isSpoilerFree,
+                isRevealed = isRevealed,
+                isFavorite = isFavorite,
+                onRevealClick = onRevealClick,
+            )
+            HighlightTeamsSection(
+                match = match,
+                isSpoilerFree = isSpoilerFree,
+                isRevealed = isRevealed,
+                onRevealClick = onRevealClick,
+            )
         }
-    }
-
-}
-}
-
-@Composable
-private fun AvailabilityBadge(status: String) {
-    val text = when (status) {
-        "country_blocked" -> "Unavailable in your country"
-        "not_found" -> "Highlight not found"
-        "unavailable" -> "Video unavailable"
-        "unknown" -> "Availability not verified"
-        else -> "Available"
-    }
-    Surface(
-        color = when (status) {
-            "available" -> MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
-            "country_blocked", "unknown" -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.85f)
-            "unavailable" -> MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
-            else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f)
-        },
-        shape = RoundedCornerShape(4.dp),
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-        )
     }
 }

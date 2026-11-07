@@ -184,6 +184,7 @@ internal fun MatchTheater(
                     onClick = {
                         showIssueDialog = false
                         videoId?.let { id ->
+                            viewModel.appAnalytics.trackWatchOnYouTube(id)
                             uriHandler.openUri("https://www.youtube.com/watch?v=$id")
                         }
                     },

@@ -176,6 +176,12 @@ fun AdaptiveMatchesScaffold(
         }
     }
 
+    LaunchedEffect(currentDestination?.route) {
+        currentDestination?.route?.let { route ->
+            homeViewModel.appAnalytics.trackScreenView(screenName = route)
+        }
+    }
+
     val isSpoilerFreeConfigured by homeViewModel.isSpoilerFreeConfigured.collectAsState()
     val supportedClubs by homeViewModel.supportedClubs.collectAsState()
     val isDarkMode by homeViewModel.isDarkMode.collectAsState()
@@ -271,6 +277,7 @@ fun AdaptiveMatchesScaffold(
                                 items = navItems,
                                 hasLiveMatch = hasLiveMatch,
                                 onNavigate = { route ->
+                                    homeViewModel.appAnalytics.trackTabSwitch(tabName = route)
                                     navController.navigate(route) {
                                         popUpTo(navController.graph.findStartDestination().route ?: NavDestination.Home.route) {
                                             saveState = true

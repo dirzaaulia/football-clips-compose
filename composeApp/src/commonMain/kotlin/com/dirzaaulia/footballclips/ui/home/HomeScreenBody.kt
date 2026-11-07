@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
-import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 
 @Composable
 internal fun HomeScreenBody(
@@ -52,14 +51,16 @@ internal fun HomeScreenBody(
         label = "HomeStateTransition",
     ) { targetKey ->
         when (targetKey) {
-            0 -> ExpressiveLoadingIndicator()
+            0 -> HomeScreenShimmerLoading(
+                isGrid = isGrid,
+                isLandscape = isLandscape,
+            )
             1 -> {
                 val state = uiState as? HomeState.Success
                 if (state != null) {
                     if (isLandscape) {
                         HomeLandscapeContent(
                             items = items,
-                            gridItems = gridItems,
                             featuredHighlight = featuredHighlight,
                             isAdsRemoved = isAdsRemoved,
                             showExternalHighlights = showExternalHighlights,
@@ -68,7 +69,8 @@ internal fun HomeScreenBody(
                             isSpoilerFreeMode = isSpoilerFreeMode,
                             revealedItemIds = revealedItemIds,
                             onRevealItem = onRevealItem,
-                            gridState = gridState,
+                            onSeeAllLiveMatches = onSeeAllLiveMatches,
+                            listState = listState,
                             onVideoClick = onVideoClick,
                             onLeagueSelected = viewModel::selectLeague,
                             onResetFilters = viewModel::resetFilters,

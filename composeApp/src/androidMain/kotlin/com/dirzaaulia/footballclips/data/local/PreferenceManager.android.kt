@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import com.google.firebase.messaging.FirebaseMessaging
+import com.dirzaaulia.footballclips.data.analytics.AppAnalytics
 import com.dirzaaulia.footballclips.data.telemetry.DeviceTelemetrySync
 import com.dirzaaulia.footballclips.util.getBuildConfigString
 import com.dirzaaulia.footballclips.util.getBuildConfigLong
@@ -27,7 +28,8 @@ private val Context.dataStore by preferencesDataStore(name = "settings")
 actual class PreferenceManager(
     private val context: Context,
     private val deviceTelemetrySync: DeviceTelemetrySync? = null,
-    private val auth: Auth? = null
+    private val auth: Auth? = null,
+    private val appAnalytics: AppAnalytics? = null,
 ) {
 
     init {
@@ -245,6 +247,7 @@ actual class PreferenceManager(
                 devId = UUID.randomUUID().toString()
                 context.dataStore.edit { it[deviceIdKey] = devId }
             }
+            appAnalytics?.setDeviceId(devId)
             val userId = auth?.currentUserOrNull()?.id ?: run {
                 var anonId = prefs[anonUserIdKey]
                 if (anonId.isNullOrBlank()) {

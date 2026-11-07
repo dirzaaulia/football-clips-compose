@@ -190,8 +190,10 @@ private fun createConfiguredWebView(
         webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val url = request?.url?.toString().orEmpty()
-                if (url.startsWith("fc-ready://") || url.startsWith("fc-state://1")) {
-                    onLoadingState(false)
+                if (url.startsWith("fc-ready://") || url.startsWith("fc-state://")) {
+                    if (url.startsWith("fc-ready://") || url.startsWith("fc-state://1")) {
+                        onLoadingState(false)
+                    }
                     return true
                 }
                 if (url.startsWith("fc-error://")) {
@@ -212,7 +214,8 @@ private fun createConfiguredWebView(
 
             override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                 super.onReceivedError(view, request, error)
-                if (request?.isForMainFrame == true) {
+                val failingUrl = request?.url?.toString().orEmpty()
+                if (request?.isForMainFrame == true && !failingUrl.startsWith("fc-")) {
                     onLoadingState(false)
                     onErrorState(PlayerErrorState.USER_SIDE_ERROR)
                 }

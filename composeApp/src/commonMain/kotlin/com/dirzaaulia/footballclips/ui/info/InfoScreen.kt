@@ -54,6 +54,8 @@ fun InfoScreen(
     val isMerchandiseEnabled = homeViewModel?.isMerchandiseEnabled?.collectAsState()?.value
         ?: (preferenceManager?.isMerchandiseEnabled?.collectAsState(initial = true)?.value ?: true)
     val isDarkMode = homeViewModel?.isDarkMode?.collectAsState()?.value ?: true
+    val isSpoilerFree = homeViewModel?.isSpoilerFreeMode?.collectAsState()?.value
+        ?: (preferenceManager?.isSpoilerFreeMode?.collectAsState(initial = false)?.value ?: false)
     val favoriteClubs = homeViewModel?.favoriteClubs?.collectAsState()?.value ?: emptySet()
     val supportedClubs = homeViewModel?.supportedClubs?.collectAsState()?.value ?: emptyList()
     val profile = homeViewModel?.currentUserProfile?.collectAsState(initial = null)?.value
@@ -66,6 +68,9 @@ fun InfoScreen(
     val coroutineScope = rememberCoroutineScope()
     val onToggleMerchandise: (Boolean) -> Unit = { enabled ->
         coroutineScope.launch { preferenceManager?.setMerchandiseEnabled(enabled) }
+    }
+    val onToggleSpoilerFree: (Boolean) -> Unit = { enabled ->
+        coroutineScope.launch { preferenceManager?.setSpoilerFreeMode(enabled) }
     }
     val onCheckUpdates: () -> Unit = {
         analytics?.trackEvent(name = "check_for_updates_clicked")
@@ -104,6 +109,7 @@ fun InfoScreen(
                         profile = profile,
                         isPremium = isPremium,
                         isDarkMode = isDarkMode,
+                        isSpoilerFree = isSpoilerFree,
                         isMerchandiseEnabled = isMerchandiseEnabled,
                         favoriteCount = favoriteClubs.size,
                         uriHandler = uriHandler,
@@ -116,6 +122,7 @@ fun InfoScreen(
                             homeViewModel?.signOut()
                         },
                         onToggleDarkMode = { dark -> homeViewModel?.setDarkMode(dark) },
+                        onToggleSpoilerFree = onToggleSpoilerFree,
                         onOpenMyClubs = { showMyClubsSheet = true },
                         onToggleMerchandise = onToggleMerchandise,
                         onShowPaywall = {
@@ -129,6 +136,7 @@ fun InfoScreen(
                         profile = profile,
                         isPremium = isPremium,
                         isDarkMode = isDarkMode,
+                        isSpoilerFree = isSpoilerFree,
                         isMerchandiseEnabled = isMerchandiseEnabled,
                         favoriteCount = favoriteClubs.size,
                         scrollState = scrollState,
@@ -142,6 +150,7 @@ fun InfoScreen(
                             homeViewModel?.signOut()
                         },
                         onToggleDarkMode = { dark -> homeViewModel?.setDarkMode(dark) },
+                        onToggleSpoilerFree = onToggleSpoilerFree,
                         onOpenMyClubs = { showMyClubsSheet = true },
                         onToggleMerchandise = onToggleMerchandise,
                         onShowPaywall = {
@@ -155,6 +164,7 @@ fun InfoScreen(
                         profile = profile,
                         isPremium = isPremium,
                         isDarkMode = isDarkMode,
+                        isSpoilerFree = isSpoilerFree,
                         isMerchandiseEnabled = isMerchandiseEnabled,
                         favoriteCount = favoriteClubs.size,
                         scrollState = scrollState,
@@ -168,6 +178,7 @@ fun InfoScreen(
                             homeViewModel?.signOut()
                         },
                         onToggleDarkMode = { dark -> homeViewModel?.setDarkMode(dark) },
+                        onToggleSpoilerFree = onToggleSpoilerFree,
                         onOpenMyClubs = { showMyClubsSheet = true },
                         onToggleMerchandise = onToggleMerchandise,
                         onShowPaywall = {

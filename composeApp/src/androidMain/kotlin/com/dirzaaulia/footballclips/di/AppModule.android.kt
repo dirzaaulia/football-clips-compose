@@ -17,7 +17,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual val platformModule: Module = module {
-    single { PreferenceManager(androidContext(), getOrNull(), getOrNull()) }
+    single { PreferenceManager(androidContext(), getOrNull(), getOrNull(), getOrNull()) }
     single<BillingManager> { AndroidBillingManager(androidContext()) }
     single { AdMobManager(androidContext()) }
     single<NotificationTopicManager> { AndroidNotificationTopicManager() }

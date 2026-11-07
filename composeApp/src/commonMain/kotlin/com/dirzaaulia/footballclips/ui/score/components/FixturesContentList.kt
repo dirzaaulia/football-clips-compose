@@ -35,6 +35,7 @@ fun FixturesContentList(
     onRevealMatch: (Long) -> Unit,
     onVideoClick: (HighlightUiItem, (Boolean) -> Unit) -> Unit,
     modifier: Modifier = Modifier,
+    isAdsRemoved: Boolean = false,
 ) {
     if (isGrid) {
         LazyVerticalGrid(
@@ -69,7 +70,9 @@ fun FixturesContentList(
                         )
                     }
 
-                    is HighlightUiItem.BannerAd -> BannerAdItem()
+                    is HighlightUiItem.BannerAd -> {
+                        if (!isAdsRemoved) BannerAdItem()
+                    }
                     else -> {}
                 }
             }
@@ -101,7 +104,9 @@ fun FixturesContentList(
                         )
                     }
 
-                    is HighlightUiItem.BannerAd -> BannerAdItem()
+                    is HighlightUiItem.BannerAd -> {
+                        if (!isAdsRemoved) BannerAdItem()
+                    }
                     else -> {}
                 }
             }

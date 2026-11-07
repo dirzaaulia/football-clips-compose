@@ -6,6 +6,7 @@ import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
 import com.dirzaaulia.footballclips.domain.model.toMatch
+import com.dirzaaulia.footballclips.util.extractVideoId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -27,6 +28,8 @@ fun HomeViewModel.selectLeague(leagueId: Int?, competitionId: String?) {
     _selectedCompetitionId.value = competitionId
     selectedLeagues.clear()
     searchQuery = ""
+    val compName = oracleVmRepository.competitions.value.find { it.leagueId == leagueId }?.name ?: competitionId ?: "All"
+    appAnalytics.trackCompetitionFilter(competitionId = competitionId ?: "all", competitionName = compName)
     refreshData()
 }
 
@@ -75,6 +78,15 @@ fun HomeViewModel.selectVideo(item: HighlightUiItem?) {
     }
     if (item !is HighlightUiItem.BannerAd) {
         appAnalytics.trackMatchView(item.uniqueId, h, a)
+        appAnalytics.trackMatchClick(item.uniqueId, "$h vs $a")
+        val vid = when (item) {
+            is HighlightUiItem.OracleMatch -> item.match.highlightVideoId
+            is HighlightUiItem.Highlight -> extractVideoId(item.highlight.videoUrl)
+            is HighlightUiItem.BannerAd -> null
+        }
+        if (!vid.isNullOrBlank()) {
+            appAnalytics.trackVideoPlay(videoId = vid, matchTitle = "$h vs $a")
+        }
     }
     val (related, compId) = calculateRelatedHighlights(item, oracleMatches, allHighlights, competitions.value)
     _relatedHighlights.value = related

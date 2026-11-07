@@ -35,31 +35,31 @@ internal fun DataSourceCard(
         val linkColor = if (isDark) Color(0xFF64B5F6) else MaterialTheme.colorScheme.primary
 
         val annotatedString = buildAnnotatedString {
-            append("All football highlights are provided by official league and team YouTube accounts, ")
-            withLink(LinkAnnotation.Url("https://highlightly.net")) {
+            append("All football match highlights are embedded strictly from verified official league and club channels on ")
+            withLink(LinkAnnotation.Url("https://www.youtube.com/t/terms")) {
                 withStyle(
                     style = SpanStyle(
                         color = linkColor,
                         fontWeight = FontWeight.ExtraBold,
-                        textDecoration = TextDecoration.Underline
-                    )
+                        textDecoration = TextDecoration.Underline,
+                    ),
                 ) {
-                    append("highlightly.net")
+                    append("YouTube")
                 }
             }
-            append(", matches and fixtures are provided by ")
+            append(" in full compliance with YouTube API Services. Fixtures, live scores, and tables are powered by ")
             withLink(LinkAnnotation.Url("https://www.espn.com/soccer")) {
                 withStyle(
                     style = SpanStyle(
                         color = linkColor,
                         fontWeight = FontWeight.ExtraBold,
-                        textDecoration = TextDecoration.Underline
-                    )
+                        textDecoration = TextDecoration.Underline,
+                    ),
                 ) {
-                    append("ESPN Live Engine")
+                    append("ESPN Live Sports Engine")
                 }
             }
-            append(". We aggregate content from these official and trusted sources to bring you the best football experience. All team and league crests are verified and hosted via official media assets and public CDN services.")
+            append(". All team crests and competition emblems are delivered through verified official media CDN assets with edge caching.")
         }
 
         Text(
