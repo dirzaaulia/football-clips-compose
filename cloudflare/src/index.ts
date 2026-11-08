@@ -18,7 +18,7 @@
 import { catalogCacheKey, privateRoute } from './catalog-cache';
 
 export interface Env {
-  SUPABASE_URL: string;         // Self-hosted PostgREST (https://168.110.196.30.sslip.io)
+  SUPABASE_URL: string;         // Self-hosted PostgREST (https://edge.fc.dirzaaulia.com)
   SUPABASE_ANON_KEY: string;    // Supabase Anon Key (for Auth/Profiles fallback)
   AUTH_SUPABASE_URL?: string;   // Supabase Auth Origin (default: https://eiomktvavndorazreyba.supabase.co)
   PURGE_SECRET?: string;
@@ -221,7 +221,7 @@ async function forwardRequest(request: Request, env: Env, url: URL, cacheTtl: nu
 
   if (isPostgres) {
     // 1. Route to Oracle VM PostgREST (PostgreSQL 16)
-    const targetBase = (env.SUPABASE_URL || "https://168.110.196.30.sslip.io").replace(/\/$/, "");
+    const targetBase = (env.SUPABASE_URL || "https://edge.fc.dirzaaulia.com").replace(/\/$/, "");
     const normalizedPath = url.pathname;
     const targetUrl = `${targetBase}${normalizedPath}${url.search}`;
 

@@ -21,6 +21,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -58,6 +61,7 @@ internal fun HomeListContent(
     val competitions by viewModel.competitions.collectAsState()
     val selectedSeason by viewModel.selectedSeason.collectAsState()
     val isAllLeagues = filterState.selectedLeagues.isEmpty()
+    var collapsedCompIds by remember { mutableStateOf(emptySet<String>()) }
 
     LazyColumn(
         state = listState,
@@ -115,10 +119,19 @@ internal fun HomeListContent(
                 val emblem = league.logo.ifBlank { league.emblemUrl ?: getLeagueEmblemUrl(compName) }
                 val displayMatches = nonAds.filter { it.matchesLeague(league) }.take(20)
 
+                val isExpanded = !collapsedCompIds.contains(league.id)
                 item(key = "section-${league.id}") {
                     HomeCompetitionSectionHeader(
                         competitionName = compName,
                         competitionEmblemUrl = emblem,
+                        isExpanded = isExpanded,
+                        onToggleExpand = {
+                            collapsedCompIds = if (isExpanded) {
+                                collapsedCompIds + league.id
+                            } else {
+                                collapsedCompIds - league.id
+                            }
+                        },
                         onSeeAll = {
                             if (league.leagueId != null) {
                                 viewModel.selectLeague(league.leagueId, league.competitionId)
@@ -128,33 +141,49 @@ internal fun HomeListContent(
                         },
                     )
                 }
-                item(key = "row-${league.id}") {
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
-                    ) {
-                        if (displayMatches.isNotEmpty()) {
-                            items(
-                                items = displayMatches,
-                                key = { it.uniqueId },
-                            ) { item ->
-                                Box(modifier = Modifier.width(280.dp)) {
-                                    HighlightItemRow(
-                                        item = item,
-                                        revealedItemIds = revealedItemIds,
-                                        isSpoilerFreeMode = isSpoilerFreeMode,
-                                        showExternalHighlights = showExternalHighlights,
-                                        viewModel = viewModel,
-                                        onVideoClick = onVideoClick,
-                                    )
+                if (isExpanded) {
+                    item(key = "row-${league.id}") {
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
+                        ) {
+                            if (displayMatches.isNotEmpty()) {
+                                items(
+                                    items = displayMatches,
+                                    key = { it.uniqueId },
+                                ) { item ->
+                                    Box(modifier = Modifier.width(280.dp)) {
+                                        HighlightItemRow(
+                                            item = item,
+                                            revealedItemIds = revealedItemIds,
+                                            isSpoilerFreeMode = isSpoilerFreeMode,
+                                            showExternalHighlights = showExternalHighlights,
+                                            viewModel = viewModel,
+                                            onVideoClick = onVideoClick,
+                                        )
+                                    }
                                 }
-                            }
-                            item(key = "see-all-${league.id}") {
-                                Box(modifier = Modifier.width(200.dp)) {
-                                    HomeSeeAllCompetitionCard(
-                                        competitionName = compName,
-                                        competitionEmblemUrl = emblem,
+                                item(key = "see-all-${league.id}") {
+                                    Box(modifier = Modifier.width(200.dp)) {
+                                        HomeSeeAllCompetitionCard(
+                                            competitionName = compName,
+                                            competitionEmblemUrl = emblem,
+                                            onSeeAll = {
+                                                if (league.leagueId != null) {
+                                                    viewModel.selectLeague(league.leagueId, league.competitionId)
+                                                } else {
+                                                    viewModel.selectCompetitionByName(compName)
+                                                }
+                                            },
+                                        )
+                                    }
+                                }
+                            } else {
+                                item(key = "empty-${league.id}") {
+                                    UpcomingCompetitionCard(
+                                        league = league,
+                                        selectedSeason = selectedSeason,
                                         onSeeAll = {
                                             if (league.leagueId != null) {
                                                 viewModel.selectLeague(league.leagueId, league.competitionId)
@@ -162,23 +191,9 @@ internal fun HomeListContent(
                                                 viewModel.selectCompetitionByName(compName)
                                             }
                                         },
+                                        onSwitchSeason = { viewModel.setSeason(it) },
                                     )
                                 }
-                            }
-                        } else {
-                            item(key = "empty-${league.id}") {
-                                UpcomingCompetitionCard(
-                                    league = league,
-                                    selectedSeason = selectedSeason,
-                                    onSeeAll = {
-                                        if (league.leagueId != null) {
-                                            viewModel.selectLeague(league.leagueId, league.competitionId)
-                                        } else {
-                                            viewModel.selectCompetitionByName(compName)
-                                        }
-                                    },
-                                    onSwitchSeason = { viewModel.setSeason(it) },
-                                )
                             }
                         }
                     }

@@ -42,12 +42,14 @@ class QuotaMaximizer:
         now_utc = datetime.now(UTC)
         now_iso = now_utc.isoformat()
 
+        thirty_days_ago = (now_utc - timedelta(days=30)).isoformat()
         try:
             res = (
                 db_client.table("matches")
                 .select("id, home_team_name, away_team_name, competition_id, competition_name, utc_date, last_youtube_check, season, home_score, away_score, youtube_region_info")
                 .eq("status", "FINISHED")
                 .is_("highlight_video_id", "null")
+                .gte("utc_date", thirty_days_ago)
                 .order("utc_date", desc=True)
                 .limit(200)
                 .execute()

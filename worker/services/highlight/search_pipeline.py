@@ -28,6 +28,9 @@ class SearchPipeline:
         m_date = str(match.get("utc_date", ""))[:10]
         status = match.get("status", "")
 
+        comp_name = match.get("competition_name") or match.get("competition", {}).get("name") or comp_id
+        utc_date = match.get("utc_date")
+
         # 1. Finished Status Guard
         if status and status not in ["FINISHED", "AWARDED"]:
             append_event(
@@ -37,6 +40,13 @@ class SearchPipeline:
                 "YOUTUBE",
                 "SKIP_UNFINISHED",
                 match_id=m_id,
+                attributes={
+                    "competition_id": comp_id,
+                    "competition_name": comp_name,
+                    "utc_date": utc_date,
+                    "home_team": home,
+                    "away_team": away,
+                },
             )
             return None, None, None, None, []
 
@@ -52,6 +62,13 @@ class SearchPipeline:
                 "YOUTUBE",
                 "UEFA_EMBARGO",
                 match_id=m_id,
+                attributes={
+                    "competition_id": comp_id,
+                    "competition_name": comp_name,
+                    "utc_date": utc_date,
+                    "home_team": home,
+                    "away_team": away,
+                },
             )
             return None, None, None, None, []
 
@@ -72,14 +89,34 @@ class SearchPipeline:
                     "match_title": f"{home} vs {away}",
                     "home_team": home,
                     "away_team": away,
+                    "competition_id": comp_id,
+                    "competition_name": comp_name,
+                    "utc_date": utc_date,
                 },
             )
             return None, None, None, None, []
 
         if not candidates:
+            rejected_reasons = []
+            for ev in log_events:
+                ev_code = ev.get("code") if isinstance(ev, dict) else getattr(ev, "code", None)
+                ev_mid = ev.get("match_id") if isinstance(ev, dict) else getattr(ev, "match_id", None)
+                ev_attrs = (ev.get("attributes") if isinstance(ev, dict) else getattr(ev, "attributes", None)) or {}
+                if ev_code == "CANDIDATE_REJECTED" and str(ev_mid) == str(m_id) and ev_attrs.get("reason"):
+                    rejected_reasons.append(f"{ev_attrs.get('candidate_id')}: {ev_attrs.get('reason')}")
+            if rejected_reasons:
+                reason_msg = (
+                    f"   [RESULT] {len(rejected_reasons)} preliminary candidate(s) rejected for {home} vs {away} — "
+                    f"{'; '.join(rejected_reasons[:2])}"
+                )
+            else:
+                reason_msg = (
+                    f"   [RESULT] 0 matching highlight videos found across {len(target_handles)} official channel(s) "
+                    f"({', '.join(target_handles[:4])}) for {home} vs {away}."
+                )
             append_event(
                 log_events,
-                f"   [RESULT] No eligible highlight candidates found for {home} vs {away}.",
+                reason_msg,
                 "INFO",
                 "YOUTUBE",
                 "RESULT_EMPTY",
@@ -91,6 +128,9 @@ class SearchPipeline:
                     "match_title": f"{home} vs {away}",
                     "home_team": home,
                     "away_team": away,
+                    "competition_id": comp_id,
+                    "competition_name": comp_name,
+                    "utc_date": utc_date,
                 },
             )
             return None, None, None, None, []
@@ -116,6 +156,9 @@ class SearchPipeline:
                         "match_title": f"{home} vs {away}",
                         "home_team": home,
                         "away_team": away,
+                        "competition_id": comp_id,
+                        "competition_name": comp_name,
+                        "utc_date": utc_date,
                     },
                 )
                 return None, None, None, None, []

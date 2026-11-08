@@ -1,8 +1,7 @@
 """Unified Event-Driven WebSub Highlight Evaluator with AI Reranking & Waterfall Tracing."""
 
-import html
-import re
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
+import sys
 from typing import Any
 
 from loguru import logger
@@ -16,6 +15,9 @@ from worker.services.highlight.filters import (
     get_worldwide_watchability_score,
     is_target_country_catered,
 )
+from worker.services.highlight.websub_archive_matcher import (
+    find_matching_fixture_for_websub,
+)
 from worker.services.notification_service import notification_service
 from worker.services.telemetry_service import telemetry_service
 from worker.utils.telemetry_logger import append_event
@@ -27,30 +29,6 @@ def _persist_websub_events(events: list):
             telemetry_service.record_cycle("WEBSUB_PUSH", "0s", 1, events, pipeline_type="WEBSUB_PUSH")
         except Exception as e:
             logger.debug(f"[WebSub Unified] Could not persist telemetry: {e}")
-
-
-def _search_historical_archive(home_aliases: list[str], away_aliases: list[str], title: str) -> dict[str, Any] | None:
-    """Cross-references older highlight uploads into supported PostgreSQL archive matches."""
-    try:
-        t_clean = html.unescape(title).lower()
-        res = (
-            supabase_client.table("matches")
-            .select("id, home_team_name, away_team_name, competition_id, competition_name, utc_date, highlight_video_id, youtube_region_info, home_score, away_score, status")
-            .eq("status", "FINISHED")
-            .order("utc_date", desc=True)
-            .limit(100)
-            .execute()
-        )
-        for m in res.data or []:
-            h = m.get("home_team_name", "")
-            a = m.get("away_team_name", "")
-            h_hits = any(re.search(rf"\b{re.escape(al)}\b", t_clean) for al in home_aliases)
-            a_hits = any(re.search(rf"\b{re.escape(al)}\b", t_clean) for al in away_aliases)
-            if h_hits and a_hits:
-                return m
-    except Exception as e:
-        logger.debug(f"[WebSub Archive] Archive search error: {e}")
-    return None
 
 
 def process_websub_video(
@@ -72,7 +50,6 @@ def process_websub_video(
     now_utc = datetime.now(UTC)
     now_iso = now_utc.isoformat()
 
-    import sys
     shp = sys.modules.get("worker.services.single_highlight_processor")
     active_sb = getattr(shp, "supabase_client", supabase_client)
     active_ai = getattr(shp, "ai_gateway_client", ai_gateway_client)
@@ -110,44 +87,9 @@ def process_websub_video(
         _persist_websub_events(log_events)
         return {"status": "FORBIDDEN", "reason": reason}
 
-    # Query recent 72h finished matches
-    cutoff_72h = (now_utc - timedelta(hours=72)).isoformat()
-    try:
-        res = (
-            active_sb.table("matches")
-            .select("id, home_team_name, away_team_name, competition_id, competition_name, utc_date, highlight_video_id, youtube_region_info, home_score, away_score, status")
-            .eq("status", "FINISHED")
-            .gte("utc_date", cutoff_72h)
-            .order("utc_date", desc=True)
-            .limit(50)
-            .execute()
-        )
-        candidates = res.data or []
-    except Exception as e:
-        logger.error(f"[WebSub Unified] DB error fetching candidates: {e}")
-        return {"status": "DB_ERROR", "error": str(e)}
-
-    t_clean = html.unescape(title).lower()
-    best_match = None
-    for m in candidates:
-        home = m.get("home_team_name", "")
-        away = m.get("away_team_name", "")
-        h_aliases = highlight_service.get_team_aliases(home)
-        a_aliases = highlight_service.get_team_aliases(away)
-        home_hit = any(re.search(rf"\b{re.escape(a)}\b", t_clean) for a in h_aliases)
-        away_hit = any(re.search(rf"\b{re.escape(a)}\b", t_clean) for a in a_aliases)
-        if home_hit and away_hit:
-            best_match = m
-            break
-
-    # Archive fallback for older uploads (e.g. Bournemouth 1-1 Man City)
-    if not best_match:
-        for m in candidates:
-            h_aliases = highlight_service.get_team_aliases(m.get("home_team_name", ""))
-            a_aliases = highlight_service.get_team_aliases(m.get("away_team_name", ""))
-            best_match = _search_historical_archive(h_aliases, a_aliases, title)
-            if best_match:
-                break
+    best_match, db_err = find_matching_fixture_for_websub(active_sb, highlight_service, title, now_utc)
+    if db_err:
+        return {"status": "DB_ERROR", "error": db_err}
 
     if not best_match:
         append_event(
@@ -161,15 +103,19 @@ def process_websub_video(
         _persist_websub_events(log_events)
         return {"status": "UNMATCHED"}
 
-    # Entity-First Rule: If both teams matched, bypass strict keyword requirement and allow LLM to evaluate!
-    has_keyword = highlight_service.has_highlight_keyword(title)
-
     match = best_match
     match_id = match["id"]
     home = match["home_team_name"]
     away = match["away_team_name"]
     comp = match.get("competition_name") or match.get("competition_id") or "League"
-    match_meta = {"match_id": str(match_id), "home_team": home, "away_team": away, "competition_name": comp, **push_meta}
+    match_meta = {
+        "match_id": str(match_id),
+        "home_team": home,
+        "away_team": away,
+        "competition_name": comp,
+        "utc_date": str(match.get("utc_date") or ""),
+        **push_meta,
+    }
 
     candidate_dict = {"id": video_id, "title": title, "channel": channel_handle}
     best_idx, ai_reason, evaluator_name = active_ai.rerank_highlights(home, away, comp, [candidate_dict])

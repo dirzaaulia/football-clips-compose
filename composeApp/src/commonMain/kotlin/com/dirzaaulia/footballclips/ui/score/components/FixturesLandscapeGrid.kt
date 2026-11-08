@@ -30,13 +30,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.remote.SupportedClub
 import com.dirzaaulia.footballclips.data.model.remote.isMatchForFavoriteClubs
 import com.dirzaaulia.footballclips.data.model.uniqueId
-import com.dirzaaulia.footballclips.util.toProxyUrl
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 import com.dirzaaulia.footballclips.ui.score.ScoreState
@@ -150,10 +149,11 @@ internal fun FixturesLandscapeGrid(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                                             ) {
-                                                AsyncImage(
-                                                    model = items.first().match.leagueEmblemUrl.toProxyUrl(),
+                                                GlassLogoBadge(
+                                                    logoUrl = items.first().match.leagueEmblemUrl,
                                                     contentDescription = compName,
-                                                    modifier = Modifier.size(16.dp),
+                                                    size = 18.dp,
+                                                    padding = 1.dp,
                                                 )
                                                 Text(
                                                     text = compName,

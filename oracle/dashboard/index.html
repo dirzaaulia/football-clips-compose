@@ -62,13 +62,13 @@
             ALWAYS FREE ARM64
           </span>
         </div>
-        <p class="text-[11px] text-slate-400 font-mono">168.110.196.30 • Batam AD-1 (4 OCPU • 24GB RAM)</p>
+        <p class="text-[11px] text-slate-400 font-mono">edge.fc.dirzaaulia.com • Batam AD-1 (4 OCPU • 24GB RAM)</p>
       </div>
     </div>
 
     <!-- Quick Links & Actions -->
     <div class="flex items-center gap-2.5">
-      <a href="https://files.168.110.196.30.sslip.io" target="_blank" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-700 hover:bg-surface-600 border border-white/10 transition flex items-center gap-1.5 text-slate-200">
+      <a href="https://files.fc.dirzaaulia.com" target="_blank" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-700 hover:bg-surface-600 border border-white/10 transition flex items-center gap-1.5 text-slate-200">
         <i data-lucide="folder" class="w-3.5 h-3.5 text-amber-400"></i>
         <span>File Vault</span>
       </a>
@@ -297,7 +297,7 @@
               <span class="text-[10px] text-slate-400 font-mono">Cloudflare</span>
             </button>
 
-            <a href="https://files.168.110.196.30.sslip.io" target="_blank" class="w-full py-2.5 px-3 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-xs font-medium text-slate-200 flex items-center justify-between transition">
+            <a href="https://files.fc.dirzaaulia.com" target="_blank" class="w-full py-2.5 px-3 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/10 text-xs font-medium text-slate-200 flex items-center justify-between transition">
               <span class="flex items-center gap-2">
                 <i data-lucide="hard-drive" class="w-4 h-4 text-cyan-400"></i>
                 <span>Open Cloud Storage Vault</span>
@@ -353,7 +353,7 @@
     // 1. Fetch Matches from PostgREST
     async function loadMatches() {
       try {
-        const resp = await fetch('https://168.110.196.30.sslip.io/matches?select=id,utc_date,competition_id,home_team_name,away_team_name,home_score,away_score,status,highlight_video_id&order=utc_date.desc,id.desc&limit=10');
+        const resp = await fetch('https://edge.fc.dirzaaulia.com/matches?select=id,utc_date,competition_id,home_team_name,away_team_name,home_score,away_score,status,highlight_video_id&order=utc_date.desc,id.desc&limit=10');
         if (!resp.ok) throw new Error('Network error');
         const data = await resp.json();
         
@@ -384,14 +384,14 @@
         });
 
         // Compute metrics
-        const totalResp = await fetch('https://168.110.196.30.sslip.io/matches?select=count', { headers: { 'Prefer': 'count=exact' } });
+        const totalResp = await fetch('https://edge.fc.dirzaaulia.com/matches?select=count', { headers: { 'Prefer': 'count=exact' } });
         const contentRange = totalResp.headers.get('content-range');
         if (contentRange) {
           const total = contentRange.split('/')[1];
           document.getElementById('metric-total-matches').innerText = total;
         }
 
-        const hlResp = await fetch('https://168.110.196.30.sslip.io/matches?highlight_video_id=not.is.null&select=count', { headers: { 'Prefer': 'count=exact' } });
+        const hlResp = await fetch('https://edge.fc.dirzaaulia.com/matches?highlight_video_id=not.is.null&select=count', { headers: { 'Prefer': 'count=exact' } });
         const hlRange = hlResp.headers.get('content-range');
         if (hlRange && contentRange) {
           const hlCount = parseInt(hlRange.split('/')[1]);

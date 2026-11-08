@@ -184,3 +184,37 @@ Applies strictly to all Python services (`worker/`, `scripts/`, `clients/`):
 - **Idempotency**: All highlight search operations must be idempotent. Repeating an execution for a finished match within its cooldown window must return cached results in $< 5\text{ms}$ with zero duplicate YouTube API quota consumption.
 - **Circuit Breakers**: External integrations (Oracle VM AI Gateway, YouTube API) must employ circuit-breaking: if 3 consecutive calls fail, automatically fall back to deterministic mathematical scoring (`scorer.py`) with zero latency.
 
+---
+
+## 7. Universal AI Agent 4-Gate Engineering Workflow (Industry Grade)
+All AI models and autonomous agents working in this repository (Claude, Cursor, Copilot, Gemini, Antigravity) MUST strictly enforce the following 4-Gate Quality & Invariant pipeline before declaring any task complete or committing changes:
+
+### Gate 1: Pre-Flight Invariant Checks
+1. **File Length Budgets**:
+   - Android/CMP & Web: Max **250 lines** (hard ceiling **300 lines**).
+   - Composable function: Max **40 lines**.
+   - ViewModel: Max **150 lines** (orchestrator only).
+   - Python: Target **250 lines**, hard ceiling **350 lines**.
+2. **Zero Wildcard Imports**: `import foo.*` is strictly forbidden. Explicit imports only.
+3. **Mandatory Trailing Commas**: Required on all multi-line parameter lists, argument calls, and collection literals.
+4. **Historical Archive Immutability**: Seasons `< 2026` must remain immutable. Never run unconstrained delete/purge operations against archive records in PostgreSQL or Supabase (`protect_archive_matches`).
+5. **Zero Secret & IP Exposure**: Never hardcode production IP addresses (`168.110.196.30`) or plain-text credentials. Always read from environment variables or `getSecret()`.
+6. **Lean Database Storage**: Never persist tactical boxscore coordinates, formations, statistics, or editorial stories to PostgreSQL `matches`. Stream them 100% on-demand from ESPN API.
+
+### Gate 2: Planning & Approval Gate
+1. For any multi-file refactoring, architectural shift, or feature introduction, generate or update a structured Implementation Plan Artifact (`...plan.md`) and Walkthrough Artifact (`walkthrough.md`).
+2. Clearly highlight architectural trade-offs, security invariants, and user experience.
+3. Never introduce breaking changes to historical backward compatibility tiers (Legacy Supabase Cloud, Transitional Cloudflare Edge, Production Caddy / PostgREST).
+
+### Gate 3: Automated Quality & Compilation Verification
+Before presenting completion, execute and verify all applicable automated gates:
+1. **Kotlin Multiplatform**: `./gradlew :composeApp:compileAndroidMain` MUST succeed with 0 errors.
+2. **Android Release**: `./gradlew :androidApp:compileReleaseKotlin` (for deployments).
+3. **Next.js Web**: `npm run build` in `web/` MUST compile all routes with 0 errors.
+4. **Python Backend**: `uv run pytest worker/tests/` MUST pass 100% of tests.
+
+### Gate 4: Documentation & Multi-Agent Mirror Invariant
+Whenever rules, architectural standards, or workflows are updated:
+- The authoritative rules reside in `AGENTS.md`.
+- Mirror all rules to `CLAUDE.md`, `.cursorrules`, and `.github/copilot-instructions.md` so every AI assistant executes with identical consistency and zero regression drift.
+

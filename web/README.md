@@ -8,6 +8,11 @@ The official web platform for **Football Highlights & Clips**, built with **Next
 
 - **Next.js 16 App Router & Turbopack**: High-performance rendering with Static Site Generation (SSG) and Incremental Static Regeneration (ISR).
 - **Match Explorer & Live Scores**: Real-time scoreboards, match statuses (`LIVE`, `FINISHED`, `SCHEDULED`), centered scorelines, league filters, and team crests.
+- **TV Broadcast Marquee Live Ticker**: Smooth, seamless marquee auto-scrolling news ticker for live matches (`LiveScoreTicker.tsx`) with hover-pause and frosted `GlassLogoBadge` badges.
+- **Collapsible Accordion Competition Groups**: Smooth collapsible/expandable accordions for highlights by league with animated chevron indicators, allowing rapid scanning.
+- **Sticky Filter Bar & Streamlined Navigation**: Sticky competition filter bar (`CompetitionFilterBar.tsx`), single clear "See all" entry point per league header, and synchronized collapsible navigation rail dock (Season Selector, My Clubs, Spoiler-Free mode, and Go Premium).
+- **Spoiler-Free Mode Sanitization**: Automatically strips goal counts and score spoilers from excitement tags and match cards when active.
+- **Universal Frosted Glass Logos**: Every league emblem and team crest across all components is standardized with frosted `GlassLogoBadge` for maximum contrast and legibility.
 - **Historical Season Archive (2025/26 & 2026/27)**: Cross-page synchronized season selector (`useSeason` hook) allowing instant exploration of current fixtures and over 3,420+ historical archive matches.
 - **Match Details & Tactical Debrief**: Dedicated match pages (`/match/[id]`) with responsive official highlight video player, ESPN authentic boxscore statistics (possession, shots, passes, corners, tackles, fouls), formations, upcoming match previews, and full-time summaries.
 - **Multi-Source Journalistic Feed**: Curated football news articles streamed from accredited sports journalism providers (BBC Sport, The Guardian) with real-time editorial feeds.

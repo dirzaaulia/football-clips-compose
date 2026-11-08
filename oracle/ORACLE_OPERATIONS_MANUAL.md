@@ -25,7 +25,7 @@ This comprehensive guide details the complete architecture, industry-grade tool 
 When interacting with our PostgreSQL 16 database, selecting the right tool directly affects developer productivity, query optimization, and schema safety.
 
 ### Web GUI (In-Browser Super-Viewer): NocoDB
-- **URL**: `https://db.168.110.196.30.sslip.io` (or `http://footballclips-oracle:8082`)
+- **URL**: `https://db.fc.dirzaaulia.com` (or `http://footballclips-oracle:8082`)
 - **Experience**: Supabase / Airtable-style modern spreadsheet view with instant filtering, sorting, relation links, and record editing.
 - **Decommissioning Notice**: Legacy **pgAdmin 4** was officially decommissioned and archived. NocoDB replaced it, offering a vastly cleaner, responsive interface while consuming significantly fewer system resources.
 
@@ -42,7 +42,7 @@ When interacting with our PostgreSQL 16 database, selecting the right tool direc
 | **Resource Usage** | Moderate memory footprint | Moderate (Java/Eclipse platform) | Ultra-light container (<150MB) |
 
 ### Recommendation
-- **Best Web-Based Database Viewer (Recommended)**: **NocoDB** at `https://db.168.110.196.30.sslip.io`. Perfect for quickly inspecting highlights, fixtures, status changes, and club metadata in a modern table view.
+- **Best Web-Based Database Viewer (Recommended)**: **NocoDB** at `https://db.fc.dirzaaulia.com`. Perfect for quickly inspecting highlights, fixtures, status changes, and club metadata in a modern table view.
 - **Best Free Desktop SQL IDE**: **DBeaver Community Edition**. Ideal for complex multi-table queries, EXPLAIN ANALYZE visualizations, and manual data exports.
 - **Top Commercial Desktop IDE**: **DataGrip** (if using JetBrains IntelliJ IDEA Ultimate or All Products Pack).
 
@@ -64,7 +64,7 @@ flowchart TD
         CFProxy["fc-edge-proxy.dirzaaulia11.workers.dev"]
     end
 
-    subgraph OracleNode["🖥️ Oracle VM Super-Node (100.82.171.21 / 168.110.196.30)"]
+    subgraph OracleNode["🖥️ Oracle VM Super-Node (edge.fc.dirzaaulia.com)"]
         Caddy["Caddy 2 Reverse Proxy (TLS 1.3)"]
         TailscaleDaemon["Tailscale WireGuard Daemon"]
         
@@ -100,8 +100,8 @@ flowchart TD
 | **PostgreSQL 16** | `5432` | `footballclips-oracle:5432` | ❌ Blocked (Zero public exposure) | PostgreSQL Password |
 | **PostgREST API** | `3000` / `443` | `footballclips-oracle:3000` | 🌐 `https://fc-edge-proxy...` | `web_anon` (Read-only) |
 | **Tailscale SSH** | `22` | `ssh ubuntu@footballclips-oracle` | ❌ Blocked | Tailscale MFA / Web Auth |
-| **NocoDB Web UI** | `8082` | `http://footballclips-oracle:8082` | `https://db.168.110.196.30.sslip.io` | NocoDB Auth / Password |
-| **FileBrowser** | `8090` | `http://footballclips-oracle:8090` | `https://files.168.110.196.30.sslip.io` | Admin Password |
+| **NocoDB Web UI** | `8082` | `http://footballclips-oracle:8082` | `https://db.fc.dirzaaulia.com` | NocoDB Auth / Password |
+| **FileBrowser** | `8090` | `http://footballclips-oracle:8090` | `https://files.fc.dirzaaulia.com` | Admin Password |
 | **AI Gateway** | `8080` | `http://footballclips-oracle:8080` | ❌ Blocked | Bearer Token / Open on Mesh |
 | **Ollama Inference** | `11434` | `http://footballclips-oracle:11434` | ❌ Blocked | Open on Tailscale Mesh |
 | **n8n Automation** | `5678` | `http://footballclips-oracle:5678` | ❌ Blocked | n8n User Session |
@@ -112,11 +112,11 @@ flowchart TD
 ## 3. PostgreSQL 16 Enterprise Datastore
 
 ### Configuration & Credentials
-- **Host**: `footballclips-oracle` (or `100.82.171.21`)
+- **Host**: `footballclips-oracle`
 - **Port**: `5432`
 - **Database**: `footballclips`
 - **Username**: `postgres`
-- **Password**: `jarvis_postgres_secure_2026`
+- **Password**: Configured in `.env` (`POSTGRES_PASSWORD`)
 - **Driver Type**: PostgreSQL standard JDBC / libpq
 
 ### Step-by-Step Connection Instructions
@@ -175,8 +175,7 @@ NOTIFY pgrst, 'reload schema';
 PostgREST sits directly on top of PostgreSQL, turning tables into a high-performance REST API with zero manual backend code.
 
 ### Endpoints
-- **Direct VM PostgREST**: `https://168.110.196.30.sslip.io`
-- **Production Edge Proxy**: `https://fc-edge-proxy.dirzaaulia11.workers.dev/rest/v1`
+- **Production Edge PostgREST**: `https://edge.fc.dirzaaulia.com`
 
 ### How to Query PostgREST
 PostgREST uses declarative URL filtering:
@@ -218,23 +217,23 @@ curl -X POST https://fc-edge-proxy.dirzaaulia11.workers.dev/api/purge-cache \
 
 ## 6. Domain Architecture & Human-Friendly URL Matrix
 
-No developer should ever have to remember or type awkward IP addresses (`168.110.196.30` or `100.82.171.21`). Every endpoint is mapped to either your branded custom domain (`dirzaaulia.com` / `fc.dirzaaulia.com`) or your private Tailscale MagicDNS name (`footballclips-oracle`).
+No developer should ever have to remember or type awkward raw IP addresses. Every endpoint is mapped to either your branded custom domain (`dirzaaulia.com` / `fc.dirzaaulia.com`) or your private Tailscale MagicDNS name (`footballclips-oracle`).
 
 ### Clean Master URL Directory
 
-| Target Service | Category | Old Ugly URL / Raw IP | 🌟 Clean Readable Short URL | Access Scope |
+| Target Service | Category | Old Raw Host | 🌟 Clean Readable Short URL | Access Scope |
 | :--- | :--- | :--- | :--- | :--- |
 | **FootballClips Web App** | Production Frontend | `footballclips.web.app` | **`https://fc.dirzaaulia.com`** | Public Web |
-| **Edge REST API** | Production Backend | `fc-edge-proxy...workers.dev` | **`https://api.fc.dirzaaulia.com`** | Public Web (Enterprise Edge) |
-| **Cloud Storage Hub** | Files / Backups | `https://files.168.110.196.30...` | **`https://files.fc.dirzaaulia.com`** | Public Web (TLS 1.3 Caddy) |
-| **PostgreSQL 16** | Database Engine | `100.82.171.21:5432` | **`footballclips-oracle:5432`** | Private WireGuard Mesh |
-| **Qwen 2.5 Coder 7B** | Local AI / Vibe Coding | `100.82.171.21:11434` | **`http://footballclips-oracle:11434`** | Private WireGuard Mesh |
-| **AI Gateway** | OpenAI Routing API | `100.82.171.21:8080` | **`http://footballclips-oracle:8080`** | Private WireGuard Mesh |
-| **n8n Automation** | Workflow UI | `100.82.171.21:5678` | **`http://footballclips-oracle:5678`** | Private WireGuard Mesh |
-| **FileBrowser Local** | File Explorer UI | `100.82.171.21:8090` | **`http://footballclips-oracle:8090`** | Private WireGuard Mesh |
-| **Speaches / Whisper** | Audio Transcription | `100.82.171.21:8000` | **`http://footballclips-oracle:8000`** | Private WireGuard Mesh |
-| **Qdrant Vector DB** | Embeddings Store | `100.82.171.21:6333` | **`http://footballclips-oracle:6333`** | Private WireGuard Mesh |
-| **Zero-Trust SSH** | Server Terminal | `ssh ubuntu@168.110.196.30` | **`ssh ubuntu@footballclips-oracle`** | Private WireGuard Mesh |
+| **Edge REST API** | Production Backend | `edge.fc...` | **`https://api.fc.dirzaaulia.com`** | Public Web (Enterprise Edge) |
+| **Cloud Storage Hub** | Files / Backups | `files.fc...` | **`https://files.fc.dirzaaulia.com`** | Public Web (TLS 1.3 Caddy) |
+| **PostgreSQL 16** | Database Engine | `internal:5432` | **`footballclips-oracle:5432`** | Private WireGuard Mesh |
+| **Qwen 2.5 Coder 7B** | Local AI / Vibe Coding | `internal:11434` | **`http://footballclips-oracle:11434`** | Private WireGuard Mesh |
+| **AI Gateway** | OpenAI Routing API | `internal:8080` | **`http://footballclips-oracle:8080`** | Private WireGuard Mesh |
+| **n8n Automation** | Workflow UI | `internal:5678` | **`http://footballclips-oracle:5678`** | Private WireGuard Mesh |
+| **FileBrowser Local** | File Explorer UI | `internal:8090` | **`http://footballclips-oracle:8090`** | Private WireGuard Mesh |
+| **Speaches / Whisper** | Audio Transcription | `internal:8000` | **`http://footballclips-oracle:8000`** | Private WireGuard Mesh |
+| **Qdrant Vector DB** | Embeddings Store | `internal:6333` | **`http://footballclips-oracle:6333`** | Private WireGuard Mesh |
+| **Zero-Trust SSH** | Server Terminal | `ssh direct` | **`ssh ubuntu@footballclips-oracle`** | Private WireGuard Mesh |
 
 ### Spaceship DNS Records Configuration (for `dirzaaulia.com`)
 
@@ -243,8 +242,8 @@ To activate the public subdomains, add these simple records into your Spaceship 
 | Host / Subdomain | Type | Target Value | Description |
 | :--- | :--- | :--- | :--- |
 | `fc` | `CNAME` | `footballclips.web.app` | Points FootballClips frontend to Firebase |
-| `api.fc` | `CNAME` | `fc-edge-proxy.dirzaaulia11.workers.dev` | Points Edge API to Cloudflare Workers proxy |
-| `files.fc` | `A` | `168.110.196.30` | Points file explorer to Caddy on Oracle VM (Auto-TLS) |
+| `api.fc` | `CNAME` | `edge.fc.dirzaaulia.com` | Points Edge API to Caddy Edge proxy |
+| `files.fc` | `CNAME` | `edge.fc.dirzaaulia.com` | Points file explorer to Caddy on Oracle VM (Auto-TLS) |
 
 ---
 
@@ -274,10 +273,10 @@ tailscale ip -4
 FileBrowser provides an interactive web-based file explorer for managing database backups, media assets, logs, and datasets.
 
 ### Access Details
-- **Over Public Web**: `https://files.168.110.196.30.sslip.io`
+- **Over Public Web**: `https://files.fc.dirzaaulia.com`
 - **Over Tailscale**: `http://footballclips-oracle:8090`
 - **Username**: `admin`
-- **Default Password**: `jarvis_secure_admin_2026` *(Change on first login in Settings -> User Management)*
+- **Password**: Configured in `.env` (`FILEBROWSER_ADMIN_PASSWORD`)
 
 ### Storage Paths Managed
 - `/srv/Backups`: Automated PostgreSQL `.sql.gz` database dumps.

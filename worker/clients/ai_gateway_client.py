@@ -1,4 +1,8 @@
+"""Clean Architecture Multi-Tier Resilient AI Client with 3-Strike Circuit Breaker and Verdict Cache."""
+
+import hashlib
 import json
+import time
 from typing import Any
 
 import httpx
@@ -42,18 +46,45 @@ LOCAL_OLLAMA_MODELS: list[tuple[str, float]] = [
 
 
 class AiGatewayClient:
-    """
-    Clean Architecture Multi-Tier Resilient AI Client:
-    1. Primary: Round-Robin Cloud Models on Oracle VM Gateway (Cloudflare / Groq / Gemini)
-    2. Secondary: OpenRouter Free Models on Oracle VM Gateway
-    3. Tertiary: Direct Google Gemini API (client-side fallback)
-    4. Quaternary: Local Ollama on Oracle VM (Zero Quota, 100% Self-Hosted ARM64)
-    5. Ultimate: Deterministic Mathematical Heuristic Scorer Circuit Breaker
-    """
+    """5-Tier Resilient AI Client with 3-Strike Circuit Breaker and Self-Learning Verdict Cache."""
+
+    CIRCUIT_BREAKER_THRESHOLD = 3
+    CIRCUIT_COOLDOWN_SECONDS = 300.0
 
     def __init__(self):
         self._http_client = httpx.Client(timeout=25.0)
         self._cloud_rr_index = 0
+        self._consecutive_failures = 0
+        self._circuit_open_until = 0.0
+        self._verdict_cache: dict[str, tuple[int | None, str | None, str]] = {}
+
+    def reset_circuit_breaker(self):
+        self._consecutive_failures = 0
+        self._circuit_open_until = 0.0
+        self._verdict_cache.clear()
+
+    def is_circuit_open(self) -> bool:
+        return time.time() < self._circuit_open_until
+
+    def _record_success(self, cache_key: str, result: tuple[int | None, str | None, str]):
+        self._consecutive_failures = 0
+        self._circuit_open_until = 0.0
+        self._verdict_cache[cache_key] = result
+
+    def _record_full_failure(self):
+        self._consecutive_failures += 1
+        if self._consecutive_failures >= self.CIRCUIT_BREAKER_THRESHOLD:
+            self._circuit_open_until = time.time() + self.CIRCUIT_COOLDOWN_SECONDS
+            logger.warning(
+                f"[AI CIRCUIT BREAKER] Tripped after {self._consecutive_failures} consecutive full failures. "
+                f"Routing to deterministic scorer for {self.CIRCUIT_COOLDOWN_SECONDS:.0f}s."
+            )
+
+    @staticmethod
+    def _build_cache_key(home_team: str, away_team: str, candidates: list[dict[str, Any]]) -> str:
+        c_sig = "|".join(f"{c.get('id', '')}:{c.get('title', '')}" for c in candidates)
+        raw = f"{home_team.lower()}::{away_team.lower()}::{c_sig}"
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:24]
 
     def _build_prompt(
         self,
@@ -72,8 +103,8 @@ class AiGatewayClient:
             dur = c.get("duration", 0)
             dur_str = f"{dur // 60}m {dur % 60}s"
             desc = (c.get("description") or "").replace("\n", " ").strip()
-            desc_part = f" | Description: \"{desc[:300]}\"" if desc else ""
-            prompt += f"{i}. Title: \"{c['title']}\" | Duration: {dur_str} | Channel: {c.get('channel', 'Official')}{desc_part}\n"
+            desc_part = f' | Description: "{desc[:300]}"' if desc else ""
+            prompt += f'{i}. Title: "{c["title"]}" | Duration: {dur_str} | Channel: {c.get("channel", "Official")}{desc_part}\n'
 
         prompt += (
             "\nTask:\n"
@@ -81,16 +112,16 @@ class AiGatewayClient:
             "Note: Official club channels often upload official highlights with stylized/creative titles (e.g. 'HIGHLIGHTS | A chance-filled night'). "
             "Verify opponent and match details in the description snippet.\n"
             "STRICT REJECTION CRITERIA:\n"
-            "- Reject studio analysis, talk shows, pundit debates, opinion clips, or question-based titles (e.g. 'Is Como Setting the Standard...', 'Did Iraola get the tactics wrong', 'Jamie questions...', 'Thierry praises...', '#UCLToday', 'The Verdict').\n"
+            "- Reject studio analysis, talk shows, pundit debates, opinion clips, or question-based titles (e.g. 'Is Como Setting the Standard...', '#UCLToday', 'The Verdict').\n"
             "- Reject full matches, full match replays, 90-minute recordings (only highlights allowed).\n"
             "- Reject training sessions, warm-ups, or prep videos (e.g. 'Prep', 'trains ahead').\n"
-            "- Reject press conferences, interviews, or player quotes ('press conference', 'point presse', 'PK', 'conférence').\n"
+            "- Reject press conferences, interviews, or player quotes ('press conference', 'point presse', 'PK', 'conférence', 'συνέντευξη').\n"
             "- Reject quizzes, badge games, fan reactions, or behind-the-scenes.\n"
             "- Reject retro/historic matches or compilations from previous years.\n"
             "- Reject matches not between these two teams.\n"
-            "- Candidate MUST be authentic match footage highlights containing words like Highlights, Extended Highlights, Résumé, Resumen, Sintesi, etc.\n"
-            "If NO candidate is a genuine match highlight, return: {\"best_index\": null, \"reason\": \"<brief explanation>\"}\n"
-            "Respond strictly in JSON format: {\"best_index\": <1-based int or null>, \"reason\": \"<brief explanation>\"}\n"
+            "- Candidate MUST be authentic match footage highlights.\n"
+            'If NO candidate is a genuine match highlight, return: {"best_index": null, "reason": "<brief explanation>"}\n'
+            'Respond strictly in JSON format: {"best_index": <1-based int or null>, "reason": "<brief explanation>"}\n'
         )
         return prompt
 
@@ -101,7 +132,6 @@ class AiGatewayClient:
         candidates_count: int,
         timeout: float = 15.0,
     ) -> tuple[int | None, str | None, bool]:
-        """Calls a specific model on the Oracle VM AI Gateway."""
         if not settings.ai_gateway_url:
             return None, None, True
 
@@ -120,75 +150,42 @@ class AiGatewayClient:
         try:
             resp = self._http_client.post(url, json=payload, headers=headers, timeout=timeout)
             if resp.status_code == 200:
-                data = resp.json()
-                content = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+                content = resp.json().get("choices", [{}])[0].get("message", {}).get("content", "").strip()
                 parsed = json.loads(content)
                 best_idx = parsed.get("best_index")
                 reason = parsed.get("reason") or f"Selected by {model_name}"
                 if isinstance(best_idx, int) and 1 <= best_idx <= candidates_count:
-                    logger.info(f"[AI EVAL] [{model_name}] Selected candidate #{best_idx}: {reason}")
                     return best_idx - 1, reason, False
-                elif best_idx is None:
-                    logger.info(f"[AI EVAL] [{model_name}] Explicit rejection: {reason}")
+                if best_idx is None:
                     return -1, reason, False
-                else:
-                    logger.warning(f"[AI EVAL] [{model_name}] Invalid candidate index {best_idx}")
-                    return None, None, True
-            else:
-                logger.warning(f"[AI RETRY] {model_name} returned HTTP {resp.status_code}: {resp.text[:120]}")
                 return None, None, True
+            return None, None, True
         except Exception as e:
-            logger.warning(f"[AI RETRY] {model_name} failed: {e}")
+            logger.debug(f"[AI RETRY] {model_name} failed: {e}")
             return None, None, True
 
-    def _evaluate_oracle_gateway(
-        self,
-        prompt: str,
-        candidates_count: int,
-    ) -> tuple[int | None, str | None]:
-        """Backwards-compatible helper evaluating via default gateway model."""
-        idx, reason, failed = self._call_gateway_model(
-            settings.ai_gateway_model,
-            prompt,
-            candidates_count,
-            timeout=15.0,
-        )
-        if not failed:
-            return idx, reason
-        return None, None
+    def _evaluate_oracle_gateway(self, prompt: str, candidates_count: int) -> tuple[int | None, str | None]:
+        idx, reason, failed = self._call_gateway_model(settings.ai_gateway_model, prompt, candidates_count, timeout=15.0)
+        return (idx, reason) if not failed else (None, None)
 
-    def _evaluate_gemini_fallback(
-        self,
-        prompt: str,
-        candidates_count: int,
-    ) -> tuple[int | None, str | None]:
-        """Direct fallback evaluation using Google Gemini API."""
+    def _evaluate_gemini_fallback(self, prompt: str, candidates_count: int) -> tuple[int | None, str | None]:
         if not settings.gemini_api_key:
             return None, None
-
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key={settings.gemini_api_key}"
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"responseMimeType": "application/json"},
-        }
-
+        payload = {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"responseMimeType": "application/json"}}
         try:
             resp = self._http_client.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=15.0)
             if resp.status_code == 200:
-                data = resp.json()
-                text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                text = resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
                 parsed = json.loads(text)
                 best_idx = parsed.get("best_index")
                 reason = parsed.get("reason") or "Selected by Gemini Fallback"
                 if isinstance(best_idx, int) and 1 <= best_idx <= candidates_count:
-                    logger.info(f"[AI EVAL] [GEMINI FALLBACK] Selected candidate #{best_idx}: {reason}")
                     return best_idx - 1, reason
-                elif best_idx is None:
-                    logger.info(f"[AI EVAL] [GEMINI FALLBACK] Explicit rejection: {reason}")
+                if best_idx is None:
                     return -1, reason
         except Exception as e:
-            logger.debug(f"[AI EVAL] Gemini fallback evaluation unavailable: {e}")
-
+            logger.debug(f"[AI EVAL] Gemini fallback unavailable: {e}")
         return None, None
 
     def rerank_highlights(
@@ -198,21 +195,19 @@ class AiGatewayClient:
         competition: str,
         candidates: list[dict[str, Any]],
     ) -> tuple[int | None, str | None, str]:
-        """
-        Curates candidate highlight videos through 5-tier cascading resilient pipeline:
-        1. Primary Cloud Models (Round-Robin across 10 cloud endpoints)
-        2. OpenRouter Free Tier (6 free cloud endpoints)
-        3. Direct Google Gemini API (client-side)
-        4. Local Ollama on Oracle VM (9B deep reasoning -> 4B fast lightweight)
-        5. Deterministic Mathematical Heuristic Scorer Circuit Breaker
-        """
         if not candidates:
             return None, None, "NONE"
+
+        cache_key = self._build_cache_key(home_team, away_team, candidates)
+        if cache_key in self._verdict_cache:
+            return self._verdict_cache[cache_key]
+
+        if self.is_circuit_open():
+            return None, None, "DETERMINISTIC_FALLBACK"
 
         prompt = self._build_prompt(home_team, away_team, competition, candidates)
         num_cands = len(candidates)
 
-        # Tier 1: Primary Cloud Models with Round-Robin Load Balancing
         start_idx = self._cloud_rr_index
         self._cloud_rr_index = (start_idx + 1) % len(PRIMARY_CLOUD_MODELS)
         ordered_cloud = PRIMARY_CLOUD_MODELS[start_idx:] + PRIMARY_CLOUD_MODELS[:start_idx]
@@ -220,30 +215,31 @@ class AiGatewayClient:
         for model in ordered_cloud:
             idx, reason, failed = self._call_gateway_model(model, prompt, num_cands, timeout=15.0)
             if not failed:
-                return idx, reason, f"ORACLE GATEWAY ({model})"
+                res = (idx, reason, f"ORACLE GATEWAY ({model})")
+                self._record_success(cache_key, res)
+                return res
 
-        # Tier 2: OpenRouter Free Models
-        logger.warning("[AI EVAL] Primary cloud models exhausted. Failing over to OpenRouter Free tier...")
         for model in OPENROUTER_FREE_MODELS:
             idx, reason, failed = self._call_gateway_model(model, prompt, num_cands, timeout=12.0)
             if not failed:
-                return idx, reason, f"OPENROUTER ({model})"
+                res = (idx, reason, f"OPENROUTER ({model})")
+                self._record_success(cache_key, res)
+                return res
 
-        # Tier 3: Direct Google Gemini API
-        logger.warning("[AI EVAL] Gateway cloud tiers exhausted. Failing over to Direct Google Gemini API...")
         res_gemini, reason_gemini = self._evaluate_gemini_fallback(prompt, num_cands)
         if res_gemini is not None:
-            return res_gemini, reason_gemini, "GEMINI_DIRECT"
+            res = (res_gemini, reason_gemini, "GEMINI_DIRECT")
+            self._record_success(cache_key, res)
+            return res
 
-        # Tier 4: Local Ollama on Oracle VM (Zero Quota, 100% Self-Hosted ARM64)
-        logger.warning("[AI EVAL] All cloud options exhausted. Failing over to Local Ollama on Oracle VM...")
         for model, timeout in LOCAL_OLLAMA_MODELS:
             idx, reason, failed = self._call_gateway_model(model, prompt, num_cands, timeout=timeout)
             if not failed:
-                return idx, reason, f"ORACLE_LOCAL_OLLAMA ({model})"
+                res = (idx, reason, f"ORACLE_LOCAL_OLLAMA ({model})")
+                self._record_success(cache_key, res)
+                return res
 
-        # Tier 5: Deterministic Mathematical Heuristic Scorer Circuit Breaker
-        logger.error("[AI EVAL] All 19 AI models and direct Gemini unavailable. Delegating to deterministic scorer.")
+        self._record_full_failure()
         return None, None, "DETERMINISTIC_FALLBACK"
 
 

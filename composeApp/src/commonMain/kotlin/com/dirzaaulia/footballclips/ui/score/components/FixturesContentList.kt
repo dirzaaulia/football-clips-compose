@@ -28,6 +28,10 @@ import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+
 @Composable
 fun FixturesContentList(
     isGrid: Boolean,
@@ -45,6 +49,8 @@ fun FixturesContentList(
     dynamicCompetitions: List<BigLeague> = emptyList(),
     selectedCompetitionId: String? = null,
 ) {
+    var collapsedCompIds by remember { mutableStateOf(emptySet<String>()) }
+
     val groupedItems = remember(matches, dynamicCompetitions, selectedCompetitionId) {
         if (!selectedCompetitionId.isNullOrEmpty()) {
             listOf(null to matches)
@@ -76,52 +82,63 @@ fun FixturesContentList(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             groupedItems.forEachIndexed { groupIndex, (comp, compMatches) ->
+                val isExpanded = comp == null || !collapsedCompIds.contains(comp.id)
                 if (comp != null) {
                     item(key = "header-${comp.id}", span = { GridItemSpan(maxLineSpan) }) {
                         LeagueHeader(
                             competitionName = comp.name,
                             competitionEmblemUrl = comp.logo,
                             competitionId = comp.competitionId,
+                            isExpanded = isExpanded,
+                            onToggleExpand = {
+                                collapsedCompIds = if (isExpanded) {
+                                    collapsedCompIds + comp.id
+                                } else {
+                                    collapsedCompIds - comp.id
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
                         )
                     }
                 }
-                items(
-                    items = compMatches,
-                    key = { it.uniqueId },
-                    span = { item ->
-                        if (item is HighlightUiItem.BannerAd) {
-                            GridItemSpan(maxLineSpan)
-                        } else {
-                            GridItemSpan(1)
+                if (isExpanded) {
+                    items(
+                        items = compMatches,
+                        key = { it.uniqueId },
+                        span = { item ->
+                            if (item is HighlightUiItem.BannerAd) {
+                                GridItemSpan(maxLineSpan)
+                            } else {
+                                GridItemSpan(1)
+                            }
+                        },
+                    ) { item ->
+                        when (item) {
+                            is HighlightUiItem.OracleMatch -> {
+                                val isFav = item.match.isMatchForFavoriteClubs(favoriteClubs, supportedClubs)
+                                WebFixtureCard(
+                                    match = item.match,
+                                    isSpoilerFree = isSpoilerFreeMode,
+                                    isRevealed = revealedMatchIds.contains(item.match.id),
+                                    isFavorite = isFav,
+                                    onRevealClick = { onVideoClick(item) {} },
+                                    onClick = { onVideoClick(item) {} },
+                                )
+                            }
+                            is HighlightUiItem.BannerAd -> {
+                                if (!isAdsRemoved) BannerAdItem(style = NativeAdStyle.MATCH)
+                            }
+                            else -> {}
                         }
-                    },
-                ) { item ->
-                    when (item) {
-                        is HighlightUiItem.OracleMatch -> {
-                            val isFav = item.match.isMatchForFavoriteClubs(favoriteClubs, supportedClubs)
-                            WebFixtureCard(
-                                match = item.match,
-                                isSpoilerFree = isSpoilerFreeMode,
-                                isRevealed = revealedMatchIds.contains(item.match.id),
-                                isFavorite = isFav,
-                                onRevealClick = { onVideoClick(item) {} },
-                                onClick = { onVideoClick(item) {} },
+                    }
+
+                    if (!isAdsRemoved && (groupIndex + 1) % 3 == 0 && groupIndex < groupedItems.size - 1) {
+                        item(key = "ad-between-${comp?.id ?: groupIndex}", span = { GridItemSpan(maxLineSpan) }) {
+                            BannerAdItem(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                style = NativeAdStyle.MATCH,
                             )
                         }
-                        is HighlightUiItem.BannerAd -> {
-                            if (!isAdsRemoved) BannerAdItem(style = NativeAdStyle.MATCH)
-                        }
-                        else -> {}
-                    }
-                }
-
-                if (!isAdsRemoved && (groupIndex + 1) % 3 == 0 && groupIndex < groupedItems.size - 1) {
-                    item(key = "ad-between-${comp?.id ?: groupIndex}", span = { GridItemSpan(maxLineSpan) }) {
-                        BannerAdItem(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                            style = NativeAdStyle.MATCH,
-                        )
                     }
                 }
             }
@@ -137,45 +154,56 @@ fun FixturesContentList(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             groupedItems.forEachIndexed { groupIndex, (comp, compMatches) ->
+                val isExpanded = comp == null || !collapsedCompIds.contains(comp.id)
                 if (comp != null) {
                     item(key = "header-${comp.id}") {
                         LeagueHeader(
                             competitionName = comp.name,
                             competitionEmblemUrl = comp.logo,
                             competitionId = comp.competitionId,
+                            isExpanded = isExpanded,
+                            onToggleExpand = {
+                                collapsedCompIds = if (isExpanded) {
+                                    collapsedCompIds + comp.id
+                                } else {
+                                    collapsedCompIds - comp.id
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
                         )
                     }
                 }
-                items(
-                    items = compMatches,
-                    key = { it.uniqueId },
-                ) { item ->
-                    when (item) {
-                        is HighlightUiItem.OracleMatch -> {
-                            val isFav = item.match.isMatchForFavoriteClubs(favoriteClubs, supportedClubs)
-                            StandardMatchCard(
-                                match = item.match,
-                                isSpoilerFree = isSpoilerFreeMode,
-                                isRevealed = revealedMatchIds.contains(item.match.id),
-                                isFavorite = isFav,
-                                onRevealClick = { onVideoClick(item) {} },
-                                onWatchHighlightClick = { onVideoClick(item) {} },
+                if (isExpanded) {
+                    items(
+                        items = compMatches,
+                        key = { it.uniqueId },
+                    ) { item ->
+                        when (item) {
+                            is HighlightUiItem.OracleMatch -> {
+                                val isFav = item.match.isMatchForFavoriteClubs(favoriteClubs, supportedClubs)
+                                StandardMatchCard(
+                                    match = item.match,
+                                    isSpoilerFree = isSpoilerFreeMode,
+                                    isRevealed = revealedMatchIds.contains(item.match.id),
+                                    isFavorite = isFav,
+                                    onRevealClick = { onVideoClick(item) {} },
+                                    onWatchHighlightClick = { onVideoClick(item) {} },
+                                )
+                            }
+                            is HighlightUiItem.BannerAd -> {
+                                if (!isAdsRemoved) BannerAdItem(style = NativeAdStyle.MATCH)
+                            }
+                            else -> {}
+                        }
+                    }
+
+                    if (!isAdsRemoved && (groupIndex + 1) % 3 == 0 && groupIndex < groupedItems.size - 1) {
+                        item(key = "ad-between-${comp?.id ?: groupIndex}") {
+                            BannerAdItem(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                style = NativeAdStyle.MATCH,
                             )
                         }
-                        is HighlightUiItem.BannerAd -> {
-                            if (!isAdsRemoved) BannerAdItem(style = NativeAdStyle.MATCH)
-                        }
-                        else -> {}
-                    }
-                }
-
-                if (!isAdsRemoved && (groupIndex + 1) % 3 == 0 && groupIndex < groupedItems.size - 1) {
-                    item(key = "ad-between-${comp?.id ?: groupIndex}") {
-                        BannerAdItem(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                            style = NativeAdStyle.MATCH,
-                        )
                     }
                 }
             }

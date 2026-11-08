@@ -167,10 +167,22 @@ export function WaterfallSteps({ cycle, matchId, matchTitle, onOpenOverride }: W
           </p>
         </div>
         <div className="bg-slate-900/90 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-slate-800">
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             <p className="font-mono text-slate-200 text-xs">{cycle.step4Outcome}</p>
             {cycle.outcomeVideoId && (
-              <p className="text-slate-400 font-mono text-[11px]">YouTube ID: {cycle.outcomeVideoId}</p>
+              <div className="flex items-center gap-2 flex-wrap font-mono text-[11px]">
+                <span className="text-slate-400">YouTube ID: {cycle.outcomeVideoId}</span>
+                {cycle.linkedChannelHandle && (
+                  <span className="px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-semibold">
+                    {cycle.linkedChannelHandle} ({cycle.linkedChannelTier || 'Official Channel'})
+                  </span>
+                )}
+                {cycle.worldwideAvailabilityText && (
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold">
+                    🌍 {cycle.worldwideAvailabilityText}
+                  </span>
+                )}
+              </div>
             )}
           </div>
           <div className="flex items-center gap-2">

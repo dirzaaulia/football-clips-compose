@@ -28,10 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.dirzaaulia.footballclips.data.model.remote.BigLeague
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 
 @Composable
 internal fun CompetitionSideRail(
@@ -155,11 +154,12 @@ private fun RailCompetitionItem(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        AsyncImage(
-            model = league.logo.ifBlank { league.emblemUrl },
+        GlassLogoBadge(
+            logoUrl = league.logo.ifBlank { league.emblemUrl },
             contentDescription = league.name,
-            modifier = Modifier.size(26.dp),
-            contentScale = ContentScale.Fit,
+            size = 36.dp,
+            padding = 4.dp,
+            shape = CircleShape,
         )
     }
 }

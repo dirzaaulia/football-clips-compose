@@ -16,6 +16,7 @@ import MatchCentreHero from './MatchCentreHero';
 import MatchTacticalBoxscore from '@/components/match/MatchTacticalBoxscore';
 import MatchDayGearSection from '@/components/affiliate/MatchDayGearSection';
 import PlayerRelatedHighlights from './PlayerRelatedHighlights';
+import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 
 interface VideoPlayerSideSheetProps {
   match: MatchRecord | null;
@@ -268,9 +269,12 @@ export default function VideoPlayerSideSheet({
             <div className="bg-[#101418] border border-[#334155]/70 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-md">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 {currentMatch.home_team_crest && (
-                  <div className="relative w-6 h-6 shrink-0">
-                    <Image src={currentMatch.home_team_crest} alt={homeName} fill className="object-contain" unoptimized />
-                  </div>
+                  <GlassLogoBadge
+                    src={currentMatch.home_team_crest}
+                    alt={homeName}
+                    size={26}
+                    imageClassName="object-contain p-0.5"
+                  />
                 )}
                 <span className="font-extrabold text-xs text-white line-clamp-2 leading-tight">{homeName}</span>
               </div>
@@ -297,9 +301,12 @@ export default function VideoPlayerSideSheet({
               <div className="flex items-center justify-end gap-2 flex-1 min-w-0 text-right">
                 <span className="font-extrabold text-xs text-white line-clamp-2 leading-tight">{awayName}</span>
                 {currentMatch.away_team_crest && (
-                  <div className="relative w-6 h-6 shrink-0">
-                    <Image src={currentMatch.away_team_crest} alt={awayName} fill className="object-contain" unoptimized />
-                  </div>
+                  <GlassLogoBadge
+                    src={currentMatch.away_team_crest}
+                    alt={awayName}
+                    size={26}
+                    imageClassName="object-contain p-0.5"
+                  />
                 )}
               </div>
             </div>

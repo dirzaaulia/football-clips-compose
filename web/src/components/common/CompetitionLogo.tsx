@@ -7,8 +7,8 @@ import { Trophy } from 'lucide-react';
 export default function CompetitionLogo({
   src,
   name,
-  className = '',
-  withGlassBadge = false,
+  className = 'w-6 h-6',
+  withGlassBadge = true,
 }: {
   src?: string;
   name: string;

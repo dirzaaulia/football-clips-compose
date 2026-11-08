@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Flame, Play, Eye } from 'lucide-react';
 import { MatchRecord } from '@/lib/database';
 import { RankedMatch } from '@/lib/excitement';
+import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 
 interface ExcitementCardProps {
   item: RankedMatch;
@@ -75,9 +76,12 @@ export default function ExcitementCard({
           {/* Home */}
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {match.home_team_crest && (
-              <div className="relative w-6 h-6 shrink-0">
-                <Image src={match.home_team_crest} alt={homeName} fill className="object-contain" unoptimized />
-              </div>
+              <GlassLogoBadge
+                src={match.home_team_crest}
+                alt={homeName}
+                size={26}
+                imageClassName="object-contain p-0.5"
+              />
             )}
             <span className="font-extrabold text-xs text-white leading-tight break-words">{homeName}</span>
           </div>
@@ -111,9 +115,12 @@ export default function ExcitementCard({
           <div className="flex items-center justify-end gap-2 flex-1 min-w-0 text-right">
             <span className="font-extrabold text-xs text-white leading-tight break-words">{awayName}</span>
             {match.away_team_crest && (
-              <div className="relative w-6 h-6 shrink-0">
-                <Image src={match.away_team_crest} alt={awayName} fill className="object-contain" unoptimized />
-              </div>
+              <GlassLogoBadge
+                src={match.away_team_crest}
+                alt={awayName}
+                size={26}
+                imageClassName="object-contain p-0.5"
+              />
             )}
           </div>
         </div>

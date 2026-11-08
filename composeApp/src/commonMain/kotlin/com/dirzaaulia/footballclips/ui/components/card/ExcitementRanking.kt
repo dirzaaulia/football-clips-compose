@@ -23,7 +23,10 @@ data class RankedHighlightItem(
     val tag: String
 )
 
-fun calculateExcitementRank(item: HighlightUiItem): RankedHighlightItem {
+fun calculateExcitementRank(
+    item: HighlightUiItem,
+    isSpoilerFree: Boolean = false,
+): RankedHighlightItem {
     val home: String
     val away: String
     val homeScore: Int?
@@ -69,10 +72,10 @@ fun calculateExcitementRank(item: HighlightUiItem): RankedHighlightItem {
 
     if (totalGoals >= 5) {
         score += 50
-        tag = "🔥 Goal Fest • $totalGoals Goals"
+        tag = if (isSpoilerFree) "🔥 Goal Fest" else "🔥 Goal Fest • $totalGoals Goals"
     } else if (totalGoals == 4) {
         score += 35
-        tag = "⚡ 4-Goal Thriller"
+        tag = if (isSpoilerFree) "⚡ High-Scoring Thriller" else "⚡ 4-Goal Thriller"
     } else if (totalGoals == 3) {
         score += 20
     }
@@ -88,12 +91,13 @@ fun calculateExcitementRank(item: HighlightUiItem): RankedHighlightItem {
 fun arrangeExcitementCarouselPages(
     items: List<HighlightUiItem>,
     isAdsRemoved: Boolean,
-    isWasmWeb: Boolean
+    isWasmWeb: Boolean,
+    isSpoilerFree: Boolean = false,
 ): List<Pair<HighlightUiItem, String>> {
     val videoItems = items.filter { it !is HighlightUiItem.BannerAd }
     if (videoItems.isEmpty()) return emptyList()
 
-    val ranked = videoItems.map { calculateExcitementRank(it) }
+    val ranked = videoItems.map { calculateExcitementRank(it, isSpoilerFree) }
         .sortedByDescending { it.score }
         .take(6)
 
@@ -102,7 +106,6 @@ fun arrangeExcitementCarouselPages(
     }
 
     val result = mutableListOf<Pair<HighlightUiItem, String>>()
-    var adIndex = 0
     ranked.forEachIndexed { index, rankedItem ->
         result.add(rankedItem.item to rankedItem.tag)
         if ((index + 1) % 2 == 0 && index < ranked.size - 1) {

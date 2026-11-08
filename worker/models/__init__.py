@@ -14,6 +14,13 @@ from worker.models.notification import (
     NotificationsStatePayload,
     PlatformBreakdown,
 )
+from worker.models.short_video import (
+    FootballShortCandidate,
+    FootballShortRecord,
+    ShortCategory,
+    ShortEvaluationResult,
+    ShortsWaterfallTrace,
+)
 from worker.models.standings import CompetitionStandingsPayload, StandingRow
 from worker.models.telemetry import (
     CycleTelemetryPayload,
@@ -34,6 +41,8 @@ __all__ = [
     "CountryBroadcastProfile",
     "CycleTelemetryPayload",
     "EventRecord",
+    "FootballShortCandidate",
+    "FootballShortRecord",
     "MatchDbRecord",
     "MatchPayload",
     "MatchWaterfallTrace",
@@ -42,7 +51,11 @@ __all__ = [
     "PipelineStatus",
     "PlatformBreakdown",
     "QuotaMetrics",
+    "ShortCategory",
+    "ShortEvaluationResult",
+    "ShortsWaterfallTrace",
     "StandingRow",
     "SupportedClubRecord",
     "VideoCandidate",
 ]
+

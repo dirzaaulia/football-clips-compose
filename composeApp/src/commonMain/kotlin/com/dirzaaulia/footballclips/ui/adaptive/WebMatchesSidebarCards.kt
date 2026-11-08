@@ -36,6 +36,7 @@ import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable
@@ -135,24 +136,10 @@ internal fun TheaterFixtureCard(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    SubcomposeAsyncImage(
-                        model = match.homeTeamCrest?.toProxyUrl(),
-                        contentDescription = null,
-                        loading = {
-                            Box(
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                ExpressiveLoadingIndicator(
-                                    modifier = Modifier.size(12.dp),
-                                    strokeWidth = 1.5.dp
-                                )
-                            }
-                        },
-                        modifier = Modifier.size(24.dp),
-                        contentScale = ContentScale.Fit
+                    GlassLogoBadge(
+                        logoUrl = match.homeTeamCrest,
+                        size = 24.dp,
+                        padding = 2.dp,
                     )
                     Spacer(Modifier.width(12.dp))
                     Text(
@@ -165,24 +152,10 @@ internal fun TheaterFixtureCard(
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    SubcomposeAsyncImage(
-                        model = match.awayTeamCrest?.toProxyUrl(),
-                        contentDescription = null,
-                        loading = {
-                            Box(
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                ExpressiveLoadingIndicator(
-                                    modifier = Modifier.size(12.dp),
-                                    strokeWidth = 1.5.dp
-                                )
-                            }
-                        },
-                        modifier = Modifier.size(24.dp),
-                        contentScale = ContentScale.Fit
+                    GlassLogoBadge(
+                        logoUrl = match.awayTeamCrest,
+                        size = 24.dp,
+                        padding = 2.dp,
                     )
                     Spacer(Modifier.width(12.dp))
                     Text(

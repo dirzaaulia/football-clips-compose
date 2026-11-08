@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.ui.components.filter.SeasonDropdownSelector
-import com.dirzaaulia.footballclips.util.isDebugBuild
+import com.dirzaaulia.footballclips.util.isDeveloperModeAllowed
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,7 +50,7 @@ internal fun HomeScreenTopBar(
                     fontWeight = FontWeight.Black,
                     letterSpacing = if (isWeb) 1.sp else (-0.5).sp,
                     modifier = Modifier.clickable {
-                        if (!isWeb && isDebugBuild) {
+                        if (!isWeb && isDeveloperModeAllowed) {
                             onTitleTap()
                         }
                     },

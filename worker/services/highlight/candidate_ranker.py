@@ -59,10 +59,16 @@ class CandidateRanker:
 
         def is_valid_highlight_candidate(cand: dict[str, Any] | str) -> bool:
             cand_title = cand.get("title", "") if isinstance(cand, dict) else str(cand)
-            is_forbidden, _ = check_forbidden_title(cand_title)
+            cand_chan = cand.get("channel") if isinstance(cand, dict) else None
+            is_forbidden, _ = check_forbidden_title(cand_title, home, away)
             if is_forbidden:
                 return False
-            return is_both_teams(cand) and has_highlight_keyword(cand_title)
+            is_official_target = bool(cand_chan and target_handles and cand_chan in target_handles)
+            return is_both_teams(cand) and (
+                has_highlight_keyword(cand_title)
+                or has_scoreline(cand_title)
+                or is_official_target
+            )
 
         h_score = match.get("home_score")
         a_score = match.get("away_score")

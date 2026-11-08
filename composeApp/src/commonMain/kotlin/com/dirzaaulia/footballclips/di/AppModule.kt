@@ -3,6 +3,8 @@ package com.dirzaaulia.footballclips.di
 import com.dirzaaulia.footballclips.data.analytics.AppAnalytics
 import com.dirzaaulia.footballclips.data.analytics.AppAnalyticsImpl
 import com.dirzaaulia.footballclips.data.constants.DatabaseConstants
+import com.dirzaaulia.footballclips.data.repository.EspnSummaryRepository
+import com.dirzaaulia.footballclips.data.repository.EspnSummaryRepositoryImpl
 import com.dirzaaulia.footballclips.data.repository.MiddlewareRepository
 import com.dirzaaulia.footballclips.data.repository.MiddlewareRepositoryImpl
 import com.dirzaaulia.footballclips.data.repository.OracleVmRepository
@@ -12,6 +14,9 @@ import com.dirzaaulia.footballclips.data.repository.ProfilesRepositoryImpl
 import com.dirzaaulia.footballclips.data.telemetry.DeviceTelemetrySync
 import com.dirzaaulia.footballclips.ui.home.HomeViewModel
 import com.dirzaaulia.footballclips.ui.score.ScoreViewModel
+import com.dirzaaulia.footballclips.data.repository.ShortsRepository
+import com.dirzaaulia.footballclips.data.repository.ShortsRepositoryImpl
+import com.dirzaaulia.footballclips.ui.shorts.ShortsViewModel
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
@@ -49,8 +54,10 @@ val dataModule = module {
     single { DeviceTelemetrySync(get()) }
     single<AppAnalytics> { AppAnalyticsImpl(get()) }
     single<MiddlewareRepository> { MiddlewareRepositoryImpl(get()) }
-    single<OracleVmRepository> { OracleVmRepositoryImpl(get()) }
+    single<EspnSummaryRepository> { EspnSummaryRepositoryImpl(get()) }
+    single<OracleVmRepository> { OracleVmRepositoryImpl(get(), get()) }
     single<ProfilesRepository> { ProfilesRepositoryImpl(get(), get()) }
+    single<ShortsRepository> { ShortsRepositoryImpl(get()) }
 }
 
 val viewModelModule = module {
@@ -73,6 +80,13 @@ val viewModelModule = module {
             profilesRepository = get(),
         )
     }
+    viewModel {
+        ShortsViewModel(
+            repository = get(),
+            billingManager = get(),
+        )
+    }
 }
 
 val appModules = listOf(platformModule, databaseModule, dataModule, viewModelModule)
+

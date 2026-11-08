@@ -5,6 +5,7 @@ import {
   Bell,
   BarChart3,
   Radio,
+  Film,
 } from 'lucide-react';
 import { TelemetryTab } from '../types';
 
@@ -47,6 +48,14 @@ export function TelemetryNavigationRail({
       badgeColor: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 animate-pulse',
     },
     {
+      id: 'shorts' as TelemetryTab,
+      label: 'Shorts Pipeline & AI',
+      subtitle: 'Zero-Quota RSS & AI Classifier',
+      icon: Film,
+      badge: 'active',
+      badgeColor: 'bg-purple-500/20 text-purple-400 border border-purple-500/30',
+    },
+    {
       id: 'websub' as TelemetryTab,
       label: 'WebSub Push Webhooks',
       subtitle: 'YouTube Sub-100ms Push',
@@ -54,6 +63,7 @@ export function TelemetryNavigationRail({
       badge: websubStatus ? 'active' : undefined,
       badgeColor: 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30',
     },
+
     {
       id: 'notifications' as TelemetryTab,
       label: 'MyClubs & FCM Alerts',

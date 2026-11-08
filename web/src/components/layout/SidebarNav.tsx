@@ -97,9 +97,6 @@ export default function SidebarNav({
                   priority
                 />
               </div>
-              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-[#7098F8]/15 text-[#7098F8] border border-[#7098F8]/30 uppercase tracking-wider">
-                Official
-              </span>
             </Link>
 
             {onToggleCollapse && (

@@ -251,6 +251,29 @@ def parse_match_summary(data: dict[str, Any]) -> dict[str, Any]:
                 "text": e.get("shortText") or e.get("text", ""),
             })
 
+    pitch_plays = []
+    for c in data.get("commentary", []):
+        p = c.get("play", {})
+        if not p:
+            continue
+        fx, fy = p.get("fieldPositionX"), p.get("fieldPositionY")
+        p_type = p.get("type", {})
+        clock_str = p.get("clock", {}).get("displayValue") or c.get("time", {}).get("displayValue", "")
+        t_name = p.get("team", {}).get("displayName")
+        parts = [pt.get("athlete", {}).get("displayName", "") for pt in p.get("participants", []) if pt.get("athlete")]
+        pitch_plays.append({
+            "id": str(p.get("id") or c.get("sequence", "")),
+            "clock": clock_str,
+            "period": p.get("period", {}).get("number", 1),
+            "type": p_type.get("type") or str(p_type.get("text", "")).lower(),
+            "type_text": p_type.get("text", ""),
+            "text": c.get("text") or p.get("text", ""),
+            "team_name": t_name,
+            "player": parts[0] if parts else None,
+            "x_percent": float(fx) if fx is not None else None,
+            "y_percent": float(fy) if fy is not None else None,
+        })
+
     return {
         "formations": formations if formations else None,
         "statistics": statistics if statistics else None,
@@ -259,4 +282,6 @@ def parse_match_summary(data: dict[str, Any]) -> dict[str, Any]:
         "editorial_source": editorial_source if editorial_headline else None,
         "last_five_games": last_five if last_five else None,
         "events": parsed_events if parsed_events else None,
+        "pitch_plays": pitch_plays if pitch_plays else None,
     }
+

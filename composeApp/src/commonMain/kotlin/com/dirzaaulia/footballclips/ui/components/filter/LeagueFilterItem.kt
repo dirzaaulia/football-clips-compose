@@ -18,13 +18,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
-import com.dirzaaulia.footballclips.util.toProxyUrl
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 
 @Composable
 fun LeagueFilterItem(
@@ -52,15 +50,16 @@ fun LeagueFilterItem(
                     color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                     shape = CircleShape
                 )
-                .padding(10.dp),
+                .padding(4.dp),
             contentAlignment = Alignment.Center
         ) {
             if (logo.isNotEmpty()) {
-                AsyncImage(
-                    model = logo.toProxyUrl(),
+                GlassLogoBadge(
+                    logoUrl = logo,
                     contentDescription = name,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
+                    size = 44.dp,
+                    padding = 4.dp,
+                    shape = CircleShape,
                 )
             } else {
                 Text(

@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.ui.components.common.shimmerEffect
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
@@ -114,12 +115,10 @@ internal fun RelatedFixtureItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.weight(1f),
             ) {
-                SubcomposeAsyncImage(
-                    model = match.homeTeamCrest?.toProxyUrl(),
-                    contentDescription = null,
-                    loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) },
-                    modifier = Modifier.size(20.dp),
-                    contentScale = ContentScale.Fit,
+                GlassLogoBadge(
+                    logoUrl = match.homeTeamCrest,
+                    size = 20.dp,
+                    padding = 1.dp,
                 )
                 Text(
                     text = match.homeTeamName,
@@ -157,12 +156,10 @@ internal fun RelatedFixtureItem(
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.End,
                 )
-                SubcomposeAsyncImage(
-                    model = match.awayTeamCrest?.toProxyUrl(),
-                    contentDescription = null,
-                    loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) },
-                    modifier = Modifier.size(20.dp),
-                    contentScale = ContentScale.Fit,
+                GlassLogoBadge(
+                    logoUrl = match.awayTeamCrest,
+                    size = 20.dp,
+                    padding = 1.dp,
                 )
             }
         }

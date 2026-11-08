@@ -1,5 +1,6 @@
 package com.dirzaaulia.footballclips.ui.home
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -20,42 +22,39 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable
 fun HomeCompetitionSectionHeader(
     competitionName: String,
     competitionEmblemUrl: String?,
-    onSeeAll: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    isExpanded: Boolean = true,
+    onToggleExpand: (() -> Unit)? = null,
+    onSeeAll: (() -> Unit)? = null,
 ) {
+    val clickModifier = when {
+        onToggleExpand != null -> Modifier.clickable { onToggleExpand() }
+        onSeeAll != null -> Modifier.clickable { onSeeAll() }
+        else -> Modifier
+    }
+
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .then(
-                if (onSeeAll != null) {
-                    Modifier.clickable { onSeeAll() }
-                } else {
-                    Modifier
-                },
-            ),
+        modifier = modifier.fillMaxWidth().then(clickModifier),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 10.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -66,7 +65,7 @@ fun HomeCompetitionSectionHeader(
                 CompetitionEmblem(
                     competitionName = competitionName,
                     competitionEmblemUrl = competitionEmblemUrl,
-                    size = 24.dp,
+                    size = 28.dp,
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
@@ -77,12 +76,23 @@ fun HomeCompetitionSectionHeader(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                if (onToggleExpand != null) {
+                    val rotation by animateFloatAsState(targetValue = if (isExpanded) 0f else -90f)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Icon(
+                        imageVector = Icons.Rounded.KeyboardArrowDown,
+                        contentDescription = if (isExpanded) "Collapse $competitionName" else "Expand $competitionName",
+                        modifier = Modifier.size(20.dp).rotate(rotation),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             if (onSeeAll != null) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.clickable { onSeeAll() },
                 ) {
                     Text(
                         text = "See all",
@@ -110,18 +120,12 @@ fun HomeSeeAllCompetitionCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onSeeAll() },
+        modifier = modifier.fillMaxWidth().clickable { onSeeAll() },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -171,11 +175,11 @@ private fun CompetitionEmblem(
     size: Dp,
 ) {
     if (!competitionEmblemUrl.isNullOrBlank()) {
-        AsyncImage(
+        GlassLogoBadge(
             model = competitionEmblemUrl.toProxyUrl(),
             contentDescription = competitionName,
-            modifier = Modifier.size(size),
-            contentScale = ContentScale.Fit,
+            size = size,
+            padding = 2.dp,
         )
     } else {
         Surface(

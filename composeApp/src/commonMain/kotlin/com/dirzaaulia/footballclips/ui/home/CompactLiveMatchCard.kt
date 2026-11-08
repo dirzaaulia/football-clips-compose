@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.dirzaaulia.footballclips.domain.model.Match
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable
@@ -40,8 +40,8 @@ internal fun CompactLiveMatchCard(
 
     Surface(
         modifier = modifier
-            .width(224.dp)
-            .height(76.dp)
+            .width(250.dp)
+            .height(86.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
@@ -50,11 +50,20 @@ internal fun CompactLiveMatchCard(
         tonalElevation = 2.dp,
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             LiveCardHeaderRow(match = match)
-            LiveCardScoresRow(match = match)
+            LiveTeamScoreRow(
+                name = match.homeTeamName,
+                crestUrl = match.homeTeamCrest,
+                score = match.homeScore,
+            )
+            LiveTeamScoreRow(
+                name = match.awayTeamName,
+                crestUrl = match.awayTeamCrest,
+                score = match.awayScore,
+            )
         }
     }
 }
@@ -64,7 +73,7 @@ internal fun SeeAllLiveMatchesCard(remaining: Int, onClick: () -> Unit) {
     Surface(
         modifier = Modifier
             .width(96.dp)
-            .height(76.dp)
+            .height(86.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable { onClick() },
         color = Color(0xFF1E2227),
@@ -122,8 +131,7 @@ private fun LiveCardHeaderRow(match: Match) {
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF7098F8),
-                maxLines = 2,
-                softWrap = true,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
@@ -152,52 +160,37 @@ private fun LiveCardHeaderRow(match: Match) {
 }
 
 @Composable
-private fun LiveCardScoresRow(match: Match) {
+private fun LiveTeamScoreRow(
+    name: String,
+    crestUrl: String?,
+    score: Int?,
+    modifier: Modifier = Modifier,
+) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        LiveTeamItem(name = match.homeTeamName, crestUrl = match.homeTeamCrest, isAway = false)
-        Surface(
-            color = Color(0xFF101418),
-            shape = RoundedCornerShape(6.dp),
-            border = BorderStroke(0.5.dp, Color(0xFFEF4444).copy(alpha = 0.4f)),
-            modifier = Modifier.padding(horizontal = 4.dp),
-        ) {
-            Text(
-                text = "${match.homeScore ?: 0} - ${match.awayScore ?: 0}",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Black,
-                color = Color(0xFFFF6B6B),
-                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-            )
-        }
-        LiveTeamItem(name = match.awayTeamName, crestUrl = match.awayTeamCrest, isAway = true)
-    }
-}
-
-@Composable
-private fun RowScope.LiveTeamItem(name: String, crestUrl: String?, isAway: Boolean) {
-    Row(
-        modifier = Modifier.weight(1f),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = if (isAway) Arrangement.spacedBy(4.dp, Alignment.End) else Arrangement.spacedBy(4.dp),
-    ) {
-        if (!isAway) {
-            AsyncImage(model = crestUrl?.toProxyUrl(), contentDescription = name, modifier = Modifier.size(18.dp))
-        }
+        GlassLogoBadge(
+            model = crestUrl?.toProxyUrl(),
+            contentDescription = name,
+            size = 18.dp,
+            padding = 1.dp,
+        )
         Text(
             text = name,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
             color = Color.White,
-            maxLines = 2,
-            softWrap = true,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
         )
-        if (isAway) {
-            AsyncImage(model = crestUrl?.toProxyUrl(), contentDescription = name, modifier = Modifier.size(18.dp))
-        }
+        Text(
+            text = (score ?: 0).toString(),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Black,
+            color = Color(0xFFFF6B6B),
+        )
     }
 }

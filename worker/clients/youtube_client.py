@@ -143,7 +143,7 @@ class YouTubeClient:
             self.increment_quota(1)
             return res.get("items", [])
         except Exception as e:
-            if "quotaExceeded" in str(e) or "rateLimitExceeded" in str(e):
+            if "quotaExceeded" in str(e):
                 self.mark_quota_exhausted()
             logger.debug(f"Playlist scan error for {uploads_playlist_id}: {e}")
             return []
@@ -164,7 +164,7 @@ class YouTubeClient:
             self.increment_quota(100)
             return res.get("items", [])
         except Exception as e:
-            if "quotaExceeded" in str(e) or "rateLimitExceeded" in str(e):
+            if "quotaExceeded" in str(e):
                 self.mark_quota_exhausted()
             logger.error(f"Search API error for '{query}': {e}")
             return []
@@ -185,7 +185,7 @@ class YouTubeClient:
                 embeddables[vid] = item.get("status", {}).get("embeddable", True)
             return durations, regions, embeddables
         except Exception as e:
-            if "quotaExceeded" in str(e) or "rateLimitExceeded" in str(e):
+            if "quotaExceeded" in str(e):
                 self.mark_quota_exhausted()
             logger.error(f"Failed to get video details: {e}")
             return {}, {}, {}

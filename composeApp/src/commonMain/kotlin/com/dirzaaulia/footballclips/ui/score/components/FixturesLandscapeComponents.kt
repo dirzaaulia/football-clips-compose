@@ -22,15 +22,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.ui.score.DateOption
-import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable
 internal fun LandscapeDateChip(
@@ -103,20 +101,13 @@ internal fun LandscapeLeagueChip(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (logo.isNotEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .background(Color.Transparent, CircleShape)
-                        .padding(3.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    AsyncImage(
-                        model = logo.toProxyUrl(),
-                        contentDescription = name,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
-                    )
-                }
+                GlassLogoBadge(
+                    logoUrl = logo,
+                    contentDescription = name,
+                    size = 24.dp,
+                    padding = 2.dp,
+                    shape = CircleShape,
+                )
                 Spacer(modifier = Modifier.width(6.dp))
             }
             Text(

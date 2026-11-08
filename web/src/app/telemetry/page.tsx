@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Search, Filter, Layers, List } from 'lucide-react';
 import { database } from '@/lib/database';
 import {
   TelemetryPayload, MatchWaterfall, NotificationsPayload,
@@ -19,11 +18,17 @@ import { LiveScoresPipelineView } from './components/LiveScoresPipelineView';
 import { WebSubPipelineView } from './components/WebSubPipelineView';
 import { NotificationsPipelineView } from './components/NotificationsPipelineView';
 import { AnalyticsPipelineView } from './components/AnalyticsPipelineView';
+import { ShortsPipelineView, DbFootballShort } from './components/ShortsPipelineView';
+import { TelemetryFilterBar } from './components/TelemetryFilterBar';
+import { ChannelLookupMap } from './mapperHelper';
 
 export default function TelemetryPage() {
+
   const [activeTab, setActiveTab] = useState<TelemetryTab>('highlights');
   const [data, setData] = useState<TelemetryPayload | null>(null);
   const [dbFinishedMatches, setDbFinishedMatches] = useState<DbFinishedMatch[]>([]);
+  const [dbShorts, setDbShorts] = useState<DbFootballShort[]>([]);
+  const [channelLookup, setChannelLookup] = useState<ChannelLookupMap>({});
   const [notifications, setNotifications] = useState<NotificationsPayload | null>(null);
   const [audience, setAudience] = useState<AudiencePayload | null>(null);
   const [analyticsEvents, setAnalyticsEvents] = useState<UserAnalyticsEvent[]>([]);
@@ -47,23 +52,77 @@ export default function TelemetryPage() {
         .select('key, payload')
         .in('key', ['telemetry', 'notifications', 'audience']);
 
+      let telemetryPayload: TelemetryPayload | null = null;
       if (!error && rows) {
         for (const row of rows) {
-          if (row.key === 'telemetry') setData(row.payload as TelemetryPayload);
-          else if (row.key === 'notifications') setNotifications(row.payload as NotificationsPayload);
+          if (row.key === 'telemetry') {
+            telemetryPayload = row.payload as TelemetryPayload;
+            setData(telemetryPayload);
+          } else if (row.key === 'notifications') setNotifications(row.payload as NotificationsPayload);
           else if (row.key === 'audience') setAudience(row.payload as AudiencePayload);
         }
       }
 
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const matchSelectCols = 'id, competition_id, competition_name, utc_date, status, home_team_name, away_team_name, home_score, away_score, highlight_video_id, last_youtube_check, youtube_region_info, highlight_videos';
       const { data: mRows } = await database
         .from('matches')
-        .select('id, competition_id, competition_name, utc_date, status, home_team_name, away_team_name, home_score, away_score, highlight_video_id, last_youtube_check')
+        .select(matchSelectCols)
         .eq('status', 'FINISHED')
         .gte('utc_date', thirtyDaysAgo.toISOString())
         .order('utc_date', { ascending: false });
-      if (mRows) setDbFinishedMatches(mRows as DbFinishedMatch[]);
+
+      let allMatches = mRows || [];
+      const loadedIds = new Set(allMatches.map((m: any) => String(m.id)));
+      const extraIds = new Set<string>();
+      if (telemetryPayload?.cycles) {
+        for (const ev of (telemetryPayload as any)?.events || []) {
+          if (ev.match_id && !loadedIds.has(String(ev.match_id))) extraIds.add(String(ev.match_id));
+        }
+      }
+      if (extraIds.size > 0) {
+        const { data: xRows } = await database
+          .from('matches')
+          .select(matchSelectCols)
+          .in('id', Array.from(extraIds).slice(0, 50));
+        if (xRows) allMatches = [...allMatches, ...xRows];
+      }
+      setDbFinishedMatches(allMatches as DbFinishedMatch[]);
+
+      const [{ data: compRows }, { data: clubRows }, { data: shortRows }, { data: bcastRows }] = await Promise.all([
+        database.from('competitions').select('id, youtube_handle, backup_channel_handles'),
+        database.from('supported_clubs').select('name, youtube_handle, aliases').limit(1000),
+        database.from('football_shorts').select('youtube_video_id, title, channel_id, channel_name, category, duration_seconds, published_at').order('published_at', { ascending: false }).limit(50),
+        database.from('broadcasters').select('broadcaster_id, name, channel_handle, channel_id, allowed_countries'),
+      ]);
+      const compHandles: Record<string, string[]> = {};
+      for (const c of (compRows || []) as any[]) {
+        const list = [c.youtube_handle, ...(Array.isArray(c.backup_channel_handles) ? c.backup_channel_handles : [])].filter(Boolean);
+        if (c.id && list.length > 0) compHandles[String(c.id)] = list;
+      }
+      const clubHandles: Record<string, string> = {};
+      for (const cl of (clubRows || []) as any[]) {
+        if (cl.name && cl.youtube_handle) {
+          clubHandles[String(cl.name).toLowerCase().trim()] = String(cl.youtube_handle);
+          for (const al of (Array.isArray(cl.aliases) ? cl.aliases : [])) {
+            clubHandles[String(al).toLowerCase().trim()] = String(cl.youtube_handle);
+          }
+        }
+      }
+      const broadcasters: Record<string, { name: string; handle: string; tier: number }> = {};
+      for (const b of (bcastRows || []) as any[]) {
+        if (b.channel_handle) {
+          const isDom = Array.isArray(b.allowed_countries) && b.allowed_countries.length > 0 && b.allowed_countries.length <= 5;
+          broadcasters[String(b.channel_handle).toLowerCase().trim()] = {
+            name: b.name || b.channel_handle,
+            handle: b.channel_handle,
+            tier: isDom ? 3 : 2,
+          };
+        }
+      }
+      setChannelLookup({ compHandles, clubHandles, broadcasters });
+      if (shortRows) setDbShorts(shortRows as DbFootballShort[]);
 
       const { data: aRows, count: aCount } = await database
         .from('user_analytics_events')
@@ -109,8 +168,8 @@ export default function TelemetryPage() {
   };
 
   const waterfalls = useMemo(
-    () => buildMatchWaterfalls(data?.events || [], dbFinishedMatches),
-    [data, dbFinishedMatches]
+    () => buildMatchWaterfalls(data?.events || [], dbFinishedMatches, channelLookup),
+    [data, dbFinishedMatches, channelLookup]
   );
 
   const filteredWaterfalls = useMemo(() => {
@@ -173,50 +232,14 @@ export default function TelemetryPage() {
                   onNodeClick={(key) => setSearchQuery((prev) => (prev === key ? '' : key))}
                 />
 
-                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-                  <div className="relative flex-1">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      placeholder="Search match or team (e.g. Arsenal, Real Madrid, 401912257)..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-2 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2 overflow-x-auto">
-                    <div className="flex items-center bg-slate-950 border border-slate-800 rounded-lg p-0.5 mr-1">
-                      <button
-                        onClick={() => setViewMode('grouped')}
-                        className={`p-1.5 rounded text-xs font-mono flex items-center gap-1 transition ${viewMode === 'grouped' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
-                        title="Grouped by Week & Priority"
-                      >
-                        <Layers className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Grouped</span>
-                      </button>
-                      <button
-                        onClick={() => setViewMode('flat')}
-                        className={`p-1.5 rounded text-xs font-mono flex items-center gap-1 transition ${viewMode === 'flat' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
-                        title="Flat List View"
-                      >
-                        <List className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Flat</span>
-                      </button>
-                    </div>
-
-                    <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
-                    {(['ALL', 'LINKED', 'COOLDOWN', 'UNLINKED'] as const).map((st) => (
-                      <button
-                        key={st}
-                        onClick={() => setStatusFilter(st)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition shrink-0 ${statusFilter === st ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700'}`}
-                      >
-                        {st}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <TelemetryFilterBar
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                  statusFilter={statusFilter}
+                  onStatusFilterChange={setStatusFilter}
+                />
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-xs text-slate-400 px-1 font-mono">
@@ -247,7 +270,9 @@ export default function TelemetryPage() {
             )}
 
             {activeTab === 'fixtures' && <LiveScoresPipelineView pipelineInfo={data?.pipelines?.fixtures} events={data?.events || []} />}
+            {activeTab === 'shorts' && <ShortsPipelineView dbShorts={dbShorts} events={data?.events || []} />}
             {activeTab === 'websub' && <WebSubPipelineView pipelineInfo={data?.pipelines?.websub} events={data?.events || []} />}
+
             {activeTab === 'notifications' && <NotificationsPipelineView notificationsPayload={notifications} audiencePayload={audience} />}
             {activeTab === 'analytics' && (
               <AnalyticsPipelineView

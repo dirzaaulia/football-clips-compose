@@ -41,6 +41,7 @@ import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.adaptive.LocalAnimatedVisibilityScope
 import com.dirzaaulia.footballclips.ui.adaptive.LocalSharedTransitionScope
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.ui.components.player.SpoilerThumbnailBox
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
@@ -146,29 +147,11 @@ fun WebHighlightCard(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (leagueLogo.isNotEmpty()) {
-                    SubcomposeAsyncImage(
-                        model = leagueLogo.toProxyUrl(),
-                        contentDescription = null,
-                        loading = {
-                            Box(
-                                modifier = Modifier
-                                    .size(20.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.White)
-                                    .padding(2.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                ExpressiveLoadingIndicator(
-                                    modifier = Modifier.size(12.dp),
-                                    strokeWidth = 1.5.dp
-                                )
-                            }
-                        },
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clip(CircleShape)
-                            .background(Color.White)
-                            .padding(2.dp)
+                    GlassLogoBadge(
+                        logoUrl = leagueLogo,
+                        size = 20.dp,
+                        padding = 1.dp,
+                        shape = CircleShape,
                     )
                     Spacer(Modifier.width(8.dp))
                 }
@@ -226,29 +209,11 @@ fun TeamInfo(name: String, logo: String, modifier: Modifier = Modifier, isEnd: B
 @Composable
 fun TeamLogo(logo: String) {
     if (logo.isNotEmpty()) {
-        SubcomposeAsyncImage(
-            model = logo.toProxyUrl(),
-            contentDescription = null,
-            loading = {
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.8f))
-                        .padding(2.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    ExpressiveLoadingIndicator(
-                        modifier = Modifier.size(14.dp),
-                        strokeWidth = 1.5.dp
-                    )
-                }
-            },
-            modifier = Modifier
-                .size(24.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.8f))
-                .padding(2.dp)
+        GlassLogoBadge(
+            logoUrl = logo,
+            size = 24.dp,
+            padding = 2.dp,
+            shape = CircleShape,
         )
     }
 }

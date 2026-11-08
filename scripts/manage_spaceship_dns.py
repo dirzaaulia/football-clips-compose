@@ -37,6 +37,11 @@ def sync_footballclips_dns(domain: str, api_key: str, api_secret: str):
     for r in existing:
         print(f"    - {r.get('type')} {r.get('name')}: {r.get('address') or r.get('cname') or r.get('value')}")
     
+    oracle_ip = os.getenv("ORACLE_VM_IP")
+    if not oracle_ip:
+        print("[-] ORACLE_VM_IP environment variable is required to set A records.")
+        sys.exit(1)
+
     # Target records to inject/update
     target_records = [
         {
@@ -48,19 +53,19 @@ def sync_footballclips_dns(domain: str, api_key: str, api_secret: str):
         {
             "type": "A",
             "name": "api.fc",
-            "address": "168.110.196.30",
+            "address": oracle_ip,
             "ttl": 1800
         },
         {
             "type": "A",
             "name": "files.fc",
-            "address": "168.110.196.30",
+            "address": oracle_ip,
             "ttl": 1800
         },
         {
             "type": "A",
             "name": "edge.fc",
-            "address": "168.110.196.30",
+            "address": oracle_ip,
             "ttl": 1800
         }
     ]

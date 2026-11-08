@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { MatchRecord } from '@/lib/database';
 import { Play, Trophy, Calendar } from 'lucide-react';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
+import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 
 interface KnockoutRoundsViewProps {
   matches: MatchRecord[];
@@ -103,11 +104,12 @@ export default function KnockoutRoundsView({ matches, competitionName }: Knockou
                 {/* Home Team */}
                 <div className="flex items-center justify-between py-1 px-1">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    {m.home_team_crest ? (
-                      <Image src={m.home_team_crest} alt={m.home_team_name || m.home_team} width={22} height={22} className="object-contain shrink-0" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-zinc-800 shrink-0" />
-                    )}
+                    <GlassLogoBadge
+                      src={m.home_team_crest}
+                      alt={m.home_team_name || m.home_team}
+                      size={24}
+                      imageClassName="object-contain p-0.5"
+                    />
                     <span className="text-sm font-bold text-white truncate">
                       {m.home_team_name || m.home_team}
                     </span>
@@ -120,11 +122,12 @@ export default function KnockoutRoundsView({ matches, competitionName }: Knockou
                 {/* Away Team */}
                 <div className="flex items-center justify-between py-1 px-1 mt-1">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    {m.away_team_crest ? (
-                      <Image src={m.away_team_crest} alt={m.away_team_name || m.away_team} width={22} height={22} className="object-contain shrink-0" />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-zinc-800 shrink-0" />
-                    )}
+                    <GlassLogoBadge
+                      src={m.away_team_crest}
+                      alt={m.away_team_name || m.away_team}
+                      size={24}
+                      imageClassName="object-contain p-0.5"
+                    />
                     <span className="text-sm font-bold text-white truncate">
                       {m.away_team_name || m.away_team}
                     </span>

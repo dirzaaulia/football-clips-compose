@@ -96,3 +96,24 @@ fun PreviewInformationCompactPhone() {
 fun PreviewInformationTabletExpanded() {
     InformationTabPreviewContent(deviceLabel = "Tablet / Desktop (1024x768)")
 }
+
+// =============================================================================
+// TAB 5: 2D PITCH RADAR & LIVE COMPANION MATRIX PREVIEWS
+// =============================================================================
+
+@DeviceMatrixPreviews
+@Composable
+fun PreviewLiveCompanionAllDevices() {
+    LiveCompanionPreviewContent(deviceLabel = "Responsive Device Matrix")
+}
+
+// =============================================================================
+// TAB 6: FOOTBALL SHORTS FEED MATRIX PREVIEWS
+// =============================================================================
+
+@DeviceMatrixPreviews
+@Composable
+fun PreviewShortsFeedAllDevices() {
+    ShortsTabPreviewContent(deviceLabel = "Responsive Device Matrix")
+}
+

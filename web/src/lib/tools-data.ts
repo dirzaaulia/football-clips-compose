@@ -9,35 +9,35 @@ export interface SupportedCompetition {
 
 export const ALL_SUPPORTED_COMPETITIONS: SupportedCompetition[] = [
   // European Competitions
-  { code: 'CL', name: 'UEFA Champions League', category: 'European Competitions', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2.png' },
-  { code: 'EL', name: 'UEFA Europa League', category: 'European Competitions', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2310.png' },
-  { code: 'ECL', name: 'UEFA Conference League', category: 'European Competitions', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/20296.png' },
+  { code: 'CL', name: 'UEFA Champions League', category: 'European Competitions', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2.png' },
+  { code: 'EL', name: 'UEFA Europa League', category: 'European Competitions', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2310.png' },
+  { code: 'ECL', name: 'UEFA Conference League', category: 'European Competitions', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/20296.png' },
 
   // Big 5 & Major Global Leagues
-  { code: 'PL', name: 'Premier League', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/23.png' },
-  { code: 'PD', name: 'La Liga', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/15.png' },
-  { code: 'SA', name: 'Serie A', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/12.png' },
-  { code: 'BL1', name: 'Bundesliga', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/10.png' },
-  { code: 'FL1', name: 'Ligue 1', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/9.png' },
-  { code: 'SPL', name: 'Saudi Pro League', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2488.png' },
-  { code: 'MLS', name: 'Major League Soccer', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/19.png' },
-  { code: 'DED', name: 'Eredivisie', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/11.png' },
-  { code: 'PPL', name: 'Liga Portugal', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/14.png' },
-  { code: 'IDN', name: 'Liga Indonesia', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2336.png' },
-  { code: 'BRA', name: 'Brasileirão Série A', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/85.png' },
-  { code: 'ARG', name: 'Argentine Liga Profesional', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/1.png' },
+  { code: 'PL', name: 'Premier League', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/23.png' },
+  { code: 'PD', name: 'La Liga', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/15.png' },
+  { code: 'SA', name: 'Serie A', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/12.png' },
+  { code: 'BL1', name: 'Bundesliga', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/10.png' },
+  { code: 'FL1', name: 'Ligue 1', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/9.png' },
+  { code: 'SPL', name: 'Saudi Pro League', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2488.png' },
+  { code: 'MLS', name: 'Major League Soccer', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/19.png' },
+  { code: 'DED', name: 'Eredivisie', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/11.png' },
+  { code: 'PPL', name: 'Liga Portugal', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/14.png' },
+  { code: 'IDN', name: 'Liga Indonesia', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2336.png' },
+  { code: 'BRA', name: 'Brasileirão Série A', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/85.png' },
+  { code: 'ARG', name: 'Argentine Liga Profesional', category: 'Domestic Leagues', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/1.png' },
 
   // Domestic Cups
-  { code: 'FAC', name: 'FA Cup', category: 'Domestic Cups', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/40.png' },
-  { code: 'EFL', name: 'EFL Carabao Cup', category: 'Domestic Cups', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/41.png' },
-  { code: 'CDR', name: 'Copa del Rey', category: 'Domestic Cups', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/80.png' },
-  { code: 'DFB', name: 'DFB-Pokal', category: 'Domestic Cups', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2061.png' },
-  { code: 'CIT', name: 'Coppa Italia', category: 'Domestic Cups', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/83.png' },
+  { code: 'FAC', name: 'FA Cup', category: 'Domestic Cups', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/40.png' },
+  { code: 'EFL', name: 'EFL Carabao Cup', category: 'Domestic Cups', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/41.png' },
+  { code: 'CDR', name: 'Copa del Rey', category: 'Domestic Cups', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/80.png' },
+  { code: 'DFB', name: 'DFB-Pokal', category: 'Domestic Cups', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2061.png' },
+  { code: 'CIT', name: 'Coppa Italia', category: 'Domestic Cups', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/83.png' },
 
   // South American Competitions
-  { code: 'LIB', name: 'CONMEBOL Libertadores', category: 'South American Competitions', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/58.png' },
-  { code: 'SUD', name: 'CONMEBOL Sudamericana', category: 'South American Competitions', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/1208.png' },
-  { code: 'REC', name: 'CONMEBOL Recopa', category: 'South American Competitions', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500/2335.png' },
+  { code: 'LIB', name: 'CONMEBOL Libertadores', category: 'South American Competitions', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/58.png' },
+  { code: 'SUD', name: 'CONMEBOL Sudamericana', category: 'South American Competitions', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/1208.png' },
+  { code: 'REC', name: 'CONMEBOL Recopa', category: 'South American Competitions', emblemUrl: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2335.png' },
 ];
 
 export interface ClubTacticalProfile {

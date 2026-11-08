@@ -65,8 +65,8 @@ class ClubService:
             try:
                 payloads = list(clubs_map.values())
                 supabase_client.table("supported_clubs").upsert(payloads, on_conflict="id").execute()
-                append_event(log_events, f"[SUPPORTED_CLUBS] Auto-synced {len(payloads)} top 5 European league clubs to Supabase.", "INFO", "MATCH_SYNC", "SUPPORTED_CLUBS")
-                logger.info(f"Auto-synced {len(payloads)} supported clubs to Supabase.")
+                append_event(log_events, f"[SUPPORTED_CLUBS] Auto-synced {len(payloads)} top 5 European league clubs to Oracle VM PostgreSQL.", "INFO", "MATCH_SYNC", "SUPPORTED_CLUBS")
+                logger.info(f"Auto-synced {len(payloads)} supported clubs to Oracle VM PostgreSQL.")
                 return len(payloads)
             except Exception as e:
                 append_event(log_events, f"[SUPPORTED_CLUBS] Auto-sync clubs warning: {e}", "WARN", "MATCH_SYNC", "SUPPORTED_CLUBS_ERROR")

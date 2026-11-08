@@ -7,6 +7,7 @@ import com.dirzaaulia.footballclips.data.model.NetworkResult
 import com.dirzaaulia.footballclips.data.model.remote.CatalogPageDto
 import com.dirzaaulia.footballclips.data.model.remote.MatchDto
 import com.dirzaaulia.footballclips.data.model.remote.StandingDto
+import com.dirzaaulia.footballclips.data.cache.InMemorySwrCache
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -18,10 +19,12 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class OracleVmRepositoryImpl(
     private val client: HttpClient,
+    private val espnSummaryRepository: EspnSummaryRepository? = null,
 ) : OracleVmRepository {
 
     private val databaseUrl = DatabaseConstants.DATABASE_URL
     private val databaseApiKey = DatabaseConstants.DATABASE_ANON_KEY
+    private val matchesCache = InMemorySwrCache<String, List<MatchDto>>(ttlMillis = 60_000L)
 
     private val _competitions = MutableStateFlow<List<BigLeague>>(emptyList())
     override val competitions: StateFlow<List<BigLeague>> = _competitions.asStateFlow()
@@ -42,6 +45,12 @@ class OracleVmRepositoryImpl(
         season: Int?,
         query: String?,
     ): NetworkResult<List<MatchDto>> {
+        val cacheKey = "$competitionId-$status-$excludeStatus-$season-$hasHighlight-$startDate-$endDate-$ascending-$limit-$offset-$query"
+        if (offset == 0 && query.isNullOrBlank()) {
+            val cached = matchesCache.get(cacheKey)
+            if (cached != null) return NetworkResult.Success(cached)
+        }
+
         return try {
             val order = if (ascending) "utc_date.asc,id.asc" else "utc_date.desc,id.desc"
             val effectiveLimit = if (limit > 0) limit else 20
@@ -101,12 +110,18 @@ class OracleVmRepositoryImpl(
                 }
             }
             if (response.status.value == 200) {
-                NetworkResult.Success(response.body())
+                val body: List<MatchDto> = response.body()
+                if (offset == 0 && query.isNullOrBlank()) {
+                    matchesCache.put(cacheKey, body)
+                }
+                NetworkResult.Success(body)
             } else {
-                NetworkResult.Error(response.status.value, "Error fetching matches from Oracle VM")
+                val stale = matchesCache.getStale(cacheKey)
+                if (stale != null) NetworkResult.Success(stale) else NetworkResult.Error(response.status.value, "Error fetching matches from Oracle VM")
             }
         } catch (e: Exception) {
-            NetworkResult.Exception(e)
+            val stale = matchesCache.getStale(cacheKey)
+            if (stale != null) NetworkResult.Success(stale) else NetworkResult.Exception(e)
         }
     }
 
@@ -125,7 +140,13 @@ class OracleVmRepositoryImpl(
                 val list: List<MatchDto> = response.body()
                 val match = list.firstOrNull()
                 if (match != null) {
-                    NetworkResult.Success(match)
+                    val enrichedMatch = if (match.formations == null && espnSummaryRepository != null) {
+                        val (formations, stats) = espnSummaryRepository.getTacticalSummary(match.id, match.competitionId)
+                        match.copy(formations = formations, statistics = stats)
+                    } else {
+                        match
+                    }
+                    NetworkResult.Success(enrichedMatch)
                 } else {
                     NetworkResult.Error(404, "Match $id not found")
                 }

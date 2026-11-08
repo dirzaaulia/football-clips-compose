@@ -51,8 +51,8 @@ fun HeroCarousel(
     if (items.isEmpty()) return
 
     val isWasmWeb = isWasmTarget
-    val carouselPages = remember(items, isAdsRemoved, isWasmWeb) {
-        arrangeExcitementCarouselPages(items, isAdsRemoved, isWasmWeb)
+    val carouselPages = remember(items, isAdsRemoved, isWasmWeb, isSpoilerFreeMode) {
+        arrangeExcitementCarouselPages(items, isAdsRemoved, isWasmWeb, isSpoilerFreeMode)
     }
 
     if (carouselPages.isEmpty()) return

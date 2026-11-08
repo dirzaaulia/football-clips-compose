@@ -122,7 +122,7 @@ class StandingsService:
                     except Exception as pe:
                         logger.debug(f"[STANDINGS] Stale prune skipped for {comp_code}: {pe}")
 
-            msg = f"[STANDINGS] Successfully upserted {len(unique_standings)} standings rows to Supabase ({provider.upper()})."
+            msg = f"[STANDINGS] Successfully upserted {len(unique_standings)} standings rows to Oracle VM PostgreSQL ({provider.upper()})."
             append_event(log_events, msg, "SUCCESS", "STANDINGS", "DB_UPSERT")
             logger.info(msg)
 

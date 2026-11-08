@@ -6,7 +6,7 @@ High-performance global edge proxy deployed on Cloudflare Workers providing sub-
   - Custom Domain: `https://edge.fc.dirzaaulia.com`
   - Workers Domain: `https://fc-edge-proxy.dirzaaulia11.workers.dev`
 - **Origin Backends (Dual-Origin Routing)**:
-  - **High-Volume Sports Data** (`matches`, `standings`, `supported_clubs`, `worker_cycles`, `worker_events`): Self-hosted PostgreSQL 16 + PostgREST on Oracle VM (`https://168.110.196.30.sslip.io`) with **zero egress limits**.
+  - **High-Volume Sports Data** (`matches`, `standings`, `supported_clubs`, `worker_cycles`, `worker_events`): Self-hosted PostgreSQL 16 + PostgREST on Oracle VM (`https://edge.fc.dirzaaulia.com`) with **zero egress limits**.
   - **Authentication & Profiles** (`auth`, `profiles`, `storage`): Supabase Cloud (`eiomktvavndorazreyba.supabase.co`) with intact JWT passthrough.
 - **Security & Headers**: Strict HSTS (`max-age=31536000`), CSP, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`.
 - **Cost**: **$0.00 / Month** (100% Perpetual Free Tier — 100,000 requests/day free)

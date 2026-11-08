@@ -98,6 +98,16 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
                 🕒 {activeCycle.timestamp}
               </span>
             )}
+            {isLinked && (waterfall.linkedChannelHandle || activeCycle.linkedChannelHandle) && (
+              <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 text-[10px] font-semibold">
+                {waterfall.linkedChannelHandle || activeCycle.linkedChannelHandle} · {waterfall.linkedChannelTier || activeCycle.linkedChannelTier || 'Official Channel'}
+              </span>
+            )}
+            {isLinked && (waterfall.worldwideAvailabilityText || activeCycle.worldwideAvailabilityText) && (
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold">
+                🌍 {waterfall.worldwideAvailabilityText || activeCycle.worldwideAvailabilityText}
+              </span>
+            )}
           </div>
         </div>
 

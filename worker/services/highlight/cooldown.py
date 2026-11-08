@@ -111,9 +111,19 @@ def sort_unlinked_matches_by_priority(matches: list[dict], now_utc: datetime) ->
             else:
                 tier_rank = 4  # P5: Satisfied
 
-        never_checked = 0 if not m.get("last_youtube_check") else 1
+        raw_last_check = m.get("last_youtube_check")
+        never_checked = 0 if not raw_last_check else 1
+        last_check_bucket = 0
+        if raw_last_check:
+            try:
+                lc_dt = datetime.fromisoformat(str(raw_last_check).replace("Z", "+00:00"))
+                last_check_bucket = int(lc_dt.timestamp() // 1800)
+            except Exception:
+                last_check_bucket = 0
+
         comp_id = (m.get("competition_id") or "").upper()
         comp_prio = COMPETITION_PRIORITY.get(comp_id, 99)
-        return (tier_rank, comp_prio, never_checked, -m_timestamp)
+        return (tier_rank, never_checked, last_check_bucket, comp_prio, -m_timestamp)
 
     return sorted(matches, key=get_priority_key)
+

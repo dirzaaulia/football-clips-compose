@@ -257,10 +257,33 @@ Final continuation verification at approximately 17:55 WIB: final Wasm productio
     6. **Argentine Liga Profesional (`ARG` / `arg.1`)**: Primary `@ligaprofesional` (ID: `UCJmCVoUfCBQb9lcfXIS8nXQ`), backup `@ESPNFans` (ID: `UCFmMw7yTuLTCuMhpZD5dVsg`).
   - Added primary and verified backup broadcaster mappings to `constants.py` and `highlight_service.py` to ensure resilient 0-quota RSS discovery across jurisdiction embargoes.
 - **Oracle VM Architecture & n8n Automation Audit**:
-  - Audited live super-node (`168.110.196.30`): 21.6 GB RAM available (90% free headroom), 146 GB free NVMe disk.
-  - Verified active n8n production workflow: `fcOpsMaintenance` ("FootballClips — hourly maintenance verification") triggered hourly at minute 7 (`7 * * * *`) and on-demand via authenticated POST to `http://footballclips-operations:8093/internal/maintenance`.
-  - Documented `footballclips-operations` (:8093) microservice and pgAdmin forward-authentication architecture in `oracle/README.md` and `oracle/ORACLE_OPERATIONS_MANUAL.md`.
+  - Audited live super-node (`edge.fc.dirzaaulia.com`): 21.6 GB RAM available (90% free headroom), 146 GB free NVMe disk.
+  - Verified active n8n production workflow: `fcOpsMaintenance` ("FootballClips — hourly maintenance verification") triggered hourly at minute 7 (`7 * * * *`) and on-demand via authenticated POST to `http://footballclips-operations/internal/maintenance`.
+  - Documented operations microservice and pgAdmin forward-authentication architecture in `oracle/README.md` and `oracle/ORACLE_OPERATIONS_MANUAL.md`.
 - **Verification Outcomes**:
   - Full Python worker test suite: **110 passed** in 19.65s (`uv run pytest`).
   - Next.js Web build: **526/526 pages generated** with zero TypeScript or Turbopack errors.
   - Kotlin WasmJs build: `./gradlew :webApp:compileKotlinWasmJs` **UP-TO-DATE** in 3s with zero warnings.
+
+
+## Unified UX Revamp, Accordion Feed & Universal Glass Crest Standardization — 7-8 November 2026
+
+- **Clean File & Architecture Pruning**:
+  - Audited codebase and removed obsolete deployment scripts (`scripts/deploy_internal.py`, `scripts/deploy_production.py`), replaced by the unified multi-track deployment engine (`scripts/deploy_android.py`).
+  - Pruned completed one-off migration scripts (`apply_liga_indonesia_migration.py`, `migrate_competitions_south_america.py`, `migrate_competitions_type.py`, `backfill_penalty_scores.py`, `fix_bra_encoding.py`, `apply_highlight_corrections.py`).
+  - Cleaned root ephemeral caches (`channel_cache.json`, `telemetry_cache.json`, `youtube_quota.json`) and temporary `scratch/` workspace.
+- **TV Broadcast Marquee Live News Ticker**:
+  - Built continuous auto-scrolling news ticker for live matches in Next.js 16 (`LiveScoreTicker.tsx`) using `@keyframes ticker-marquee`, hover-pause, and frosted glass crests.
+- **Accordion Grouped Competition Sections (Both Apps)**:
+  - **Android CMP**: Integrated collapsible state into `HomeCompetitionSectionHeader.kt`, `HomeListContent.kt`, `HomeGridContent.kt`, `LeagueHeader.kt`, and `FixturesContentList.kt` with animated chevron rotation, defaulting to all expanded for quick scanning.
+  - **Next.js Web**: Integrated collapsible accordion headers into `CompetitionSectionHeader.tsx` and `HomeInteractiveFeed.tsx`, removing redundant bottom `SeeAllCompetitionCard` and keeping the top header as the single clear entry point.
+- **Sticky Filter Bar & Match Centre Routing Fix**:
+  - Made `<CompetitionFilterBar />` sticky (`sticky top-0 z-30`) on Web, and removed the redundant bottom-right filter FAB from `FloatingActionControls.tsx`.
+  - Fixed Match Centre deep-link bug in `web/src/app/match/page.tsx` by parsing the match ID directly from the URL pathname (`/match/401885401`), eliminating erroneous redirects to `/fixtures`.
+- **Spoiler-Free Tag & Excitement Reel Sanitization**:
+  - Strip goal counts in excitement tags (`isSpoilerFree`) across both Web (`excitement.ts`) and Android CMP (`ExcitementRanking.kt`), transforming `"Goal Fest • 5 Goals"` into `"🔥 Goal Fest"`.
+- **Universal Frosted Glass Logos & Crests (`GlassLogoBadge`)**:
+  - Audited and updated every team crest and competition emblem across Android CMP (`CompactLiveMatchCard.kt`, `HeroLiveMatchCard.kt`, `KnockoutMatchCard.kt`, `WebHighlightCard.kt`, `VerticalHighlightCard.kt`, `UpcomingCompetitionCard.kt`, `CompetitionSideRail.kt`, `LeagueFilterItem.kt`, `MyClubsBottomSheet.kt`, `PlayerRelatedItems.kt`, `FixturesLandscapeComponents.kt`, `LandscapeLeagueGrid.kt`, `FixturesLandscapeGrid.kt`, `WebMatchesSidebarCards.kt`, `MatchTheaterComponents.kt`) and Next.js Web (`CompetitionLogo.tsx`, `KnockoutBracketView.tsx`, `KnockoutRoundsView.tsx`, `VideoPlayerSideSheet.tsx`, `ExcitementCard.tsx`, `LiveScoreTicker.tsx`).
+- **Synchronized Navigation Rail Revamp**:
+  - Harmonized collapsed rail action docks between Next.js `Sidebar.tsx` / `SidebarBottomControls.tsx` and Android `WebNavigationRail.kt` (App Icon, Nav items, Starred My Clubs with count badge, Season Selector '26/'25, Spoiler-Free eye toggle, and Gold Gem Go Premium).
+

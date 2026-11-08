@@ -29,7 +29,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -40,6 +42,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.dirzaaulia.footballclips.ui.components.common.FloatingPillNavigationBar
+import com.dirzaaulia.footballclips.ui.components.common.MyClubsBottomSheet
 import com.dirzaaulia.footballclips.ui.home.HomeScreen
 import com.dirzaaulia.footballclips.ui.home.HomeScreenFloatingActions
 import com.dirzaaulia.footballclips.ui.home.HomeViewModel
@@ -91,19 +94,25 @@ fun AdaptiveMatchesScaffold(
         }
     }
 
+    val navigateToTab: (String) -> Unit = remember(navController) {
+        { route ->
+            navController.navigate(route) {
+                popUpTo(navController.graph.findStartDestination().route ?: NavDestination.Home.route) {
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
+
     val homeContent: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit = remember {
         {
             HomeScreen(
                 viewModel = homeViewModel,
                 onNavigateToFixtures = {
                     scoreViewModel.selectStatusFilter(MatchStatusFilter.LIVE)
-                    navController.navigate(NavDestination.Fixtures.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    navigateToTab(NavDestination.Fixtures.route)
                 },
                 onVideoClick = { item, onDismiss ->
                     homeViewModel.selectVideo(item)
@@ -208,20 +217,26 @@ fun AdaptiveMatchesScaffold(
             val shouldUseNavRail = isLandscape || isExpanded
             val verticalPadding = if (isLandscape) 10.dp else 20.dp
 
+            val favoriteClubs by homeViewModel.favoriteClubs.collectAsState()
+            val isSpoilerFreeMode by homeViewModel.isSpoilerFreeMode.collectAsState()
+            val selectedSeason by homeViewModel.selectedSeason.collectAsState()
+            val isPremium by homeViewModel.isPremium.collectAsState()
+            var showMyClubsSheet by remember { mutableStateOf(false) }
+
             Row(modifier = Modifier.fillMaxSize()) {
                 if (shouldUseNavRail) {
                     WebNavigationRail(
                         currentDestination = currentDestination,
                         items = navItems,
-                        onNavigate = { route ->
-                            navController.navigate(route) {
-                                popUpTo(navController.graph.findStartDestination().route ?: NavDestination.Home.route) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
+                        favoriteClubsCount = favoriteClubs.size,
+                        selectedSeason = selectedSeason,
+                        isSpoilerFree = isSpoilerFreeMode,
+                        isPremium = isPremium,
+                        onShowMyClubs = { showMyClubsSheet = true },
+                        onSwitchSeason = { homeViewModel.setSeason(it) },
+                        onToggleSpoilerFree = { homeViewModel.setSpoilerFreePreference(!isSpoilerFreeMode) },
+                        onGoPremium = { navController.navigate(NavDestination.Info.route) },
+                        onNavigate = navigateToTab,
                     )
                 }
 
@@ -278,13 +293,7 @@ fun AdaptiveMatchesScaffold(
                                 hasLiveMatch = hasLiveMatch,
                                 onNavigate = { route ->
                                     homeViewModel.appAnalytics.trackTabSwitch(tabName = route)
-                                    navController.navigate(route) {
-                                        popUpTo(navController.graph.findStartDestination().route ?: NavDestination.Home.route) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
+                                    navigateToTab(route)
                                 },
                             )
 
@@ -308,6 +317,15 @@ fun AdaptiveMatchesScaffold(
                         }
                     }
                 }
+            }
+
+            if (showMyClubsSheet) {
+                MyClubsBottomSheet(
+                    selectedClubIds = favoriteClubs,
+                    onToggleClub = { homeViewModel.toggleFavoriteClub(it) },
+                    onDismissRequest = { showMyClubsSheet = false },
+                    clubs = supportedClubs,
+                )
             }
 
             AdaptiveVideoOverlay(

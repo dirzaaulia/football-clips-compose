@@ -41,7 +41,7 @@ export interface RankedMatch {
   tag: string;
 }
 
-export function calculateExcitementRank(m: MatchRecord): RankedMatch {
+export function calculateExcitementRank(m: MatchRecord, isSpoilerFree: boolean = false): RankedMatch {
   const home = m.home_team_name || m.home_team || '';
   const away = m.away_team_name || m.away_team || '';
   const hBig = isBigClub(home);
@@ -68,10 +68,10 @@ export function calculateExcitementRank(m: MatchRecord): RankedMatch {
 
   if (totalGoals >= 5) {
     score += 50;
-    tag = `Goal Fest • ${totalGoals} Goals`;
+    tag = isSpoilerFree ? 'Goal Fest' : `Goal Fest • ${totalGoals} Goals`;
   } else if (totalGoals === 4) {
     score += 35;
-    tag = `4-Goal Thriller`;
+    tag = isSpoilerFree ? 'High-Scoring Thriller' : '4-Goal Thriller';
   } else if (totalGoals === 3) {
     score += 20;
   }

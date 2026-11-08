@@ -1,20 +1,21 @@
+"""Highlight title classification and regional watchability filters."""
+
 import json
 import re
 from typing import Any
-from worker.config.constants import FORBIDDEN_TITLE_PATTERNS, HIGHLIGHT_REQUIRED_KEYWORDS
+
+from worker.repositories.channel_repository import channel_repository
+from worker.services.highlight.title_classifier import title_classifier
 
 KEY_FOOTBALL_MARKETS: set[str] = {
-    # ASEAN
     "ID", "MY", "TH", "VN", "SG", "PH",
-    # UK & Europe
     "GB", "ES", "DE", "IT", "FR", "PT", "NL", "TR",
-    # South America
     "BR", "AR", "CO", "CL", "UY",
-    # Africa
     "NG", "EG", "ZA", "GH", "KE", "MA", "SN", "DZ",
-    # Americas & Middle East
     "US", "MX", "SA", "AE",
 }
+
+TOP_FOOTBALL_FAN_MARKETS: list[str] = sorted(list(KEY_FOOTBALL_MARKETS))
 
 
 def _parse_region_info(val: Any) -> dict[str, Any] | None:
@@ -30,24 +31,20 @@ def _parse_region_info(val: Any) -> dict[str, Any] | None:
     return None
 
 
-def check_forbidden_title(title: str) -> tuple[bool, str | None]:
-    t = title.lower()
-    for pattern, reason in FORBIDDEN_TITLE_PATTERNS:
-        if re.search(pattern, t, flags=re.IGNORECASE):
-            return True, reason
-    return False, None
+def check_forbidden_title(
+    title: str,
+    home_team: str | None = None,
+    away_team: str | None = None,
+) -> tuple[bool, str | None]:
+    return title_classifier.check_forbidden_title(title, home_team, away_team)
 
 
 def has_highlight_keyword(title: str) -> bool:
-    t = title.lower()
-    for kw in HIGHLIGHT_REQUIRED_KEYWORDS:
-        if re.search(kw, t, flags=re.IGNORECASE):
-            return True
-    return False
+    return title_classifier.has_highlight_keyword(title)
 
 
 def has_scoreline(title: str) -> bool:
-    return bool(re.search(r'\b\d+\s*[-–]\s*\d+\b', title))
+    return bool(re.search(r"\b\d+\s*[-–]\s*\d+\b", title))
 
 
 def is_target_market_catered(region_info: Any) -> bool:
@@ -63,14 +60,10 @@ def is_target_market_catered(region_info: Any) -> bool:
     return True
 
 
-TOP_FOOTBALL_FAN_MARKETS: list[str] = sorted(list(KEY_FOOTBALL_MARKETS))
-
-
-def is_target_country_catered(region_info: Any, country_or_countries: str | list[str] | set[str] | None = None) -> bool:
-    """
-    Checks if a video is playable in major football fan markets or specified countries.
-    Returns True if playable in ANY target market.
-    """
+def is_target_country_catered(
+    region_info: Any,
+    country_or_countries: str | list[str] | set[str] | None = None,
+) -> bool:
     r_dict = _parse_region_info(region_info)
     if not r_dict:
         return True
@@ -98,7 +91,6 @@ def get_catered_target_countries(
     region_info: Any,
     target_countries: list[str] | None = None,
 ) -> list[str]:
-    """Returns the exact list of target countries where this video is watchable."""
     if target_countries is None:
         target_countries = TOP_FOOTBALL_FAN_MARKETS
     r_dict = _parse_region_info(region_info)
@@ -107,15 +99,11 @@ def get_catered_target_countries(
 
     blocked = set(r_dict.get("blocked") or [])
     allowed = set(r_dict.get("allowed") or [])
-    catered = []
-    for c in target_countries:
-        c_upper = c.upper()
-        if c_upper in blocked:
-            continue
-        if allowed and c_upper not in allowed:
-            continue
-        catered.append(c_upper)
-    return catered
+    return [
+        c.upper()
+        for c in target_countries
+        if c.upper() not in blocked and (not allowed or c.upper() in allowed)
+    ]
 
 
 def get_worldwide_watchability_score(region_info: Any) -> float:
@@ -158,19 +146,13 @@ def classify_candidate_tier(channel_handle: str | None, region_info: Any) -> tup
         if not r_dict or (not r_dict.get("blocked") and not r_dict.get("allowed")):
             return 1, "Tier 1: League Official (Worldwide)"
 
-    try:
-        from worker.config.broadcaster_registry import GLOBAL_BROADCASTER_REGISTRY
-        for b in GLOBAL_BROADCASTER_REGISTRY:
-            if b.get("channel_handle", "").lower() == handle:
-                allowed = b.get("allowed_countries", [])
-                if len(allowed) == 0:
-                    return 1, f"Tier 1: {b.get('name', 'Global')} (Worldwide)"
-                elif len(allowed) > 3:
-                    return 2, f"Tier 2: {b.get('name', 'Regional')} ({len(allowed)} countries)"
-                else:
-                    return 3, f"Tier 3: {b.get('name', 'Domestic')} ({', '.join(allowed)})"
-    except Exception:
-        pass
+    for b in channel_repository.get_broadcasters():
+        if b.channel_handle.lower() == handle:
+            if len(b.allowed_countries) == 0:
+                return 1, f"Tier 1: {b.name} (Worldwide)"
+            if len(b.allowed_countries) > 3:
+                return 2, f"Tier 2: {b.name} ({len(b.allowed_countries)} countries)"
+            return 3, f"Tier 3: {b.name} ({', '.join(b.allowed_countries)})"
 
     if r_dict:
         allowed = r_dict.get("allowed") or []

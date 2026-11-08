@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { MatchRecord } from '@/lib/database';
 import { extractFilterOptions } from '@/lib/middleware-highlights';
 import { useCompetitions, isLeagueMatch } from '@/hooks/useCompetitions';
@@ -15,7 +15,6 @@ import HighlightCardSkeleton from '@/components/feed/HighlightCardSkeleton';
 import NativeInFeedAdCard from '@/components/ads/NativeInFeedAdCard';
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
 import CompetitionSectionHeader from '@/components/feed/CompetitionSectionHeader';
-import SeeAllCompetitionCard from '@/components/feed/SeeAllCompetitionCard';
 import HomeModalsAndOverlays from '@/components/feed/HomeModalsAndOverlays';
 import SeasonSelector from '@/components/filter/SeasonSelector';
 import CompetitionFilterBar from '@/components/feed/CompetitionFilterBar';
@@ -56,6 +55,16 @@ export default function HomeInteractiveFeed({
   const { isMerchandiseEnabled } = useMerchandisePreference();
   const scrollRef = useDragScroll<HTMLDivElement>();
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [collapsedCompIds, setCollapsedCompIds] = useState<Set<string>>(new Set());
+
+  const toggleCollapse = useCallback((compId: string) => {
+    setCollapsedCompIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(compId)) next.delete(compId);
+      else next.add(compId);
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     trackSessionStart();
@@ -162,9 +171,9 @@ export default function HomeInteractiveFeed({
 
       <LiveMatchSection liveMatches={displayedLiveMatches} className="mt-6" />
 
-      {/* Filter & Competition Bar */}
-      <section className="my-6">
-        <div className="flex items-center justify-between pb-3 border-b border-[#334155]/60 mb-4">
+      {/* Filter & Competition Bar (Sticky) */}
+      <section className="sticky top-0 z-30 bg-[#101418]/95 backdrop-blur-xl py-2 my-4 border-b border-white/5 shadow-md">
+        <div className="flex items-center justify-between pb-2 border-b border-[#334155]/40 mb-3">
           <div className="flex items-center gap-2">
             <Trophy className="w-4 h-4 text-[#7098F8]" />
             <h2 className="text-base font-extrabold text-white tracking-tight">Recent Highlights</h2>
@@ -202,34 +211,34 @@ export default function HomeInteractiveFeed({
           ))}
         </div>
       ) : groupedFeedMatches ? (
-        <div className="space-y-10 my-6">
+        <div className="space-y-6 my-6">
           {groupedFeedMatches.map((group, groupIdx) => {
             const displayItems = group.matches.slice(0, 20);
+            const isExpanded = !collapsedCompIds.has(group.compId);
             return (
               <React.Fragment key={group.compId}>
                 <div className="space-y-4">
                   <CompetitionSectionHeader
                     name={group.name}
                     emblemUrl={group.emblem}
+                    isExpanded={isExpanded}
+                    onToggleExpand={() => toggleCollapse(group.compId)}
                     onSeeAll={() => setSelectedComp(group.compId)}
                   />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
-                    {displayItems.map((m) => (
-                      <HighlightCard
-                        key={m.id}
-                        match={m}
-                        onPlay={(sel) => {
-                          setActiveVideoMatch(sel);
-                          playVideo(sel);
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <SeeAllCompetitionCard
-                    competitionName={group.name}
-                    competitionEmblem={group.emblem}
-                    onSeeAll={() => setSelectedComp(group.compId)}
-                  />
+                  {isExpanded && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 animate-in fade-in duration-200">
+                      {displayItems.map((m) => (
+                        <HighlightCard
+                          key={m.id}
+                          match={m}
+                          onPlay={(sel) => {
+                            setActiveVideoMatch(sel);
+                            playVideo(sel);
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Ad between competition sections every 2-3 sections */}

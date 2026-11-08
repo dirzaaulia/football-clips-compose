@@ -27,7 +27,7 @@ export default function ExcitementCarousel({
   const rankedItems = useMemo(() => {
     // Only consider matches that actually have a linked highlight video
     const withHighlights = matches.filter((m) => !!m.highlight_video_id);
-    const ranked = withHighlights.map(calculateExcitementRank);
+    const ranked = withHighlights.map((m) => calculateExcitementRank(m, isSpoilerFree));
     // Sort descending by excitement score
     ranked.sort((a, b) => b.score - a.score);
     // Take the top 8 exciting matches

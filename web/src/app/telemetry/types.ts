@@ -88,6 +88,10 @@ export interface MatchCycleRun {
   stoppedReason?: string;
   nextCycleEta?: string;
   nextCycleTimestamp?: string;
+  linkedChannelHandle?: string;
+  linkedChannelTier?: string;
+  worldwideAvailabilityText?: string;
+  worldwidePercentage?: number;
   scannedUploads?: Record<string, ScannedVideo[]>;
 }
 
@@ -113,6 +117,10 @@ export interface MatchWaterfall {
   stoppedReason?: string;
   nextCycleEta?: string;
   nextCycleTimestamp?: string;
+  linkedChannelHandle?: string;
+  linkedChannelTier?: string;
+  worldwideAvailabilityText?: string;
+  worldwidePercentage?: number;
   cycles?: MatchCycleRun[];
 }
 
@@ -140,6 +148,8 @@ export interface DbFinishedMatch {
   away_score?: number | null;
   highlight_video_id?: string | null;
   last_youtube_check?: string | null;
+  youtube_region_info?: any;
+  highlight_videos?: any;
 }
 
 export interface TelemetryPayload {
@@ -254,5 +264,6 @@ export interface UserAnalyticsEvent {
   ip_address?: string | null;
 }
 
-export type TelemetryTab = 'highlights' | 'fixtures' | 'websub' | 'notifications' | 'analytics';
+export type TelemetryTab = 'highlights' | 'fixtures' | 'shorts' | 'websub' | 'notifications' | 'analytics';
+
 

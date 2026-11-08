@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.SubcomposeAsyncImage
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.ui.player.YouTubePlayerView
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
@@ -122,11 +123,10 @@ internal fun MatchTheaterMetadataBar(
             ) {
                 if (item is HighlightUiItem.OracleMatch) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        SubcomposeAsyncImage(
-                            model = item.match.homeTeamCrest?.toProxyUrl(),
-                            contentDescription = null,
-                            modifier = Modifier.size(26.dp),
-                            contentScale = ContentScale.Fit
+                        GlassLogoBadge(
+                            logoUrl = item.match.homeTeamCrest,
+                            size = 26.dp,
+                            padding = 2.dp,
                         )
                         Spacer(Modifier.width(6.dp))
                         Text(
@@ -189,11 +189,10 @@ internal fun MatchTheaterMetadataBar(
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        SubcomposeAsyncImage(
-                            model = item.match.awayTeamCrest?.toProxyUrl(),
-                            contentDescription = null,
-                            modifier = Modifier.size(26.dp),
-                            contentScale = ContentScale.Fit
+                        GlassLogoBadge(
+                            logoUrl = item.match.awayTeamCrest,
+                            size = 26.dp,
+                            padding = 2.dp,
                         )
                         Spacer(Modifier.width(6.dp))
                         Text(

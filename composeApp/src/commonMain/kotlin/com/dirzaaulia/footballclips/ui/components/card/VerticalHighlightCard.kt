@@ -1,7 +1,6 @@
 package com.dirzaaulia.footballclips.ui.components.card
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,10 +33,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import coil3.compose.SubcomposeAsyncImage
 import com.dirzaaulia.footballclips.data.model.remote.HighlightUiModel
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.ui.components.player.SpoilerThumbnailBox
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
@@ -99,35 +98,14 @@ fun VerticalHighlightCard(
                 Spacer(modifier = Modifier.width(16.dp))
                 
                 Column(modifier = Modifier.weight(1f)) {
-                    val isDarkTheme = isSystemInDarkTheme()
-                    val logoBgColor = if (isDarkTheme) Color.White.copy(alpha = 0.9f) else Color.White.copy(alpha = 0.2f)
-                    
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (highlight.leagueLogo.isNotEmpty()) {
-                            Surface(
-                                color = logoBgColor,
+                            GlassLogoBadge(
+                                logoUrl = highlight.leagueLogo,
+                                size = 20.dp,
+                                padding = 1.dp,
                                 shape = CircleShape,
-                                modifier = Modifier.size(20.dp)
-                            ) {
-                                SubcomposeAsyncImage(
-                                    model = highlight.leagueLogo.toProxyUrl(),
-                                    contentDescription = null,
-                                    loading = {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            ExpressiveLoadingIndicator(
-                                                modifier = Modifier.size(12.dp),
-                                                strokeWidth = 1.5.dp
-                                            )
-                                        }
-                                    },
-                                    modifier = Modifier.padding(3.dp)
-                                )
-                            }
+                            )
                             Spacer(modifier = Modifier.width(6.dp))
                         }
                         Surface(
@@ -163,17 +141,12 @@ fun VerticalHighlightCard(
                         )
                         if (highlight.countryLogo.isNotEmpty()) {
                             Spacer(modifier = Modifier.width(8.dp))
-                            Surface(
-                                color = logoBgColor,
+                            GlassLogoBadge(
+                                logoUrl = highlight.countryLogo,
+                                size = 20.dp,
+                                padding = 1.dp,
                                 shape = CircleShape,
-                                modifier = Modifier.size(20.dp)
-                            ) {
-                                AsyncImage(
-                                    model = highlight.countryLogo.toProxyUrl(),
-                                    contentDescription = null,
-                                    modifier = Modifier.padding(3.dp)
-                                )
-                            }
+                            )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = highlight.countryName,

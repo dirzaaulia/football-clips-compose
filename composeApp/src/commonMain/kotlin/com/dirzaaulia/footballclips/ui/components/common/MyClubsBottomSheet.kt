@@ -49,14 +49,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import com.dirzaaulia.footballclips.data.model.remote.SupportedClub
 import com.dirzaaulia.footballclips.ui.adaptive.LocalIsBigScreen
-import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -241,19 +238,12 @@ internal fun ClubSelectionCard(
                 .padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .padding(2.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                AsyncImage(
-                    model = club.crestUrl?.toProxyUrl(),
-                    contentDescription = club.name,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit,
-                )
-            }
+            GlassLogoBadge(
+                logoUrl = club.crestUrl,
+                contentDescription = club.name,
+                size = 36.dp,
+                padding = 2.dp,
+            )
             Spacer(modifier = Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(

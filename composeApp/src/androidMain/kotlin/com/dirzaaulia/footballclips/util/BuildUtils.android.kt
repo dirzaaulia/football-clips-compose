@@ -10,6 +10,15 @@ actual val isDebugBuild: Boolean
         } else false
     }
 
+actual val isDeveloperModeAllowed: Boolean
+    get() {
+        if (isDebugBuild) return true
+        val track = getBuildConfigString("RELEASE_TRACK").lowercase()
+        if (track == "internal") return true
+        val versionName = getBuildConfigString("VERSION_NAME").lowercase()
+        return versionName.contains("-internal.")
+    }
+
 fun getBuildConfigString(fieldName: String, defaultValue: String = ""): String {
     return try {
         val clazz = Class.forName("com.dirzaaulia.footballclips.BuildConfig")

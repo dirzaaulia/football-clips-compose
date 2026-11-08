@@ -2,7 +2,6 @@ package com.dirzaaulia.footballclips.ui.score.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,11 +27,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.SubcomposeAsyncImage
 import com.dirzaaulia.footballclips.domain.model.Match
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.ui.components.common.PulsingRadarDot
-import com.dirzaaulia.footballclips.ui.components.common.shimmerEffect
-import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable
 internal fun HeroLiveMatchCard(
@@ -63,11 +60,11 @@ internal fun HeroLiveMatchCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    SubcomposeAsyncImage(
-                        model = match.leagueEmblemUrl.toProxyUrl(),
+                    GlassLogoBadge(
+                        logoUrl = match.leagueEmblemUrl,
                         contentDescription = match.competitionName,
-                        loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) },
-                        modifier = Modifier.size(18.dp),
+                        size = 20.dp,
+                        padding = 1.dp,
                     )
                     Text(
                         text = match.competitionName,
@@ -118,11 +115,11 @@ internal fun HeroLiveMatchCard(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    SubcomposeAsyncImage(
-                        model = match.homeTeamCrest?.toProxyUrl(),
+                    GlassLogoBadge(
+                        logoUrl = match.homeTeamCrest,
                         contentDescription = match.homeTeamName,
-                        loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) },
-                        modifier = Modifier.size(36.dp),
+                        size = 40.dp,
+                        padding = 4.dp,
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -142,11 +139,11 @@ internal fun HeroLiveMatchCard(
                 )
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    SubcomposeAsyncImage(
-                        model = match.awayTeamCrest?.toProxyUrl(),
+                    GlassLogoBadge(
+                        logoUrl = match.awayTeamCrest,
                         contentDescription = match.awayTeamName,
-                        loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) },
-                        modifier = Modifier.size(36.dp),
+                        size = 40.dp,
+                        padding = 4.dp,
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(

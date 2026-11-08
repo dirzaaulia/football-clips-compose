@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { MatchRecord } from '@/lib/database';
 import { Play, Trophy, Calendar, Award } from 'lucide-react';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
+import GlassLogoBadge from '@/components/common/GlassLogoBadge';
 
 interface KnockoutBracketViewProps {
   matches: MatchRecord[];
@@ -153,11 +154,12 @@ export default function KnockoutBracketView({ matches, competitionName }: Knocko
                       {/* Home Team */}
                       <div className={`flex items-center justify-between py-1.5 px-2 rounded-xl transition-colors ${homeWinner ? 'bg-emerald-500/10 font-bold' : ''}`}>
                         <div className="flex items-center gap-2.5 min-w-0">
-                          {m.home_team_crest ? (
-                            <Image src={m.home_team_crest} alt={m.home_team_name || m.home_team} width={20} height={20} className="object-contain shrink-0" />
-                          ) : (
-                            <div className="w-5 h-5 rounded-full bg-zinc-800 shrink-0" />
-                          )}
+                          <GlassLogoBadge
+                            src={m.home_team_crest}
+                            alt={m.home_team_name || m.home_team}
+                            size={22}
+                            imageClassName="object-contain p-0.5"
+                          />
                           <span className={`text-xs truncate ${homeWinner ? 'text-white font-extrabold' : 'text-[#E2E8F0]'}`}>
                             {m.home_team_name || m.home_team}
                           </span>
@@ -172,11 +174,12 @@ export default function KnockoutBracketView({ matches, competitionName }: Knocko
                       {/* Away Team */}
                       <div className={`flex items-center justify-between py-1.5 px-2 rounded-xl transition-colors mt-0.5 ${awayWinner ? 'bg-emerald-500/10 font-bold' : ''}`}>
                         <div className="flex items-center gap-2.5 min-w-0">
-                          {m.away_team_crest ? (
-                            <Image src={m.away_team_crest} alt={m.away_team_name || m.away_team} width={20} height={20} className="object-contain shrink-0" />
-                          ) : (
-                            <div className="w-5 h-5 rounded-full bg-zinc-800 shrink-0" />
-                          )}
+                          <GlassLogoBadge
+                            src={m.away_team_crest}
+                            alt={m.away_team_name || m.away_team}
+                            size={22}
+                            imageClassName="object-contain p-0.5"
+                          />
                           <span className={`text-xs truncate ${awayWinner ? 'text-white font-extrabold' : 'text-[#E2E8F0]'}`}>
                             {m.away_team_name || m.away_team}
                           </span>

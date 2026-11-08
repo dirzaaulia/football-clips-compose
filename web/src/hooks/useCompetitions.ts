@@ -22,7 +22,7 @@ interface DynamicCompetitionDto {
   type?: 'league' | 'hybrid' | 'cup';
 }
 
-const CACHE_KEY = 'fc_cached_dynamic_competitions_v3';
+const CACHE_KEY = 'fc_cached_dynamic_competitions_v4';
 
 export function useCompetitions() {
   const [competitions, setCompetitions] = useState<Competition[]>(() => {
@@ -78,7 +78,7 @@ export function useCompetitions() {
             leagueId: c.league_id,
             countryCode: c.country_code,
             competitionId: c.id,
-            logo: c.emblem_url || '',
+            logo: c.emblem_url ? c.emblem_url.replace('/soccer/500/', '/soccer/500-dark/') : '',
             type: c.type || 'league',
           })),
         ];

@@ -1,12 +1,11 @@
-"""
-Channel handle resolution for FootballClips highlight pipeline.
+"""Channel handle resolution for FootballClips highlight pipeline.
+
 Resolves Tier 1 (official clubs and league), Tier 2 (primary broadcasters),
-and Tier 3 (regional broadcasters) channels for a given match.
+and Tier 3 (regional broadcasters) channels for a given match using typed BroadcasterEntity models.
 """
 
-from worker.config.broadcaster_registry import GLOBAL_BROADCASTER_REGISTRY
 from worker.repositories.channel_repository import channel_repository
-from worker.services.highlight.normalizer import get_club_handle
+from worker.services.highlight.club_entity_resolver import club_entity_resolver
 
 
 def resolve_target_handles(
@@ -20,8 +19,8 @@ def resolve_target_handles(
     comp_id_upper = comp_id.upper()
 
     tier1: list[str] = []
-    h_h = get_club_handle(home)
-    a_h = get_club_handle(away)
+    h_h = club_entity_resolver.get_club_handle(home)
+    a_h = club_entity_resolver.get_club_handle(away)
     if h_h:
         tier1.append(h_h)
     if a_h and a_h not in tier1:
@@ -34,24 +33,26 @@ def resolve_target_handles(
         tier1.append(league_h)
 
     tier2: list[str] = []
-    backups = channel_repository.get_competition_backups(comp_id_upper) or channel_repository.get_competition_backups(comp_name_upper)
+    backups = (
+        channel_repository.get_competition_backups(comp_id_upper)
+        or channel_repository.get_competition_backups(comp_name_upper)
+    )
     for bh in backups:
         if bh not in tier1 and bh not in tier2:
             tier2.append(bh)
 
-    for b in GLOBAL_BROADCASTER_REGISTRY:
-        comps = b.get("competitions", [])
-        if comp_id_upper in comps or comp_name_upper in comps:
-            h = b.get("channel_handle")
+    broadcasters = channel_repository.get_broadcasters()
+    for b in broadcasters:
+        if comp_id_upper in b.competitions or comp_name_upper in b.competitions:
+            h = b.channel_handle
             if h and h not in tier1 and h not in tier2:
-                if len(b.get("allowed_countries", [])) > 1 or not b.get("allowed_countries"):
+                if len(b.allowed_countries) > 1 or not b.allowed_countries:
                     tier2.append(h)
 
     tier3: list[str] = []
-    for b in GLOBAL_BROADCASTER_REGISTRY:
-        comps = b.get("competitions", [])
-        if comp_id_upper in comps or comp_name_upper in comps:
-            h = b.get("channel_handle")
+    for b in broadcasters:
+        if comp_id_upper in b.competitions or comp_name_upper in b.competitions:
+            h = b.channel_handle
             if h and h not in tier1 and h not in tier2 and h not in tier3:
                 tier3.append(h)
 

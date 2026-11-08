@@ -1,13 +1,13 @@
-control.168.110.196.30.sslip.io {
+control.fc.dirzaaulia.com {
     root * /var/www/dashboard
     file_server
 }
 
-db.168.110.196.30.sslip.io {
+db.fc.dirzaaulia.com {
     reverse_proxy jarvis-nocodb:8080
 }
 
-files.168.110.196.30.sslip.io, files.fc.dirzaaulia.com {
+files.fc.dirzaaulia.com {
     handle /countries/textures/* {
         root * /var/www/cloud
         file_server
@@ -17,19 +17,13 @@ files.168.110.196.30.sslip.io, files.fc.dirzaaulia.com {
     }
 }
 
-168.110.196.30.sslip.io, api.fc.dirzaaulia.com, edge.fc.dirzaaulia.com {
+api.fc.dirzaaulia.com, edge.fc.dirzaaulia.com {
     @rest path /rest/v1/*
     handle @rest {
         uri strip_prefix /rest/v1
         reverse_proxy jarvis-postgrest:3000 {
             header_up -Authorization
             header_up -apikey
-        }
-    }
-    @auth path /auth/*
-    handle @auth {
-        reverse_proxy https://eiomktvavndorazreyba.supabase.co {
-            header_up Host eiomktvavndorazreyba.supabase.co
         }
     }
     handle {

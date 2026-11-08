@@ -32,7 +32,7 @@ function VideoItemRow({ vid }: { vid: ScannedVideo }) {
 interface ChannelHeaderProps {
   channel: string;
   count: number;
-  isRss: boolean;
+  sourceType: 'rss' | 'api_search' | 'api_playlist';
   isExpanded: boolean;
   onToggle: () => void;
 }
@@ -40,10 +40,23 @@ interface ChannelHeaderProps {
 function ChannelAccordionHeader({
   channel,
   count,
-  isRss,
+  sourceType,
   isExpanded,
   onToggle,
 }: ChannelHeaderProps) {
+  const badgeClass =
+    sourceType === 'rss'
+      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+      : sourceType === 'api_search'
+        ? 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+        : 'bg-blue-500/15 text-blue-400 border-blue-500/30';
+  const badgeLabel =
+    sourceType === 'rss'
+      ? 'RSS 0-quota'
+      : sourceType === 'api_search'
+        ? 'API Search (100 quota)'
+        : 'API Data';
+
   return (
     <button
       type="button"
@@ -64,14 +77,8 @@ function ChannelAccordionHeader({
         </span>
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
-        <span
-          className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
-            isRss
-              ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-              : 'bg-blue-500/15 text-blue-400 border-blue-500/30'
-          }`}
-        >
-          {isRss ? 'RSS 0-quota' : 'API Data'}
+        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${badgeClass}`}>
+          {badgeLabel}
         </span>
         <span className="text-[10px] font-mono text-slate-500">
           {isExpanded ? 'Hide' : 'Show'}
@@ -92,14 +99,20 @@ function ChannelAccordionItem({
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const isRss = videos[0]?.source === 'rss' || !videos[0]?.source;
+  const firstSrc = String(videos[0]?.source || '');
+  const sourceType: 'rss' | 'api_search' | 'api_playlist' =
+    channel.startsWith('API ') || firstSrc === 'api_search'
+      ? 'api_search'
+      : firstSrc === 'rss' || !firstSrc
+        ? 'rss'
+        : 'api_playlist';
 
   return (
     <div className="rounded-lg border border-slate-800/60 bg-slate-950/40 overflow-hidden">
       <ChannelAccordionHeader
         channel={channel}
         count={videos.length}
-        isRss={isRss}
+        sourceType={sourceType}
         isExpanded={isExpanded}
         onToggle={onToggle}
       />

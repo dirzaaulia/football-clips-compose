@@ -29,8 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import com.dirzaaulia.footballclips.domain.model.Match
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 
 @Composable
 internal fun KnockoutMatchCard(
@@ -123,10 +123,11 @@ internal fun KnockoutMatchCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    AsyncImage(
-                        model = match.homeTeamCrest,
+                    GlassLogoBadge(
+                        logoUrl = match.homeTeamCrest,
                         contentDescription = match.homeTeamName,
-                        modifier = Modifier.size(20.dp),
+                        size = 20.dp,
+                        padding = 1.dp,
                     )
                     Text(
                         text = match.homeTeamName,
@@ -159,10 +160,11 @@ internal fun KnockoutMatchCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    AsyncImage(
-                        model = match.awayTeamCrest,
+                    GlassLogoBadge(
+                        logoUrl = match.awayTeamCrest,
                         contentDescription = match.awayTeamName,
-                        modifier = Modifier.size(20.dp),
+                        size = 20.dp,
+                        padding = 1.dp,
                     )
                     Text(
                         text = match.awayTeamName,

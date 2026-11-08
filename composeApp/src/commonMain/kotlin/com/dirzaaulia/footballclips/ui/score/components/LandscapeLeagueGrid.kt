@@ -2,7 +2,6 @@ package com.dirzaaulia.footballclips.ui.score.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -22,10 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.SubcomposeAsyncImage
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
-import com.dirzaaulia.footballclips.ui.components.common.shimmerEffect
-import com.dirzaaulia.footballclips.util.toProxyUrl
+import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 
 @Composable
 internal fun LandscapeLeagueGrid(
@@ -58,11 +55,11 @@ internal fun LandscapeLeagueGrid(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     if (firstMatch?.leagueEmblemUrl != null) {
-                        SubcomposeAsyncImage(
-                            model = firstMatch.leagueEmblemUrl.toProxyUrl(),
+                        GlassLogoBadge(
+                            logoUrl = firstMatch.leagueEmblemUrl,
                             contentDescription = leagueName,
-                            loading = { Box(modifier = Modifier.fillMaxSize().shimmerEffect()) },
-                            modifier = Modifier.size(24.dp),
+                            size = 24.dp,
+                            padding = 2.dp,
                         )
                     }
                     Column(modifier = Modifier.weight(1f)) {

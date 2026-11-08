@@ -52,8 +52,18 @@ export function LiveScoresPipelineView({ pipelineInfo, events }: LiveScoresPipel
   const groupedMatches = useMemo(() => {
     const map = new Map<string, TelemetryEvent[]>();
     for (const ev of matchEvents) {
-      if (ev.event_text?.includes('[FIXTURES SYNCED]') || ev.code === 'FIXTURES_SYNCED') continue;
-      const key = ev.match_id ? String(ev.match_id) : parseEventMatchDetails(ev).home || 'global';
+      if (
+        ev.event_text?.includes('[FIXTURES SYNCED]') ||
+        ev.code === 'FIXTURES_SYNCED' ||
+        ev.code === 'DB_UPSERT' ||
+        ev.code === 'SUPPORTED_CLUBS' ||
+        ev.code === 'NO_CHANGE'
+      ) {
+        continue;
+      }
+      const parsed = parseEventMatchDetails(ev);
+      if (!ev.match_id && !parsed.home) continue;
+      const key = ev.match_id ? String(ev.match_id) : parsed.home;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(ev);
     }
@@ -77,10 +87,12 @@ export function LiveScoresPipelineView({ pipelineInfo, events }: LiveScoresPipel
         if (d.awayScore !== null && awayScore === null) awayScore = d.awayScore;
       }
 
+      if (!home) continue;
+
       result.push({
         matchId,
-        home: home || (matchId !== 'global' ? matchId : 'General Live Match'),
-        away: away,
+        home,
+        away,
         competition: comp,
         status: status,
         homeScore,

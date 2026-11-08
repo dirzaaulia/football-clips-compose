@@ -60,8 +60,9 @@ def main() -> None:
         f.write(full_sql)
 
     # Execute on remote jarvis-postgres via SSH
+    host = os.getenv("ORACLE_VM_HOST", "footballclips-oracle")
     remote_cmd = (
-        'ssh -o StrictHostKeyChecking=no ubuntu@168.110.196.30 '
+        f'ssh -o StrictHostKeyChecking=no ubuntu@{host} '
         '"docker exec -i jarvis-postgres psql -U postgres -d footballclips" < apply_updates.sql'
     )
     logger.info("Executing SQL statements on remote PostgreSQL...")

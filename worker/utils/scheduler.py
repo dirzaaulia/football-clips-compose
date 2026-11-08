@@ -70,16 +70,16 @@ class CycleScheduler:
         if earliest_wait_min <= 1.0:
             return 300, "5 Minutes (Eligible Fresh Fixtures Ready for YouTube Sweep)"
 
-        # 5. If all fresh matches are in cooldown, sleep dynamically (15m-60m)
+        # 5. If all fresh matches are in cooldown, sleep dynamically (2m-60m) aligned to next expiry
         if hits_today < target and remaining >= 500:
-            sleep_min = min(60, max(15, int(earliest_wait_min) + 1))
+            sleep_min = min(60, max(2, int(earliest_wait_min) + 1))
             return sleep_min * 60, f"{sleep_min}m (Dynamic Cooldown Pacing - {hits_today}/{target} units consumed)"
 
         if has_fresh_matches:
-            sleep_min = min(30, max(5, int(earliest_wait_min) + 1))
+            sleep_min = min(30, max(2, int(earliest_wait_min) + 1))
             return sleep_min * 60, f"{sleep_min}m (Tier 1 Fresh Match Embargo Cooldown)"
 
-        sleep_min = min(120, max(15, int(earliest_wait_min) + 1))
+        sleep_min = min(120, max(2, int(earliest_wait_min) + 1))
         return sleep_min * 60, f"{sleep_min}m (Tier Cooldown Guardrail Pacing)"
 
     @staticmethod

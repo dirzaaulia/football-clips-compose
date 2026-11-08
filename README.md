@@ -11,7 +11,7 @@
 [![Target Android SDK](https://img.shields.io/badge/Android%20Target-SDK%2037%20(AGP%209.4)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com)
 [![Next.js](https://img.shields.io/badge/Web%20Portal-Next.js%2016%20%2F%20React%2019-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://fc.dirzaaulia.com)
 [![Next.js Telemetry](https://img.shields.io/badge/Telemetry-Next.js%20Console-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://fc.dirzaaulia.com/telemetry)
-[![Supabase](https://img.shields.io/badge/Backend-Supabase%203.8-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%2016-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
 [![Google Play](https://img.shields.io/badge/Google%20Play-Production%20%2F%20Internal-34A853?style=for-the-badge&logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.dirzaaulia.footballclips)
 
 </div>
@@ -63,12 +63,18 @@ Here are the official high-resolution marketing banners featured on the Google P
 
 - 🎥 **HD Official Match Highlights**: Curated, decisive goals, and extended match highlights from official club channels and authorized broadcast partners without clickbait.
 - ⚡ **Live Scores, Match Clocks & Real-Time Events**: Real-time scoreboards with live match minute badges (`LIVE 74'`, `HT`, `FINISHED`, `SCHEDULED`), team crests, and kickoff schedules across both Android CMP and Web.
+- 📺 **TV Broadcast Live News Ticker**: Smooth, continuous auto-scrolling live scoreboard ticker on Web (`LiveScoreTicker.tsx`) with hover-pause and frosted glass crests.
+- 📂 **Collapsible Accordion Feed by Competition**: Grouped competition sections with smooth expand/collapse accordions on both Android CMP and Next.js Web for effortless scanning.
+- 🛡️ **Universal Frosted Glass Logos & Crests (`GlassLogoBadge`)**: Standardized frosted glass backgrounds for all club crests and tournament emblems across Android and Web for premium visibility and high contrast.
+- 🎛️ **Synchronized Navigation Rail**: Seamlessly synced collapsed side rail featuring Season Selector, Starred My Clubs with real-time counter, Spoiler-Free mode toggle, and Go Premium action dock.
 - 🏆 **Broad Worldwide Competition Coverage**:
   - **European Elite**: Premier League, LaLiga, Serie A, Bundesliga, Ligue 1, Eredivisie, Liga Portugal.
   - **UEFA Tournaments**: UEFA Champions League, Europa League, Conference League, FA Cup, Carabao Cup, Copa del Rey, DFB-Pokal, Coppa Italia.
   - **Asian & Middle Eastern Giants**: AFC Champions League Elite, Saudi Pro League, Liga 1 Indonesia (native ESPN `idn.1` ingestion).
   - **South & North Americas**: CONMEBOL Libertadores, Copa Sudamericana, Recopa Sudamericana, Brasileirão Série A, Argentine Liga Profesional, Major League Soccer.
-- 📜 **Multi-Season Historical Archive**: Full cross-platform archive browsing for Season 2025/26 with over 3,420+ historical fixtures and video highlights, protected by database-level immutability triggers.
+- 📅 **Dual-Season Multi-Platform Coverage (Active 2026/27 & Historical 2025/26)**:
+  - **Active 2026/27 Campaign**: Real-time live scores, 2D interactive pitch radar, short-form video reels, and autonomous AI-reranked match highlights.
+  - **Historical 2025/26 Archive**: Complete cross-platform browsing across 3,420+ immutable historical fixtures, official video highlights, and final standings, protected by database-level immutability triggers (`protect_archive_matches`).
 - 📊 **Tactical Match Debrief & Boxscore Statistics**: In-depth match intelligence including authentic ESPN statistics (possession, shots, passes, corners, tackles), starting formations, upcoming match previews, and full-time journalistic summaries.
 - 📰 **Multi-Source Football Journalistic Hub**: Accredited football news streams from Tier-1 sports journalism providers (BBC Sport, The Guardian) with real-time editorial feeds.
 - 🔔 **Real-Time Club Push Notifications ($0.00 Cost Architecture)**:
@@ -86,9 +92,9 @@ Here are the official high-resolution marketing banners featured on the Google P
   - **Web Portal ([fc.dirzaaulia.com](https://fc.dirzaaulia.com))**: Built with **Next.js 16 (React 19 & Turbopack)** with Static Site Generation (SSG), Incremental Static Regeneration (ISR), live marquee scoreboard ticker, quick `Cmd+K` command palette, Web Push service worker, and Google AdSense integration.
   - **APM Command Center ([fc.dirzaaulia.com/telemetry](https://fc.dirzaaulia.com/telemetry))**: Ultra-fast, responsive **Next.js 16 Telemetry Console** with live 60,000 units/day YouTube API quota gauges, per-match waterfall diagnostics, granular candidate accept/reject verdict inspector, and real-time Cloud Tasks queue monitor.
 - 💎 **Universal Account & In-App Purchase Sync**:
-  - Google Native Sign-In via Supabase Auth.
+  - Google Native Sign-In with direct session management.
   - Google Play In-App Billing (RevenueCat SDK 10.26) for Android.
-  - Cross-device entitlement synchronization stored securely in Supabase PostgreSQL (`profiles` table).
+  - Cross-device entitlement synchronization stored securely in authoritative PostgreSQL 16 (`profiles` table).
 
 ---
 
@@ -110,9 +116,8 @@ Here are the official high-resolution marketing banners featured on the Google P
 | **Presentation: Android** | Compose Multiplatform 1.12.1<br/>Jetpack Compose, SDK 37 | Material 3 Expressive UI, Hardware-accelerated YouTube player, FCM messaging service (`FootballClipsFirebaseMessagingService`), RevenueCat Google Play billing, NextGen AdMob. Dynamic track-based version naming (`3.0.1 (run_number)`). |
 | **Presentation: Web Portal** | Next.js 16, React 19, TypeScript<br/>Tailwind CSS, Turbopack | Primary public web portal (`fc.dirzaaulia.com`), SSG/ISR static export, Web Push background Service Worker (`firebase-messaging-sw.js`), Google AdSense ads, custom glassmorphic dropdowns, and global season selector. |
 | **Presentation: APM Command Center** | Next.js 16, React 19, Tailwind CSS<br/>Domain: `fc.dirzaaulia.com/telemetry` | Real-time observability dashboard (`/telemetry`), 60,000 units/day YouTube quota gauge, per-match waterfall traces, AI candidate evaluator cards, and Cloud Tasks queue monitor. |
-| **Global Edge Proxy & Dual Router** | Cloudflare Workers (`fc-edge-proxy`)<br/>Domain: `edge.fc.dirzaaulia.com` | Sub-15ms edge caching layer with dual-origin routing: routes high-volume match/standings data to Oracle Super-Node PostgreSQL (0 egress limits) and user auth to Supabase. Enforces enterprise security headers (HSTS, CSP, X-Frame-Options, Nosniff) and instant cache purge API (`/api/purge-cache`). |
-| **Cloud Backend & Database** | Supabase Cloud (PostgreSQL 15)<br/>Supabase Auth & Postgrest | GoTrue Google OAuth authentication, user profiles (`profiles` table), in-app purchase entitlements, and real-time sync. |
-| **Autonomous Super-Node & Orchestration** | Oracle Always Free (Ampere ARM64)<br/>PostgreSQL 16, PostgREST, n8n, Caddy | Dedicated 4-core, 24GB RAM super-node (`168.110.196.30`) hosting production PostgreSQL 16 datastore with `protect_archive_matches` immutability trigger preserving 3,420+ archive matches, `footballclips-operations` microservice (:8093), AI Gateway (DeepSeek R1 / Ollama ARM64), `footballclips-pgadmin` forward-auth GUI, `jarvis-n8n` autonomous hourly maintenance workflow (`fcOpsMaintenance`), Caddy auto-TLS, FileBrowser Quantum, and automated Backblaze B2 sync. |
+| **Global Edge & REST API** | Caddy Auto-TLS & Edge Proxy<br/>Domain: `edge.fc.dirzaaulia.com` | High-speed global edge layer with PostgREST endpoint routing, rate limiting, and enterprise security headers (HSTS, CSP, X-Frame-Options, Nosniff). |
+| **Authoritative Datastore & Super-Node** | Oracle Always Free (Ampere ARM64)<br/>PostgreSQL 16, PostgREST, n8n, Caddy | Dedicated 4-core, 24GB RAM super-node with Caddy auto-TLS hosting production PostgreSQL 16 datastore with `protect_archive_matches` immutability trigger preserving 3,420+ archive matches, AI Gateway (DeepSeek R1 / Ollama ARM64), n8n autonomous maintenance workflows, and automated Backblaze B2 sync. |
 | **Push Notification Network** | Firebase Cloud Messaging (FCM)<br/>Topic Architecture: `club_{id}` | Global edge fanout delivering goal alerts, match schedules, and highlight releases to millions of Android devices and Web browsers at **$0 infrastructure cost**. |
 | **Serverless AI Worker Engine** | Python 3.12/3.13, FastAPI, Asyncio<br/>Google Cloud Run (`fc-worker`) + Cloud Tasks | Containerized serverless worker on Cloud Run with Google Cloud Tasks per-match decoupled fanout, 60,000 quota management, Oracle VM AI Gateway reranking with Gemini Flash Lite fallback. |
 | **Offsite Backup & Cloud Storage** | Backblaze B2 + Rclone Sync<br/>Automated Cron Engine | Nightly automated synchronization from Backblaze B2 to the super-node cloud vault with encrypted storage and automated retention. |
@@ -133,9 +138,9 @@ Here are the official high-resolution marketing banners featured on the Google P
 | **Networking** | **Ktor Client** | `3.6.0` | HTTP client with OkHttp engine on Android |
 | **Image Loading** | **Coil** | `3.6.3` | `coil-compose`, `coil-network-ktor3`, `coil-svg` |
 | **Global Edge Proxy** | **Cloudflare Workers** | Edge | Sub-15ms edge caching proxy (`fc-edge-proxy`) with instant cache purge |
-| **Primary Datastore** | **PostgreSQL 16 (Oracle VM)** | `16.4` | Enterprise PostgreSQL 16 on Oracle Super-Node with PostgREST 3000 (0 egress limits) |
+| **Primary Datastore** | **PostgreSQL 16 (Oracle Super-Node)** | `16.4` | Enterprise PostgreSQL 16 with PostgREST 3000 (0 egress limits) |
 | **Dedicated Super-Node** | **Oracle Always Free ARM64** | Ubuntu 24.04 | 4 OCPUs, 24GB RAM, PostgreSQL 16, PostgREST API, DeepSeek AI Gateway |
-| **Legacy Auth Bridge** | **Supabase GoTrue** | `3.8.0` | Temporary auth bridge during transition to Direct Google Sign-In |
+| **Authentication & Profiles** | **Direct Google Sign-In & PostgREST** | Native / REST | Direct Google ID verification with native session management and PostgreSQL profiles |
 | **Offsite Cloud Sync** | **Backblaze B2 & Rclone** | `1.60.1` | Automated disaster recovery synchronization to super-node cloud vault |
 | **Push Notifications** | **Firebase Messaging (FCM)** | `35.0.0` / `7.7.0` | Android FCM SDK, Web Push Worker, Python `firebase-admin` |
 | **In-App Billing** | **RevenueCat Purchases** | `10.26.0` | Google Play Store lifetime non-consumable billing |
@@ -158,7 +163,7 @@ Match fixtures, live scores, and verified video highlights are synchronized auto
                                   [Cloud Scheduler]
                                          │
                                          ▼ (HTTP POST /run-cycle)
-[ESPN Sports API] ───────► [match_service.py] ──────► [Supabase DB (PostgreSQL)]
+[ESPN Sports API] ───────► [match_service.py] ──────► [PostgreSQL 16 DB (Oracle VM)]
 (0 Rate Limit, 0 Quota)          │                               ▲
                                  ▼                               │
                       [notification_service.py]                  │
@@ -170,8 +175,8 @@ Match fixtures, live scores, and verified video highlights are synchronized auto
 [Official Channel RSS] ──► [highlight_service.py] ───────────────┤
                                  │ (Gemini 3.8 Flash AI)         │
                                  ▼                               ▼
-                      [EdgeCacheClient (Purge)] ──► [Cloudflare Edge Proxy]
-                                                    (fc-edge-proxy)
+                      [EdgeCacheClient (Purge)] ──► [Edge Caddy / PostgREST]
+                                                    (edge.fc.dirzaaulia.com)
 ```
 
 1. **Fixture & Live Score Synchronization (`match_service.py`)**:
