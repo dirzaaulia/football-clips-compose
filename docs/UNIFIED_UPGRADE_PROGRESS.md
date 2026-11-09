@@ -334,3 +334,21 @@ Final continuation verification at approximately 17:55 WIB: final Wasm productio
   - Integrated `VoiceCommentaryManager` (Android native `TextToSpeech` with high-quality British English audio synthesis).
   - Live matches speak incoming events in real time. Finished matches run in **Interactive Replay Mode**, announcing speech summaries upon timeline scrubbing or play selection.
 
+## Next.js Web Parity & Google Play Internal Testing Deployment — 9 November 2026
+
+- **Next.js Unified Navigation Rail & Bottom Nav Cleanup**:
+  - Eliminated `BottomNav.tsx` from `AppShell.tsx` and removed the `pb-28` dead bottom padding, unifying mobile and desktop web navigation entirely through the responsive navigation rail and drawer.
+  - Updated responsive layout test suites in `web/src/__tests__/responsive-layout.test.ts` (14/14 tests passing).
+- **Next.js 2D Pitch Radar & Web Speech API Voice Commentary Parity**:
+  - Upgraded `web/src/components/match/WebPitchRadar.tsx` with browser-native Web Speech API (`window.speechSynthesis` and `SpeechSynthesisUtterance`).
+  - Added Voice Commentary toggle card with volume indicators (`Volume2` / `VolumeX`). Scrubbing through timeline chips or clicking any play triggers interactive voice synthesis with UK/English voice matching Android's companion experience.
+  - Mounted `"PITCH RADAR"` as a first-class tab in `web/src/components/match/MatchTacticalBoxscore.tsx` alongside Timeline, Stats, Lineups, and Report.
+  - Decomposed comparative statistics into `web/src/components/match/MatchStatsView.tsx` keeping all files strictly under the 250-line budget.
+  - Confirmed 100% build integrity: `npm run build` compiled 129/129 static routes with 0 errors.
+- **Google Play Internal Testing Track Deployment**:
+  - Incremented monotonic `VERSION_BUILD` to `89832588` in `version.properties`.
+  - Verified pre-flight compile check (`./gradlew :androidApp:compileReleaseKotlin`) passing in 7s.
+  - Successfully executed `core-go/bin/fc-deploy --internal` via GPP (`:androidApp:publishReleaseBundle -Ptrack=internal`).
+  - Uploaded Proguard mapping to Crashlytics and verified `[completed] release (com.dirzaaulia.footballclips:[89832588])` active on Google Play Internal Testing.
+
+
