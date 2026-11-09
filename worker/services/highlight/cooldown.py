@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+import json
 
 from worker.services.highlight.filters import (
     get_worldwide_watchability_score,
@@ -64,6 +65,78 @@ def should_check_youtube_for_match(match: dict, now_utc: datetime) -> tuple[bool
     return False, f"{tier_name} active ({remaining_min:.0f}m remaining of {cooldown_min}m; next check at {next_check_str})"
 
 
+def get_next_check_eta(match: dict, now_utc: datetime) -> tuple[str, str]:
+    """Returns (eta_relative_str, eta_timestamp_str). E.g. ('in 42m', '2026-11-08 23:15 UTC')"""
+    last_check_str = match.get("last_youtube_check")
+    if not last_check_str:
+        return "immediate", "Immediate"
+
+    last_check = parse_iso_date(last_check_str)
+    minutes_since_last_check = (now_utc - last_check).total_seconds() / 60.0
+
+    match_utc_str = match.get("utc_date")
+    match_time = parse_iso_date(match_utc_str) if match_utc_str else now_utc
+    hours_since_match = (now_utc - match_time).total_seconds() / 3600.0
+
+    if hours_since_match < 6:
+        cooldown_min = 30
+    elif hours_since_match < 24:
+        cooldown_min = 120
+    elif hours_since_match < 72:
+        cooldown_min = 360
+    else:
+        cooldown_min = 1440
+
+    if minutes_since_last_check >= cooldown_min:
+        return "due now", "Scheduled for next sweep"
+
+    rem_min = int(cooldown_min - minutes_since_last_check)
+    next_dt = last_check + timedelta(minutes=cooldown_min)
+    if rem_min < 60:
+        eta_rel = f"in {rem_min}m"
+    else:
+        eta_rel = f"in {rem_min // 60}h {rem_min % 60}m"
+    eta_ts = next_dt.strftime("%Y-%m-%d %H:%M UTC")
+    return eta_rel, eta_ts
+
+
+def is_backlog_safe_exhausted(
+    match: dict,
+    now_utc: datetime,
+    sweep_count: int | None = None,
+) -> tuple[bool, str]:
+    """
+    Backlog-safe market exhaustion check:
+    A match is only marked exhausted if:
+    1. At least 3 complete sweeps across official channels have run (sweep_count >= 3).
+    2. Kickoff date is >= 7 days ago (age_days >= 7.0).
+    Protects backlog or quota-frozen matches from premature termination.
+    """
+    reg = match.get("youtube_region_info")
+    if isinstance(reg, str):
+        try:
+            reg = json.loads(reg)
+        except Exception:
+            reg = {}
+    elif not isinstance(reg, dict):
+        reg = {}
+
+    if reg.get("terminal") or reg.get("target_market_exhausted"):
+        return True, "Already marked terminal"
+
+    if sweep_count is None:
+        sweep_count = reg.get("sweep_count", 0)
+
+    match_utc_str = match.get("utc_date")
+    match_time = parse_iso_date(match_utc_str) if match_utc_str else now_utc
+    age_days = (now_utc - match_time).total_seconds() / 86400.0
+
+    if sweep_count >= 3 and age_days >= 7.0:
+        return True, f"Completed {sweep_count} sweeps across official channels and match finished {age_days:.1f} days ago"
+
+    return False, f"Not exhausted (sweeps: {sweep_count}/3, age: {age_days:.1f}/7.0 days)"
+
+
 def sort_unlinked_matches_by_priority(matches: list[dict], now_utc: datetime) -> list[dict]:
     """
     Sort matches with 4-tier priority:
@@ -73,11 +146,6 @@ def sort_unlinked_matches_by_priority(matches: list[dict], now_utc: datetime) ->
        - P3 (2): Older missing highlights (>24h)
        - P4 (3): Low-priority upgrade (target markets covered, seeking 99% worldwide)
        - P5 (4): Satisfied / archive
-    2. Never-checked vs checked:
-       - Matches never checked before -> 0
-       - Matches checked before -> 1
-    3. Match Kickoff Time:
-       - Newest matches first (utc_date DESC)
     """
     def get_priority_key(m: dict):
         raw_date = m.get("utc_date")
@@ -126,4 +194,3 @@ def sort_unlinked_matches_by_priority(matches: list[dict], now_utc: datetime) ->
         return (tier_rank, never_checked, last_check_bucket, comp_prio, -m_timestamp)
 
     return sorted(matches, key=get_priority_key)
-

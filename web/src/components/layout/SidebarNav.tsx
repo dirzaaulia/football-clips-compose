@@ -9,6 +9,7 @@ import {
   Calendar,
   Newspaper,
   Play,
+  Flame,
   Settings,
   ShoppingBag,
   Wrench,
@@ -25,6 +26,7 @@ interface SidebarNavProps {
 
 const NAV_LINKS = [
   { href: '/', label: 'Highlights', icon: Play },
+  { href: '/shorts', label: 'Shorts', icon: Flame },
   { href: '/fixtures', label: 'Scores & Fixtures', icon: Calendar },
   { href: '/standings', label: 'League Standings', icon: Trophy },
   { href: '/tools', label: 'Tactical Tools', icon: Wrench },

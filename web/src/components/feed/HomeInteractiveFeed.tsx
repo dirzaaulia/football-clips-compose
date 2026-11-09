@@ -20,10 +20,11 @@ import SeasonSelector from '@/components/filter/SeasonSelector';
 import CompetitionFilterBar from '@/components/feed/CompetitionFilterBar';
 import InfiniteScrollSentinel from '@/components/feed/InfiniteScrollSentinel';
 import MyClubsStoreShelf from '@/components/affiliate/MyClubsStoreShelf';
+import { groupFeedMatchesByCompetition } from '@/components/feed/feedGroupHelpers';
 import { useSeason } from '@/hooks/useSeason';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { useMerchandisePreference } from '@/hooks/useMerchandisePreference';
-import { Trophy, Archive, ChevronRight } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 import { trackScreenView, trackSessionStart } from '@/lib/analytics';
 
 interface HomeInteractiveFeedProps {
@@ -35,7 +36,7 @@ export default function HomeInteractiveFeed({
   initialMatches = [],
   initialLiveMatches = [],
 }: HomeInteractiveFeedProps) {
-  const { selectedSeason, setSeason, isArchiveSeason, currentOption } = useSeason();
+  const { selectedSeason } = useSeason();
   const { playVideo, closePlayer, isSideSheetOpen, activeMatch } = useVideoPlayer();
   const [liveMatches, setLiveMatches] = useState<MatchRecord[]>(initialLiveMatches);
   const [selectedComp, setSelectedComp] = useState('ALL');
@@ -79,8 +80,15 @@ export default function HomeInteractiveFeed({
   }, []);
 
   const catalog = useInfiniteHighlights(selectedComp, selectedSeason, 20, searchQuery);
-  const matches = catalog.highlights.length > 0 ? catalog.highlights : initialMatches;
-  const loading = { initial: catalog.isLoading && initialMatches.length === 0, more: catalog.isLoadingMore, hasMore: catalog.hasMore };
+  const isDefaultFeed = selectedComp === 'ALL' && selectedSeason === 2026 && !searchQuery.trim();
+  const isFilterLoading = (catalog.isLoading || catalog.isPending) && !isDefaultFeed;
+  const matches = catalog.highlights.length > 0 ? catalog.highlights : (isDefaultFeed ? initialMatches : []);
+  const isInitialLoading = (catalog.isLoading && initialMatches.length === 0) || isFilterLoading;
+  const loading = {
+    initial: isInitialLoading,
+    more: catalog.isLoadingMore,
+    hasMore: catalog.hasMore,
+  };
   const handleLoadMore = catalog.loadMore;
 
   useEffect(() => {
@@ -129,34 +137,7 @@ export default function HomeInteractiveFeed({
     if (selectedComp !== 'ALL' || searchQuery.trim() || selectedCountries.length > 0 || selectedLeagues.length > 0 || isMyClubsActive) {
       return null;
     }
-    const map = new Map<string, { compId: string; name: string; emblem?: string; matches: MatchRecord[] }>();
-    const groups: { compId: string; name: string; emblem?: string; matches: MatchRecord[] }[] = [];
-
-    displayedMatches.forEach((m) => {
-      const compId = m.competition_id || 'OTHER';
-      const name = m.competition_name || 'Other Competitions';
-      let entry = map.get(compId);
-      if (!entry) {
-        const compInfo = competitions.find((c) => c.competitionId === compId);
-        entry = {
-          compId,
-          name,
-          emblem: compInfo?.logo || m.country_logo || undefined,
-          matches: [],
-        };
-        map.set(compId, entry);
-        groups.push(entry);
-      }
-      entry.matches.push(m);
-    });
-
-    groups.sort((a, b) => {
-      const idxA = competitions.findIndex((c) => c.competitionId === a.compId);
-      const idxB = competitions.findIndex((c) => c.competitionId === b.compId);
-      return (idxA !== -1 ? idxA : 999) - (idxB !== -1 ? idxB : 999);
-    });
-
-    return groups;
+    return groupFeedMatchesByCompetition(displayedMatches, competitions);
   }, [displayedMatches, selectedComp, searchQuery, selectedCountries, selectedLeagues, isMyClubsActive, competitions]);
 
   const activeFilterCount = (searchQuery ? 1 : 0) + selectedCountries.length + selectedLeagues.length;
@@ -204,11 +185,19 @@ export default function HomeInteractiveFeed({
       )}
 
       {/* Highlights Feed: Grouped by Competition when ALL, else Flat Grid */}
-      {loading.initial && displayedMatches.length === 0 ? (
+      {(loading.initial || isFilterLoading) && displayedMatches.length === 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 my-6">
           {Array.from({ length: 8 }).map((_, i) => (
             <HighlightCardSkeleton key={`skeleton-${i}`} />
           ))}
+        </div>
+      ) : displayedMatches.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-12 text-center rounded-2xl bg-[#181C20] border border-[#334155]/60 my-6">
+          <Trophy className="w-10 h-10 text-[#94A3B8] mb-3 opacity-40" />
+          <h3 className="text-base font-bold text-white">No Highlights Found</h3>
+          <p className="text-xs text-[#94A3B8] mt-1 max-w-sm">
+            No highlights match your selected competition or filters. Try clearing your filters or selecting another league.
+          </p>
         </div>
       ) : groupedFeedMatches ? (
         <div className="space-y-6 my-6">

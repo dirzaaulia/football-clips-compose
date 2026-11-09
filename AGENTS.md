@@ -110,7 +110,8 @@ Applies strictly to **`composeApp` / `androidApp` (Android Native)** and **`web`
     4. `[FALLBACK SELECT]` / `[DETERMINISTIC_FALLBACK]`: Title regex ranking if the AI Gateway is busy or unreachable.
     5. `[LINKED]` or `[NOT FOUND]`: Final YouTube video ID linked and saved to Supabase, or marked as unavailable.
 - **Sync Intervals & YouTube Quota Tiering**:
-  - Live matches: 1 minute (60s) tick for semi-live score and status updates.
+  - Live matches: 1 minute (60s) tick for semi-live score and status updates, executed exclusively on Oracle VM (`footballclips-operations`). Cloud Run `fc-worker-sync` remains paused to eliminate dual-writer race conditions.
+  - YouTube Data API v3 Approved Quota: **60,000 units/day** (target daily consumption: **54,000 units/day**). The `QuotaMaximizer` actively maintains healthy utilization for official queries (`search.list` & `videos.list`) to protect Google Cloud quota standing.
   - Kickoff within 45 minutes: 30 minutes.
   - Standard idle / off-peak: 2 hours.
   - YouTube Highlight Scraping: Runs only after match status is `FINISHED` under 4-tier quota guardrails (Tier 1: 30m, Tier 2: 2h, Tier 3: 6h, Tier 4: 24h).
@@ -131,12 +132,12 @@ Whenever the user instructs this agent or any other AI agent with deployment com
    - **Target**: Google Play Production Track (`track=production`).
    - **In-App Update Mode**: Priority **`5`** (`AppUpdateType.IMMEDIATE`).
    - **User Experience**: Google Play displays a mandatory, full-screen blocking modal preventing app usage until updated.
-   - **Execution**: Run `python scripts/deploy_android.py --production --force` (or `python scripts/deploy_android.py --production --priority 5`).
+   - **Execution**: Run `core-go/bin/fc-deploy --production --force` (or `fc-deploy --production --priority 5`).
 2. **"deploy production show update prompt"**:
    - **Target**: Google Play Production Track (`track=production`).
    - **In-App Update Mode**: Priority **`2`** (`AppUpdateType.FLEXIBLE`).
    - **User Experience**: Google Play displays an optional update sheet with [Update] and [No thanks]. If accepted, it downloads in the background while the user continues using the app, and displays a "[Restart App]" dialog once downloaded.
-   - **Execution**: Run `python scripts/deploy_android.py --production --prompt` (or `python scripts/deploy_android.py --production --priority 2`).
+   - **Execution**: Run `core-go/bin/fc-deploy --production --prompt` (or `fc-deploy --production --priority 2`).
 3. **"deploy production update level <0-5>"** (e.g. `level 0`, `level 4`, `level 5`):
    - **Target**: Google Play Production Track (`track=production`).
    - **In-App Update Mode**: Explicit numeric priority `0`, `1`, `2`, `3`, `4`, or `5`:
@@ -146,10 +147,10 @@ Whenever the user instructs this agent or any other AI agent with deployment com
      - `3`: Important flexible prompt (escalates to immediate after 14 days).
      - `4`: Immediate force update (major redesigns or breaking changes).
      - `5`: Immediate force update (critical zero-day security or API decommission).
-   - **Execution**: Run `python scripts/deploy_android.py --production --priority <N>`.
+   - **Execution**: Run `core-go/bin/fc-deploy --production --priority <N>`.
 4. **"deploy internal"**:
    - **Target**: Google Play Internal Testing Track (`track=internal`).
-   - **Execution**: Run `python scripts/deploy_android.py --internal`.
+   - **Execution**: Run `core-go/bin/fc-deploy --internal`.
 
 ### Deployment Safety Invariants
 - Never deploy without verifying `./gradlew :androidApp:compileReleaseKotlin` pre-flight check.
@@ -158,7 +159,7 @@ Whenever the user instructs this agent or any other AI agent with deployment com
 ---
 
 ## 6. Backend Enterprise Architecture, Clean Code & Ingestion Standards
-Applies strictly to all Python services (`worker/`, `scripts/`, `clients/`):
+Applies strictly to all Python services (`worker/`, `clients/`):
 
 ### Clean Code, Modularity & Type Safety
 - **Zero Untyped Dictionary Passing**: Never pass raw `dict[str, Any]` across business logic or pipeline layers. All entities, incoming API payloads, and pipeline outputs must be modeled as strict **Pydantic v2** models (e.g. `MatchFixture`, `CandidateVideo`, `CandidateEvaluation`, `MatchTraceReport`).
@@ -217,4 +218,24 @@ Before presenting completion, execute and verify all applicable automated gates:
 Whenever rules, architectural standards, or workflows are updated:
 - The authoritative rules reside in `AGENTS.md`.
 - Mirror all rules to `CLAUDE.md`, `.cursorrules`, and `.github/copilot-instructions.md` so every AI assistant executes with identical consistency and zero regression drift.
+
+---
+
+## 8. Golang Core Micro-Daemon & Full-Stack E2E Testing Standards (2026)
+Applies strictly to `core-go/` and cross-platform verification:
+
+### Golang 1.23+ Clean Architecture
+- **Directory Layout**: `cmd/` (entrypoint <100 lines), `internal/domain/` (pure entities & models), `internal/usecase/` (single-action interactors), `internal/adapter/` (`postgres`, `espn`, `youtube`, `aigw`), `internal/delivery/http/`.
+- **Database Driver**: `jackc/pgx/v5` with connection pooling (`pgxpool`) and binary protocol.
+- **HTTP Routing & Logging**: Standard library `net/http` modern routing (or `chi`), structured logging with `log/slog`.
+- **Hard Code Constraints**: Max **250 lines** per file (hard limit **300 lines**). Functions max **40 lines**. Table-driven tests with `-race`.
+- **Error Handling & Concurrency**: Explicit error wrapping (`fmt.Errorf("...: %w", err)`). All network/DB calls MUST take `context.Context` with explicit timeout. Zero global variables.
+- **Migration Invariant**: Strangler Fig pattern with **7-day shadow mode** (read-only comparison, 0 delta gate) before cutting over any module from Python to Go.
+
+### Full-Stack 4-Layer E2E Testing Pipeline
+- **L1 Contract Tests**: Frozen PostgREST JSON schema contracts verified across Android DTOs, Web types, Python, and Go models.
+- **L2 Pipeline Integration**: PostgreSQL container + recorded ESPN & YouTube replay suites.
+- **L3 Parity Testing**: Golden dataset comparing Python vs Go verdicts (must match 100%).
+- **L4 UI E2E**: Single-command orchestrator `core-go/bin/e2e-runner --all` (or `go run ./cmd/e2e-runner --all`) verifying Android Compose UI and Next.js Web under 8-minute remote device execution budget.
+
 

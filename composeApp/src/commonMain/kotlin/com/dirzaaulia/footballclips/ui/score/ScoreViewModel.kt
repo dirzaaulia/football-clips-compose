@@ -103,10 +103,8 @@ class ScoreViewModel(
     val scrollToTopEvent: SharedFlow<Unit> = _scrollToTopEvent.asSharedFlow()
     fun triggerScrollToTop() { viewModelScope.launch { _scrollToTopEvent.emit(Unit) } }
 
-    fun toggleSpoilerFreeMode() {
-        viewModelScope.launch {
-            preferenceManager.setSpoilerFreeMode(!isSpoilerFreeMode.value)
-        }
+    fun toggleSpoilerFreeMode() = viewModelScope.launch {
+        preferenceManager.setSpoilerFreeMode(!isSpoilerFreeMode.value)
     }
 
     fun toggleMyClubsFilter() {
@@ -121,11 +119,9 @@ class ScoreViewModel(
         getMatches()
     }
 
-    fun toggleFavoriteClub(clubId: String) {
-        viewModelScope.launch {
-            preferenceManager.toggleFavoriteClub(clubId)
-            if (_isMyClubsFilterActive.value) getMatches()
-        }
+    fun toggleFavoriteClub(clubId: String) = viewModelScope.launch {
+        preferenceManager.toggleFavoriteClub(clubId)
+        if (_isMyClubsFilterActive.value) getMatches()
     }
 
     private val _isFiltersExpanded = MutableStateFlow(true)
@@ -144,9 +140,7 @@ class ScoreViewModel(
 
     fun setSeason(season: Int) {
         if (selectedSeason.value == season) return
-        viewModelScope.launch {
-            preferenceManager.setSelectedSeason(season)
-        }
+        viewModelScope.launch { preferenceManager.setSelectedSeason(season) }
     }
 
     init {
@@ -156,6 +150,7 @@ class ScoreViewModel(
         }
         _selectedDate.value = availableDates.firstOrNull { it.isToday }?.date
         observeAdsRemoved()
+        startLiveSyncTicker()
         viewModelScope.launch {
             preferenceManager.selectedSeason.collect {
                 getMatches()

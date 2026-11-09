@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { BarChart3, Users, Newspaper, Clock, Shield } from 'lucide-react';
+import { BarChart3, Users, Newspaper, Clock, Shield, Crosshair } from 'lucide-react';
 import { MatchRecord } from '@/lib/database';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 import MatchEventsTimeline from './MatchEventsTimeline';
 import MatchLineupsView from './MatchLineupsView';
-import MatchMomentumChart from './MatchMomentumChart';
+import MatchStatsView from './MatchStatsView';
+import WebPitchRadar, { WebPitchPlay } from './WebPitchRadar';
 
 interface MatchTacticalBoxscoreProps {
   match: MatchRecord;
@@ -25,8 +26,6 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
 
   const isFinished = match.status === 'FINISHED';
   const isLive = ['IN_PLAY', 'PAUSED', 'LIVE'].includes(match.status);
-  const isUpcoming = !isFinished && !isLive;
-  // Spoiler protection applies only to finished matches, never live in-play
   const isGuarded = isFinished && isSpoilerFree && !isRevealed;
 
   const hasEvents = Boolean(events && events.length > 0);
@@ -46,16 +45,51 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
     return story.replace(/(?:\.\.\.)?\s*Continue\s+reading\.{0,3}/gi, '').trim();
   }, [story]);
 
+  const homeName = match.home_team_name || match.home_team;
+  const awayName = match.away_team_name || match.away_team;
+
+  const pitchPlays: WebPitchPlay[] = React.useMemo(() => {
+    if (!events || events.length === 0) {
+      if (isLive) {
+        return [
+          {
+            id: 'live-kickoff',
+            clock: match.display_clock || 'LIVE',
+            type: 'match_in_play',
+            type_text: 'Match in Play',
+            text: `${homeName} vs ${awayName} is in play!`,
+            team_name: homeName,
+            x_percent: 50,
+            y_percent: 50,
+          },
+        ];
+      }
+      return [];
+    }
+    return events.map((e, idx) => ({
+      id: e.id || `play-${idx}`,
+      clock: e.clock || '',
+      type: e.type || '',
+      type_text: e.type,
+      text: e.text || '',
+      player: e.player,
+      team_name: e.side === 'home' ? homeName : awayName,
+      x_percent: e.side === 'home' ? 75 : 25,
+      y_percent: 50 + ((idx % 3) - 1) * 18,
+    }));
+  }, [events, isLive, match.display_clock, homeName, awayName]);
+
   const availableTabs = React.useMemo(() => {
-    const list: Array<'timeline' | 'stats' | 'lineups' | 'story'> = [];
+    const list: Array<'timeline' | 'radar' | 'stats' | 'lineups' | 'story'> = [];
     if (hasEvents || isLive) list.push('timeline');
+    if (hasEvents || isLive) list.push('radar');
     if (hasStats || isLive) list.push('stats');
     if (hasFormations) list.push('lineups');
     if (hasStory) list.push('story');
     return list;
   }, [hasEvents, hasStats, hasFormations, hasStory, isLive]);
 
-  const getInitialTab = (): 'timeline' | 'stats' | 'lineups' | 'story' => {
+  const getInitialTab = (): 'timeline' | 'radar' | 'stats' | 'lineups' | 'story' => {
     if (hasEvents || isLive) return 'timeline';
     if (hasStats) return 'stats';
     if (hasFormations) return 'lineups';
@@ -63,7 +97,7 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
     return 'timeline';
   };
 
-  const [activeTab, setActiveTab] = useState<'timeline' | 'stats' | 'lineups' | 'story'>(getInitialTab);
+  const [activeTab, setActiveTab] = useState<'timeline' | 'radar' | 'stats' | 'lineups' | 'story'>(getInitialTab);
 
   const effectiveTab = availableTabs.includes(activeTab)
     ? activeTab
@@ -79,50 +113,19 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
     return null;
   }
 
-
-  const homeName = match.home_team_name || match.home_team;
-  const awayName = match.away_team_name || match.away_team;
-
-  const formatStatDisplay = (val: string, isPct?: boolean, key?: string) => {
-    const num = parseFloat(val);
-    if (isNaN(num)) return val;
-    if (isPct) {
-      if (key === 'possessionPct') return `${num.toFixed(1)}%`;
-      if (num <= 1.0 && num > 0) return `${Math.round(num * 100)}%`;
-      return `${Math.round(num)}%`;
-    }
-    return val;
-  };
-
-  const STAT_METRICS: Array<{ key: string; label: string; isPct?: boolean }> = [
-    { key: 'possessionPct', label: 'Possession %', isPct: true },
-    { key: 'totalShots', label: 'Total Shots' },
-    { key: 'shotsOnTarget', label: 'Shots on Target' },
-    { key: 'wonCorners', label: 'Corners' },
-    { key: 'foulsCommitted', label: 'Fouls Committed' },
-    { key: 'yellowCards', label: 'Yellow Cards' },
-    { key: 'redCards', label: 'Red Cards' },
-    { key: 'offsides', label: 'Offsides' },
-    { key: 'saves', label: 'Goalkeeper Saves' },
-    { key: 'passPct', label: 'Pass Accuracy %', isPct: true },
-    { key: 'totalPasses', label: 'Total Passes' },
-  ];
-
   return (
-    <section className="rounded-3xl bg-[#181C20] border border-[#334155] p-4 sm:p-6 space-y-4 shadow-xl">
-      {/* Header & Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#334155]/60">
-        <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-[#7098F8]" />
-          <h2 className="text-xs font-black uppercase tracking-wider text-white">
-            {isUpcoming ? 'Pre-Match Intelligence' : isLive ? 'Live Match Centre' : 'Match Intelligence Hub'}
-          </h2>
-        </div>
+    <section aria-label="Tactical Boxscore & Formations" className="space-y-4">
+      {/* Tab Navigation Header */}
+      <div className="flex items-center justify-between border-b border-[#334155]/60 pb-2">
+        <h2 className="text-xs font-black uppercase tracking-wider text-[#94A3B8] flex items-center gap-1.5">
+          <Shield className="w-3.5 h-3.5 text-[#7098F8]" />
+          <span>Match Intelligence</span>
+        </h2>
 
-        {/* Tab Controls */}
-        <div className="flex items-center gap-1 p-1 bg-[#101418] rounded-xl border border-[#334155]/60 text-xs font-bold overflow-x-auto">
+        <div className="flex items-center gap-1 text-xs font-bold">
           {(hasEvents || isLive) && (
             <button
+              type="button"
               onClick={() => setActiveTab('timeline')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                 effectiveTab === 'timeline' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-[#94A3B8] hover:text-white'
@@ -133,8 +136,22 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
             </button>
           )}
 
+          {(hasEvents || isLive) && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('radar')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                effectiveTab === 'radar' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-[#94A3B8] hover:text-white'
+              }`}
+            >
+              <Crosshair className="w-3.5 h-3.5 text-cyan-400" />
+              <span>PITCH RADAR</span>
+            </button>
+          )}
+
           {(hasStats || isLive) && (
             <button
+              type="button"
               onClick={() => setActiveTab('stats')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                 effectiveTab === 'stats' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-[#94A3B8] hover:text-white'
@@ -147,6 +164,7 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
 
           {hasFormations && (
             <button
+              type="button"
               onClick={() => setActiveTab('lineups')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                 effectiveTab === 'lineups' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-[#94A3B8] hover:text-white'
@@ -159,6 +177,7 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
 
           {hasStory && (
             <button
+              type="button"
               onClick={() => setActiveTab('story')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
                 effectiveTab === 'story' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-[#94A3B8] hover:text-white'
@@ -187,7 +206,6 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
         </div>
       ) : (
         <div>
-          {/* TAB 1: Match Events Timeline */}
           {effectiveTab === 'timeline' && (
             hasEvents ? (
               <MatchEventsTimeline
@@ -211,73 +229,18 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
             ) : null
           )}
 
-          {/* TAB 2: Comparative Statistics */}
-          {effectiveTab === 'stats' && (
-            hasStats ? (
-              <div className="space-y-4">
-                <MatchMomentumChart
-                  homeTeam={homeName}
-                  awayTeam={awayName}
-                  homeScore={match.home_score}
-                  awayScore={match.away_score}
-                />
-                <div className="flex items-center justify-between text-xs font-black text-white px-2">
-                  <span className="text-[#7098F8] truncate max-w-[45%]">{homeName}</span>
-                  <span className="text-[#94A3B8] text-[10px] uppercase tracking-wider">Metrics</span>
-                  <span className="text-[#4FC3F7] truncate max-w-[45%] text-right">{awayName}</span>
-                </div>
-
-                <div className="space-y-3">
-                  {STAT_METRICS.map(({ key, label, isPct }) => {
-                    const rawHome = stats?.home?.[key];
-                    const rawAway = stats?.away?.[key];
-                    if (!rawHome && !rawAway) return null;
-
-                    const numH = parseFloat(rawHome || '0');
-                    const numA = parseFloat(rawAway || '0');
-                    const sum = numH + numA;
-                    const homeWidth = sum > 0 ? (numH / sum) * 100 : 50;
-                    const awayWidth = sum > 0 ? (numA / sum) * 100 : 50;
-
-                    return (
-                      <div key={key} className="space-y-1">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-mono text-[#7098F8]">{formatStatDisplay(rawHome || '0', isPct, key)}</span>
-                          <span className="text-[11px] text-[#94A3B8] font-medium">{label}</span>
-                          <span className="font-mono text-[#4FC3F7]">{formatStatDisplay(rawAway || '0', isPct, key)}</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-[#101418] rounded-full overflow-hidden flex gap-0.5">
-                          <div className="h-full bg-[#7098F8] rounded-l-full transition-all duration-500" style={{ width: `${homeWidth}%` }} />
-                          <div className="h-full bg-[#4FC3F7] rounded-r-full transition-all duration-500" style={{ width: `${awayWidth}%` }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : isLive ? (
-              <div className="py-6 px-4 text-center rounded-2xl bg-[#101418] border border-[#334155]/60 space-y-1.5">
-                <div className="flex items-center justify-center gap-1.5 text-red-400 text-xs font-black uppercase tracking-wider">
-                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                  <span>Telemetry Initializing</span>
-                </div>
-                <p className="text-xs text-[#94A3B8]">
-                  Collecting live possession, shot accuracy, and pitch metrics directly from stadium feeds...
-                </p>
-              </div>
-            ) : (
-              <div className="py-6 text-center text-xs text-[#94A3B8]">
-                No detailed statistics recorded for this fixture.
-              </div>
-            )
+          {effectiveTab === 'radar' && (
+            <WebPitchRadar plays={pitchPlays} homeTeam={homeName} awayTeam={awayName} isLive={isLive} />
           )}
 
-          {/* TAB 3: Lineups */}
+          {effectiveTab === 'stats' && (
+            <MatchStatsView match={match} homeName={homeName} awayName={awayName} isLive={isLive} />
+          )}
+
           {effectiveTab === 'lineups' && hasFormations && (
             <MatchLineupsView formations={formations} homeName={homeName} awayName={awayName} />
           )}
 
-          {/* TAB 4: Journalistic Story */}
           {effectiveTab === 'story' && hasStory && (
             <div className="bg-[#101418] border border-[#334155]/70 rounded-2xl p-4 space-y-2">
               {headline && <h3 className="text-sm sm:text-base font-black text-white leading-snug">{headline}</h3>}

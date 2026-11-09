@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 export interface WebResponsiveConfig {
   viewportCategory: 'mobile' | 'tablet' | 'desktop';
   showDesktopSidebar: boolean;
-  showMobileBottomNav: boolean;
+  showNavigationRail: boolean;
   highlightsGridCols: number;
   playerSheetMode: 'bottom-sheet' | 'side-sheet';
 }
@@ -13,7 +13,7 @@ export function resolveWebResponsiveLayout(widthPx: number): WebResponsiveConfig
     return {
       viewportCategory: 'mobile',
       showDesktopSidebar: false,
-      showMobileBottomNav: true,
+      showNavigationRail: true,
       highlightsGridCols: 1,
       playerSheetMode: 'bottom-sheet',
     };
@@ -22,7 +22,7 @@ export function resolveWebResponsiveLayout(widthPx: number): WebResponsiveConfig
     return {
       viewportCategory: 'tablet',
       showDesktopSidebar: false,
-      showMobileBottomNav: true,
+      showNavigationRail: true,
       highlightsGridCols: 2,
       playerSheetMode: 'side-sheet',
     };
@@ -30,17 +30,17 @@ export function resolveWebResponsiveLayout(widthPx: number): WebResponsiveConfig
   return {
     viewportCategory: 'desktop',
     showDesktopSidebar: true,
-    showMobileBottomNav: false,
+    showNavigationRail: true,
     highlightsGridCols: widthPx >= 1440 ? 4 : 3,
     playerSheetMode: 'side-sheet',
   };
 }
 
 describe('Next.js Web Responsive Viewport Matrix', () => {
-  it('Adapts to Mobile viewport (< 768px) with bottom nav and 1-column grid', () => {
+  it('Adapts to Mobile viewport (< 768px) with navigation rail and 1-column grid', () => {
     const layout = resolveWebResponsiveLayout(390);
     expect(layout.viewportCategory).toBe('mobile');
-    expect(layout.showMobileBottomNav).toBe(true);
+    expect(layout.showNavigationRail).toBe(true);
     expect(layout.showDesktopSidebar).toBe(false);
     expect(layout.highlightsGridCols).toBe(1);
     expect(layout.playerSheetMode).toBe('bottom-sheet');
@@ -57,7 +57,6 @@ describe('Next.js Web Responsive Viewport Matrix', () => {
     const desktop1024 = resolveWebResponsiveLayout(1024);
     expect(desktop1024.viewportCategory).toBe('desktop');
     expect(desktop1024.showDesktopSidebar).toBe(true);
-    expect(desktop1024.showMobileBottomNav).toBe(false);
     expect(desktop1024.highlightsGridCols).toBe(3);
 
     const desktop1440 = resolveWebResponsiveLayout(1440);

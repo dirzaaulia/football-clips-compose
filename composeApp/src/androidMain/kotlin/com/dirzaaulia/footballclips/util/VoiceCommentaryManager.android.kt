@@ -2,19 +2,19 @@ package com.dirzaaulia.footballclips.util
 
 import android.content.Context
 import android.media.AudioAttributes
-import android.media.ToneGenerator
 import android.media.AudioManager
+import android.media.ToneGenerator
 import android.speech.tts.TextToSpeech
 import android.speech.tts.Voice
 import java.util.Locale
 
-class VoiceCommentaryManager(
+actual class VoiceCommentaryManager(
     private val context: Context,
 ) : TextToSpeech.OnInitListener {
 
     private var tts: TextToSpeech? = TextToSpeech(context, this)
     private var isInitialized = false
-    var isEnabled: Boolean = false
+    actual var isEnabled: Boolean = false
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
@@ -43,7 +43,7 @@ class VoiceCommentaryManager(
         }
     }
 
-    fun speakPlay(clock: String, text: String, isGoal: Boolean = false) {
+    actual fun speakPlay(clock: String, text: String, isGoal: Boolean) {
         if (!isEnabled || !isInitialized || text.isBlank()) return
 
         if (isGoal) {
@@ -58,11 +58,11 @@ class VoiceCommentaryManager(
         tts?.speak(speechText, TextToSpeech.QUEUE_ADD, null, "PLAY_${System.currentTimeMillis()}")
     }
 
-    fun stop() {
+    actual fun stop() {
         tts?.stop()
     }
 
-    fun shutdown() {
+    actual fun shutdown() {
         tts?.stop()
         tts?.shutdown()
         tts = null

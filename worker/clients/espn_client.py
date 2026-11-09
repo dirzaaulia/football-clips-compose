@@ -43,7 +43,8 @@ class ESPNClient:
     SLUG_TO_CODE: dict[str, str] = {v["slug"]: k for k, v in COMPETITION_MAP.items()}
 
     def __init__(self):
-        self.backoff_until = None
+        self.global_backoff_until: datetime | None = None
+        self.league_backoff: dict[str, datetime] = {}
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "application/json",
@@ -53,15 +54,26 @@ class ESPNClient:
     format_round_slug = staticmethod(format_round_slug)
     parse_event = staticmethod(parse_event)
 
+    def is_league_backed_off(self, league_slug: str) -> bool:
+        now = datetime.now(UTC)
+        if self.global_backoff_until and self.global_backoff_until > now:
+            return True
+        until = self.league_backoff.get(league_slug)
+        if until and until > now:
+            return True
+        if until:
+            del self.league_backoff[league_slug]
+        return False
+
     async def fetch_scoreboard_day(self, client: httpx.AsyncClient, league_slug: str, yyyymmdd: str | None = None) -> dict[str, Any]:
-        if self.backoff_until and self.backoff_until > datetime.now(UTC):
+        if self.is_league_backed_off(league_slug):
             return {}
         url = f"{self.BASE_URL}/{league_slug}/scoreboard"
         params = {"dates": yyyymmdd} if yyyymmdd else {}
         try:
             resp = await client.get(url, params=params, headers=self.headers, timeout=15.0)
             if resp.status_code in (429, 503):
-                self.backoff_until = datetime.now(UTC) + timedelta(minutes=5)
+                self.league_backoff[league_slug] = datetime.now(UTC) + timedelta(minutes=3)
             return resp.json() if resp.status_code == 200 else {}
         except Exception as e:
             logger.debug(f"[ESPN] Fetch failed for {league_slug} ({yyyymmdd}): {e}")
@@ -110,13 +122,14 @@ class ESPNClient:
         return all_matches
 
     async def get_standings(self, competition_code: str, season: int | None = None, client: httpx.AsyncClient | None = None) -> list[dict[str, Any]]:
-        if self.backoff_until and self.backoff_until > datetime.now(UTC):
-            return []
         info = self.COMPETITION_MAP.get(competition_code)
         if not info:
             return []
+        slug = info["slug"]
+        if self.is_league_backed_off(slug):
+            return []
 
-        url = f"https://site.api.espn.com/apis/v2/sports/soccer/{info['slug']}/standings"
+        url = f"https://site.api.espn.com/apis/v2/sports/soccer/{slug}/standings"
         if season:
             url += f"?season={season}"
 
@@ -128,7 +141,7 @@ class ESPNClient:
         try:
             resp = await client.get(url)
             if resp.status_code in (429, 503):
-                self.backoff_until = datetime.now(UTC) + timedelta(minutes=5)
+                self.league_backoff[slug] = datetime.now(UTC) + timedelta(minutes=3)
             if resp.status_code != 200:
                 return []
             return parse_standings(resp.json(), competition_code, season)
@@ -140,10 +153,10 @@ class ESPNClient:
                 await client.aclose()
 
     async def get_match_summary(self, event_id: int, competition_code: str, client: httpx.AsyncClient | None = None) -> dict[str, Any]:
-        if self.backoff_until and self.backoff_until > datetime.now(UTC):
-            return {}
         info = self.COMPETITION_MAP.get(competition_code)
         slug = info["slug"] if info else "eng.1"
+        if self.is_league_backed_off(slug):
+            return {}
         url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/summary?event={event_id}"
 
         should_close = False
@@ -154,9 +167,9 @@ class ESPNClient:
         try:
             resp = await client.get(url)
             if resp.status_code in (429, 503):
-                self.backoff_until = datetime.now(UTC) + timedelta(minutes=5)
+                self.league_backoff[slug] = datetime.now(UTC) + timedelta(minutes=3)
             if resp.status_code != 200:
-                return {}
+                return []
             return parse_match_summary(resp.json())
         except Exception as e:
             logger.debug(f"[ESPN Summary] Failed for {event_id}: {e}")

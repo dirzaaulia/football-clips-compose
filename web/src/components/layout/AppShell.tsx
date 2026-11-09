@@ -3,7 +3,6 @@
 import React, { Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from '@/components/layout/Sidebar';
-import BottomNav from '@/components/layout/BottomNav';
 import Footer from '@/components/layout/Footer';
 import SplashScreen from '@/components/common/SplashScreen';
 import CookieConsentBanner from '@/components/common/CookieConsentBanner';
@@ -42,7 +41,7 @@ export default function AppShell({ children }: AppShellProps) {
       </Suspense>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 pb-28 md:pb-0 relative">
+      <div className="flex-1 flex flex-col min-w-0 pb-0 relative">
         <LiveScoreTicker />
         <main className="flex-1">{children}</main>
         <Footer />
@@ -53,9 +52,6 @@ export default function AppShell({ children }: AppShellProps) {
 
       {/* Floating Docked Mini-Player */}
       <FloatingMiniPlayer />
-
-      {/* Mobile Bottom Floating Navigation Bar */}
-      <BottomNav />
     </div>
     </QueryProvider>
   );

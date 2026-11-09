@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Play, Pause, Radio, Server, Trash2 } from 'lucide-react';
+import { RefreshCw, Play, Pause, Radio, Server, Trash2, BookOpen } from 'lucide-react';
 
 interface TelemetryHeaderProps {
   onRefresh: () => void;
@@ -12,6 +12,7 @@ interface TelemetryHeaderProps {
   onExportJson?: () => void;
   onClearLogs?: () => void;
   isClearingLogs?: boolean;
+  onOpenTaxonomy?: () => void;
 }
 
 export function TelemetryHeader({
@@ -23,6 +24,7 @@ export function TelemetryHeader({
   onExportJson,
   onClearLogs,
   isClearingLogs,
+  onOpenTaxonomy,
 }: TelemetryHeaderProps) {
   const [timeWib, setTimeWib] = useState('');
   const [countdown, setCountdown] = useState(autoRefreshInterval);
@@ -82,13 +84,13 @@ export function TelemetryHeader({
           <h1 className="text-2xl font-black tracking-tight text-white font-mono">
             MISSION CONTROL
           </h1>
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono">
-            Cloud Run + Edge
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+            Go Micro-Daemon (Oracle VM)
           </span>
         </div>
         <p className="text-xs text-slate-400 mt-1 flex items-center gap-2">
           <Server className="w-3.5 h-3.5 text-slate-500" />
-          <span>Oracle VM Super-Node + Google Cloud Tasks</span>
+          <span>Oracle VM ARM64 · fc-daemon (7.5 MB RAM) · $0 Cost</span>
           {lastUpdated && <span className="text-slate-500 font-mono">· Synced: {lastUpdated}</span>}
         </p>
       </div>
@@ -131,6 +133,17 @@ export function TelemetryHeader({
           >
             <Trash2 className="w-3.5 h-3.5 text-rose-400" />
             <span>{isClearingLogs ? 'Clearing...' : 'Clear Logs'}</span>
+          </button>
+        )}
+
+        {onOpenTaxonomy && (
+          <button
+            onClick={onOpenTaxonomy}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono bg-slate-900 hover:bg-slate-800 text-indigo-300 transition border border-indigo-500/30"
+            title="Manage Classification Taxonomy in PostgreSQL"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Taxonomy</span>
           </button>
         )}
 

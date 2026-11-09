@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "postbuild": "node -e \"const fs=require('fs'); if(fs.existsSync('out/telemetry.html')){fs.mkdirSync('out/telemetry',{recursive:true}); fs.copyFileSync('out/telemetry.html','out/telemetry/index.html');}\"",
+    "deploy": "next build && firebase deploy --only hosting"
   },
   "dependencies": {
     "@google/genai": "^2.28.0",

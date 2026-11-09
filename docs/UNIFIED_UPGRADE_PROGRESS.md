@@ -287,3 +287,50 @@ Final continuation verification at approximately 17:55 WIB: final Wasm productio
 - **Synchronized Navigation Rail Revamp**:
   - Harmonized collapsed rail action docks between Next.js `Sidebar.tsx` / `SidebarBottomControls.tsx` and Android `WebNavigationRail.kt` (App Icon, Nav items, Starred My Clubs with count badge, Season Selector '26/'25, Spoiler-Free eye toggle, and Gold Gem Go Premium).
 
+
+
+## Complete Golang Micro-Daemon Migration, Shorts Expansion & Full Repository Modernization — 9 November 2026
+
+- **Full Golang Micro-Daemon (`fc-daemon`) Production Deployment**:
+  - Replaced Python/Cloud Run background sync with pure **Golang 1.23+ Clean Hexagonal Architecture micro-daemon** (`core-go/cmd/fc-daemon`) deployed natively as a Linux systemd service (`fc-daemon.service`) on Oracle VM Always Free ARM64 (4 OCPUs, 24 GB RAM).
+  - Reduced memory footprint to **<20 MB RAM** (down from >300 MB in Python) with zero garbage collection pause spikes.
+  - Implemented `pgxpool` binary wire protocol connection pooling directly into PostgreSQL 16 on port 5432.
+  - Integrated 60s live match ticker (ESPN), 5m finished highlights discovery, 30m shorts ingestion, and WebSub Push Receiver (:8094).
+- **YouTube Shorts Ingestion Expansion & Dynamic Hype Score**:
+  - Audited root cause of the previous 36-shorts limitation: PostgreSQL query was pinned to `LIMIT 25 ORDER BY team_id ASC`, polling only the first 25 clubs repeatedly.
+  - Implemented round-robin rotation across all 530+ supported clubs in batches of 50 via `last_shorts_check` column.
+  - Designed and deployed dynamic **Hype Score algorithm (10–100)** factoring club tiers (Tier 1 giants +25), derbies (+15), and freshness decay (-5/day).
+  - Confirmed **0 units of YouTube Data API quota** consumed (100% public Atom XML RSS). Shorts catalog immediately grew from 36 to 58 in cycle 1 on Oracle VM.
+- **Highlight Pipeline Streamlining & Target Market Geo-Cutoff**:
+  - Structured multi-tier candidate discovery: Tier 1 (Official League) $\rightarrow$ Tier 2 (Clubs) $\rightarrow$ Tier 3 (Broadcasters strictly constrained to competition).
+  - Implemented Target Market Geo-Cutoff in `core-go/domain/geo.go`: Evaluates worldwide watchability and domestic market coverage to terminate redundant API calls early.
+  - Added transparent candidate source badges across domain models and Next.js Telemetry Hub (`Zero-Quota RSS`, `WebSub Push`, `YouTube Data API`).
+- **Complete Deletion of `screenshots/` and `scripts/`**:
+  - Migrated 4 official Google Play Store banners from `screenshots/store_listing/` to `art/store_listing/` and safely purged the `screenshots/` directory (~10.5 MB freed).
+  - Removed all 21 Python files and `__pycache__` in `scripts/`, transitioning all operational workflows to native Go binaries:
+    - `core-go/bin/fc-deploy`: Google Play multi-track deployment engine with granular in-app update priorities (Levels 0–5).
+    - `core-go/bin/e2e-runner`: 4-layer full-stack E2E test runner (L1 Contracts, L2 Pipeline, L3 Parity, L4 UI E2E).
+    - `web/package.json`: Native `npm run deploy` via `firebase-tools`.
+- **Documentation & Architecture Harmonization**:
+  - Rewrote `docs/BACKEND_ARCHITECTURE.md` to Hexagonal Clean Architecture in pure Go.
+  - Overhauled `docs/FOOTBALL_OPERATIONS_RUNBOOK.md` to reflect Oracle VM systemd operations, NocoDB, and live Telemetry Hub.
+  - Updated `oracle/README.md` and `oracle/ORACLE_OPERATIONS_MANUAL.md` removing all hardcoded passwords, obsolete Cloudflare proxy references, and outdated Python containers.
+  - Authored comprehensive `core-go/README.md` with package layout, compilation commands, and test documentation.
+
+## Match Centre Edge-to-Edge, 4-Tab Navigation Revamp & 2D Canvas Audio Companion — 9 November 2026
+
+- **Match Centre True Edge-to-Edge Resolution**:
+  - Resolved letterboxing/dead margin in `VideoPlayerSheet.kt` by setting `decorFitsSystemWindows = false` on `DialogProperties`.
+  - Added `statusBarsPadding()` to `MatchCentreTopBar.kt` so back navigation, title, and live/refresh badges stay safely clear of status bars and camera cutouts.
+  - Positioned `navigationBarsPadding()` cleanly on the bottom container/spacers, allowing scrollable background canvas and sheet content to bleed seamlessly behind the 3-button or gesture navigation bar.
+  - Decomposed `VideoPlayerSheetContent` and `VideoPlayerSheetBody` into single-responsibility sub-composables ($\le 40$ lines per composable), bringing both files well under the 250 line budget.
+- **Streamlined 4-Tab Bottom Navigation**:
+  - Revamped mobile bottom floating pill and web navigation rail to 4 core tabs: **Highlights (`Home`)**, **Shorts**, **Fixtures**, and **Standings**.
+  - Integrated `ShortsRoute` with swipeable vertical feed into `AdaptiveNavGraph` with `PlayCircle` icon.
+  - Hoisted **Store** (`Icons.Default.ShoppingBag`) and **Settings** (`Icons.Default.Settings`) to top app bar header actions in `HomeScreenTopBarMobileActions.kt` and `MatchesTopBarMobileActions.kt`, maintaining 48dp touch targets and keeping bottom navigation thumb-friendly and clutter-free.
+- **2D Canvas Pitch Radar & Native AI Voice Commentary Interactive Replay**:
+  - Implemented `MatchRadarTab.kt` integrated directly into Match Centre tactical boxscore for both Live and Finished matches.
+  - Converts match events into 2D pitch coordinates (`PitchPlay`) rendering dynamic shot arcs, goal vectors, and player positions on `PitchRadarDeck`.
+  - Integrated `VoiceCommentaryManager` (Android native `TextToSpeech` with high-quality British English audio synthesis).
+  - Live matches speak incoming events in real time. Finished matches run in **Interactive Replay Mode**, announcing speech summaries upon timeline scrubbing or play selection.
+

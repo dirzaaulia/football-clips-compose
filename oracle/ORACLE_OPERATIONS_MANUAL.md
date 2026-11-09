@@ -5,18 +5,19 @@ This comprehensive guide details the complete architecture, industry-grade tool 
 ---
 
 ## 📑 Table of Contents
-1. [Database IDE Evaluation: DataGrip vs. DBeaver vs. pgAdmin](#1-database-ide-evaluation-datagrip-vs-dbeaver-vs-pgadmin)
+1. [Database Viewers & IDEs: NocoDB vs. DBeaver vs. DataGrip](#1-database-viewers--ides-nocodb-vs-dbeaver-vs-datagrip)
 2. [Master Network Topology & Access Matrix](#2-master-network-topology--access-matrix)
 3. [PostgreSQL 16 Enterprise Datastore](#3-postgresql-16-enterprise-datastore)
 4. [PostgREST Universal REST API Tier](#4-postgrest-universal-rest-api-tier)
-5. [Cloudflare Anycast Edge Proxy (`fc-edge-proxy`)](#5-cloudflare-anycast-edge-proxy-fc-edge-proxy)
-6. [Domain Architecture & Human-Friendly URL Matrix](#6-domain-architecture--human-friendly-url-matrix)
-7. [Tailscale Mesh VPN & Zero-Trust SSH](#7-tailscale-mesh-vpn--zero-trust-ssh)
-8. [FileBrowser Quantum (Cloud Storage Hub)](#8-filebrowser-quantum-cloud-storage-hub)
-9. [Hybrid AI Gateway & Vibe Coding Suite (Qwen 2.5 Coder)](#9-hybrid-ai-gateway--vibe-coding-suite-qwen-25-coder)
-10. [n8n Autonomous Workflow Orchestration](#10-n8n-autonomous-workflow-orchestration)
-11. [Automated Disaster Recovery & Backblaze B2](#11-automated-disaster-recovery--backblaze-b2)
-12. [System Maintenance, Health Monitoring & Diagnostics](#12-system-maintenance-health-monitoring--diagnostics)
+5. [Edge Delivery & Caddy Reverse Proxy Architecture](#5-edge-delivery--caddy-reverse-proxy-architecture)
+6. [Golang Micro-Daemon (`fc-daemon.service`) Operations](#6-golang-micro-daemon-fc-daemonservice-operations)
+7. [Domain Architecture & URL Directory](#7-domain-architecture--url-directory)
+8. [Tailscale Mesh VPN & Zero-Trust SSH](#8-tailscale-mesh-vpn--zero-trust-ssh)
+9. [FileBrowser Quantum (Cloud Storage Hub)](#9-filebrowser-quantum-cloud-storage-hub)
+10. [Hybrid AI Gateway & Vibe Coding Suite (Qwen 2.5 Coder)](#10-hybrid-ai-gateway--vibe-coding-suite-qwen-25-coder)
+11. [n8n Autonomous Workflow Orchestration](#11-n8n-autonomous-workflow-orchestration)
+12. [Automated Disaster Recovery & Backblaze B2](#12-automated-disaster-recovery--backblaze-b2)
+13. [System Maintenance, Health Monitoring & Diagnostics](#13-system-maintenance-health-monitoring--diagnostics)
 
 ---
 
@@ -41,11 +42,6 @@ When interacting with our PostgreSQL 16 database, selecting the right tool direc
 | **Execution Plan Visualizer** | Interactive visual tree with bottleneck warnings | Visual explain graph | N/A (Admin & Table View) |
 | **Resource Usage** | Moderate memory footprint | Moderate (Java/Eclipse platform) | Ultra-light container (<150MB) |
 
-### Recommendation
-- **Best Web-Based Database Viewer (Recommended)**: **NocoDB** at `https://db.fc.dirzaaulia.com`. Perfect for quickly inspecting highlights, fixtures, status changes, and club metadata in a modern table view.
-- **Best Free Desktop SQL IDE**: **DBeaver Community Edition**. Ideal for complex multi-table queries, EXPLAIN ANALYZE visualizations, and manual data exports.
-- **Top Commercial Desktop IDE**: **DataGrip** (if using JetBrains IntelliJ IDEA Ultimate or All Products Pack).
-
 ---
 
 ## 2. Master Network Topology & Access Matrix
@@ -55,22 +51,23 @@ All services operate inside a unified zero-trust network overlay:
 ```mermaid
 flowchart TD
     subgraph ClientDevices["📱 Developer & Client Layer"]
-        DevPC["Developer Machine (g14 via Tailscale)"]
+        DevPC["Developer Machine (via Tailscale)"]
         MobileApp["Android CMP App"]
         WebApp["Next.js Web App"]
     end
 
-    subgraph EdgeLayer["⚡ Global Anycast Edge (Cloudflare)"]
-        CFProxy["fc-edge-proxy.dirzaaulia11.workers.dev"]
+    subgraph EdgeLayer["⚡ Direct Public Edge (Caddy 2 Reverse Proxy)"]
+        Caddy["Caddy 2 Reverse Proxy (TLS 1.3)<br/>edge.fc.dirzaaulia.com"]
     end
 
-    subgraph OracleNode["🖥️ Oracle VM Super-Node (edge.fc.dirzaaulia.com)"]
-        Caddy["Caddy 2 Reverse Proxy (TLS 1.3)"]
+    subgraph OracleNode["🖥️ Oracle VM Super-Node (footballclips-oracle)"]
         TailscaleDaemon["Tailscale WireGuard Daemon"]
+        FcDaemon["fc-daemon (Native Go Systemd Service)<br/>• 60s Live Sync<br/>• 5m Highlight Discovery<br/>• 30m Shorts Ingestion<br/>• :8094 WebSub Push Hub"]
         
         subgraph InternalDockerNet["Docker Bridge Network (jarvis_net)"]
             Postgres["PostgreSQL 16 (Port 5432)"]
             PostgREST["PostgREST (Port 3000)"]
+            NocoDB["NocoDB (Port 8082)"]
             FileBrowser["FileBrowser (Port 8090)"]
             AIGateway["AI Gateway (Port 8080)"]
             Ollama["Ollama LLM (Port 11434)"]
@@ -83,14 +80,16 @@ flowchart TD
 
     DevPC -->|Tailscale WireGuard (Port 5432)| Postgres
     DevPC -->|Tailscale SSH (Port 22)| TailscaleDaemon
-    DevPC -->|Tailscale HTTP (Ports 8080/5678/8090)| InternalDockerNet
+    DevPC -->|Tailscale HTTP (Ports 8080/5678/8090/8082)| InternalDockerNet
 
-    MobileApp -->|HTTPS / Caching| CFProxy
-    WebApp -->|HTTPS / Caching| CFProxy
+    MobileApp -->|HTTPS / REST| Caddy
+    WebApp -->|HTTPS / REST| Caddy
 
-    CFProxy -->|Encrypted Origin Fetch| Caddy
     Caddy -->|Internal Reverse Proxy| PostgREST
+    Caddy -->|Web UI Proxy| NocoDB
+    Caddy -->|Web GUI Proxy| FileBrowser
     PostgREST -->|Internal SQL| Postgres
+    FcDaemon -->|Direct pgxpool Binary Protocol| Postgres
 ```
 
 ### Access Matrix
@@ -98,7 +97,8 @@ flowchart TD
 | Service | Port | Local Tailscale Access | Public Access | Authentication Required |
 | :--- | :--- | :--- | :--- | :--- |
 | **PostgreSQL 16** | `5432` | `footballclips-oracle:5432` | ❌ Blocked (Zero public exposure) | PostgreSQL Password |
-| **PostgREST API** | `3000` / `443` | `footballclips-oracle:3000` | 🌐 `https://fc-edge-proxy...` | `web_anon` (Read-only) |
+| **PostgREST API** | `3000` / `443` | `footballclips-oracle:3000` | 🌐 `https://edge.fc.dirzaaulia.com` | `web_anon` (Read-only) |
+| **fc-daemon WebSub** | `8094` | `footballclips-oracle:8094` | 🌐 Via Caddy WebSub route | HMAC SHA1 Verification |
 | **Tailscale SSH** | `22` | `ssh ubuntu@footballclips-oracle` | ❌ Blocked | Tailscale MFA / Web Auth |
 | **NocoDB Web UI** | `8082` | `http://footballclips-oracle:8082` | `https://db.fc.dirzaaulia.com` | NocoDB Auth / Password |
 | **FileBrowser** | `8090` | `http://footballclips-oracle:8090` | `https://files.fc.dirzaaulia.com` | Admin Password |
@@ -112,11 +112,11 @@ flowchart TD
 ## 3. PostgreSQL 16 Enterprise Datastore
 
 ### Configuration & Credentials
-- **Host**: `footballclips-oracle`
+- **Host**: `footballclips-oracle` (via Tailscale)
 - **Port**: `5432`
 - **Database**: `footballclips`
 - **Username**: `postgres`
-- **Password**: Configured in `.env` (`POSTGRES_PASSWORD`)
+- **Password**: `<POSTGRES_PASSWORD>` (Read from secure environment variable `POSTGRES_PASSWORD`)
 - **Driver Type**: PostgreSQL standard JDBC / libpq
 
 ### Step-by-Step Connection Instructions
@@ -124,26 +124,19 @@ flowchart TD
 #### Option A: Connecting with DBeaver
 1. Open DBeaver and click **New Database Connection** (plug icon with green plus).
 2. Select **PostgreSQL** and click **Next**.
-3. Fill in the connection settings:
+3. Fill in connection settings:
    - **Host**: `footballclips-oracle`
    - **Port**: `5432`
    - **Database**: `footballclips`
-   - **Authentication**: `Database Native`
    - **Username**: `postgres`
-   - **Password**: `jarvis_postgres_secure_2026`
+   - **Password**: `<POSTGRES_PASSWORD>`
 4. Click **Test Connection ...**. You will see:
    > Connected (PostgreSQL 16.x)
-5. Click **Finish**. You can now visually browse schemas, tables (`matches`, `standings`, `supported_clubs`), edit rows, and generate ER diagrams.
+5. Click **Finish**.
 
-#### Option B: Connecting with DataGrip
-1. Click **+** in Database Explorer -> **Data Source** -> **PostgreSQL**.
-2. Set **Host** to `footballclips-oracle`, **User** to `postgres`, **Password** to `jarvis_postgres_secure_2026`, and **Database** to `footballclips`.
-3. Click **Test Connection**. Once verified with a green checkmark, click **OK**.
-
-#### Option C: Direct Terminal CLI (`psql`)
-From your terminal or inside the VM:
+#### Option B: Direct Terminal CLI (`psql`)
 ```bash
-# Direct psql from local machine (with PostgreSQL client installed):
+# Direct psql from local machine over Tailscale:
 psql -h footballclips-oracle -U postgres -d footballclips
 
 # From inside the Oracle VM:
@@ -156,11 +149,12 @@ ssh ubuntu@footballclips-oracle "docker exec -it jarvis-postgres psql -U postgre
 SELECT count(*) FROM matches;
 SELECT count(*) FROM standings;
 SELECT count(*) FROM supported_clubs;
+SELECT count(*) FROM shorts;
 
--- View highlights linked in Season 2025/26
+-- View highlights linked in Season 2026/27
 SELECT id, competition_id, home_team_name, away_team_name, highlight_video_id, utc_date 
 FROM matches 
-WHERE season = 2025 AND highlight_video_id IS NOT NULL 
+WHERE season = 2026 AND highlight_video_id IS NOT NULL 
 ORDER BY utc_date DESC 
 LIMIT 10;
 
@@ -178,258 +172,120 @@ PostgREST sits directly on top of PostgreSQL, turning tables into a high-perform
 - **Production Edge PostgREST**: `https://edge.fc.dirzaaulia.com`
 
 ### How to Query PostgREST
-PostgREST uses declarative URL filtering:
-
 ```bash
 # 1. Fetch 5 newest finished matches
-curl -s "https://fc-edge-proxy.dirzaaulia11.workers.dev/rest/v1/matches?status=eq.FINISHED&order=utc_date.desc&limit=5"
+curl -s "https://edge.fc.dirzaaulia.com/rest/v1/matches?status=eq.FINISHED&order=utc_date.desc&limit=5"
 
 # 2. Filter matches for a specific league and season
-curl -s "https://fc-edge-proxy.dirzaaulia11.workers.dev/rest/v1/matches?competition_id=eq.PL&season=eq.2025&limit=10"
+curl -s "https://edge.fc.dirzaaulia.com/rest/v1/matches?competition_id=eq.PL&season=eq.2026&limit=10"
 
 # 3. Fetch league standings for Serie A
-curl -s "https://fc-edge-proxy.dirzaaulia11.workers.dev/rest/v1/standings?competition_code=eq.SA&season=eq.2026&order=position.asc"
+curl -s "https://edge.fc.dirzaaulia.com/rest/v1/standings?competition_code=eq.SA&season=eq.2026&order=position.asc"
+
+# 4. Fetch top trending shorts by Hype Score
+curl -s "https://edge.fc.dirzaaulia.com/rest/v1/shorts?order=hype_score.desc&limit=10"
 ```
 
 ---
 
-## 5. Cloudflare Anycast Edge Proxy (`fc-edge-proxy`)
+## 5. Edge Delivery & Caddy Reverse Proxy Architecture
 
-The edge proxy handles request routing, origin IP masking, enterprise security headers, and multi-tier edge caching across 300+ Cloudflare global data centers.
+All incoming client traffic routes directly through **Caddy 2**, providing:
+- **Zero-Configuration HTTPS**: Automatic ACME certificate provisioning via Let's Encrypt with HTTP/2 and HTTP/3 support.
+- **Header Sanitization**: Strips incoming authorization headers (`header_up -Authorization`) on `/rest/v1/*` so `web_anon` client queries execute without JWT errors.
+- **Direct Origin Routing**: Reverse proxies directly to PostgREST 12 on port 3000, eliminating third-party edge hops.
 
-### Edge Caching Policies
-- **Live Matches** (`IN_PLAY`, `PAUSED`): `30s TTL`
-- **Finished Matches** (`FINISHED`, `FULL_TIME`): `24h TTL`
-- **Standings** (`standings`): `6h TTL`
-- **Supported Clubs** (`supported_clubs`): `24h TTL`
-- **Auth & Profiles**: `Cache BYPASS` (strictly dynamic)
+---
 
-### Instant Cache Purge Hook
-When the worker discovers new highlights or final scores, it triggers an instant edge purge:
+## 6. Golang Micro-Daemon (`fc-daemon.service`) Operations
 
+The backend operational pipelines run under a native Linux systemd service:
+
+### Service Management
 ```bash
-curl -X POST https://fc-edge-proxy.dirzaaulia11.workers.dev/api/purge-cache \
-  -H "Content-Type: application/json" \
-  -d '{"target_url": "https://fc-edge-proxy.dirzaaulia11.workers.dev/rest/v1/matches?status=eq.FINISHED"}'
+# View service status and resource utilization
+sudo systemctl status fc-daemon
+
+# Restart service after deployment
+sudo systemctl restart fc-daemon
+
+# Stream live operational logs
+journalctl -u fc-daemon -f
 ```
 
+### Operational Invariants & Schedules
+- **Live Match Ingestion**: 60s tick querying ESPN API.
+- **Highlight Discovery**: 5m tick evaluating finished matches against YouTube RSS and API.
+- **Shorts Rotation**: 30m tick evaluating 50-club batches using 0-quota YouTube Atom RSS.
+- **WebSub Push Hub**: Listening on port `8094` for real-time YouTube upload pushes.
+
 ---
 
-## 6. Domain Architecture & Human-Friendly URL Matrix
+## 7. Domain Architecture & URL Directory
 
-No developer should ever have to remember or type awkward raw IP addresses. Every endpoint is mapped to either your branded custom domain (`dirzaaulia.com` / `fc.dirzaaulia.com`) or your private Tailscale MagicDNS name (`footballclips-oracle`).
-
-### Clean Master URL Directory
-
-| Target Service | Category | Old Raw Host | 🌟 Clean Readable Short URL | Access Scope |
-| :--- | :--- | :--- | :--- | :--- |
-| **FootballClips Web App** | Production Frontend | `footballclips.web.app` | **`https://fc.dirzaaulia.com`** | Public Web |
-| **Edge REST API** | Production Backend | `edge.fc...` | **`https://api.fc.dirzaaulia.com`** | Public Web (Enterprise Edge) |
-| **Cloud Storage Hub** | Files / Backups | `files.fc...` | **`https://files.fc.dirzaaulia.com`** | Public Web (TLS 1.3 Caddy) |
-| **PostgreSQL 16** | Database Engine | `internal:5432` | **`footballclips-oracle:5432`** | Private WireGuard Mesh |
-| **Qwen 2.5 Coder 7B** | Local AI / Vibe Coding | `internal:11434` | **`http://footballclips-oracle:11434`** | Private WireGuard Mesh |
-| **AI Gateway** | OpenAI Routing API | `internal:8080` | **`http://footballclips-oracle:8080`** | Private WireGuard Mesh |
-| **n8n Automation** | Workflow UI | `internal:5678` | **`http://footballclips-oracle:5678`** | Private WireGuard Mesh |
-| **FileBrowser Local** | File Explorer UI | `internal:8090` | **`http://footballclips-oracle:8090`** | Private WireGuard Mesh |
-| **Speaches / Whisper** | Audio Transcription | `internal:8000` | **`http://footballclips-oracle:8000`** | Private WireGuard Mesh |
-| **Qdrant Vector DB** | Embeddings Store | `internal:6333` | **`http://footballclips-oracle:6333`** | Private WireGuard Mesh |
-| **Zero-Trust SSH** | Server Terminal | `ssh direct` | **`ssh ubuntu@footballclips-oracle`** | Private WireGuard Mesh |
-
-### Spaceship DNS Records Configuration (for `dirzaaulia.com`)
-
-To activate the public subdomains, add these simple records into your Spaceship DNS Manager:
-
-| Host / Subdomain | Type | Target Value | Description |
+| Target Service | Category | URL / Access Path | Access Scope |
 | :--- | :--- | :--- | :--- |
-| `fc` | `CNAME` | `footballclips.web.app` | Points FootballClips frontend to Firebase |
-| `api.fc` | `CNAME` | `edge.fc.dirzaaulia.com` | Points Edge API to Caddy Edge proxy |
-| `files.fc` | `CNAME` | `edge.fc.dirzaaulia.com` | Points file explorer to Caddy on Oracle VM (Auto-TLS) |
+| **FootballClips Web App** | Production Frontend | **`https://fc.dirzaaulia.com`** | Public Web (Firebase Hosting) |
+| **Edge REST API** | Production Backend | **`https://edge.fc.dirzaaulia.com`** | Public Web (Caddy / PostgREST) |
+| **Web Database Studio** | Database Admin | **`https://db.fc.dirzaaulia.com`** | Password Authenticated (NocoDB) |
+| **Cloud Storage Hub** | Files / Backups | **`https://files.fc.dirzaaulia.com`** | Password Authenticated (FileBrowser) |
+| **PostgreSQL 16 Engine** | Database Engine | **`footballclips-oracle:5432`** | Private WireGuard Mesh |
+| **Ollama LLM Engine** | Local AI / Inference | **`http://footballclips-oracle:11434`** | Private WireGuard Mesh |
+| **AI Gateway** | Unified AI API | **`http://footballclips-oracle:8080`** | Private WireGuard Mesh |
+| **n8n Automation** | Workflow UI | **`http://footballclips-oracle:5678`** | Private WireGuard Mesh |
+| **Zero-Trust SSH** | Server Terminal | **`ssh ubuntu@footballclips-oracle`** | Private WireGuard Mesh |
 
 ---
 
-## 7. Tailscale Mesh VPN & Zero-Trust SSH
+## 8. Tailscale Mesh VPN & Zero-Trust SSH
 
-### Accessing the VM
-Because Tailscale SSH is active, connect without passwords or SSH keys:
-
+Connect to the VM without passwords or public SSH keys:
 ```powershell
-# From Windows PowerShell / Command Prompt / Terminal:
 ssh ubuntu@footballclips-oracle
 ```
 
-### Checking Status on Host
-```bash
-# Check connected peers and throughput
-tailscale status
-
-# Check assigned IP addresses
-tailscale ip -4
-```
-
 ---
 
-## 8. FileBrowser Quantum (Cloud Storage Hub)
+## 9. FileBrowser Quantum (Cloud Storage Hub)
 
-FileBrowser provides an interactive web-based file explorer for managing database backups, media assets, logs, and datasets.
-
-### Access Details
 - **Over Public Web**: `https://files.fc.dirzaaulia.com`
 - **Over Tailscale**: `http://footballclips-oracle:8090`
 - **Username**: `admin`
-- **Password**: Configured in `.env` (`FILEBROWSER_ADMIN_PASSWORD`)
-
-### Storage Paths Managed
-- `/srv/Backups`: Automated PostgreSQL `.sql.gz` database dumps.
-- `/srv/Media`: Downloaded match clips, player posters, club crests.
-- `/srv/Documents`: Schemas, documentation, configuration notes.
+- **Password**: `<FILEBROWSER_ADMIN_PASSWORD>` (Read from `.env`)
 
 ---
 
-## 9. Hybrid AI Gateway & Vibe Coding Suite (Qwen 2.5 Coder)
+## 10. Hybrid AI Gateway & Vibe Coding Suite (Qwen 2.5 Coder)
 
-The Oracle VM hosts a multi-engine AI stack on ARM64 Ampere cores:
-
-### 1. FastAPI AI Gateway (`:8080`)
-Exposes an OpenAI-compatible unified API that routes between local models and cloud providers (Groq, Gemini, OpenRouter).
-```bash
-curl -s http://footballclips-oracle:8080/health
-# Returns: {"status":"healthy","engine":"jarvis-hybrid-gateway"}
-```
-
-### 2. Ollama Local LLMs (`:11434`)
-Local on-device reasoning and coding models running directly on Ampere A1 ARM64 cores without any external API tokens or internet access. The container memory limit has been upgraded to **16 GB** (utilizing our 24 GB RAM while leaving 8 GB fully reserved for PostgreSQL, Caddy, PostgREST, and n8n):
-
-| Model | Size | Architecture | Purpose & Vibe Coding Capability |
-| :--- | :--- | :--- | :--- |
-| **`deepseek-coder-v2:16b`** | 8.9 GB | 16B MoE (2.4B active params) | 🏆 **Top-Tier Flagship**: Trained on 6T tokens across 338 languages. Exceptional multi-file refactoring, vibe coding, and algorithmic synthesis. |
-| **`qwen2.5-coder:7b`** | 4.7 GB | Dense 7B | 🥇 **Ultra-Fast Scaffolding**: Fast interactive completions and script generation. |
-| **`phi4-mini:latest`** | 2.5 GB | Dense 3.8B | 🥈 **Concise Analytical Reasoning**: Logic puzzles, match summaries, and fast evaluations. |
-
-#### How to use DeepSeek-Coder-V2 for Vibe Coding:
-1. **Interactive Chat in Terminal**:
-   ```bash
-   ssh -t ubuntu@footballclips-oracle "docker exec -it jarvis-ollama ollama run deepseek-coder-v2:16b"
-   ```
-2. **One-shot CLI generation from PowerShell**:
-   ```powershell
-   ssh ubuntu@footballclips-oracle "docker exec jarvis-ollama ollama run deepseek-coder-v2:16b 'Scaffold a Jetpack Compose glassmorphic card for a live football match with pulse animation'"
-   ```
-3. **Connect to VS Code / Cursor / Continue Extension**:
-   - In VS Code / Cursor, install the **Continue** extension (`continue.continue`).
-   - In `~/.continue/config.json`, configure:
-     ```json
-     {
-       "models": [
-         {
-           "title": "Oracle DeepSeek-Coder-V2 16B",
-           "provider": "ollama",
-           "model": "deepseek-coder-v2:16b",
-           "apiBase": "http://footballclips-oracle:11434"
-         },
-         {
-           "title": "Oracle Qwen 2.5 Coder 7B",
-           "provider": "ollama",
-           "model": "qwen2.5-coder:7b",
-           "apiBase": "http://footballclips-oracle:11434"
-         }
-       ]
-     }
-     ```
-   - Now press `Ctrl+I` or `Ctrl+L` in VS Code to vibe code with your private Oracle LLM!
-
-### 3. Speaches / Faster-Whisper Large-v3-Turbo (`:8000`)
-High-speed speech-to-text audio perception model running int8 quantization on ARM64.
-
-### 4. Qdrant Vector Database (`:6333`)
-Semantic memory store for highlight embeddings and similarity search:
-```bash
-curl -s http://footballclips-oracle:6333/collections
-```
+Ampere A1 ARM64 cores run local models with zero token cost:
+- `deepseek-coder-v2:16b` (8.9 GB MoE)
+- `qwen2.5-coder:7b` (4.7 GB Dense)
+- `phi4-mini:latest` (2.5 GB Dense)
 
 ---
 
-## 10. n8n Autonomous Workflow Orchestration
+## 11. n8n Autonomous Workflow Orchestration
 
-n8n serves as the central orchestration engine for automated platform health checks, background jobs, and operational alerts.
-
-### 1. Active Production Workflow: `fcOpsMaintenance`
-- **Workflow Name**: `FootballClips — hourly maintenance verification` (ID: `fcOpsMaintenance`)
-- **Execution Schedule**: Hourly at minute 7 (`7 * * * *`) via `scheduleTrigger` + on-demand via `manualTrigger`.
-- **Target Endpoint**: `POST http://footballclips-operations:8093/internal/maintenance`
-- **Security**: Authenticated via internal HMAC header authentication (`genericCredentialType` / `httpHeaderAuth`).
-- **Operational Scope**:
-  1. **Backup Verification**: Validates that daily PostgreSQL database snapshots exist in `/storage/cloud/Backups/` and are non-empty.
-  2. **Log Compaction**: Aggregates and compacts older worker event logs to prevent unbounded table growth.
-  3. **Storage Telemetry**: Measures disk usage across NVMe partitions and records metrics in `fc_ops.metrics`.
-
-### 2. Access & Management
-- **Dashboard URL**: `http://footballclips-oracle:5678` *(Accessible securely over Tailscale mesh)*
-- **Container**: `jarvis-n8n` (`n8nio/n8n:2.43.6`, RAM limit: 3 GB)
-- **Persistent Data**: SQLite datastore at `/home/ubuntu/jarvis/storage/n8n/database.sqlite`
-
-### 3. Manual Workflow Trigger & Diagnostic Inspection
-To trigger the maintenance verification on-demand:
-```bash
-# Trigger maintenance workflow directly via operations API
-ssh ubuntu@footballclips-oracle "curl -X POST http://footballclips-operations:8093/internal/maintenance"
-
-# Inspect latest n8n execution status
-ssh ubuntu@footballclips-oracle "docker logs --tail 50 jarvis-n8n"
-```
-
-## 11. Automated Disaster Recovery & Backblaze B2
-
-The node includes automated nightly database backups and offsite cloud replication.
-
-### 1. Nightly Database Dump (`backup_postgres.sh`)
-Located at `/home/ubuntu/jarvis/scripts/backup_postgres.sh`:
-- Runs `pg_dump` targeting the `footballclips` database.
-- Compresses output with `gzip`.
-- Retains the last 14 days of rolling backups in `/home/ubuntu/jarvis/storage/cloud/Backups`.
-
-### 2. Backblaze B2 Sync (`sync_backblaze.sh`)
-Located at `/home/ubuntu/jarvis/scripts/sync_backblaze.sh`:
-- Uses `rclone` to synchronize local backups to a private Backblaze B2 bucket (`footballclips-archives`).
-- Runs daily via cron at `03:00 UTC`.
-
-### Manual Trigger for Emergency Backup
-```bash
-ssh ubuntu@footballclips-oracle "sudo bash /home/ubuntu/jarvis/scripts/backup_postgres.sh"
-```
+- **Dashboard**: `http://footballclips-oracle:5678` (Tailscale)
+- **Active Workflow**: `fcOpsMaintenance` running hourly at minute 7 (`7 * * * *`).
+- **Scope**: Validates backup existence, compacts old logs, verifies NVMe disk health.
 
 ---
 
-## 12. System Maintenance, Health Monitoring & Diagnostics
+## 12. Automated Disaster Recovery & Backblaze B2
 
-### Standard Service Health Check
-Run this single command from your local machine to check all 10 Docker containers:
+- **Nightly Backup**: Scheduled daily at `03:00 UTC` using `pg_dump` targeting `footballclips`.
+- **Retention**: 14 days rolling snapshots in `/home/ubuntu/jarvis/storage/cloud/Backups/`.
+- **Offsite Replication**: Synced to Backblaze B2 bucket (`footballclips-archives`) via `rclone`.
+
+---
+
+## 13. System Maintenance, Health Monitoring & Diagnostics
+
 ```powershell
+# Health check for all Docker containers
 ssh ubuntu@footballclips-oracle "docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
+
+# Check native Go daemon
+ssh ubuntu@footballclips-oracle "sudo systemctl status fc-daemon"
 ```
-
-### Checking Container Logs
-```bash
-# PostgREST logs
-ssh ubuntu@footballclips-oracle "docker logs --tail 50 jarvis-postgrest"
-
-# PostgreSQL engine logs
-ssh ubuntu@footballclips-oracle "docker logs --tail 50 jarvis-postgres"
-
-# Caddy web server logs
-ssh ubuntu@footballclips-oracle "docker logs --tail 50 jarvis-caddy"
-```
-
-### Oracle Cloud Anti-Idle Shield Status
-Oracle Cloud reclaims Always Free instances if CPU utilization stays under 15% for 7 days. Our background `jarvis-oracle-shield` container continuously maintains harmless synthetic activity:
-```bash
-ssh ubuntu@footballclips-oracle "docker logs jarvis-oracle-shield"
-```
-
-### 12.4 Zero-Spend Financial Guardrail ($1.00 Alert)
-An automated financial safety circuit is active at the tenancy control plane level:
-- **Budget Name**: `Zero-Spend-Shield` (Monthly target: `$1.00`)
-- **Actual Spend Alert**: Fires if actual tenancy billable usage reaches `$1.00`
-- **Forecasted Spend Alert**: Fires if projected monthly usage reaches `$1.00`
-- **Notification Target**: `dirzaaulia11@gmail.com`
-- **Budget ID**: `ocid1.budget.oc1.ap-batam-1.amaaaaaa6bzpczyak337e5s5aendvweist2yfzsiuuhvs72drr3fxgmtvn5q`
-- **Management Script**: `python scripts/create_oci_budget.py`

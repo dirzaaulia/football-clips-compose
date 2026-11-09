@@ -10,3 +10,6 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+# Keep BuildConfig fields for runtime environment detection (Release Track, Version Name)
+-keep class com.dirzaaulia.footballclips.BuildConfig { *; }

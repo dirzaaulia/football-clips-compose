@@ -9,8 +9,15 @@ from worker.clients.database_client import db_client
 from worker.clients.edge_cache_client import edge_cache_client
 from worker.clients.youtube_client import youtube_client
 from worker.config.settings import settings
-from worker.services.highlight.cooldown import should_check_youtube_for_match, sort_unlinked_matches_by_priority
-from worker.services.highlight.filters import get_worldwide_watchability_score
+from worker.services.highlight.cooldown import (
+    is_backlog_safe_exhausted,
+    should_check_youtube_for_match,
+    sort_unlinked_matches_by_priority,
+)
+from worker.services.highlight.filters import (
+    get_worldwide_watchability_score,
+    is_target_market_catered,
+)
 from worker.services.notification_service import notification_service
 from worker.utils.telemetry_logger import append_event
 
@@ -182,11 +189,39 @@ class BatchCoordinator:
                         db_client.table("matches").update({"last_youtube_check": now_iso}).eq("id", match["id"]).execute()
                         continue
 
-                    update_data = {"highlight_video_id": vid, "last_youtube_check": now_iso}
+                    current_reg = match.get("youtube_region_info") or {}
+                    if isinstance(current_reg, str):
+                        try:
+                            current_reg = json.loads(current_reg)
+                        except Exception:
+                            current_reg = {}
+                    sweep_count = (current_reg.get("sweep_count") or 0) + 1
+
+                    if reg is None:
+                        reg = {}
+                    reg["sweep_count"] = sweep_count
+
+                    watchability = get_worldwide_watchability_score(reg)
+                    target_catered = is_target_market_catered(reg)
+
+                    if not target_catered or watchability < 99.0:
+                        exhausted, exhaust_reason = is_backlog_safe_exhausted(match, now_utc, sweep_count=sweep_count)
+                        if exhausted:
+                            reg["target_market_exhausted"] = True
+                            reg["terminal"] = True
+                            reg["exhausted_reason"] = exhaust_reason
+                            append_event(
+                                log_events,
+                                f"   [MARKET EXHAUSTED] {match.get('home_team_name')} vs {match.get('away_team_name')} marked exhausted ({exhaust_reason}).",
+                                "INFO",
+                                "YOUTUBE",
+                                "TARGET_MARKET_EXHAUSTED",
+                                match_id=match["id"],
+                            )
+
+                    update_data = {"highlight_video_id": vid, "last_youtube_check": now_iso, "youtube_region_info": reg}
                     if backup_vid:
                         update_data["backup_highlight_video_id"] = backup_vid
-                    if reg is not None:
-                        update_data["youtube_region_info"] = reg
                     if backup_reg is not None:
                         update_data["backup_youtube_region_info"] = backup_reg
                     if highlight_videos:
@@ -218,18 +253,23 @@ class BatchCoordinator:
                     except Exception as e:
                         db_client.table("matches").update({"last_youtube_check": now_iso}).eq("id", match["id"]).execute()
                 else:
-                    is_terminal_cand = False
-                    try:
-                        m_time = datetime.fromisoformat(str(match.get("utc_date", "")).replace("Z", "+00:00"))
-                        if (now_utc - m_time).total_seconds() >= 7 * 86400:
-                            is_terminal_cand = True
-                    except Exception:
-                        pass
+                    current_reg = match.get("youtube_region_info") or {}
+                    if isinstance(current_reg, str):
+                        try:
+                            current_reg = json.loads(current_reg)
+                        except Exception:
+                            current_reg = {}
+                    sweep_count = (current_reg.get("sweep_count") or 0) + 1
 
-                    if is_terminal_cand:
-                        self.mark_match_unavailable(match, reason="NO_OFFICIAL_BROADCASTER", log_events=log_events)
+                    exhausted, exhaust_reason = is_backlog_safe_exhausted(match, now_utc, sweep_count=sweep_count)
+                    if exhausted:
+                        self.mark_match_unavailable(match, reason=f"NO_OFFICIAL_BROADCASTER ({exhaust_reason})", log_events=log_events)
                     else:
-                        db_client.table("matches").update({"last_youtube_check": now_iso}).eq("id", match["id"]).execute()
+                        current_reg["sweep_count"] = sweep_count
+                        db_client.table("matches").update({
+                            "last_youtube_check": now_iso,
+                            "youtube_region_info": current_reg,
+                        }).eq("id", match["id"]).execute()
             except Exception as e:
                 db_client.table("matches").update({"last_youtube_check": now_iso}).eq("id", match["id"]).execute()
 

@@ -1,0 +1,64 @@
+name: FootballClips Full-Stack CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-go:
+    name: Golang Core Micro-Daemon Suite
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: core-go
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache-dependency-path: core-go/go.sum
+      - name: Run Core-Go Unit & Parity Tests
+        run: go test -v ./...
+
+  web-suite:
+    name: Next.js 16 Web Suite & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: web/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Web Vitest Suite
+        run: npm run test
+      - name: Verify Web Next.js Build
+        run: npm run build
+
+  android-kmp:
+    name: Kotlin Multiplatform Compilation Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      - name: Verify Android & Compose Multiplatform Compilation
+        run: ./gradlew :composeApp:compileAndroidMain --no-daemon

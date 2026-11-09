@@ -167,13 +167,13 @@ internal fun MatchCentreEmbargoBanner() {
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Official Highlights In Processing",
+                    text = "Highlights Coming Soon",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFF59E0B),
                 )
                 Text(
-                    text = "Broadcaster post-match embargo is active. Highlights will be automatically available once official club channels publish.",
+                    text = "Official match highlights will be available here shortly.",
                     style = MaterialTheme.typography.bodySmall,
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -32,15 +32,30 @@ class YouTubeRSSClient:
         "media": "http://search.yahoo.com/mrss/",
     }
 
+    DEAD_CHANNEL_TTL_SECONDS = 7 * 86400.0
+
     def __init__(self):
         self.headers = {"Accept": "*/*"}
         self._rss_cache: dict[str, tuple[float, list[dict[str, Any]]]] = {}
+        self._dead_channels: dict[str, float] = {}
         self._http_client = httpx.Client(
             timeout=10.0,
             headers=self.headers,
             follow_redirects=True,
             limits=httpx.Limits(max_keepalive_connections=15, max_connections=30),
         )
+
+    def is_channel_dead(self, channel_id: str) -> bool:
+        """Returns True if the channel recently returned HTTP 404 or 410."""
+        if not channel_id:
+            return False
+        now = time.time()
+        expiry = self._dead_channels.get(channel_id)
+        if expiry and now < expiry:
+            return True
+        if expiry:
+            del self._dead_channels[channel_id]
+        return False
 
     def clear_cache(self):
         self._rss_cache.clear()
@@ -52,7 +67,7 @@ class YouTubeRSSClient:
         use_cache: bool = True,
     ) -> list[dict[str, Any]]:
         """Fetch the 15 most recent videos from a channel via RSS with 180s TTL caching."""
-        if not channel_id:
+        if not channel_id or self.is_channel_dead(channel_id):
             return []
 
         now = time.time()
@@ -64,6 +79,10 @@ class YouTubeRSSClient:
         url = f"{self.RSS_BASE_URL}?channel_id={channel_id}"
         try:
             resp = self._http_client.get(url, timeout=timeout_seconds)
+            if resp.status_code in (404, 410):
+                self._dead_channels[channel_id] = now + self.DEAD_CHANNEL_TTL_SECONDS
+                logger.warning(f"[YouTube RSS] Channel {channel_id} returned HTTP {resp.status_code}. Blacklisting for 7 days.")
+                return []
             if resp.status_code != 200:
                 logger.warning(f"[YouTube RSS] Failed to fetch feed for {channel_id}: HTTP {resp.status_code}")
                 return []

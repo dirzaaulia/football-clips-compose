@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -43,6 +44,7 @@ internal fun MatchCentreTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .then(if (!isSideSheet) Modifier.statusBarsPadding() else Modifier)
             .padding(
                 horizontal = if (isSideSheet) 20.dp else 12.dp,
                 vertical = if (isSideSheet) 12.dp else 6.dp,
@@ -50,75 +52,116 @@ internal fun MatchCentreTopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (!isSideSheet) {
-                IconButton(onClick = onDismiss) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                    )
-                }
-            }
-            Text(
-                "Match Centre",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            if (isLive) {
-                Surface(
-                    color = Color(0xFFEF4444).copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(6.dp),
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(5.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFEF4444)),
-                        )
-                        Text(
-                            text = "LIVE",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFEF4444),
-                        )
-                    }
-                }
+        MatchCentreTitleGroup(
+            isSideSheet = isSideSheet,
+            isLive = isLive,
+            onDismiss = onDismiss,
+        )
+        MatchCentreActionGroup(
+            currentMatchObj = currentMatchObj,
+            isLive = isLive,
+            isRefreshing = isRefreshing,
+            videoId = videoId,
+            isSideSheet = isSideSheet,
+            onRefreshMatch = onRefreshMatch,
+            onMinimize = onMinimize,
+            onDismiss = onDismiss,
+        )
+    }
+}
+
+@Composable
+private fun MatchCentreTitleGroup(
+    isSideSheet: Boolean,
+    isLive: Boolean,
+    onDismiss: () -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (!isSideSheet) {
+            IconButton(onClick = onDismiss) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                )
             }
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (currentMatchObj != null) {
-                IconButton(
-                    onClick = onRefreshMatch,
-                    enabled = !isRefreshing,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Refresh Match Data",
-                        tint = if (isLive) Color(0xFFEF4444) else MaterialTheme.colorScheme.primary,
-                    )
-                }
+        Text(
+            "Match Centre",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+        )
+        if (isLive) {
+            MatchCentreLiveBadge()
+        }
+    }
+}
+
+@Composable
+private fun MatchCentreLiveBadge() {
+    Surface(
+        color = Color(0xFFEF4444).copy(alpha = 0.15f),
+        shape = RoundedCornerShape(6.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(5.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFEF4444)),
+            )
+            Text(
+                text = "LIVE",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFEF4444),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MatchCentreActionGroup(
+    currentMatchObj: Match?,
+    isLive: Boolean,
+    isRefreshing: Boolean,
+    videoId: String?,
+    isSideSheet: Boolean,
+    onRefreshMatch: () -> Unit,
+    onMinimize: (() -> Unit)?,
+    onDismiss: () -> Unit,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (currentMatchObj != null) {
+            IconButton(
+                onClick = onRefreshMatch,
+                enabled = !isRefreshing,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = "Refresh Match Data",
+                    tint = if (isLive) Color(0xFFEF4444) else MaterialTheme.colorScheme.primary,
+                )
             }
-            if (onMinimize != null && videoId != null) {
-                IconButton(onClick = onMinimize) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Minimize Player",
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
+        }
+        if (onMinimize != null && videoId != null) {
+            IconButton(onClick = onMinimize) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = "Minimize Player",
+                    tint = MaterialTheme.colorScheme.primary,
+                )
             }
-            if (isSideSheet) {
-                IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Close")
-                }
+        }
+        if (isSideSheet) {
+            IconButton(onClick = onDismiss) {
+                Icon(Icons.Default.Close, contentDescription = "Close")
             }
         }
     }

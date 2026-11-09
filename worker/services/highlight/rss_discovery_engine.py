@@ -67,6 +67,18 @@ def fetch_channel_uploads(
         )
         return raw_items, source_mode
 
+    if youtube_rss_client.is_channel_dead(c_id):
+        append_event(
+            log_events,
+            f"   [CHANNEL DEAD] Channel {handle} ({c_id}) returned 404/410 previously; skipping playlist fetch",
+            "INFO",
+            "YOUTUBE",
+            "CHANNEL_DEAD",
+            match_id=match_id,
+            attributes={"scanned_videos": [], "channel": handle},
+        )
+        return [], source_mode
+
     if safe_quota >= 10:
         source_mode = "api_playlist"
         raw_items = youtube_client.get_playlist_recent_videos(c_id, max_results=scan_limit) or []
@@ -105,6 +117,18 @@ def run_api_search_fallback(
     log_events: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     """Executes targeted YouTube Data API search fallback when RSS discovery yields 0 matches."""
+    if youtube_rss_client.is_channel_dead(c_id):
+        append_event(
+            log_events,
+            f"   [API SEARCH SKIPPED] Channel {handle} ({c_id}) is marked dead (404/410), skipping API search",
+            "WARN",
+            "YOUTUBE",
+            "DEAD_CHANNEL_SKIP",
+            match_id=match_id,
+            attributes={"channel": handle, "channel_id": c_id},
+        )
+        return []
+
     api_search_items = youtube_client.search_videos(query, c_id, pub_after, pub_before) or []
     api_scanned_summary = [
         {

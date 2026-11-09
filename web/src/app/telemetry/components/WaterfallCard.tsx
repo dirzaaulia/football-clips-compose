@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import {
   ChevronDown, ChevronUp, CheckCircle, Clock, AlertTriangle,
-  Copy, Check, Calendar, ChevronLeft, ChevronRight,
+  Copy, Check, Calendar, ChevronLeft, ChevronRight, RotateCcw, Loader2,
 } from 'lucide-react';
 import { MatchWaterfall } from '../types';
 import { WaterfallSteps } from './WaterfallSteps';
 import { ManualOverrideModal } from './ManualOverrideModal';
+import { database } from '@/lib/database';
 
 interface WaterfallCardProps {
   waterfall: MatchWaterfall;
@@ -18,6 +19,8 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
   const [isOpen, setIsOpen] = useState(false);
   const [isOverrideOpen, setIsOverrideOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isReSearching, setIsReSearching] = useState(false);
+  const [isReset, setIsReset] = useState(false);
   const [selectedCycleIdx, setSelectedCycleIdx] = useState(0);
 
   const cycles = waterfall.cycles && waterfall.cycles.length > 0
@@ -37,8 +40,8 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
       }];
 
   const activeCycle = cycles[selectedCycleIdx] || cycles[0];
-  const isLinked = activeCycle.status === 'LINKED' || (selectedCycleIdx === 0 && waterfall.status === 'LINKED');
-  const isCooldown = activeCycle.status === 'COOLDOWN';
+  const isLinked = !isReset && (activeCycle.status === 'LINKED' || (selectedCycleIdx === 0 && waterfall.status === 'LINKED'));
+  const isCooldown = !isReset && activeCycle.status === 'COOLDOWN';
 
   const handleCopyCardJson = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -47,7 +50,42 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const statusBadge = isLinked ? (
+  const handleReSearch = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isReSearching) return;
+    setIsReSearching(true);
+    try {
+      const { error } = await database
+        .from('matches')
+        .update({
+          highlight_video_id: null,
+          highlight_videos: [],
+          last_youtube_check: null,
+          youtube_region_info: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', waterfall.matchId);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      fetch('https://edge.fc.dirzaaulia.com/api/purge-cache', { method: 'POST' }).catch(() => {});
+      setIsReset(true);
+      if (onOverrideSuccess) onOverrideSuccess();
+    } catch (err) {
+      console.error('Failed to queue re-search:', err);
+    } finally {
+      setIsReSearching(false);
+    }
+  };
+
+  const statusBadge = isReset ? (
+    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30">
+      <Clock className="w-3.5 h-3.5" />
+      DUE NOW
+    </span>
+  ) : isLinked ? (
     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
       <CheckCircle className="w-3.5 h-3.5" />
       LINKED
@@ -61,6 +99,23 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-500/15 text-slate-400 border border-slate-500/30">
       <AlertTriangle className="w-3.5 h-3.5" />
       {activeCycle.status}
+    </span>
+  );
+
+  const sourceBadge = isLinked && (waterfall.ingestionSource || activeCycle.ingestionSource) && (
+    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border flex items-center gap-1 ${
+      (waterfall.ingestionSource || activeCycle.ingestionSource) === 'WEBSUB'
+        ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+        : (waterfall.ingestionSource || activeCycle.ingestionSource) === 'RSS'
+        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+        : (waterfall.ingestionSource || activeCycle.ingestionSource) === 'API'
+        ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
+        : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+    }`} title={`Ingestion Source: ${waterfall.ingestionSource || activeCycle.ingestionSource}`}>
+      {(waterfall.ingestionSource || activeCycle.ingestionSource) === 'WEBSUB' && '⚡ WebSub'}
+      {(waterfall.ingestionSource || activeCycle.ingestionSource) === 'RSS' && '📡 RSS Feed'}
+      {(waterfall.ingestionSource || activeCycle.ingestionSource) === 'API' && '🔑 YouTube API'}
+      {(waterfall.ingestionSource || activeCycle.ingestionSource) === 'MANUAL' && '👤 Manual'}
     </span>
   );
 
@@ -93,19 +148,19 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
                 {waterfall.date}
               </span>
             )}
-            {activeCycle.timestamp && (
-              <span className="px-1.5 py-0.5 rounded bg-slate-800/80 text-blue-400 border border-blue-500/20 text-[10px] font-semibold">
-                🕒 {activeCycle.timestamp}
-              </span>
-            )}
+            {sourceBadge}
             {isLinked && (waterfall.linkedChannelHandle || activeCycle.linkedChannelHandle) && (
               <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 text-[10px] font-semibold">
                 {waterfall.linkedChannelHandle || activeCycle.linkedChannelHandle} · {waterfall.linkedChannelTier || activeCycle.linkedChannelTier || 'Official Channel'}
               </span>
             )}
-            {isLinked && (waterfall.worldwideAvailabilityText || activeCycle.worldwideAvailabilityText) && (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold">
-                🌍 {waterfall.worldwideAvailabilityText || activeCycle.worldwideAvailabilityText}
+            {isLinked && (waterfall.cumulativeAvailability?.text || waterfall.worldwideAvailabilityText || activeCycle.worldwideAvailabilityText) && (
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                waterfall.cumulativeAvailability?.targetMarketsStatus === 'ALL_COVERED' || (waterfall.worldwidePercentage ?? 0) >= 90
+                  ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                  : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+              }`}>
+                🌍 {waterfall.cumulativeAvailability?.text || waterfall.worldwideAvailabilityText || activeCycle.worldwideAvailabilityText}
               </span>
             )}
           </div>
@@ -113,13 +168,27 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
 
         <div className="flex items-center gap-2.5 shrink-0">
           <button
+            onClick={handleReSearch}
+            disabled={isReSearching}
+            title="Reset highlight and add back to search backlog"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-amber-500/10 transition border border-slate-800/80 disabled:opacity-50"
+          >
+            {isReSearching ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+            ) : isReset ? (
+              <Check className="w-3.5 h-3.5 text-emerald-400" />
+            ) : (
+              <RotateCcw className="w-3.5 h-3.5" />
+            )}
+          </button>
+          <button
             onClick={handleCopyCardJson}
             title="Copy this match's trace JSON"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition border border-slate-800/80"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
-          {!isLinked && (activeCycle.nextCycleEta || waterfall.nextCycleEta) && (
+          {!isLinked && !isReset && (activeCycle.nextCycleEta || waterfall.nextCycleEta) && (
             <span
               className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0"
               title={activeCycle.nextCycleTimestamp || waterfall.nextCycleTimestamp}
@@ -178,6 +247,7 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
             cycle={activeCycle}
             matchId={waterfall.matchId}
             matchTitle={waterfall.title}
+            waterfall={waterfall}
             onOpenOverride={() => setIsOverrideOpen(true)}
           />
         </div>

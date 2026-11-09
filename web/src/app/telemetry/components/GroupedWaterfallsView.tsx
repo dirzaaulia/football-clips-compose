@@ -58,7 +58,28 @@ export function GroupedWaterfallsView({ groups, onOverrideSuccess }: GroupedWate
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      {/* Ingestion Source Legend */}
+      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 flex-wrap gap-2">
+        <div className="flex items-center gap-1.5 font-semibold text-slate-300">
+          <span>Highlight Discovery Sources:</span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold">
+            ⚡ WebSub Push <span className="text-[10px] text-amber-400/70">(Instant Push)</span>
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold">
+            📡 RSS Feed <span className="text-[10px] text-emerald-400/70">(0 Quota Channel Scan)</span>
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 font-semibold">
+            🔑 YouTube API <span className="text-[10px] text-sky-400/70">(Tiered Search Quota)</span>
+          </span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30 font-semibold">
+            👤 Manual <span className="text-[10px] text-purple-400/70">(Operator Override)</span>
+          </span>
+        </div>
+      </div>
+
       {groups.map((group) => {
         const isWeekExpanded = expandedWeeks.has(group.monthWeekKey);
         const totalMatches = group.competitions.reduce((acc, c) => acc + c.matches.length, 0);

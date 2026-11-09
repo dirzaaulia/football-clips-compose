@@ -5,13 +5,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.domain.model.Match
+import com.dirzaaulia.footballclips.util.shareText
 
 @Composable
 fun MatchCentreHero(
@@ -65,6 +72,8 @@ fun MatchCentreHero(
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
+            MatchCentreHeroShareButton(match = match)
+
             MatchCentreHeroFooter(
                 match = match,
                 isFinished = isFinished,
@@ -74,6 +83,36 @@ fun MatchCentreHero(
                 MatchCentreEmbargoBanner()
             }
         }
+    }
+}
+
+@Composable
+private fun MatchCentreHeroShareButton(match: Match) {
+    FilledTonalButton(
+        onClick = {
+            shareText(
+                title = "${match.homeTeamName} vs ${match.awayTeamName}",
+                text = "Watch ${match.homeTeamName} vs ${match.awayTeamName} on FootballClips!",
+                url = "https://fc.dirzaaulia.com/match/${match.id}",
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(44.dp),
+        shape = RoundedCornerShape(12.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Default.Share,
+            contentDescription = "Share Match",
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = "Share Match",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+        )
     }
 }
 
@@ -106,7 +145,7 @@ private fun MatchCentreHeroFooter(
 
         if (isFinished && match.highlightVideoId.isNullOrBlank()) {
             Text(
-                text = "Embargo Active",
+                text = "Highlights Coming Soon",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFF59E0B),

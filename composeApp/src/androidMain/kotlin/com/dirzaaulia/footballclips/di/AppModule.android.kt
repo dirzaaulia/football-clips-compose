@@ -7,6 +7,7 @@ import com.dirzaaulia.footballclips.data.billing.AndroidBillingManager
 import com.dirzaaulia.footballclips.data.local.PreferenceManager
 import com.dirzaaulia.footballclips.data.notification.AndroidNotificationTopicManager
 import com.dirzaaulia.footballclips.data.notification.NotificationTopicManager
+import com.dirzaaulia.footballclips.util.VoiceCommentaryManager
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -20,6 +21,7 @@ actual val platformModule: Module = module {
     single { PreferenceManager(androidContext(), getOrNull(), getOrNull(), getOrNull()) }
     single<BillingManager> { AndroidBillingManager(androidContext()) }
     single { AdMobManager(androidContext()) }
+    single { VoiceCommentaryManager(androidContext()) }
     single<NotificationTopicManager> { AndroidNotificationTopicManager() }
     single<HttpClient> {
         HttpClient(OkHttp) {

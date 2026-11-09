@@ -46,6 +46,7 @@ import com.dirzaaulia.footballclips.domain.model.PitchPlay
 fun PitchRadarDeck(
     plays: List<PitchPlay>,
     modifier: Modifier = Modifier,
+    onPlaySelected: ((PitchPlay) -> Unit)? = null,
 ) {
     var selectedPlay by remember(plays) { mutableStateOf(plays.lastOrNull()) }
 
@@ -68,7 +69,10 @@ fun PitchRadarDeck(
         PitchEventChips(
             plays = plays,
             selectedPlay = selectedPlay,
-            onSelect = { selectedPlay = it },
+            onSelect = {
+                selectedPlay = it
+                onPlaySelected?.invoke(it)
+            },
         )
     }
 }

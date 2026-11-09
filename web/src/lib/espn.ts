@@ -11,6 +11,11 @@ export const ESPN_COMPETITION_SLUGS: Record<string, string> = {
   MLS: 'usa.1',
   DED: 'ned.1',
   PPL: 'por.1',
+  FAC: 'eng.fa',
+  CDR: 'esp.copa_del_rey',
+  DFB: 'ger.dfb_pokal',
+  CI: 'ita.coppa_italia',
+  CDF: 'fra.coupe_de_france',
 };
 
 export interface MatchEvent {
@@ -52,10 +57,15 @@ export async function fetchEspnMatchSummary(
   competitionCode?: string,
   isLive: boolean = false
 ): Promise<EspnSummaryResult | null> {
+  // ESPN API restricts direct browser CORS requests; skip in browser to avoid network errors
+  if (typeof window !== 'undefined') {
+    return null;
+  }
+
   const primarySlug = competitionCode ? ESPN_COMPETITION_SLUGS[competitionCode.toUpperCase()] : undefined;
   const slugsToTry = primarySlug
     ? [primarySlug]
-    : ['uefa.champions', 'uefa.europa', 'eng.1', 'esp.1', 'ita.1', 'ger.1', 'fra.1', 'ksa.1', 'usa.1', 'ned.1', 'por.1'];
+    : ['uefa.champions', 'uefa.europa', 'eng.1', 'esp.1', 'ita.1', 'ger.1', 'fra.1', 'ksa.1', 'usa.1', 'ned.1', 'por.1', 'eng.fa'];
 
   for (const slug of slugsToTry) {
     try {

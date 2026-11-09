@@ -1,12 +1,14 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import {
   Eye,
   EyeOff,
   Gem,
   CheckCircle2,
   Smartphone,
+  Activity,
 } from 'lucide-react';
 
 interface SidebarBottomControlsProps {
@@ -86,7 +88,14 @@ export default function SidebarBottomControls({
 
       {/* Collapsed vs Expanded Utility Row */}
       {isCollapsed ? (
-        <div className="pt-1 border-t border-[#334155]/40 w-full flex flex-col items-center">
+        <div className="pt-1.5 border-t border-[#334155]/40 w-full flex flex-col items-center gap-1.5">
+          <Link
+            href="/telemetry"
+            title="Telemetry Ops Hub"
+            className="w-10 h-10 rounded-xl bg-[#181C20] hover:bg-[#1E2227] text-[#94A3B8] hover:text-emerald-400 border border-[#334155] transition-all flex items-center justify-center cursor-pointer"
+          >
+            <Activity className="w-4 h-4 text-emerald-400" />
+          </Link>
           <a
             href="https://play.google.com/store/apps/details?id=com.dirzaaulia.footballclips"
             target="_blank"
@@ -98,15 +107,24 @@ export default function SidebarBottomControls({
           </a>
         </div>
       ) : (
-        <div className="pt-1.5 border-t border-[#334155]/40 flex items-center justify-between text-xs text-[#94A3B8]">
+        <div className="pt-2 border-t border-[#334155]/40 flex items-center justify-between text-xs text-[#94A3B8]">
+          <Link
+            href="/telemetry"
+            title="Telemetry Ops Hub"
+            className="inline-flex items-center gap-1.5 hover:text-emerald-400 transition-colors py-0.5 group"
+          >
+            <Activity className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+            <span className="text-[11px] font-bold">Telemetry</span>
+          </Link>
+
           <a
             href="https://play.google.com/store/apps/details?id=com.dirzaaulia.footballclips"
             target="_blank"
             rel="noopener noreferrer"
             title="Get Android App on Google Play"
-            className="inline-flex items-center gap-1.5 hover:text-[#7098F8] transition-colors py-0.5"
+            className="inline-flex items-center gap-1.5 hover:text-[#7098F8] transition-colors py-0.5 group"
           >
-            <Smartphone className="w-3.5 h-3.5 text-[#7098F8]" />
+            <Smartphone className="w-3.5 h-3.5 text-[#7098F8] group-hover:scale-110 transition-transform" />
             <span className="text-[11px] font-bold">Android App</span>
           </a>
         </div>

@@ -13,6 +13,26 @@ export function CandidateCard({ verdict }: CandidateCardProps) {
   const borderColor = isAccepted ? 'border-emerald-500/40 bg-emerald-950/20' : 'border-rose-500/30 bg-rose-950/15';
   const badgeColor = isAccepted ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30';
 
+  const source = verdict.source ? verdict.source.toUpperCase() : 'RSS';
+  let sourceBadge = (
+    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-sky-500/15 text-sky-400 border border-sky-500/30">
+      Zero-Quota RSS
+    </span>
+  );
+  if (source.includes('WEBSUB')) {
+    sourceBadge = (
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/30">
+        WebSub Push
+      </span>
+    );
+  } else if (source.includes('API')) {
+    sourceBadge = (
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/15 text-amber-400 border border-amber-500/30">
+        YouTube Data API
+      </span>
+    );
+  }
+
   return (
     <div className={`flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border ${borderColor} transition-all duration-150 gap-2.5 my-1.5`}>
       <div className="flex flex-col gap-1 min-w-0 flex-1">
@@ -21,6 +41,7 @@ export function CandidateCard({ verdict }: CandidateCardProps) {
             {isAccepted ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
             {isAccepted ? 'Accepted' : 'Rejected'}
           </span>
+          {sourceBadge}
           <span className="text-xs font-mono font-semibold text-slate-300">
             Candidate #{verdict.index}: {verdict.channel}
           </span>

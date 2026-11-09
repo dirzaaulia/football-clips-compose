@@ -1,94 +1,111 @@
-# FootballClips Backend Architecture & Engineering Standards
+# ⚽ FootballClips Backend Architecture & Hexagonal Engineering Standards
 
 ## 1. Architectural Philosophy
-FootballClips backend is an **AI-driven Data Extraction, Aggregation, and Media Verification Engine**. 
-Rather than viewing it as loose scripts, it follows **Hexagonal Clean Architecture** principles paired with **Event-Driven Task Execution**.
+The FootballClips backend is an **Autonomous Football Operations Micro-Daemon & Media Verification Engine** written in **Golang 1.23+**. 
+It operates under strict **Hexagonal Clean Architecture (Ports & Adapters)** principles paired with **Event-Driven Task Execution**, running natively on an **Oracle Cloud Always Free ARM64 Ampere Super-Node** as a lightweight systemd daemon (`fc-daemon`).
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                              API Adapters                              │
-│       [FastAPI Webhooks]       [Cloud Tasks]       [Cloud Scheduler]   │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                         Application Use Cases                          │
-│   • FindMatchHighlightUseCase             • IngestLiveMatchesUseCase   │
-│   • EvaluateCandidateVideosUseCase        • RenewWebsubUseCase         │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                          Pure Domain Entities                          │
-│   • MatchFixture (Pydantic v2)           • CandidateVideo (Pydantic)   │
-│   • CandidateEvaluation (Pydantic)       • Mathematical Scorer         │
-│   • Multilingual Normalizer              • 4-Tier Cooldown Guardrails  │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                          Outbound Adapters                             │
-│   • YouTube Data API / RSS Adapter       • Oracle VM AI Gateway (LLM)  │
-│   • ESPN Live Match Adapter              • PostgreSQL 16 via PostgREST │
-└────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Inbound["📥 Inbound Drivers & Triggers"]
+        WebSubPush["WebSub Push Hub (:8094/websub/callback)"]
+        CronLive["60s Live Match Ticker"]
+        CronHighlights["5m Finished Highlight Ticker"]
+        CronShorts["30m Shorts Ingestion Ticker"]
+        CronWebsub["12h WebSub Renewal Ticker"]
+    end
+
+    subgraph CoreEngine["⚡ Go Core Micro-Daemon (core-go)"]
+        subgraph UseCases["Application Use Cases (usecases/)"]
+            SyncLiveUC["SyncLiveMatchesUseCase"]
+            DiscoverHighUC["DiscoverHighlightsUseCase"]
+            IngestShortsUC["IngestShortsUseCase"]
+            RenewWebsubUC["RenewWebsubSubscriptionsUseCase"]
+        end
+
+        subgraph DomainLayer["Pure Domain Entities & Policies (domain/)"]
+            MatchFixture["MatchFixture (Contract Model)"]
+            CandidateVideo["CandidateVideo & Evaluation"]
+            ShortsCandidate["ShortsCandidate & Hype Scoring"]
+            GeoPolicy["Target Market Geo-Cutoff (geo.go)"]
+            CooldownRules["4-Tier Quota Cooldown Matrix"]
+        end
+    end
+
+    subgraph Outbound["📤 Outbound Adapters (adapters/)"]
+        PostgresAdapter["PostgreSQL 16 (pgx/v5 Pool)"]
+        ESPNAdapter["ESPN Match & Live Score API"]
+        YTRssAdapter["YouTube Atom XML RSS (0 Quota)"]
+        YTApiAdapter["YouTube Data API v3 (Quota-Guarded)"]
+        AIGWAdapter["AI Gateway / Ollama ARM64"]
+        FCMAdapter["Firebase Cloud Messaging (FCM v1)"]
+        EdgePurgeAdapter["Edge Cache Invalidation"]
+    end
+
+    Inbound --> UseCases
+    UseCases --> DomainLayer
+    UseCases --> Outbound
+    PostgresAdapter -->|"Store Matches & Shorts"| PostgreSQL[(PostgreSQL 16 Engine)]
+    PostgreSQL -->|"Auto REST Tier"| PostgREST["PostgREST 12 Tier"]
+    PostgREST -->|"HTTPS Reverse Proxy"| Caddy["Caddy 2 (edge.fc.dirzaaulia.com)"]
 ```
 
 ---
 
 ## 2. Core Components & Responsibilities
 
-### A. Domain Layer (`worker/domain/` & `worker/services/highlight/`)
-* **`normalizer.py`**: Transliterates non-ASCII characters, Germanic umlauts (`ä` $\rightarrow$ `ae`), Nordic characters (`ø` $\rightarrow$ `oe`), Arabic club names, and canonical club aliases (`Manchester United` $\rightarrow$ `man utd`).
-* **`filters.py`**: Eliminates non-highlights (press conferences, training sessions, full matches, fan reactions) and computes worldwide watchability percentages across 249 countries.
-* **`scorer.py`**: Mathematical scoring matrix:
-  * Official channel bonus: $+45\text{ to }+65$
-  * Target keywords: $+35$
-  * Scoreline match: $+40$
-  * Upload decay penalty: $-10\text{ to }-35$
-  * Instant rejection: $-100$ if neither team matches.
-* **`cooldown.py`**: 4-Tier Quota Guardrail protecting unlinked matches from premature re-scraping:
-  * **Tier 1 (30m after FT)**: First official upload wave.
+### A. Pure Domain Layer (`core-go/domain/`)
+* **`models.go`**: Strictly typed contract models matching PostgREST and Android CMP schemas (`MatchFixture`, `Competition`, `CandidateVideo`, `CandidateEvaluation`, `ShortsCandidate`, `ExecutionLog`). Zero untyped `map[string]any` dictionary passing.
+* **`geo.go`**: Target Market Geo-Cutoff logic:
+  * Computes worldwide watchability percentage across 249 ISO country codes.
+  * `IsTargetMarketCatered`: Verifies whether country-restricted broadcaster videos cater to either the participating clubs' domestic markets or global football viewers.
+  * `CheckMatchTargetMarketCutoff`: Flags matches when verified coverage reaches target thresholds, halting redundant YouTube API quota consumption.
+* **`cooldown.go`**: 4-Tier Quota Guardrail protecting unlinked matches from premature re-scraping:
+  * **Tier 1 (30m after FT)**: First official upload wave (Official Club channels).
   * **Tier 2 (2h after FT)**: Secondary broadcaster uploads.
   * **Tier 3 (6h after FT)**: Continental and international highlights.
   * **Tier 4 (24h after FT)**: Permanent fallback or terminal UNAVAILABLE marking.
 
-### B. Use Cases (`worker/use_cases/`)
-* **`FindMatchHighlightUseCase`**:
-  * Receives an isolated `match_id`.
-  * Checks cooldown & circuit breaker.
-  * Queries official club, league, and broadcaster channels (RSS first, YouTube API second).
-  * Evaluates candidates with Oracle VM AI Gateway (DeepSeek-Coder / Qwen 2.5) with Gemini Flash fallback.
-  * Emits structured waterfall diagnostics and persists the verified video ID to PostgreSQL.
-
-### C. The Visual Waterfall Diagnostics
-Every highlight search produces a complete, millisecond-accurate audit tree:
-1. **Match Information**: Match ID, Teams, Kickoff, Status, and Score.
-2. **Channel Dispatch**: Official targets queried and API quota units consumed.
-3. **Candidate Inspection**:
-   * Video Title, Channel Handle, Duration, Upload Age, and Thumbnail.
-   * AI Reranking Verdict:
-     * `ACCEPTED`: Score and exact AI justification.
-     * `REJECTED`: Score and specific reason (e.g. "press conference", "wrong match").
-4. **Outcome**: Final YouTube Video ID linked, duration, and worldwide availability %.
+### B. Application Use Cases (`core-go/usecases/`)
+* **`SyncLiveMatchesUseCase`**:
+  * Runs every 60 seconds on Oracle VM.
+  * Fetches live match states from ESPN API without persisting bulky statistics to database.
+  * Detects kickoff transitions (`SCHEDULED` $\rightarrow$ `IN_PLAY`), score changes, and final whistles (`FINISHED`).
+  * Emits push alerts via FCM to subscribed club supporters.
+* **`DiscoverHighlightsUseCase`**:
+  * Receives finished matches and streams candidate videos via multi-tier discovery:
+    1. **Tier 1 (Official League Channel)**: e.g. Premier League, Serie A official YouTube.
+    2. **Tier 2 (Club Official Channels)**: Official channels of home & away teams.
+    3. **Tier 3 (Licensed Broadcasters)**: Official regional rights holders strictly matched to competition.
+  * Evaluates candidates using Oracle VM AI Gateway (DeepSeek-Coder / Qwen 2.5 on ARM64) with deterministic fallback scoring.
+  * Links verified YouTube video ID, logs execution trace, and purges edge caches.
+* **`IngestShortsUseCase`**:
+  * Rotates through all 530+ supported clubs in batches of 50 via round-robin polling.
+  * Extracts vertical 9:16 football shorts from public Atom XML RSS feeds at **zero YouTube Data API quota cost**.
+  * Computes dynamic **Hype Score (10–100)** based on club tier, derby status, and freshness.
+* **`RenewWebsubSubscriptionsUseCase`**:
+  * Proactively renews PubSubHubbub leases every 12 hours with Google's hub (`https://pubsubhubbub.appspot.com/subscribe`).
 
 ---
 
-## 3. Technology Stack & Why It Was Chosen
+## 3. Technology Stack & Operational Rationale
 
-| Technology | Role | Why It Was Chosen |
+| Layer / Technology | Component | Operational Rationale |
 | :--- | :--- | :--- |
-| **Python 3.13** | Backend Runtime | World-standard ecosystem for LLMs, prompt engineering, text normalization, and web scraping. |
-| **Pydantic v2** | Domain & Data Validation | Compiled in **Rust** (`pydantic-core`), providing strict compile-time-like validation at native speeds. Zero untyped dictionary bugs. |
-| **FastAPI** | HTTP Microservice | High-performance asynchronous non-blocking I/O with automatic OpenAPI specs. |
-| **Google Cloud Tasks** | Distributed Work Queue | Provides Android `WorkManager`-like per-match fault isolation, rate limiting, and exponential retries at **$0.00 cost** (1M operations/mo free). |
-| **PostgreSQL 16 & PostgREST** | Primary Datastore & REST Layer | ACID-compliant relational storage on Oracle VM Cloud with instant REST endpoints. |
-| **Compose Multiplatform** | Client UI (Android Native) | Shared declarative UI and state orchestration across Android Native (`composeApp`). |
-| **Next.js 16 & React 19** | Web Portal & Telemetry Hub | High-performance App Router with Tailwind CSS, `@xyflow/react` pipeline graphs, ECharts, and real-time waterfall telemetry. |
+| **Go 1.23+** | Micro-Daemon (`fc-daemon`) | Native compilation to Linux ARM64, single binary deployment, minimal memory footprint (<20MB RAM vs 300MB Python), zero GC latency spikes. |
+| **`pgx/v5`** | PostgreSQL Driver | Direct binary wire protocol communication with PostgreSQL 16, integrated connection pooling (`pgxpool`), and parameterized SQL safety. |
+| **PostgreSQL 16** | Core Datastore | ACID-compliant relational datastore on NVMe storage with immutable archive protection (`protect_archive_matches`). |
+| **PostgREST 12** | Universal REST API | Exposes PostgreSQL tables directly over HTTP with declarative querying, eliminating duplicate API controller code. |
+| **Caddy 2** | Edge Reverse Proxy | Automatic TLS certificate management via Let's Encrypt, request header sanitization (`header_up -Authorization`), and routing to PostgREST. |
+| **Ollama / AI Gateway** | Reranking Engine | On-premise LLMs (Qwen 2.5 Coder 7B, DeepSeek Coder 16B) running on Oracle Ampere A1 cores at **$0.00 inference cost**. |
+| **FCM HTTP v1** | Push Notifications | Direct Google OAuth2-authenticated push notifications dispatched to Android devices for favorite club kickoff and highlight events. |
 
 ---
 
-## 4. Best Practices for Developers & AI Agents
-1. **Never use raw `dict` lookups**: Always instantiate a Pydantic model (`CandidateVideo`, `MatchFixture`) before reading or modifying properties.
-2. **Never swallow errors silently**: Always record structured error events with correlation IDs.
-3. **Preserve Historical Archive Immutability**: Seasons before 2026 are immutable. Never run unconstrained updates or deletes against archive matches.
-4. **Idempotency Invariant**: Any pipeline execution must be safe to run twice without duplicating YouTube API calls or corrupting state.
+## 4. Architectural Invariants for Developers & AI Agents
+
+1. **Zero Secret & IP Exposure**: Never hardcode production IP addresses or plaintext database credentials. Read exclusively from environment variables or secure keystores.
+2. **Historical Archive Immutability**: Historical seasons (`season < 2026`) are strictly immutable. Never run unconstrained `DELETE` or `UPDATE` queries against archive tables.
+3. **Hexagonal Boundaries**:
+   * `domain/` must remain pure Go with zero database, HTTP, or framework dependencies.
+   * ViewModels in frontend clients remain state orchestrators with zero business logic.
+4. **Idempotency & Quota Guardrails**: All highlight discovery runs must be idempotent. Repeating an execution within its cooldown window must return cached verdicts with 0 duplicate YouTube API units consumed.

@@ -49,4 +49,5 @@ interface OracleVmRepository {
     val supportedClubs: StateFlow<List<SupportedClub>>
     suspend fun refreshClubs()
     fun findClubById(id: String): SupportedClub?
+    fun invalidateMatchesCache()
 }

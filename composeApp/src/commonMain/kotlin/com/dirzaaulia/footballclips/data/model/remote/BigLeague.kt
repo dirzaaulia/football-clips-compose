@@ -14,6 +14,7 @@ data class BigLeague(
     @SerialName("is_active") val isActive: Boolean = true,
     @SerialName("display_order") val displayOrder: Int = 99,
     @SerialName("type") val type: String = "league",
+    @SerialName("slug") val slug: String? = null,
 ) {
     // Adapter properties to match previous usage
     val competitionId: String

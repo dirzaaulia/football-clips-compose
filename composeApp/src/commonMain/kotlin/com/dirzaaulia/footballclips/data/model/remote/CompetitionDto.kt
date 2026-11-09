@@ -12,5 +12,6 @@ data class CompetitionDto(
     @SerialName("emblem_url") val emblemUrl: String? = null,
     @SerialName("league_id") val leagueId: Int? = null,
     @SerialName("is_active") val isActive: Boolean = true,
-    @SerialName("display_order") val displayOrder: Int = 99
+    @SerialName("display_order") val displayOrder: Int = 99,
+    @SerialName("slug") val slug: String? = null,
 )

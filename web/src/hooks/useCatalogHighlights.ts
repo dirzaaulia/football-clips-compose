@@ -13,6 +13,8 @@ import { enrichDatabaseMatch } from '@/lib/middleware-highlights';
 export interface UseInfiniteHighlightsResult {
   highlights: MatchRecord[];
   isLoading: boolean;
+  isFetching: boolean;
+  isPending: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
   error: unknown;
@@ -72,6 +74,8 @@ export function useInfiniteHighlights(
   return {
     highlights,
     isLoading: queryResult.isLoading,
+    isFetching: queryResult.isFetching,
+    isPending: queryResult.isPending,
     isLoadingMore: queryResult.isFetchingNextPage,
     hasMore: Boolean(queryResult.hasNextPage),
     error: queryResult.error,

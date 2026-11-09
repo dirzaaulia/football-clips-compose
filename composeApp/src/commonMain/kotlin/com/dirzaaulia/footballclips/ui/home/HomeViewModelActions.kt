@@ -8,7 +8,9 @@ import com.dirzaaulia.footballclips.data.repository.ProfilesRepository
 import com.dirzaaulia.footballclips.domain.model.toMatch
 import com.dirzaaulia.footballclips.util.extractVideoId
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 fun HomeViewModel.refreshData() {
@@ -240,9 +242,24 @@ fun HomeViewModel.fetchLiveMatches() {
     viewModelScope.launch {
         when (val res = oracleVmRepository.getLiveMatches()) {
             is com.dirzaaulia.footballclips.data.model.NetworkResult.Success -> {
-                _liveMatches.value = res.data.map { it.toMatch() }
+                val newMatches = res.data.map { it.toMatch() }
+                val prevIds = _liveMatches.value.map { it.id }.toSet()
+                val newIds = newMatches.map { it.id }.toSet()
+                if (prevIds.any { it !in newIds }) {
+                    oracleVmRepository.invalidateMatchesCache()
+                }
+                _liveMatches.value = newMatches
             }
             else -> {}
+        }
+    }
+}
+
+fun HomeViewModel.startLiveTicker() {
+    viewModelScope.launch {
+        while (isActive) {
+            delay(30_000L)
+            fetchLiveMatches()
         }
     }
 }

@@ -21,9 +21,9 @@ import { AnalyticsPipelineView } from './components/AnalyticsPipelineView';
 import { ShortsPipelineView, DbFootballShort } from './components/ShortsPipelineView';
 import { TelemetryFilterBar } from './components/TelemetryFilterBar';
 import { ChannelLookupMap } from './mapperHelper';
+import { TaxonomyManagementModal } from './components/TaxonomyManagementModal';
 
 export default function TelemetryPage() {
-
   const [activeTab, setActiveTab] = useState<TelemetryTab>('highlights');
   const [data, setData] = useState<TelemetryPayload | null>(null);
   const [dbFinishedMatches, setDbFinishedMatches] = useState<DbFinishedMatch[]>([]);
@@ -35,10 +35,10 @@ export default function TelemetryPage() {
   const [appSessions, setAppSessions] = useState<AppSessionItem[]>([]);
   const [totalAnalyticsCount, setTotalAnalyticsCount] = useState<number>(0);
   const [totalSessionsCount, setTotalSessionsCount] = useState<number>(0);
-
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isClearingLogs, setIsClearingLogs] = useState(false);
+  const [isTaxonomyOpen, setIsTaxonomyOpen] = useState(false);
   const [autoRefreshInterval, setAutoRefreshInterval] = useState(15);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'LINKED' | 'COOLDOWN' | 'UNLINKED'>('ALL');
@@ -63,6 +63,7 @@ export default function TelemetryPage() {
         }
       }
 
+      const now = new Date();
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const matchSelectCols = 'id, competition_id, competition_name, utc_date, status, home_team_name, away_team_name, home_score, away_score, highlight_video_id, last_youtube_check, youtube_region_info, highlight_videos';
@@ -71,6 +72,7 @@ export default function TelemetryPage() {
         .select(matchSelectCols)
         .eq('status', 'FINISHED')
         .gte('utc_date', thirtyDaysAgo.toISOString())
+        .lte('utc_date', now.toISOString())
         .order('utc_date', { ascending: false });
 
       let allMatches = mRows || [];
@@ -85,10 +87,13 @@ export default function TelemetryPage() {
         const { data: xRows } = await database
           .from('matches')
           .select(matchSelectCols)
+          .eq('status', 'FINISHED')
+          .lte('utc_date', now.toISOString())
           .in('id', Array.from(extraIds).slice(0, 50));
         if (xRows) allMatches = [...allMatches, ...xRows];
       }
-      setDbFinishedMatches(allMatches as DbFinishedMatch[]);
+      const finishedOnly = allMatches.filter((m: any) => m.status === 'FINISHED' && (!m.utc_date || new Date(m.utc_date).getTime() <= now.getTime()));
+      setDbFinishedMatches(finishedOnly as DbFinishedMatch[]);
 
       const [{ data: compRows }, { data: clubRows }, { data: shortRows }, { data: bcastRows }] = await Promise.all([
         database.from('competitions').select('id, youtube_handle, backup_channel_handles'),
@@ -208,6 +213,7 @@ export default function TelemetryPage() {
           onExportJson={() => navigator.clipboard.writeText(JSON.stringify({ telemetry: data, notifications, audience }, null, 2))}
           onClearLogs={handleClearLogs}
           isClearingLogs={isClearingLogs}
+          onOpenTaxonomy={() => setIsTaxonomyOpen(true)}
         />
 
         {data?.quota && <QuotaGaugeCard quota={data.quota} />}
@@ -285,6 +291,11 @@ export default function TelemetryPage() {
             )}
           </main>
         </div>
+
+        <TaxonomyManagementModal
+          isOpen={isTaxonomyOpen}
+          onClose={() => setIsTaxonomyOpen(false)}
+        />
       </div>
     </div>
   );

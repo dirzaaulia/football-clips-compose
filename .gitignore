@@ -33,7 +33,6 @@ replay_pid*.log
 
 youtube_quota_evidence/
 web/youtube_quota_evidence/
-screenshots/
 scratch/
 channel_cache.json
 youtube_quota.json
@@ -51,7 +50,8 @@ worker/.venv/
 *.db
 *.sqlite
 *.sqlite3
-!supabase/migrations/*.sql
+!oracle/migrations/*.sql
+!oracle/migrations/**/*.sql
 
 # Build caches & logs
 *.log

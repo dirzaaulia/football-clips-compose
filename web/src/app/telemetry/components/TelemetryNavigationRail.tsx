@@ -99,7 +99,7 @@ export function TelemetryNavigationRail({
           </span>
         </div>
         <p className="text-xs text-slate-400 leading-relaxed">
-          Industry-grade multi-pipeline telemetry for YouTube highlights, live scores, WebSub webhooks, and FCM alerts.
+          Industry-grade Go micro-daemon telemetry across YouTube highlights, live scores, shorts, WebSub, and FCM alerts.
         </p>
       </div>
 

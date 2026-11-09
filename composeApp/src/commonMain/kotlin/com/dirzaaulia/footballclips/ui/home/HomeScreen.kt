@@ -46,12 +46,15 @@ fun HomeScreen(
     listState: LazyListState = rememberLazyListState(),
     gridState: LazyGridState = rememberLazyGridState(),
     onNavigateToFixtures: () -> Unit = {},
-    onVideoClick: (HighlightUiItem, onDismiss: (Boolean) -> Unit) -> Unit
+    onNavigateToStore: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {},
+    onVideoClick: (HighlightUiItem, onDismiss: (Boolean) -> Unit) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val offerings by viewModel.offerings.collectAsState()
     val isPremium by viewModel.isPremium.collectAsState()
     val isAdsRemoved by viewModel.isAdsRemoved.collectAsState()
+    val isMerchandiseEnabled by viewModel.isMerchandiseEnabled.collectAsState()
     val profile by viewModel.currentUserProfile.collectAsState(null)
     val customerInfo by viewModel.customerInfo.collectAsState(null)
     val showExternalHighlights by viewModel.showExternalHighlights.collectAsState()
@@ -150,13 +153,31 @@ fun HomeScreen(
                     onSeasonSelected = { viewModel.setSeason(it) },
                     onTitleTap = {
                         val now = Clock.System.now().toEpochMilliseconds()
-                        if (now - lastTitleTapTime < 800) titleTapCount++ else titleTapCount = 1
+                        if (now - lastTitleTapTime < 2000) {
+                            titleTapCount++
+                        } else {
+                            titleTapCount = 1
+                        }
                         lastTitleTapTime = now
-                        if (titleTapCount >= 3) { titleTapCount = 0; showDevScreen = true }
+                        if (titleTapCount >= 3) {
+                            titleTapCount = 0
+                            showDevScreen = true
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Developer Mode Unlocked")
+                            }
+                        } else {
+                            val remaining = 3 - titleTapCount
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("You are $remaining tap${if (remaining > 1) "s" else ""} away from Developer Options")
+                            }
+                        }
                     },
                     onShowMyClubs = { showMyClubsSheet = true },
                     onShowPaywall = { showPaywall = true },
                     onShowFilter = { showFilterSheet = true },
+                    isMerchandiseEnabled = isMerchandiseEnabled,
+                    onNavigateToStore = onNavigateToStore,
+                    onNavigateToSettings = onNavigateToSettings,
                 )
             },
         ) { innerPadding ->

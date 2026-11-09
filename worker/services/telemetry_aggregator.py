@@ -102,7 +102,7 @@ class TelemetryAggregator:
                 except Exception:
                     pass
 
-        target_quota = getattr(settings, "youtube_target_daily_quota", 8500)
+        target_quota = getattr(settings, "youtube_target_daily_quota", 54000)
         return {
             "matches_searched": len(matches_checked_ids),
             "quota_used": quota_used,
@@ -122,7 +122,7 @@ class TelemetryAggregator:
         existing_events: list[dict[str, Any]],
         unique_cycle_id: int,
     ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-        """Prunes cycles and events to prevent unbounded growth."""
+        """Prunes cycles and events to prevent unbounded growth while keeping payload <60KB."""
         def is_yt(c: dict[str, Any], key: str = "pipeline") -> bool:
             val = str(c.get(key, "")).lower()
             m = str(c.get("mode", "")).lower()
@@ -136,25 +136,26 @@ class TelemetryAggregator:
             return "websub" in val or "websub" in m or (isinstance(cid, int) and cid >= 200000)
 
         from datetime import UTC, timedelta
-        cutoff_30d = (datetime.now(UTC) - timedelta(days=30)).isoformat()
+        cutoff_7d = (datetime.now(UTC) - timedelta(days=7)).isoformat()
 
         combined_cycles = [new_cycle] + [
             c for c in existing_cycles
-            if c.get("id") != unique_cycle_id and (c.get("created_at") or "") >= cutoff_30d
+            if c.get("id") != unique_cycle_id and (c.get("created_at") or "") >= cutoff_7d
         ]
-        yt_cycles = [c for c in combined_cycles if is_yt(c)][:150]
-        ws_cycles = [c for c in combined_cycles if is_ws(c)][:100]
-        fx_cycles = [c for c in combined_cycles if not is_yt(c) and not is_ws(c)][:150]
+        yt_cycles = [c for c in combined_cycles if is_yt(c)][:15]
+        ws_cycles = [c for c in combined_cycles if is_ws(c)][:10]
+        fx_cycles = [c for c in combined_cycles if not is_yt(c) and not is_ws(c)][:15]
         pruned_cycles = yt_cycles + fx_cycles + ws_cycles
         pruned_cycles.sort(key=lambda c: c.get("created_at") or c.get("timestamp") or "", reverse=True)
         retained_ids = {c.get("id") for c in pruned_cycles if c.get("id") is not None}
 
         combined_events = [
             e for e in (new_events + existing_events)
-            if (e.get("created_at") or "") >= cutoff_30d and e.get("cycle_id") in retained_ids
+            if (e.get("created_at") or "") >= cutoff_7d and e.get("cycle_id") in retained_ids
         ]
-        yt_events = [e for e in combined_events if is_yt(e)][:3000]
-        ws_events = [e for e in combined_events if is_ws(e)][:1000]
-        fx_events = [e for e in combined_events if not is_yt(e) and not is_ws(e)][:3000]
+        yt_events = [e for e in combined_events if is_yt(e)][:150]
+        ws_events = [e for e in combined_events if is_ws(e)][:100]
+        fx_events = [e for e in combined_events if not is_yt(e) and not is_ws(e)][:150]
         pruned_events = yt_events + fx_events + ws_events
         return pruned_cycles, pruned_events
+

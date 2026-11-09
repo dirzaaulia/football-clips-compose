@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -34,41 +35,25 @@ internal fun HomeScreenTopBar(
     onShowMyClubs: () -> Unit = {},
     onShowPaywall: () -> Unit,
     onShowFilter: () -> Unit,
+    isMerchandiseEnabled: Boolean = false,
+    onNavigateToStore: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {},
 ) {
     val statusBarInset = if (isLandscape) 0.dp else WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     TopAppBar(
         modifier = if (isWeb) Modifier else Modifier.height(50.dp + statusBarInset),
         windowInsets = if (isLandscape) WindowInsets(0, 0, 0, 0) else TopAppBarDefaults.windowInsets,
         title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    text = "Highlights",
-                    style = if (isWeb) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = if (isWeb) 1.sp else (-0.5).sp,
-                    modifier = Modifier.clickable {
-                        if (!isWeb && isDeveloperModeAllowed) {
-                            onTitleTap()
-                        }
-                    },
-                )
-
-                SeasonDropdownSelector(
-                    selectedSeason = selectedSeason,
-                    onSeasonSelected = onSeasonSelected,
-                    isCompact = !isWeb,
-                )
-            }
+            HomeScreenTitle(
+                isWeb = isWeb,
+                selectedSeason = selectedSeason,
+                onSeasonSelected = onSeasonSelected,
+                onTitleTap = onTitleTap,
+            )
         },
         actions = {
             if (isWeb) {
-                HomeScreenTopBarWebActions(
-                    isPremium = isPremium,
-                    onShowPaywall = onShowPaywall,
-                )
+                HomeScreenTopBarWebActions(isPremium = isPremium, onShowPaywall = onShowPaywall)
             } else {
                 HomeScreenTopBarMobileActions(
                     isPremium = isPremium,
@@ -76,6 +61,9 @@ internal fun HomeScreenTopBar(
                     onShowMyClubs = onShowMyClubs,
                     onShowPaywall = onShowPaywall,
                     onShowFilter = onShowFilter,
+                    isMerchandiseEnabled = isMerchandiseEnabled,
+                    onNavigateToStore = onNavigateToStore,
+                    onNavigateToSettings = onNavigateToSettings,
                 )
             }
         },
@@ -83,4 +71,36 @@ internal fun HomeScreenTopBar(
             containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
         ),
     )
+}
+
+@Composable
+private fun HomeScreenTitle(
+    isWeb: Boolean,
+    selectedSeason: Int,
+    onSeasonSelected: (Int) -> Unit,
+    onTitleTap: () -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = "Highlights",
+            style = if (isWeb) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Black,
+            letterSpacing = if (isWeb) 1.sp else (-0.5).sp,
+            modifier = Modifier
+                .clickable {
+                    if (!isWeb && isDeveloperModeAllowed) {
+                        onTitleTap()
+                    }
+                }
+                .padding(horizontal = 4.dp, vertical = 6.dp),
+        )
+        SeasonDropdownSelector(
+            selectedSeason = selectedSeason,
+            onSeasonSelected = onSeasonSelected,
+            isCompact = !isWeb,
+        )
+    }
 }

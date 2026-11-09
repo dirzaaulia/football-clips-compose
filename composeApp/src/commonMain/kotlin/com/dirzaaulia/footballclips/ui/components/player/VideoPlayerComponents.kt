@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -53,30 +55,28 @@ internal fun VideoMetadata(
     val meta = remember(item) { resolveMetadata(item) } ?: return
     val isGuarded = isSpoilerFree && !isScoreRevealed
 
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        VideoMetadataHeader(
-            leagueName = meta.leagueName,
-            date = meta.date,
-            title = meta.title,
-            item = item,
-        )
-
-        if (hasVideo && meta.scoreText != null && meta.homeCrest != null && meta.awayCrest != null) {
-            VideoMetadataTeamsRow(
-                homeName = (item as? HighlightUiItem.OracleMatch)?.match?.homeTeamName.orEmpty(),
-                homeCrest = meta.homeCrest,
-                homeScore = meta.homeScore,
-                awayName = (item as? HighlightUiItem.OracleMatch)?.match?.awayTeamName.orEmpty(),
-                awayCrest = meta.awayCrest,
-                awayScore = meta.awayScore,
-                isSpoilerFree = isGuarded,
-                onRevealClick = onRevealClick,
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        if (hasVideo) {
+            VideoMetadataHeader(
+                leagueName = meta.leagueName,
+                date = meta.date,
+                title = meta.title,
+                item = item,
             )
-        } else if (!hasVideo) {
-            Text(text = meta.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface)
-        }
 
-        VideoMetadataMerchandise(item = item, isMerchandiseEnabled = isMerchandiseEnabled)
+            if (meta.scoreText != null && meta.homeCrest != null && meta.awayCrest != null) {
+                VideoMetadataTeamsRow(
+                    homeName = (item as? HighlightUiItem.OracleMatch)?.match?.homeTeamName.orEmpty(),
+                    homeCrest = meta.homeCrest,
+                    homeScore = meta.homeScore,
+                    awayName = (item as? HighlightUiItem.OracleMatch)?.match?.awayTeamName.orEmpty(),
+                    awayCrest = meta.awayCrest,
+                    awayScore = meta.awayScore,
+                    isSpoilerFree = isGuarded,
+                    onRevealClick = onRevealClick,
+                )
+            }
+        }
 
         if (!meta.recapAnalysis.isNullOrBlank()) {
             VideoMetadataAnalysis(
@@ -93,6 +93,8 @@ internal fun VideoMetadata(
                 isSpoilerFree = isGuarded,
             )
         }
+
+        VideoMetadataMerchandise(item = item, isMerchandiseEnabled = isMerchandiseEnabled)
     }
 }
 
@@ -102,22 +104,39 @@ private fun VideoMetadataMerchandise(
     isMerchandiseEnabled: Boolean,
 ) {
     if (!isMerchandiseEnabled) return
-    when (item) {
-        is HighlightUiItem.OracleMatch -> MatchDayGearRow(
-            homeTeamName = item.match.homeTeamName,
-            homeTeamCrest = item.match.homeTeamCrest,
-            awayTeamName = item.match.awayTeamName,
-            awayTeamCrest = item.match.awayTeamCrest,
-        )
-        is HighlightUiItem.Highlight -> if (item.highlight.homeTeam.isNotBlank() && item.highlight.awayTeam.isNotBlank()) {
-            MatchDayGearRow(
-                homeTeamName = item.highlight.homeTeam,
-                homeTeamCrest = item.highlight.homeTeamLogo.takeIf { it.isNotBlank() },
-                awayTeamName = item.highlight.awayTeam,
-                awayTeamCrest = item.highlight.awayTeamLogo.takeIf { it.isNotBlank() },
-            )
+    val content: @Composable () -> Unit = when (item) {
+        is HighlightUiItem.OracleMatch -> {
+            {
+                MatchDayGearRow(
+                    homeTeamName = item.match.homeTeamName,
+                    homeTeamCrest = item.match.homeTeamCrest,
+                    awayTeamName = item.match.awayTeamName,
+                    awayTeamCrest = item.match.awayTeamCrest,
+                )
+            }
         }
-        else -> Unit
+        is HighlightUiItem.Highlight -> {
+            if (item.highlight.homeTeam.isNotBlank() && item.highlight.awayTeam.isNotBlank()) {
+                {
+                    MatchDayGearRow(
+                        homeTeamName = item.highlight.homeTeam,
+                        homeTeamCrest = item.highlight.homeTeamLogo.takeIf { it.isNotBlank() },
+                        awayTeamName = item.highlight.awayTeam,
+                        awayTeamCrest = item.highlight.awayTeamLogo.takeIf { it.isNotBlank() },
+                    )
+                }
+            } else {
+                null
+            }
+        }
+        else -> null
+    } ?: return
+
+    MatchCentreSectionCard(
+        title = "Official Team Gear",
+        icon = Icons.Default.ShoppingBag,
+    ) {
+        content()
     }
 }
 
@@ -207,138 +226,6 @@ private fun VideoMetadataHeader(
 }
 
 @Composable
-private fun VideoMetadataTeamsRow(
-    homeName: String,
-    homeCrest: String,
-    homeScore: Int?,
-    awayName: String,
-    awayCrest: String,
-    awayScore: Int?,
-    isSpoilerFree: Boolean,
-    onRevealClick: () -> Unit,
-) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-        shape = RoundedCornerShape(14.dp),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    GlassLogoBadge(
-                        model = homeCrest.toProxyUrl(),
-                        contentDescription = homeName,
-                        size = 26.dp,
-                        padding = 2.dp,
-                    )
-                    Text(
-                        text = homeName,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    GlassLogoBadge(
-                        model = awayCrest.toProxyUrl(),
-                        contentDescription = awayName,
-                        size = 26.dp,
-                        padding = 2.dp,
-                    )
-                    Text(
-                        text = awayName,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            VideoScoreColumn(
-                homeScore = homeScore,
-                awayScore = awayScore,
-                isSpoilerFree = isSpoilerFree,
-                onRevealClick = onRevealClick,
-            )
-        }
-    }
-}
-
-@Composable
-private fun VideoScoreColumn(
-    homeScore: Int?,
-    awayScore: Int?,
-    isSpoilerFree: Boolean,
-    onRevealClick: () -> Unit,
-) {
-    if (isSpoilerFree) {
-        Surface(
-            onClick = onRevealClick,
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            shape = RoundedCornerShape(8.dp),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.VisibilityOff,
-                    contentDescription = "Reveal Score",
-                    modifier = Modifier.size(14.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = "Reveal",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    } else {
-        Column(
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = (homeScore ?: "-").toString(),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                text = (awayScore ?: "-").toString(),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
-    }
-}
-
-@Composable
 private fun VideoMetadataAnalysis(
     item: HighlightUiItem,
     recapAnalysis: String,
@@ -347,26 +234,29 @@ private fun VideoMetadataAnalysis(
 ) {
     val isUpcoming = item is HighlightUiItem.OracleMatch && MatchAnalysisUtils.isUpcoming(item.match)
     val isGuarded = !isUpcoming && isSpoilerFree
-    val header = if (isUpcoming) "MATCH PREVIEW & TACTICAL SETUP" else "MATCH SUMMARY & TACTICAL BREAKDOWN"
+    val title = if (isUpcoming) "Match Preview & Setup" else "Tactical Breakdown"
 
-    Card(
-        onClick = { if (isGuarded) onRevealClick() },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth(),
+    MatchCentreSectionCard(
+        title = title,
+        icon = Icons.Default.Description,
     ) {
-        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(text = header, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary, letterSpacing = 0.5.sp)
-            if (isGuarded) {
+        if (isGuarded) {
+            Surface(
+                onClick = onRevealClick,
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
                 Text(
-                    text = "Analysis hidden in Spoiler-Free mode. Tap to reveal tactical analysis.",
+                    text = "Analysis hidden in Spoiler-Free mode. Tap to reveal tactical breakdown.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 18.sp,
+                    modifier = Modifier.padding(12.dp),
                 )
-            } else {
-                MarkdownText(markdown = recapAnalysis)
             }
+        } else {
+            MarkdownText(markdown = recapAnalysis)
         }
     }
 }

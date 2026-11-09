@@ -1,30 +1,17 @@
 package com.dirzaaulia.footballclips.ui.adaptive
 
-import androidx.compose.animation.AnimatedContentScope
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,37 +19,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.dirzaaulia.footballclips.ui.components.common.FloatingPillNavigationBar
 import com.dirzaaulia.footballclips.ui.components.common.MyClubsBottomSheet
-import com.dirzaaulia.footballclips.ui.home.HomeScreen
-import com.dirzaaulia.footballclips.ui.home.HomeScreenFloatingActions
 import com.dirzaaulia.footballclips.ui.home.HomeViewModel
 import com.dirzaaulia.footballclips.ui.home.selectVideo
 import com.dirzaaulia.footballclips.ui.home.selectVideoById
 import com.dirzaaulia.footballclips.ui.home.setDarkMode
 import com.dirzaaulia.footballclips.ui.home.setSpoilerFreePreference
 import com.dirzaaulia.footballclips.ui.home.toggleFavoriteClub
-import com.dirzaaulia.footballclips.ui.info.InfoScreen
 import com.dirzaaulia.footballclips.ui.navigation.NavDestination
 import com.dirzaaulia.footballclips.ui.navigation.bottomNavItems
 import com.dirzaaulia.footballclips.ui.onboarding.OnboardingScreen
-import com.dirzaaulia.footballclips.ui.store.ClubStoreScreen
 import com.dirzaaulia.footballclips.ui.score.MatchStatusFilter
-import com.dirzaaulia.footballclips.ui.score.MatchesAndHighlightsScreen
 import com.dirzaaulia.footballclips.ui.score.ScoreViewModel
-import com.dirzaaulia.footballclips.ui.score.StandingsScreen
-import com.dirzaaulia.footballclips.ui.score.components.FixturesFloatingActions
-import com.dirzaaulia.footballclips.ui.score.getStandings
-import com.dirzaaulia.footballclips.ui.score.selectCompetition
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -75,7 +48,6 @@ fun AdaptiveMatchesScaffold(
     val currentDestination = navBackStackEntry?.destination
 
     val videoState = remember { MobileVideoPlayerState() }
-
     val scoreViewModel: ScoreViewModel = koinViewModel()
     val homeViewModel: HomeViewModel = koinViewModel()
 
@@ -83,7 +55,7 @@ fun AdaptiveMatchesScaffold(
     LaunchedEffect(vmSelectedItem) {
         val item = vmSelectedItem
         if (item != null && videoState.selectedItem != item) {
-            videoState.onVideoClick(item) { }
+            videoState.onVideoClick(item) { _ -> }
         }
     }
 
@@ -106,70 +78,6 @@ fun AdaptiveMatchesScaffold(
         }
     }
 
-    val homeContent: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit = remember {
-        {
-            HomeScreen(
-                viewModel = homeViewModel,
-                onNavigateToFixtures = {
-                    scoreViewModel.selectStatusFilter(MatchStatusFilter.LIVE)
-                    navigateToTab(NavDestination.Fixtures.route)
-                },
-                onVideoClick = { item, onDismiss ->
-                    homeViewModel.selectVideo(item)
-                    videoState.onVideoClick(item, onDismiss)
-                },
-            )
-        }
-    }
-    val fixturesContent: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit = remember {
-        {
-            MatchesAndHighlightsScreen(
-                viewModel = scoreViewModel,
-                onVideoClick = { item, onDismiss ->
-                    homeViewModel.selectVideo(item)
-                    videoState.onVideoClick(item, onDismiss)
-                },
-            )
-        }
-    }
-    val standingsContent: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit = remember {
-        {
-            val standingsState by scoreViewModel.standingsState.collectAsState()
-            val dynamicCompetitions by scoreViewModel.competitions.collectAsState()
-            val selectedCompetitionId by scoreViewModel.selectedCompetitionId.collectAsState()
-            val selectedSeason by scoreViewModel.selectedSeason.collectAsState()
-            val isPremium by scoreViewModel.isPremium.collectAsState()
-            StandingsScreen(
-                state = standingsState,
-                isPremium = isPremium,
-                selectedCompetitionId = selectedCompetitionId,
-                dynamicCompetitions = dynamicCompetitions,
-                selectedSeason = selectedSeason,
-                onLeagueSelected = { _, competitionId ->
-                    scoreViewModel.selectCompetition(competitionId ?: "PL")
-                },
-                onSeasonSelected = { season ->
-                    scoreViewModel.setSeason(season)
-                },
-                onRetry = { scoreViewModel.getStandings() },
-            )
-        }
-    }
-    val infoContent: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit = remember {
-        {
-            InfoScreen(
-                onNavigateToStore = { navController.navigate(NavDestination.Store.route) },
-            )
-        }
-    }
-    val storeContent: @Composable AnimatedContentScope.(NavBackStackEntry) -> Unit = remember {
-        {
-            ClubStoreScreen(
-                onBack = { navController.popBackStack() },
-            )
-        }
-    }
-
     val isMerchandiseEnabled by homeViewModel.isMerchandiseEnabled.collectAsState()
     val navItems = remember(isMerchandiseEnabled) {
         if (isMerchandiseEnabled) bottomNavItems else bottomNavItems.filter { it != NavDestination.Store }
@@ -178,9 +86,7 @@ fun AdaptiveMatchesScaffold(
     LaunchedEffect(isMerchandiseEnabled, currentDestination?.route) {
         if (!isMerchandiseEnabled && currentDestination?.route == NavDestination.Store.route) {
             navController.navigate(NavDestination.Home.route) {
-                popUpTo(navController.graph.findStartDestination().id) {
-                    inclusive = false
-                }
+                popUpTo(navController.graph.findStartDestination().id) { inclusive = false }
                 launchSingleTop = true
             }
         }
@@ -212,129 +118,99 @@ fun AdaptiveMatchesScaffold(
     val bottomNavPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val isLandscape = maxHeight < 500.dp
-            val isExpanded = maxWidth >= 840.dp
-            val shouldUseNavRail = isLandscape || isExpanded
-            val verticalPadding = if (isLandscape) 10.dp else 20.dp
+        val isLandscape = maxHeight < 500.dp
+        val isExpanded = maxWidth >= 840.dp
+        val shouldUseNavRail = isLandscape || isExpanded
+        val verticalPadding = if (isLandscape) 10.dp else 20.dp
 
-            val favoriteClubs by homeViewModel.favoriteClubs.collectAsState()
-            val isSpoilerFreeMode by homeViewModel.isSpoilerFreeMode.collectAsState()
-            val selectedSeason by homeViewModel.selectedSeason.collectAsState()
-            val isPremium by homeViewModel.isPremium.collectAsState()
-            var showMyClubsSheet by remember { mutableStateOf(false) }
+        val favoriteClubs by homeViewModel.favoriteClubs.collectAsState()
+        val isSpoilerFreeMode by homeViewModel.isSpoilerFreeMode.collectAsState()
+        val selectedSeason by homeViewModel.selectedSeason.collectAsState()
+        val isPremium by homeViewModel.isPremium.collectAsState()
+        var showMyClubsSheet by remember { mutableStateOf(false) }
 
-            Row(modifier = Modifier.fillMaxSize()) {
-                if (shouldUseNavRail) {
-                    WebNavigationRail(
-                        currentDestination = currentDestination,
-                        items = navItems,
-                        favoriteClubsCount = favoriteClubs.size,
-                        selectedSeason = selectedSeason,
-                        isSpoilerFree = isSpoilerFreeMode,
-                        isPremium = isPremium,
-                        onShowMyClubs = { showMyClubsSheet = true },
-                        onSwitchSeason = { homeViewModel.setSeason(it) },
-                        onToggleSpoilerFree = { homeViewModel.setSpoilerFreePreference(!isSpoilerFreeMode) },
-                        onGoPremium = { navController.navigate(NavDestination.Info.route) },
-                        onNavigate = navigateToTab,
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .then(
-                            if (shouldUseNavRail) {
-                                Modifier.consumeWindowInsets(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
-                            } else {
-                                Modifier
-                            }
-                        ),
-                ) {
-                    NavHost(
-                        navController = navController,
-                        startDestination = NavDestination.Home.route,
-                        modifier = Modifier.fillMaxSize(),
-                        enterTransition = { fadeIn(animationSpec = tween(350)) + slideInVertically(animationSpec = tween(350)) { it / 16 } },
-                        exitTransition = { fadeOut(animationSpec = tween(200)) },
-                        popEnterTransition = { fadeIn(animationSpec = tween(350)) },
-                        popExitTransition = { fadeOut(animationSpec = tween(200)) },
-                    ) {
-                        composable(NavDestination.Home.route, content = homeContent)
-                        composable(NavDestination.Fixtures.route, content = fixturesContent)
-                        composable(NavDestination.Standings.route, content = standingsContent)
-                        composable(NavDestination.Store.route, content = storeContent)
-                        composable(NavDestination.Info.route, content = infoContent)
-                    }
-
-                    // Floating Pill Navigation Bar & Action Controls (Portrait Mode on Phone / Foldable)
-                    if (!shouldUseNavRail) {
-                        val hasLiveMatch by scoreViewModel.hasLiveMatch.collectAsState()
-                        val isHomeScrolled by homeViewModel.showScrollToTop.collectAsState()
-                        val isFixturesScrolled by scoreViewModel.showScrollToTop.collectAsState()
-
-                        val isHomeRoute = currentDestination?.route == NavDestination.Home.route
-                        val isFixturesRoute = currentDestination?.route == NavDestination.Fixtures.route
-                        val showFloatingActions = (isHomeRoute && isHomeScrolled) || (isFixturesRoute && isFixturesScrolled)
-
-                        Row(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = bottomNavPadding)
-                                .padding(horizontal = 12.dp, vertical = verticalPadding)
-                                .animateContentSize(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            FloatingPillNavigationBar(
-                                currentDestination = currentDestination,
-                                items = navItems,
-                                hasLiveMatch = hasLiveMatch,
-                                onNavigate = { route ->
-                                    homeViewModel.appAnalytics.trackTabSwitch(tabName = route)
-                                    navigateToTab(route)
-                                },
-                            )
-
-                            AnimatedVisibility(
-                                visible = showFloatingActions,
-                                enter = fadeIn(animationSpec = tween(350)) + expandHorizontally(animationSpec = tween(350)) + scaleIn(animationSpec = tween(350)),
-                                exit = fadeOut(animationSpec = tween(250)) + shrinkHorizontally(animationSpec = tween(250)) + scaleOut(animationSpec = tween(250)),
-                            ) {
-                                Row(modifier = Modifier.padding(start = 8.dp)) {
-                                    if (isHomeRoute) {
-                                        HomeScreenFloatingActions(
-                                            onScrollToTop = { homeViewModel.triggerScrollToTop() },
-                                        )
-                                    } else if (isFixturesRoute) {
-                                        FixturesFloatingActions(
-                                            onScrollToTop = { scoreViewModel.triggerScrollToTop() },
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (showMyClubsSheet) {
-                MyClubsBottomSheet(
-                    selectedClubIds = favoriteClubs,
-                    onToggleClub = { homeViewModel.toggleFavoriteClub(it) },
-                    onDismissRequest = { showMyClubsSheet = false },
-                    clubs = supportedClubs,
+        Row(modifier = Modifier.fillMaxSize()) {
+            if (shouldUseNavRail) {
+                WebNavigationRail(
+                    currentDestination = currentDestination,
+                    items = navItems,
+                    favoriteClubsCount = favoriteClubs.size,
+                    selectedSeason = selectedSeason,
+                    isSpoilerFree = isSpoilerFreeMode,
+                    isPremium = isPremium,
+                    onShowMyClubs = { showMyClubsSheet = true },
+                    onSwitchSeason = { homeViewModel.setSeason(it) },
+                    onToggleSpoilerFree = { homeViewModel.setSpoilerFreePreference(!isSpoilerFreeMode) },
+                    onGoPremium = { navController.navigate(NavDestination.Info.route) },
+                    onNavigate = navigateToTab,
                 )
             }
 
-            AdaptiveVideoOverlay(
-                videoState = videoState,
-                homeViewModel = homeViewModel,
-                scoreViewModel = scoreViewModel,
-                isLandscape = isLandscape,
-                bottomPadding = bottomNavPadding,
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .then(
+                        if (shouldUseNavRail) {
+                            Modifier.consumeWindowInsets(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
+                        } else {
+                            Modifier
+                        },
+                    ),
+            ) {
+                AdaptiveNavGraph(
+                    navController = navController,
+                    homeViewModel = homeViewModel,
+                    scoreViewModel = scoreViewModel,
+                    onNavigateToFixtures = {
+                        scoreViewModel.selectStatusFilter(MatchStatusFilter.LIVE)
+                        navigateToTab(NavDestination.Fixtures.route)
+                    },
+                    onVideoClick = { item, onDismiss ->
+                        homeViewModel.selectVideo(item)
+                        videoState.onVideoClick(item, onDismiss)
+                    },
+                )
+
+                if (!shouldUseNavRail) {
+                    val hasLiveMatch by scoreViewModel.hasLiveMatch.collectAsState()
+                    val isHomeScrolled by homeViewModel.showScrollToTop.collectAsState()
+                    val isFixturesScrolled by scoreViewModel.showScrollToTop.collectAsState()
+
+                    AdaptiveBottomFloatingDock(
+                        currentDestination = currentDestination,
+                        navItems = navItems,
+                        hasLiveMatch = hasLiveMatch,
+                        isHomeScrolled = isHomeScrolled,
+                        isFixturesScrolled = isFixturesScrolled,
+                        bottomNavPadding = bottomNavPadding,
+                        verticalPadding = verticalPadding,
+                        onTabSwitch = { route ->
+                            homeViewModel.appAnalytics.trackTabSwitch(tabName = route)
+                            navigateToTab(route)
+                        },
+                        onHomeScrollToTop = { homeViewModel.triggerScrollToTop() },
+                        onFixturesScrollToTop = { scoreViewModel.triggerScrollToTop() },
+                    )
+                }
+            }
+        }
+
+        if (showMyClubsSheet) {
+            MyClubsBottomSheet(
+                selectedClubIds = favoriteClubs,
+                onToggleClub = { homeViewModel.toggleFavoriteClub(it) },
+                onDismissRequest = { showMyClubsSheet = false },
+                clubs = supportedClubs,
             )
         }
-    }
 
+        AdaptiveVideoOverlay(
+            videoState = videoState,
+            homeViewModel = homeViewModel,
+            scoreViewModel = scoreViewModel,
+            isLandscape = isLandscape,
+            bottomPadding = bottomNavPadding,
+        )
+    }
+}

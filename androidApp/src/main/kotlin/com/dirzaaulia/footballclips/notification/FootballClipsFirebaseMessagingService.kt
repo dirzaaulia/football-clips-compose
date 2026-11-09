@@ -38,13 +38,13 @@ class FootballClipsFirebaseMessagingService : FirebaseMessagingService() {
             val shouldPostSystemNotification = when (eventType) {
                 "score" -> notifyGoals
                 "kickoff", "fulltime", "upcoming" -> notifyKickoff
-                "highlight" -> notifyHighlights
+                "highlight", "highlight_ready" -> notifyHighlights
                 else -> true
             }
 
             if (shouldPostSystemNotification) {
                 val channelId = when (eventType) {
-                    "highlight" -> NotificationHelper.CHANNEL_HIGHLIGHTS
+                    "highlight", "highlight_ready" -> NotificationHelper.CHANNEL_HIGHLIGHTS
                     "upcoming" -> NotificationHelper.CHANNEL_REMINDERS
                     else -> NotificationHelper.CHANNEL_LIVE_SCORES
                 }

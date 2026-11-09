@@ -39,12 +39,13 @@ fun StandardMatchCard(
     match: Match,
     modifier: Modifier = Modifier,
     showStatus: Boolean = true,
+    showCompetitionHeader: Boolean = true,
     isSpoilerFree: Boolean = false,
     isRevealed: Boolean = false,
     isFavorite: Boolean = false,
     showTeamName: Boolean = true,
     onRevealClick: (() -> Unit)? = null,
-    onWatchHighlightClick: ((String) -> Unit)? = null
+    onWatchHighlightClick: ((String) -> Unit)? = null,
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val isLandscape = maxWidth < 300.dp || maxHeight < 300.dp
@@ -56,50 +57,64 @@ fun StandardMatchCard(
                 .then(
                     if (!match.highlightVideoId.isNullOrEmpty() && onWatchHighlightClick != null) {
                         Modifier.clickable { onWatchHighlightClick(match.highlightVideoId) }
-                    } else Modifier
+                    } else {
+                        Modifier
+                    },
                 ),
             shape = RoundedCornerShape(14.dp),
             color = MaterialTheme.colorScheme.surface,
             border = BorderStroke(
                 width = if (isFavorite) 1.5.dp else 1.dp,
-                color = if (isFavorite) Color(0xFFFFB300).copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                color = if (isFavorite) Color(0xFFFFB300).copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
             ),
             tonalElevation = 0.dp,
-            shadowElevation = 2.dp
+            shadowElevation = 2.dp,
         ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    LeagueHeader(
-                        competitionName = match.competitionName,
-                        competitionId = match.competitionId,
-                        isDark = false
-                    )
-                    if (isFavorite) {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Favorite",
-                            tint = Color(0xFFFFB300),
-                            modifier = Modifier.size(14.dp)
-                        )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (showCompetitionHeader) {
+                            LeagueHeader(
+                                competitionName = match.competitionName,
+                                competitionId = match.competitionId,
+                                isDark = false,
+                            )
+                        } else {
+                            val roundLabel = match.roundName ?: match.matchday?.let { "Matchday $it" } ?: ""
+                            if (roundLabel.isNotBlank()) {
+                                Text(
+                                    text = roundLabel,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                        if (isFavorite) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Icon(
+                                imageVector = Icons.Default.Star,
+                                contentDescription = "Favorite",
+                                tint = Color(0xFFFFB300),
+                                modifier = Modifier.size(14.dp),
+                            )
+                        }
+                    }
+
+                    if (showStatus) {
+                        MatchStatusBadge(match = match)
                     }
                 }
-                
-                if (showStatus) {
-                    MatchStatusBadge(match = match)
-                }
-            }
 
-            Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

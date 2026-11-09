@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, usePathname } from 'next/navigation';
-import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { MatchRecord } from '@/lib/database';
 import { useMatchDetailData } from '@/hooks/useMatchDetailData';
@@ -15,6 +15,10 @@ import MatchTacticalBoxscore from '@/components/match/MatchTacticalBoxscore';
 import MatchDayGearSection from '@/components/affiliate/MatchDayGearSection';
 import MatchCentreHero from '@/components/player/MatchCentreHero';
 import HorizontalMatchTimeline from '@/components/match/HorizontalMatchTimeline';
+import WebPitchRadar, { WebPitchPlay } from '@/components/match/WebPitchRadar';
+import MatchDetailVideoPlayer from '@/components/match/MatchDetailVideoPlayer';
+import MatchDetailSpoilerCard from '@/components/match/MatchDetailSpoilerCard';
+import { generateMatchJsonLd } from '@/components/match/matchJsonLd';
 import { trackMatchView, trackMatchClick, trackVideoPlay, trackScreenView } from '@/lib/analytics';
 
 interface MatchDetailClientProps {
@@ -34,20 +38,14 @@ export default function MatchDetailClient({
   const pathname = usePathname();
 
   const activeUrlId = useMemo(() => {
-    if (params?.id && typeof params.id === 'string' && params.id !== 'index') {
-      return params.id;
-    }
+    if (params?.id && typeof params.id === 'string' && params.id !== 'index') return params.id;
     if (pathname) {
       const m = pathname.match(/\/match\/([^/?#]+)/);
-      if (m && m[1] && m[1] !== 'index' && m[1] !== 'index.html') {
-        return m[1];
-      }
+      if (m && m[1] && m[1] !== 'index' && m[1] !== 'index.html') return m[1];
     }
     if (typeof window !== 'undefined') {
       const m = window.location.pathname.match(/\/match\/([^/?#]+)/);
-      if (m && m[1] && m[1] !== 'index' && m[1] !== 'index.html') {
-        return m[1];
-      }
+      if (m && m[1] && m[1] !== 'index' && m[1] !== 'index.html') return m[1];
     }
     return expectedId || null;
   }, [params?.id, pathname, expectedId]);
@@ -56,7 +54,7 @@ export default function MatchDetailClient({
     initialMatch,
     initialRecap,
     initialRelated,
-    activeUrlId
+    activeUrlId,
   );
 
   const [hasHydrated, setHasHydrated] = useState(false);
@@ -78,11 +76,33 @@ export default function MatchDetailClient({
     }
   }, [isSpoilerFree, match?.id]);
 
-  const isPendingMismatch =
-    hasHydrated &&
-    activeUrlId &&
-    match &&
-    String(match.id) !== String(activeUrlId);
+  const homeName = match?.home_team_name || match?.home_team || 'Home';
+  const awayName = match?.away_team_name || match?.away_team || 'Away';
+  const compName = match?.competition_name || 'Official League';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fc.dirzaaulia.com';
+  const matchUrl = match?.id ? `${siteUrl}/match/${match.id}` : siteUrl;
+
+  const pitchPlays: WebPitchPlay[] = useMemo(() => {
+    if (!match?.events || match.events.length === 0) return [];
+    return match.events.map((e, idx) => ({
+      id: e.id || `play-${idx}`,
+      clock: e.clock || '',
+      type: e.type || '',
+      type_text: e.type,
+      text: e.text || '',
+      player: e.player,
+      team_name: e.side === 'home' ? homeName : awayName,
+      x_percent: e.side === 'home' ? 75 : 25,
+      y_percent: 50 + ((idx % 3) - 1) * 18,
+    }));
+  }, [match?.events, homeName, awayName]);
+
+  const jsonLd = useMemo(() => {
+    if (!match) return null;
+    return generateMatchJsonLd(match, homeName, awayName, compName, matchUrl);
+  }, [match, homeName, awayName, compName, matchUrl]);
+
+  const isPendingMismatch = hasHydrated && activeUrlId && match && String(match.id) !== String(activeUrlId);
 
   if (isLoading || isPendingMismatch || !match) {
     if (!isLoading && !match) {
@@ -115,95 +135,14 @@ export default function MatchDetailClient({
     );
   }
 
-  const homeName = match.home_team_name || match.home_team || 'Home';
-  const awayName = match.away_team_name || match.away_team || 'Away';
-
-  const compName = match.competition_name || 'Official League';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fc.dirzaaulia.com';
-  const matchUrl = `${siteUrl}/match/${match.id}`;
-
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'SportsEvent',
-        '@id': matchUrl,
-        name: `${homeName} vs ${awayName}`,
-        description: `Tactical analysis, highlights, and full match recap for ${homeName} vs ${awayName} in ${compName}.`,
-        startDate: match.utc_date,
-        eventStatus:
-          match.status === 'FINISHED'
-            ? 'https://schema.org/EventFinished'
-            : ['IN_PLAY', 'PAUSED', 'LIVE'].includes(match.status)
-            ? 'https://schema.org/EventLive'
-            : 'https://schema.org/EventScheduled',
-        competitor: [
-          { '@type': 'SportsTeam', name: homeName, logo: match.home_team_crest },
-          { '@type': 'SportsTeam', name: awayName, logo: match.away_team_crest },
-        ],
-      },
-      {
-        '@type': 'NewsArticle',
-        headline: `${homeName} vs ${awayName} Tactical Match Report & Highlights`,
-        datePublished: match.utc_date,
-        dateModified: match.updated_at || match.utc_date,
-        author: {
-          '@type': 'Organization',
-          name: 'Football Highlights & Clips Tactical Editorial Desk',
-          url: `${siteUrl}/editorial-standards`,
-        },
-        publisher: {
-          '@type': 'Organization',
-          name: 'Football Highlights & Clips',
-          logo: {
-            '@type': 'ImageObject',
-            url: `${siteUrl}/favicon.png`,
-          },
-        },
-        mainEntityOfPage: matchUrl,
-      },
-      {
-        '@type': 'FAQPage',
-        mainEntity: [
-          {
-            '@type': 'Question',
-            name: `What was the score in ${homeName} vs ${awayName}?`,
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: `The match concluded with ${homeName} ${match.home_score ?? 0} - ${match.away_score ?? 0} ${awayName} in ${compName}.`,
-            },
-          },
-          {
-            '@type': 'Question',
-            name: `Where are official highlights for ${homeName} vs ${awayName} available?`,
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: `Official highlights and decisive replay clips are available on Football Highlights & Clips embedded from verified official broadcaster channels.`,
-            },
-          },
-        ],
-      },
-      ...(match.highlight_video_id
-        ? [
-            {
-              '@type': 'VideoObject',
-              name: `${homeName} vs ${awayName} Official Highlights`,
-              description: `Watch official match highlights from ${homeName} vs ${awayName} in ${compName}.`,
-              thumbnailUrl: `https://i.ytimg.com/vi/${match.highlight_video_id}/hqdefault.jpg`,
-              embedUrl: `https://www.youtube.com/embed/${match.highlight_video_id}`,
-              uploadDate: match.utc_date,
-            },
-          ]
-        : []),
-    ],
-  };
-
   return (
     <article className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-5 sm:space-y-8">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
 
       <MatchCentreHeader
         videoId={match.highlight_video_id}
@@ -212,23 +151,14 @@ export default function MatchDetailClient({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div className="lg:col-span-8 space-y-6">
-          {/* Visual Header: Video or MatchCentreHero */}
           {match.highlight_video_id ? (
             <div className="space-y-4">
-              <div className="rounded-3xl overflow-hidden bg-[#1E2227] border border-[#334155] shadow-2xl">
-                <div className="relative w-full pt-[56.25%] bg-black">
-                  {match.playback_mode === 'external' ? <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center">
-                    <p>This publisher allows playback on YouTube.</p>
-                    <a href={`https://www.youtube.com/watch?v=${match.highlight_video_id}`} target="_blank" rel="noopener noreferrer" className="rounded-xl bg-blue-500 px-6 py-3 font-semibold">Watch on YouTube</a>
-                  </div> : <iframe
-                    className="absolute inset-0 w-full h-full"
-                    src={`https://www.youtube.com/embed/${match.highlight_video_id}?rel=0&modestbranding=1&autoplay=0`}
-                    title={`${homeName} vs ${awayName} Highlights`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />}
-                </div>
-              </div>
+              <MatchDetailVideoPlayer
+                videoId={match.highlight_video_id}
+                playbackMode={match.playback_mode}
+                homeName={homeName}
+                awayName={awayName}
+              />
               <MatchCentreHero
                 match={match}
                 homeName={homeName}
@@ -253,35 +183,14 @@ export default function MatchDetailClient({
 
           <AdSenseBanner slotId="5616816386" format="horizontal" />
 
-          {/* Official Match-Day Fan Gear & Kits */}
-          <MatchDayGearSection
-            homeName={homeName}
-            homeCrest={match.home_team_crest}
-            awayName={awayName}
-            awayCrest={match.away_team_crest}
-          />
-
-          {/* Spoiler Protection or Full Match Data */}
           {(match.status === 'FINISHED' || match.status === 'AWARDED') && isSpoilerFree && !isScoreRevealed ? (
-            <div className="py-8 px-6 rounded-3xl bg-[#181C20] border border-[#334155] text-center space-y-3 shadow-xl">
-              <div className="inline-flex p-3 rounded-full bg-[#1E3A8A]/30 text-[#7098F8] border border-[#7098F8]/40 mb-1">
-                <EyeOff className="w-6 h-6" />
-              </div>
-              <h3 className="text-base font-extrabold text-white">Spoiler Free Mode Active</h3>
-              <p className="text-xs text-[#94A3B8] max-w-md mx-auto">
-                Match scoreline, incident timeline, stats, and match recap are hidden to preserve match excitement.
-              </p>
-              <button
-                onClick={() => setIsScoreRevealed(true)}
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold transition-all shadow-lg hover:shadow-blue-500/25 cursor-pointer mt-2"
-              >
-                <Eye className="w-4 h-4" />
-                <span>Reveal Match Details &amp; Score</span>
-              </button>
-            </div>
+            <MatchDetailSpoilerCard onRevealScore={() => setIsScoreRevealed(true)} />
           ) : (
             <>
-              {/* Premier League Style Horizontal Event Timeline */}
+              {pitchPlays.length > 0 && (
+                <WebPitchRadar plays={pitchPlays} homeTeam={homeName} awayTeam={awayName} />
+              )}
+
               {match.events && match.events.length > 0 && (
                 <HorizontalMatchTimeline
                   events={match.events}
@@ -292,13 +201,13 @@ export default function MatchDetailClient({
                 />
               )}
 
-              {/* Unified Match Centre: Timeline, Stats, Lineups & Report */}
               <MatchTacticalBoxscore match={match} />
-
-              {/* Tactical Breakdown & Match Report */}
-              <MatchRecapSection
-                recapAnalysis={recapAnalysis}
-                status={match.status}
+              <MatchRecapSection recapAnalysis={recapAnalysis} status={match.status} />
+              <MatchDayGearSection
+                homeName={homeName}
+                homeCrest={match.home_team_crest}
+                awayName={awayName}
+                awayCrest={match.away_team_crest}
               />
             </>
           )}

@@ -30,8 +30,12 @@ export default function PlayerVideoFrame({
   onIframeLoad,
 }: PlayerVideoFrameProps) {
   return (
-    <div className="space-y-3">
-      <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-[#334155]/60 shadow-2xl">
+    <div className="space-y-3 relative group">
+      {/* Ambient Glow Backlight */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-[#7098F8]/20 via-blue-600/10 to-[#7098F8]/20 rounded-3xl blur-xl pointer-events-none -z-10 opacity-70 group-hover:opacity-100 transition-opacity duration-500" />
+
+      {/* Glass Chassis Video Frame */}
+      <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.8)]">
         <PlayerErrorOverlay
           errorState={errorState}
           country={country}
@@ -64,13 +68,34 @@ export default function PlayerVideoFrame({
         )}
       </div>
 
-      {/* Subtle indicator when playing backup stream */}
-      {hasSwitchedToBackup && errorState === 'NONE' && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-[#181C20] border border-[#7098F8]/40 rounded-xl text-xs text-[#7098F8] font-semibold">
-          <span className="w-2 h-2 rounded-full bg-[#7098F8] animate-pulse" />
-          <span>Playing alternative official highlight stream</span>
+      {/* Compliant External Control Pill Desk */}
+      <div className="flex items-center justify-between gap-3 px-3 py-2 bg-[#181C20]/90 backdrop-blur-md border border-white/10 rounded-xl text-xs">
+        <div className="flex items-center gap-2">
+          {hasSwitchedToBackup && errorState === 'NONE' ? (
+            <span className="flex items-center gap-1.5 text-[#7098F8] font-medium">
+              <span className="w-2 h-2 rounded-full bg-[#7098F8] animate-pulse" />
+              Playing Alternative Stream
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              Official Broadcaster Stream
+            </span>
+          )}
         </div>
-      )}
+
+        {activeVideoId && (
+          <a
+            href={`https://www.youtube.com/watch?v=${activeVideoId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 font-semibold transition text-[11px]"
+            title="Watch on Official YouTube"
+          >
+            <span>Watch on YouTube</span>
+          </a>
+        )}
+      </div>
     </div>
   );
 }

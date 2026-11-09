@@ -141,7 +141,8 @@ class OracleVmRepositoryImpl(
                 val match = list.firstOrNull()
                 if (match != null) {
                     val enrichedMatch = if (match.formations == null && espnSummaryRepository != null) {
-                        val (formations, stats) = espnSummaryRepository.getTacticalSummary(match.id, match.competitionId)
+                        val compSlug = _competitions.value.find { it.id.equals(match.competitionId, ignoreCase = true) }?.slug
+                        val (formations, stats) = espnSummaryRepository.getTacticalSummary(match.id, match.competitionId, compSlug)
                         match.copy(formations = formations, statistics = stats)
                     } else {
                         match
@@ -217,7 +218,7 @@ class OracleVmRepositoryImpl(
                 header("Authorization", "Bearer $databaseApiKey")
 
                 url {
-                    parameters.append("select", "id,name,short_name,country_code,emblem_url,league_id,is_active,display_order,type")
+                    parameters.append("select", "id,name,short_name,country_code,emblem_url,league_id,is_active,display_order,type,slug")
                     parameters.append("order", "display_order.asc")
                 }
             }
@@ -276,5 +277,9 @@ class OracleVmRepositoryImpl(
 
     override fun findClubById(id: String): SupportedClub? {
         return _supportedClubs.value.firstOrNull { it.id == id }
+    }
+
+    override fun invalidateMatchesCache() {
+        matchesCache.clear()
     }
 }

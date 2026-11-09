@@ -3,6 +3,7 @@ package com.dirzaaulia.footballclips.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.filled.FormatListNumbered
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.VideoLibrary
@@ -11,9 +12,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 sealed class NavDestination(
     val route: String,
     val title: String,
-    val icon: ImageVector
+    val icon: ImageVector,
 ) {
     data object Home : NavDestination("home", "Highlights", Icons.Default.VideoLibrary)
+    data object Shorts : NavDestination("shorts", "Shorts", Icons.Default.PlayCircle)
     data object Fixtures : NavDestination("fixtures", "Fixtures", Icons.AutoMirrored.Filled.EventNote)
     data object Standings : NavDestination("standings", "Standings", Icons.Default.FormatListNumbered)
     data object Store : NavDestination("store", "Club Store", Icons.Default.ShoppingBag)
@@ -23,9 +25,7 @@ sealed class NavDestination(
 
 val bottomNavItems = listOf(
     NavDestination.Home,
+    NavDestination.Shorts,
     NavDestination.Fixtures,
     NavDestination.Standings,
-    NavDestination.Store,
-    NavDestination.Info,
 )
-

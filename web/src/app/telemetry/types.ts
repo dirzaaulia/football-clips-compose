@@ -59,6 +59,7 @@ export interface CandidateVerdict {
   verdictReason: string;
   evaluator: string;
   score: number;
+  source?: string;
 }
 
 export interface DiscoveredCandidate {
@@ -70,6 +71,29 @@ export interface DiscoveredCandidate {
   duration?: number;
   isEmbeddable?: boolean;
   reach?: string;
+}
+
+export interface VideoRegionCoverage {
+  videoId: string;
+  role: 'PRIMARY' | 'BACKUP';
+  channelHandle?: string;
+  allowedCount: number;
+  blockedCount: number;
+  percentage: number;
+  targetMarketsCovered: string[];
+}
+
+export interface CumulativeAvailability {
+  text: string;
+  percentage: number;
+  targetMarketsStatus: 'ALL_COVERED' | 'PARTIAL' | 'EXHAUSTED';
+  coveredTargetMarkets: string[];
+  missingTargetMarkets: string[];
+  videoBreakdowns: VideoRegionCoverage[];
+  nextCheckEta?: string;
+  nextCheckTimestamp?: string;
+  isExhausted?: boolean;
+  sweepCount?: number;
 }
 
 export interface MatchCycleRun {
@@ -92,6 +116,8 @@ export interface MatchCycleRun {
   linkedChannelTier?: string;
   worldwideAvailabilityText?: string;
   worldwidePercentage?: number;
+  cumulativeAvailability?: CumulativeAvailability;
+  ingestionSource?: 'WEBSUB' | 'RSS' | 'API' | 'MANUAL';
   scannedUploads?: Record<string, ScannedVideo[]>;
 }
 
@@ -121,6 +147,8 @@ export interface MatchWaterfall {
   linkedChannelTier?: string;
   worldwideAvailabilityText?: string;
   worldwidePercentage?: number;
+  cumulativeAvailability?: CumulativeAvailability;
+  ingestionSource?: 'WEBSUB' | 'RSS' | 'API' | 'MANUAL';
   cycles?: MatchCycleRun[];
 }
 
@@ -147,8 +175,10 @@ export interface DbFinishedMatch {
   home_score?: number | null;
   away_score?: number | null;
   highlight_video_id?: string | null;
+  backup_highlight_video_id?: string | null;
   last_youtube_check?: string | null;
   youtube_region_info?: any;
+  backup_youtube_region_info?: any;
   highlight_videos?: any;
 }
 

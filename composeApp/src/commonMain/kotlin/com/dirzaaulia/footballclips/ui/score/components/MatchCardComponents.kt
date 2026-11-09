@@ -110,9 +110,10 @@ internal fun MatchStatusBadge(match: Match, isProminent: Boolean = false) {
 @Composable
 private fun LiveMatchStatusBadge(match: Match, isProminent: Boolean) {
     val isPaused = match.status.equals("PAUSED", ignoreCase = true) || match.displayClock?.equals("HT", ignoreCase = true) == true
+    val cleanClock = match.displayClock?.replace("''", "'")?.replace("\"", "'")?.trim()
     val liveText = when {
         isPaused -> "HT"
-        !match.displayClock.isNullOrBlank() -> "LIVE ${match.displayClock}"
+        !cleanClock.isNullOrBlank() -> "LIVE $cleanClock"
         else -> "LIVE"
     }
 

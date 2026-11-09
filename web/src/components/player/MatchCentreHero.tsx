@@ -216,21 +216,21 @@ export default function MatchCentreHero({
         {isFinished && !match.highlight_video_id && (
           <div className="flex items-center gap-1 text-[#F59E0B] font-semibold text-[10px]">
             <Sparkles className="w-3 h-3" />
-            <span>Embargo Active</span>
+            <span>Highlights Coming Soon</span>
           </div>
         )}
       </div>
 
-      {/* Graceful Finished Match Highlights In Processing Notice (ONLY when finished and video not yet available) */}
+      {/* Graceful Finished Match Highlights Notice (ONLY when finished and video not yet available) */}
       {isFinished && !match.highlight_video_id && (
         <div className="relative mt-1 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center gap-3">
           <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 shrink-0">
             <Clock className="w-4 h-4 animate-pulse" />
           </div>
           <div className="min-w-0 flex-1 text-left">
-            <p className="text-xs font-bold text-amber-300">Official Highlights In Processing</p>
+            <p className="text-xs font-bold text-amber-300">Highlights Coming Soon</p>
             <p className="text-[11px] text-amber-200/70 leading-snug">
-              Broadcaster post-match embargo is active. Highlights will be automatically available once official club channels publish.
+              Official match highlights will be available here shortly.
             </p>
           </div>
         </div>

@@ -7,7 +7,9 @@ import com.dirzaaulia.footballclips.data.model.remote.StandingDto
 import com.dirzaaulia.footballclips.data.model.remote.isMatchForFavoriteClubs
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.domain.model.toMatch
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
@@ -113,6 +115,7 @@ fun ScoreViewModel.getMatches() {
                 date.plus(-1, DateTimeUnit.DAY).toString() to date.plus(1, DateTimeUnit.DAY).toString()
             } else null to null
 
+            val isToday = selectedDateStr == availableDates.firstOrNull { it.isToday }?.date
             val result = if (isLiveOnly && !isArchiveSeason) {
                 oracleVmRepository.getLiveMatches()
             } else {
@@ -134,8 +137,22 @@ fun ScoreViewModel.getMatches() {
                     val isMyClubsOnly = isMyClubsFilterActive.value
                     val clubs = supportedClubs.value
 
-                    val filteredMatches = result.data
-                        .map { it.toMatch() }
+                    val baseMatches = result.data.map { it.toMatch() }
+                    val liveMatchesList = if (!isArchiveSeason && !isLiveOnly && (isToday || selDate == null)) {
+                        val liveRes = oracleVmRepository.getLiveMatches()
+                        if (liveRes is NetworkResult.Success) liveRes.data.map { it.toMatch() } else emptyList()
+                    } else {
+                        emptyList()
+                    }
+
+                    val liveMap = liveMatchesList.associateBy { it.id }
+                    val merged = if (liveMap.isNotEmpty()) {
+                        baseMatches.filter { it.id !in liveMap } + liveMatchesList
+                    } else {
+                        baseMatches
+                    }
+
+                    val filteredMatches = merged
                         .filter { match ->
                             if (!isArchiveSeason) {
                                 if (isLiveOnly) {
@@ -229,6 +246,18 @@ fun ScoreViewModel.observeAdsRemoved() {
                     matches = buildFixtureListWithAds(nonAds, removed),
                     isAdsRemoved = removed,
                 )
+            }
+        }
+    }
+}
+
+fun ScoreViewModel.startLiveSyncTicker() {
+    viewModelScope.launch {
+        while (isActive) {
+            delay(30_000L)
+            val isToday = selectedDate.value == availableDates.firstOrNull { it.isToday }?.date
+            if (isToday || isLiveOnlyFilterActive.value) {
+                getMatches()
             }
         }
     }

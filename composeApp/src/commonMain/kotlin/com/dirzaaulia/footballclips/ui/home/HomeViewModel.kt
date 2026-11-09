@@ -159,6 +159,7 @@ class HomeViewModel(
             oracleVmRepository.refreshClubs()
             fetchLiveMatches()
         }
+        startLiveTicker()
         viewModelScope.launch {
             preferenceManager.selectedSeason.collect {
                 refreshData()

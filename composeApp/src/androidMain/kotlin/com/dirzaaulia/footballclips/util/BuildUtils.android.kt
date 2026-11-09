@@ -16,7 +16,18 @@ actual val isDeveloperModeAllowed: Boolean
         val track = getBuildConfigString("RELEASE_TRACK").lowercase()
         if (track == "internal") return true
         val versionName = getBuildConfigString("VERSION_NAME").lowercase()
-        return versionName.contains("-internal.")
+        if (versionName.contains("-internal")) return true
+        val context = ActivityHolder.currentActivity?.applicationContext
+        if (context != null) {
+            val pkgVersion = try {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(context.packageName, 0).versionName?.lowercase() ?: ""
+            } catch (_: Throwable) {
+                ""
+            }
+            if (pkgVersion.contains("-internal")) return true
+        }
+        return false
     }
 
 fun getBuildConfigString(fieldName: String, defaultValue: String = ""): String {

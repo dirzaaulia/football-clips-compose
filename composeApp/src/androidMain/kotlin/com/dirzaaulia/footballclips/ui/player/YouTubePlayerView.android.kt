@@ -12,8 +12,10 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -22,8 +24,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -83,7 +88,22 @@ actual fun YouTubePlayerView(
 
     SetupLifecycleAndOrientation(activity = activity, customView = customView, webViewInstance = webViewInstance)
 
-    Box(modifier = modifier.background(Color.Black)) {
+    val playerModifier = if (customView != null) {
+        modifier.background(Color.Black)
+    } else {
+        modifier
+            .background(Color.Black)
+            .border(
+                width = 1.dp,
+                brush = Brush.verticalGradient(
+                    listOf(Color(0xFF7098F8).copy(alpha = 0.35f), Color(0xFF1E293B).copy(alpha = 0.2f)),
+                ),
+                shape = RoundedCornerShape(16.dp),
+            )
+            .clip(RoundedCornerShape(16.dp))
+    }
+
+    Box(modifier = playerModifier) {
         if (errorState == PlayerErrorState.NONE) {
             AndroidView(
                 modifier = Modifier.fillMaxSize(),

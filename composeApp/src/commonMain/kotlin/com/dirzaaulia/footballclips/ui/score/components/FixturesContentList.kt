@@ -183,6 +183,7 @@ fun FixturesContentList(
                                 val isFav = item.match.isMatchForFavoriteClubs(favoriteClubs, supportedClubs)
                                 StandardMatchCard(
                                     match = item.match,
+                                    showCompetitionHeader = (comp == null),
                                     isSpoilerFree = isSpoilerFreeMode,
                                     isRevealed = revealedMatchIds.contains(item.match.id),
                                     isFavorite = isFav,
