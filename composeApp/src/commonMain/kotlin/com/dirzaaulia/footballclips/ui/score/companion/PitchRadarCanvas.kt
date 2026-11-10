@@ -10,7 +10,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +33,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
@@ -48,7 +47,11 @@ fun PitchRadarDeck(
     modifier: Modifier = Modifier,
     onPlaySelected: ((PitchPlay) -> Unit)? = null,
 ) {
-    var selectedPlay by remember(plays) { mutableStateOf(plays.lastOrNull()) }
+    var selectedCategory by remember { mutableStateOf("ALL") }
+    val filteredPlays = remember(plays, selectedCategory) {
+        filterPlaysByCategory(plays, selectedCategory)
+    }
+    var selectedPlay by remember(filteredPlays) { mutableStateOf(filteredPlays.lastOrNull()) }
 
     Column(
         modifier = modifier
@@ -57,7 +60,13 @@ fun PitchRadarDeck(
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        PitchCategoryFilters(
+            selectedCategory = selectedCategory,
+            onSelect = { selectedCategory = it },
+        )
+
         PitchCanvas(
+            plays = filteredPlays,
             selectedPlay = selectedPlay,
             modifier = Modifier.fillMaxWidth().aspectRatio(1.54f),
         )
@@ -67,7 +76,7 @@ fun PitchRadarDeck(
         }
 
         PitchEventChips(
-            plays = plays,
+            plays = filteredPlays,
             selectedPlay = selectedPlay,
             onSelect = {
                 selectedPlay = it
@@ -77,22 +86,66 @@ fun PitchRadarDeck(
     }
 }
 
+private fun filterPlaysByCategory(plays: List<PitchPlay>, cat: String): List<PitchPlay> {
+    if (cat == "ALL") return plays
+    return plays.filter { p ->
+        when (cat) {
+            "GOALS" -> p.isGoal
+            "SHOTS" -> p.isShot
+            "CARDS" -> p.isCard
+            "CORNERS" -> p.isCorner
+            "SUBS" -> p.isSub
+            else -> true
+        }
+    }
+}
+
+@Composable
+private fun PitchCategoryFilters(
+    selectedCategory: String,
+    onSelect: (String) -> Unit,
+) {
+    val categories = listOf("ALL", "GOALS", "SHOTS", "CARDS", "CORNERS", "SUBS")
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        contentPadding = PaddingValues(bottom = 2.dp),
+    ) {
+        items(categories) { cat ->
+            val isSelected = cat == selectedCategory
+            Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = if (isSelected) Color(0xFF2563EB) else Color(0xFF1E293B),
+                modifier = Modifier.clickable { onSelect(cat) },
+            ) {
+                Text(
+                    text = cat,
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun PitchCanvas(
+    plays: List<PitchPlay>,
     selectedPlay: PitchPlay?,
     modifier: Modifier = Modifier,
 ) {
     val transition = rememberInfiniteTransition()
     val pulseRadius by transition.animateFloat(
         initialValue = 6f,
-        targetValue = 28f,
+        targetValue = 26f,
         animationSpec = infiniteRepeatable(
             animation = tween(1200, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Restart,
         ),
     )
     val pulseAlpha by transition.animateFloat(
-        initialValue = 0.8f,
+        initialValue = 0.7f,
         targetValue = 0.0f,
         animationSpec = infiniteRepeatable(
             animation = tween(1200, easing = FastOutSlowInEasing),
@@ -102,31 +155,65 @@ private fun PitchCanvas(
 
     Canvas(modifier = modifier) {
         drawPitchMarkings()
-        selectedPlay?.let { play ->
-            val px = play.xPercent
-            val py = play.yPercent
-            if (px != null && py != null) {
-                val cx = (px / 100f) * size.width
-                val cy = (py / 100f) * size.height
-                val ringColor = when {
-                    play.isGoal -> Color(0xFF22C55E)
-                    play.isShot -> Color(0xFF38BDF8)
-                    play.isCard -> Color(0xFFEAB308)
-                    else -> Color(0xFFF97316)
-                }
-                drawCircle(
-                    color = ringColor.copy(alpha = pulseAlpha),
-                    radius = pulseRadius * density,
-                    center = Offset(cx, cy),
-                )
-                drawCircle(
-                    color = ringColor,
-                    radius = 5.dp.toPx(),
-                    center = Offset(cx, cy),
-                )
-            }
+        drawPlayNodes(plays, selectedPlay)
+        drawSelectedPlay(selectedPlay, pulseRadius, pulseAlpha)
+    }
+}
+
+private fun DrawScope.drawPlayNodes(plays: List<PitchPlay>, selected: PitchPlay?) {
+    for (p in plays) {
+        if (p.id == selected?.id) continue
+        val px = p.xPercent
+        val py = p.yPercent
+        if (px != null && py != null) {
+            drawCircle(
+                color = resolveMarkerColor(p).copy(alpha = 0.6f),
+                radius = 2.5.dp.toPx(),
+                center = Offset((px / 100f) * size.width, (py / 100f) * size.height),
+            )
         }
     }
+}
+
+private fun DrawScope.drawSelectedPlay(play: PitchPlay?, pulseRadius: Float, pulseAlpha: Float) {
+    play ?: return
+    val px = play.xPercent ?: return
+    val py = play.yPercent ?: return
+    val cx = (px / 100f) * size.width
+    val cy = (py / 100f) * size.height
+    val ringColor = resolveMarkerColor(play)
+
+    val tx = play.targetXPercent
+    val ty = play.targetYPercent
+    if (tx != null && ty != null) {
+        drawLine(
+            color = ringColor.copy(alpha = 0.7f),
+            start = Offset(cx, cy),
+            end = Offset((tx / 100f) * size.width, (ty / 100f) * size.height),
+            strokeWidth = 2.dp.toPx(),
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 10f)),
+        )
+    }
+
+    drawCircle(
+        color = ringColor.copy(alpha = pulseAlpha),
+        radius = pulseRadius * density,
+        center = Offset(cx, cy),
+    )
+    drawCircle(
+        color = ringColor,
+        radius = 5.dp.toPx(),
+        center = Offset(cx, cy),
+    )
+}
+
+private fun resolveMarkerColor(play: PitchPlay): Color = when {
+    play.isGoal -> Color(0xFF22C55E)
+    play.isShot -> Color(0xFF38BDF8)
+    play.isCard -> Color(0xFFEAB308)
+    play.isCorner -> Color(0xFFA855F7)
+    play.isSub -> Color(0xFFF97316)
+    else -> Color(0xFF94A3B8)
 }
 
 private fun DrawScope.drawPitchMarkings() {
@@ -191,7 +278,7 @@ private fun PitchEventChips(
         contentPadding = PaddingValues(vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        items(plays.takeLast(10).reversed()) { play ->
+        items(plays.takeLast(12).reversed()) { play ->
             val isSelected = play.id == selectedPlay?.id
             Surface(
                 shape = RoundedCornerShape(6.dp),

@@ -81,6 +81,10 @@ export interface MatchEvent {
   player: string;
   assist?: string | null;
   text: string;
+  x_coord?: number | null;
+  y_coord?: number | null;
+  target_x?: number | null;
+  target_y?: number | null;
 }
 
 export interface RegionRestriction {

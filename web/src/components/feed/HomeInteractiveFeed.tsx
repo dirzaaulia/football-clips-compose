@@ -81,7 +81,7 @@ export default function HomeInteractiveFeed({
 
   const catalog = useInfiniteHighlights(selectedComp, selectedSeason, 20, searchQuery);
   const isDefaultFeed = selectedComp === 'ALL' && selectedSeason === 2026 && !searchQuery.trim();
-  const isFilterLoading = (catalog.isLoading || catalog.isPending) && !isDefaultFeed;
+  const isFilterLoading = (catalog.isLoading || catalog.isPending || (catalog.isFetching && catalog.highlights.length === 0)) && !isDefaultFeed;
   const matches = catalog.highlights.length > 0 ? catalog.highlights : (isDefaultFeed ? initialMatches : []);
   const isInitialLoading = (catalog.isLoading && initialMatches.length === 0) || isFilterLoading;
   const loading = {
@@ -185,7 +185,7 @@ export default function HomeInteractiveFeed({
       )}
 
       {/* Highlights Feed: Grouped by Competition when ALL, else Flat Grid */}
-      {(loading.initial || isFilterLoading) && displayedMatches.length === 0 ? (
+      {loading.initial || isFilterLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 my-6">
           {Array.from({ length: 8 }).map((_, i) => (
             <HighlightCardSkeleton key={`skeleton-${i}`} />

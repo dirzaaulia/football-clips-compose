@@ -351,4 +351,23 @@ Final continuation verification at approximately 17:55 WIB: final Wasm productio
   - Successfully executed `core-go/bin/fc-deploy --internal` via GPP (`:androidApp:publishReleaseBundle -Ptrack=internal`).
   - Uploaded Proguard mapping to Crashlytics and verified `[completed] release (com.dirzaaulia.footballclips:[89832588])` active on Google Play Internal Testing.
 
+## Web Telemetry Removal, Highlights Shimmer & Interactive 2D Pitch Radar (Web & Android Parity) — 10 November 2026
+
+- **Web Navigation Cleanup**:
+  - Removed public `/telemetry` entry point from `SidebarBottomControls.tsx` in both collapsed and expanded states, keeping the internal operations hub secluded while preserving full direct-URL and subdomain access.
+  - Centered and polished the Google Play Android app button with a unified responsive layout.
+- **Highlights Tab Loading Shimmer Restored**:
+  - Enhanced loading state evaluation in `HomeInteractiveFeed.tsx` and `useCatalogHighlights.ts`, ensuring that switching competitions/leagues, changing seasons, or initial client-side hydration immediately displays the 8-card `HighlightCardSkeleton` grid rather than silently retaining stale matches.
+- **Full ESPN Play-by-Play Commentary & Opta Coordinates (Web & Android)**:
+  - Upgraded `web/src/lib/espn.ts` and Android `EspnSummaryDto.kt` / `EspnSummaryRepository.kt` to ingest full `commentary` plays from ESPN's summary endpoint alongside `keyEvents`.
+  - Expanded data beyond cards/subs/goals to include shots on target, shots off target, blocked attempts, corners, saves, fouls, and penalties.
+  - Ingested real Opta coordinates (`fieldPositionX`, `fieldPositionY`, `fieldPosition2X`, `fieldPosition2Y`) with defensive spatial heuristics for home and away attacking orientations.
+- **Interactive 2D Pitch Radar Companion (Web & Android CMP)**:
+  - **Dynamic Trajectory Arcs**: Rendered curved dashed SVG vector paths on Web (`WebPitchRadarCanvas.tsx`) and dashed Canvas lines on Android (`PitchRadarCanvas.kt`), showing shot trajectories towards the goal and corner crosses into the penalty box.
+  - **Interactive Pitch Surface Nodes**: All filtered match events are displayed as interactive nodes on the pitch with distinct color codes (Green for Goals, Cyan for Shots, Yellow for Cards, Purple for Corners, Orange for Subs).
+  - **Category Filters**: Added category filter pills (`ALL`, `GOALS`, `SHOTS`, `CARDS`, `CORNERS`, `SUBS`) on both Web and Android companion desks.
+  - **Timeline Scrubber Slider & Auto-Replay**: Interactive minute-by-minute scrubber slider with Play/Pause Auto-Replay mode and Reset controls, speaking tactical audio summaries chronologically via Web Speech API (`window.speechSynthesis`) on Web and native Android `TextToSpeech` via `VoiceCommentaryManager`.
+  - **Smooth Ripple Animation**: Replaced abrasive Tailwind `animate-ping` with smooth SVG radial ripple animation.
+
+
 

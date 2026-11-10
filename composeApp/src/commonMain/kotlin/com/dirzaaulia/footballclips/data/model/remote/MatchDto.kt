@@ -71,7 +71,11 @@ data class MatchEventDto(
     @SerialName("scoring_play") val scoringPlay: Boolean = false,
     @SerialName("player") val player: String = "",
     @SerialName("assist") val assist: String? = null,
-    @SerialName("text") val text: String = ""
+    @SerialName("text") val text: String = "",
+    @SerialName("x_coord") val xCoord: Float? = null,
+    @SerialName("y_coord") val yCoord: Float? = null,
+    @SerialName("target_x") val targetXCoord: Float? = null,
+    @SerialName("target_y") val targetYCoord: Float? = null,
 )
 
 @Serializable

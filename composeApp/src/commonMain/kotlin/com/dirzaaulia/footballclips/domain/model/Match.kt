@@ -180,7 +180,11 @@ data class MatchEvent(
     val scoringPlay: Boolean,
     val player: String,
     val assist: String?,
-    val text: String
+    val text: String,
+    val xCoord: Float? = null,
+    val yCoord: Float? = null,
+    val targetXCoord: Float? = null,
+    val targetYCoord: Float? = null,
 )
 
 fun com.dirzaaulia.footballclips.data.model.remote.MatchEventDto.toDomain() = MatchEvent(
@@ -193,7 +197,11 @@ fun com.dirzaaulia.footballclips.data.model.remote.MatchEventDto.toDomain() = Ma
     scoringPlay = scoringPlay,
     player = player,
     assist = assist,
-    text = text
+    text = text,
+    xCoord = xCoord,
+    yCoord = yCoord,
+    targetXCoord = targetXCoord,
+    targetYCoord = targetYCoord,
 )
 
 fun MatchDto.toMatch(): Match {

@@ -168,13 +168,13 @@ private fun MatchEvent.toPitchPlay(homeTeamName: String, awayTeamName: String): 
     val isCornerPlay = type?.contains("corner", ignoreCase = true) == true
     val isShotPlay = type?.contains("shot", ignoreCase = true) == true
 
-    val xCoord = when {
+    val xPos = xCoord ?: when {
         isGoalPlay -> if (isHome) 88f else 12f
         isShotPlay -> if (isHome) 78f else 22f
         isCornerPlay -> if (isHome) 98f else 2f
         else -> 50f
     }
-    val yCoord = if (isCornerPlay) 6f else 50f
+    val yPos = yCoord ?: if (isCornerPlay) 6f else 50f
 
     return PitchPlay(
         id = id ?: "${clock}_${type}_${player}",
@@ -185,7 +185,9 @@ private fun MatchEvent.toPitchPlay(homeTeamName: String, awayTeamName: String): 
         text = text.ifBlank { "${player} - ${typeText ?: type}" },
         teamName = team,
         player = player,
-        xPercent = xCoord,
-        yPercent = yCoord,
+        xPercent = xPos,
+        yPercent = yPos,
+        targetXPercent = targetXCoord ?: if (isShotPlay) (if (isHome) 100f else 0f) else null,
+        targetYPercent = targetYCoord ?: if (isShotPlay) 50f else null,
     )
 }

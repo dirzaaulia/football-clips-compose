@@ -11,6 +11,8 @@ data class PitchPlay(
     val player: String? = null,
     val xPercent: Float? = null,
     val yPercent: Float? = null,
+    val targetXPercent: Float? = null,
+    val targetYPercent: Float? = null,
 ) {
     val isGoal: Boolean
         get() = type.contains("goal", ignoreCase = true) || typeText.contains("goal", ignoreCase = true)
@@ -26,4 +28,7 @@ data class PitchPlay(
 
     val isCard: Boolean
         get() = type.contains("card", ignoreCase = true) || typeText.contains("card", ignoreCase = true)
+
+    val isSub: Boolean
+        get() = type.contains("sub", ignoreCase = true) || typeText.contains("sub", ignoreCase = true)
 }
