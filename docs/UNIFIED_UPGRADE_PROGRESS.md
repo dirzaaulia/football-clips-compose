@@ -390,3 +390,18 @@ Final continuation verification at approximately 17:55 WIB: final Wasm productio
   - Completely eliminated robotic tone generator beeps and robotic TTS voices.
   - Prioritized high-quality neural British/English voices (`Voice.QUALITY_HIGH` on Android, Neural/Google UK/US voices on Web).
   - Broadcast-style dynamic phrasing for goals, saves, shots, and disciplinary actions.
+
+## Deployment: Web (Firebase Hosting) & Android (Google Play Internal) — 11 November 2026
+
+- **Web Application Deployed**:
+  - Successfully built and exported 129 static routes via Next.js Turbopack.
+  - Deployed to Firebase Hosting (`highlightdata` project):
+    - Public Site: `https://footballclips.web.app` (Custom domain: `https://fc.dirzaaulia.com`).
+    - Telemetry Site: `https://footballclips-telemetry.web.app`.
+  - Includes FM 2D match canvas, team color-coding, glassmorphic pill tab bar, 3-tab telemetry accordion, and reliable highlights feed loading shimmer.
+- **Android App Deployed to Google Play**:
+  - Monotonically incremented build code to `89832589` (`3.0.1-internal.89832589`).
+  - Pre-flight compilation passed with 0 errors.
+  - Published release bundle via GPP (`publishReleaseBundle -Ptrack=internal`).
+  - Active on Google Play Internal Testing Track: `com.dirzaaulia.footballclips:[89832589]`.
+  - Git release tag `v3.0.1-internal-89832589` created and pushed to `origin/main`.
