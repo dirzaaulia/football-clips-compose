@@ -2,8 +2,6 @@ package com.dirzaaulia.footballclips.util
 
 import android.content.Context
 import android.media.AudioAttributes
-import android.media.AudioManager
-import android.media.ToneGenerator
 import android.speech.tts.TextToSpeech
 import android.speech.tts.Voice
 import java.util.Locale
@@ -21,17 +19,19 @@ actual class VoiceCommentaryManager(
             tts?.let { engine ->
                 val result = engine.setLanguage(Locale.UK)
                 if (result != TextToSpeech.LANG_MISSING_DATA && result != TextToSpeech.LANG_NOT_SUPPORTED) {
-                    val highQualityVoice = engine.voices?.firstOrNull { v ->
-                        v.locale.language == "en" &&
-                            v.quality >= Voice.QUALITY_HIGH &&
-                            !v.isNetworkConnectionRequired
-                    }
-                    if (highQualityVoice != null) {
-                        engine.voice = highQualityVoice
+                    val naturalVoice = engine.voices
+                        ?.filter { it.locale.language.startsWith("en") }
+                        ?.sortedWith(
+                            compareByDescending<Voice> { it.quality }
+                                .thenByDescending { !it.isNetworkConnectionRequired },
+                        )
+                        ?.firstOrNull()
+                    if (naturalVoice != null) {
+                        engine.voice = naturalVoice
                     }
                 }
-                engine.setPitch(0.98f)
-                engine.setSpeechRate(1.05f)
+                engine.setPitch(1.0f)
+                engine.setSpeechRate(1.0f)
                 engine.setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -46,15 +46,13 @@ actual class VoiceCommentaryManager(
     actual fun speakPlay(clock: String, text: String, isGoal: Boolean) {
         if (!isEnabled || !isInitialized || text.isBlank()) return
 
-        if (isGoal) {
-            try {
-                val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 80)
-                toneGen.startTone(ToneGenerator.TONE_PROP_BEEP2, 300)
-            } catch (_: Exception) {
-            }
+        val speechText = if (isGoal) {
+            "Goal! $text"
+        } else if (clock.isNotBlank()) {
+            "$clock. $text"
+        } else {
+            text
         }
-
-        val speechText = if (clock.isNotBlank()) "$clock. $text" else text
         tts?.speak(speechText, TextToSpeech.QUEUE_ADD, null, "PLAY_${System.currentTimeMillis()}")
     }
 

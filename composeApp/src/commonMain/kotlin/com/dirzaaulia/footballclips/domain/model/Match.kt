@@ -34,6 +34,8 @@ data class Match(
     val editorialStory: String? = null,
     val editorialSource: String? = null,
     val events: List<MatchEvent>? = null,
+    val homeColor: String? = null,
+    val awayColor: String? = null,
     val youtubeRegionInfo: RegionRestriction? = null,
     val backupYoutubeRegionInfo: RegionRestriction? = null,
     val playbackMode: String? = null,
@@ -146,28 +148,30 @@ data class StarterPlayer(
 
 data class TeamFormation(
     val formation: String? = null,
-    val starters: List<StarterPlayer> = emptyList()
+    val color: String? = null,
+    val starters: List<StarterPlayer> = emptyList(),
 )
 
 data class Formations(
     val home: TeamFormation? = null,
-    val away: TeamFormation? = null
+    val away: TeamFormation? = null,
 )
 
 fun com.dirzaaulia.footballclips.data.model.remote.StarterPlayerDto.toDomain() = StarterPlayer(
     name = name,
     jersey = jersey,
-    position = position
+    position = position,
 )
 
 fun com.dirzaaulia.footballclips.data.model.remote.TeamFormationDto.toDomain() = TeamFormation(
     formation = formation,
-    starters = starters.map { it.toDomain() }
+    color = color,
+    starters = starters.map { it.toDomain() },
 )
 
 fun com.dirzaaulia.footballclips.data.model.remote.FormationsDto.toDomain() = Formations(
     home = home?.toDomain(),
-    away = away?.toDomain()
+    away = away?.toDomain(),
 )
 
 data class MatchEvent(
@@ -233,6 +237,8 @@ fun MatchDto.toMatch(): Match {
         editorialStory = editorialStory,
         editorialSource = editorialSource,
         events = events?.map { it.toDomain() },
+        homeColor = homeColor ?: formations?.home?.color,
+        awayColor = awayColor ?: formations?.away?.color,
         youtubeRegionInfo = youtubeRegionInfo?.let { RegionRestriction(it.allowed, it.blocked) },
         backupYoutubeRegionInfo = backupYoutubeRegionInfo?.let { RegionRestriction(it.allowed, it.blocked) },
         viewerAvailability = viewerAvailability,

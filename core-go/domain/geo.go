@@ -64,15 +64,15 @@ func CheckMatchTargetMarketCutoff(m Match, now time.Time, sweepCount int) (bool,
 	ageHours := now.Sub(m.UTCDate).Hours()
 	ageDays := ageHours / 24.0
 
-	// Cutoff Condition 1: 4 sweeps and match age >= 72h (3 days)
-	if sweepCount >= 4 && ageHours >= 72.0 {
-		return true, fmt.Sprintf("Exhausted: %d sweeps across official channels and match completed %.1f hours ago", sweepCount, ageHours)
+	// Protect active 2-week news cycle: matches under 14 days are never exhausted
+	if ageDays < 14.0 {
+		return false, fmt.Sprintf("Active Tier 1: age %.1fd (<14d), sweeps %d (protected from exhaustion)", ageDays, sweepCount)
 	}
 
-	// Cutoff Condition 2: 3 sweeps and match age >= 7 days
-	if sweepCount >= 3 && ageDays >= 7.0 {
+	// Cutoff for matches older than 14 days: 6 sweeps across official channels
+	if sweepCount >= 6 && ageDays >= 14.0 {
 		return true, fmt.Sprintf("Exhausted: %d sweeps across official channels and match completed %.1f days ago", sweepCount, ageDays)
 	}
 
-	return false, fmt.Sprintf("Active: sweeps %d, age %.1fh (cutoff at 4 sweeps + 72h)", sweepCount, ageHours)
+	return false, fmt.Sprintf("Active: sweeps %d, age %.1fd (cutoff at 6 sweeps + 14 days)", sweepCount, ageDays)
 }

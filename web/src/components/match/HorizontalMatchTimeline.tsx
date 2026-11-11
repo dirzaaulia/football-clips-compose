@@ -180,8 +180,11 @@ export default function HorizontalMatchTimeline({
             <div className="min-w-0">
               <span className="font-extrabold text-white mr-2 truncate">{hoveredEvent.player || hoveredEvent.text}</span>
               <span className="text-[#94A3B8] text-[11px] block sm:inline">
-                {hoveredEvent.side === 'home' ? homeName : awayName} • {hoveredEvent.clock}
-                {hoveredEvent.assist ? ` (Assist: ${hoveredEvent.assist})` : ''}
+                {hoveredEvent.assist
+                  ? (hoveredEvent.type_text?.toLowerCase().includes('sub') || hoveredEvent.type?.toLowerCase().includes('sub'))
+                    ? ` (Out: ${hoveredEvent.assist})`
+                    : ` (Assist: ${hoveredEvent.assist})`
+                  : ''}
               </span>
             </div>
           </div>

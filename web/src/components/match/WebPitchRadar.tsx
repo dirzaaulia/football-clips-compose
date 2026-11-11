@@ -25,6 +25,8 @@ interface WebPitchRadarProps {
   homeTeam: string;
   awayTeam: string;
   isLive?: boolean;
+  homeColor?: string | null;
+  awayColor?: string | null;
 }
 
 export default function WebPitchRadar({
@@ -32,10 +34,13 @@ export default function WebPitchRadar({
   homeTeam,
   awayTeam,
   isLive = false,
+  homeColor,
+  awayColor,
 }: WebPitchRadarProps) {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState<1 | 2>(1);
 
   const filteredPlays = useMemo(() => {
     if (selectedCategory === 'ALL') return plays;
@@ -65,18 +70,25 @@ export default function WebPitchRadar({
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
     try {
       window.speechSynthesis.cancel();
-      const textToSpeak = `${play.clock ? play.clock + '. ' : ''}${play.text}`;
+      const isGoal = (play.type_text || play.type || '').toLowerCase().includes('goal');
+      const textToSpeak = isGoal
+        ? `Goal! ${play.text}`
+        : `${play.clock ? play.clock + '. ' : ''}${play.text}`;
+
       const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.rate = 1.05;
-      utterance.pitch = 1.0;
+      utterance.rate = 1.0;
+      utterance.pitch = isGoal ? 1.05 : 1.0;
+
       const voices = window.speechSynthesis.getVoices();
-      const englishVoice = voices.find(
-        (v) => v.lang.startsWith('en-GB') || v.lang.startsWith('en')
-      );
-      if (englishVoice) utterance.voice = englishVoice;
+      const broadcasterVoice = voices.find(
+        (v) => (v.lang.startsWith('en-GB') || v.lang.startsWith('en')) &&
+               (v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Google') || v.name.includes('Online'))
+      ) || voices.find((v) => v.lang.startsWith('en-GB')) || voices.find((v) => v.lang.startsWith('en'));
+
+      if (broadcasterVoice) utterance.voice = broadcasterVoice;
       window.speechSynthesis.speak(utterance);
     } catch {
-      // Safe fallback if speech synthesis is not allowed or supported
+      // Safe fallback if speech synthesis is restricted
     }
   }, []);
 
@@ -91,6 +103,7 @@ export default function WebPitchRadar({
   useEffect(() => {
     if (!isPlaying || filteredPlays.length === 0) return;
 
+    const intervalMs = Math.round(1600 / playbackSpeed);
     const timer = setInterval(() => {
       setSelectedPlay((prev) => {
         const curIdx = filteredPlays.findIndex((p) => p.id === prev?.id);
@@ -100,10 +113,10 @@ export default function WebPitchRadar({
         if (nextIdx === filteredPlays.length - 1) setIsPlaying(false);
         return nextPlay;
       });
-    }, 1600);
+    }, intervalMs);
 
     return () => clearInterval(timer);
-  }, [isPlaying, filteredPlays, isVoiceEnabled, speakPlay]);
+  }, [isPlaying, filteredPlays, isVoiceEnabled, playbackSpeed, speakPlay]);
 
   // Clean up speech on unmount
   useEffect(() => {
@@ -169,6 +182,8 @@ export default function WebPitchRadar({
         selectedPlay={selectedPlay}
         onSelectPlay={handleSelectPlay}
         getMarkerColor={getMarkerColor}
+        homeColor={homeColor}
+        awayColor={awayColor}
       />
 
       {/* Filters, Scrubber Slider and Playback Controls */}
@@ -184,6 +199,8 @@ export default function WebPitchRadar({
           setIsPlaying(false);
           if (filteredPlays.length > 0) handleSelectPlay(filteredPlays[0]!);
         }}
+        playbackSpeed={playbackSpeed}
+        onToggleSpeed={() => setPlaybackSpeed((s) => (s === 1 ? 2 : 1))}
         getMarkerColor={getMarkerColor}
       />
     </div>

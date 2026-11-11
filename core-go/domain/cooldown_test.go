@@ -20,74 +20,86 @@ func TestShouldCheckYouTubeForMatch(t *testing.T) {
 		t.Fatalf("expected true for never checked, got %v (%s)", ok, reason)
 	}
 
-	// 2. Tier 1 (<6h): checked 10m ago (should be false, cooldown 30m)
+	// 2. Tier 1 (<14d, e.g. 5 days old): checked 10m ago (should be false, cooldown 30m)
 	check10m := now.Add(-10 * time.Minute)
 	m2 := domain.Match{
 		ID:               2,
-		UTCDate:          now.Add(-2 * time.Hour),
+		UTCDate:          now.Add(-5 * 24 * time.Hour),
 		LastYouTubeCheck: &check10m,
 	}
 	ok, _ = domain.ShouldCheckYouTubeForMatch(m2, now)
 	if ok {
-		t.Fatalf("expected false for Tier 1 check 10m ago")
+		t.Fatalf("expected false for Tier 1 (<14d) check 10m ago")
 	}
 
-	// 3. Tier 1 (<6h): checked 35m ago (should be true)
+	// 3. Tier 1 (<14d, e.g. 13 days old): checked 35m ago (should be true)
 	check35m := now.Add(-35 * time.Minute)
 	m3 := domain.Match{
 		ID:               3,
-		UTCDate:          now.Add(-2 * time.Hour),
+		UTCDate:          now.Add(-13 * 24 * time.Hour),
 		LastYouTubeCheck: &check35m,
 	}
 	ok, _ = domain.ShouldCheckYouTubeForMatch(m3, now)
 	if !ok {
-		t.Fatalf("expected true for Tier 1 check 35m ago")
+		t.Fatalf("expected true for Tier 1 (<14d) check 35m ago")
 	}
 
-	// 4. Tier 2 (6-24h): checked 90m ago (cooldown 120m, should be false)
+	// 4. Tier 2 (14-30d, e.g. 20 days old): checked 90m ago (cooldown 120m, should be false)
 	check90m := now.Add(-90 * time.Minute)
 	m4 := domain.Match{
 		ID:               4,
-		UTCDate:          now.Add(-12 * time.Hour),
+		UTCDate:          now.Add(-20 * 24 * time.Hour),
 		LastYouTubeCheck: &check90m,
 	}
 	ok, _ = domain.ShouldCheckYouTubeForMatch(m4, now)
 	if ok {
 		t.Fatalf("expected false for Tier 2 check 90m ago")
 	}
+
+	// 5. Tier 3 (30-90d, e.g. 45 days old): checked 200m ago (cooldown 360m, should be false)
+	check200m := now.Add(-200 * time.Minute)
+	m5 := domain.Match{
+		ID:               5,
+		UTCDate:          now.Add(-45 * 24 * time.Hour),
+		LastYouTubeCheck: &check200m,
+	}
+	ok, _ = domain.ShouldCheckYouTubeForMatch(m5, now)
+	if ok {
+		t.Fatalf("expected false for Tier 3 check 200m ago")
+	}
 }
 
 func TestIsBacklogSafeExhausted(t *testing.T) {
 	now := time.Date(2026, 11, 8, 12, 0, 0, 0, time.UTC)
 
-	// 1. Fresh match (age 2 days, 4 sweeps) -> not exhausted
+	// 1. Match in active 2-week news cycle (age 10 days, 5 sweeps) -> protected, NOT exhausted
 	m1 := domain.Match{
 		ID:      1,
-		UTCDate: now.Add(-48 * time.Hour),
+		UTCDate: now.Add(-10 * 24 * time.Hour),
 	}
-	exhausted, _ := domain.IsBacklogSafeExhausted(m1, now, 4)
+	exhausted, _ := domain.IsBacklogSafeExhausted(m1, now, 5)
 	if exhausted {
-		t.Fatalf("expected not exhausted for 2-day-old match")
+		t.Fatalf("expected not exhausted for 10-day-old match (protected <14d)")
 	}
 
-	// 2. Old match (age 8 days, 2 sweeps) -> not exhausted (< 3 sweeps)
+	// 2. Old match (age 16 days, 4 sweeps) -> not exhausted (< 6 sweeps)
 	m2 := domain.Match{
 		ID:      2,
-		UTCDate: now.Add(-8 * 24 * time.Hour),
+		UTCDate: now.Add(-16 * 24 * time.Hour),
 	}
-	exhausted, _ = domain.IsBacklogSafeExhausted(m2, now, 2)
+	exhausted, _ = domain.IsBacklogSafeExhausted(m2, now, 4)
 	if exhausted {
-		t.Fatalf("expected not exhausted for match with < 3 sweeps")
+		t.Fatalf("expected not exhausted for match with < 6 sweeps")
 	}
 
-	// 3. Old match (age 8 days, 3 sweeps) -> EXHAUSTED
+	// 3. Old match (age 16 days, 6 sweeps) -> EXHAUSTED
 	m3 := domain.Match{
 		ID:      3,
-		UTCDate: now.Add(-8 * 24 * time.Hour),
+		UTCDate: now.Add(-16 * 24 * time.Hour),
 	}
-	exhausted, _ = domain.IsBacklogSafeExhausted(m3, now, 3)
+	exhausted, _ = domain.IsBacklogSafeExhausted(m3, now, 6)
 	if !exhausted {
-		t.Fatalf("expected exhausted for match with 3 sweeps and 8 days age")
+		t.Fatalf("expected exhausted for match with 6 sweeps and 16 days age")
 	}
 }
 
@@ -96,13 +108,13 @@ func TestSortMatchesByPriority(t *testing.T) {
 
 	// P1: Missing highlight, < 24h
 	mP1 := domain.Match{ID: 1, UTCDate: now.Add(-5 * time.Hour), CompetitionID: "PL"}
-	// P3: Missing highlight, > 24h
-	mP3 := domain.Match{ID: 2, UTCDate: now.Add(-30 * time.Hour), CompetitionID: "PL"}
+	// P2: Missing highlight, 5 days old (<14d)
+	mP2 := domain.Match{ID: 2, UTCDate: now.Add(-5 * 24 * time.Hour), CompetitionID: "PL"}
 	// P5: Satisfied (has video, no block)
 	vid := "abc"
 	mP5 := domain.Match{ID: 3, UTCDate: now.Add(-2 * time.Hour), HighlightVideoID: &vid, CompetitionID: "PL"}
 
-	sorted := domain.SortMatchesByPriority([]domain.Match{mP5, mP3, mP1}, now)
+	sorted := domain.SortMatchesByPriority([]domain.Match{mP5, mP2, mP1}, now)
 	if sorted[0].ID != 1 || sorted[1].ID != 2 || sorted[2].ID != 3 {
 		t.Fatalf("unexpected priority order: %d, %d, %d", sorted[0].ID, sorted[1].ID, sorted[2].ID)
 	}

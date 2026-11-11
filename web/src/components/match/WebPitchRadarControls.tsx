@@ -13,6 +13,8 @@ interface WebPitchRadarControlsProps {
   isPlaying: boolean;
   onTogglePlay: () => void;
   onReset: () => void;
+  playbackSpeed?: 1 | 2;
+  onToggleSpeed?: () => void;
   getMarkerColor: (play: WebPitchPlay) => string;
 }
 
@@ -27,6 +29,8 @@ export default function WebPitchRadarControls({
   isPlaying,
   onTogglePlay,
   onReset,
+  playbackSpeed = 1,
+  onToggleSpeed,
   getMarkerColor,
 }: WebPitchRadarControlsProps) {
   const currentIndex = plays.findIndex((p) => p.id === selectedPlay?.id);
@@ -80,9 +84,9 @@ export default function WebPitchRadarControls({
         </div>
       )}
 
-      {/* Timeline Scrubber Bar with Play/Pause & Reset */}
+      {/* Timeline Scrubber Bar with Play/Pause, Speed & Reset */}
       {plays.length > 0 && (
-        <div className="flex items-center gap-3 pt-1">
+        <div className="flex items-center gap-2.5 pt-1">
           <button
             type="button"
             onClick={onTogglePlay}
@@ -95,6 +99,17 @@ export default function WebPitchRadarControls({
           >
             {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
           </button>
+
+          {onToggleSpeed && (
+            <button
+              type="button"
+              onClick={onToggleSpeed}
+              className="px-2 h-7 rounded-lg bg-[#181C20] hover:bg-[#1E2227] text-white border border-[#334155]/60 text-[10px] font-black font-mono flex items-center justify-center transition-all cursor-pointer shrink-0"
+              title="Toggle FM replay speed"
+            >
+              {playbackSpeed}x
+            </button>
+          )}
 
           <button
             type="button"

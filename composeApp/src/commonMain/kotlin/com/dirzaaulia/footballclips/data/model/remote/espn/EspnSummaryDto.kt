@@ -31,8 +31,10 @@ data class EspnSummaryResponseDto(
                 }
                 ?: emptyList()
 
+            val uColor = item.uniform?.color?.let { if (it.startsWith("#")) it else "#$it" }
             val formation = TeamFormationDto(
                 formation = item.formation,
+                color = uColor,
                 starters = starters,
             )
 
@@ -82,7 +84,14 @@ data class EspnSummaryResponseDto(
 data class EspnRosterDto(
     @SerialName("homeAway") val homeAway: String? = null,
     @SerialName("formation") val formation: String? = null,
+    @SerialName("uniform") val uniform: EspnUniformDto? = null,
     @SerialName("roster") val roster: List<EspnRosterPlayerDto>? = null,
+)
+
+@Serializable
+data class EspnUniformDto(
+    @SerialName("color") val color: String? = null,
+    @SerialName("alternateColor") val alternateColor: String? = null,
 )
 
 @Serializable

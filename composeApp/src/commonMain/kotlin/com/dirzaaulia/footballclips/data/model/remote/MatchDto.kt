@@ -13,13 +13,14 @@ data class StarterPlayerDto(
 @Serializable
 data class TeamFormationDto(
     @SerialName("formation") val formation: String? = null,
-    @SerialName("starters") val starters: List<StarterPlayerDto> = emptyList()
+    @SerialName("color") val color: String? = null,
+    @SerialName("starters") val starters: List<StarterPlayerDto> = emptyList(),
 )
 
 @Serializable
 data class FormationsDto(
     @SerialName("home") val home: TeamFormationDto? = null,
-    @SerialName("away") val away: TeamFormationDto? = null
+    @SerialName("away") val away: TeamFormationDto? = null,
 )
 
 @Serializable
@@ -54,10 +55,12 @@ data class MatchDto(
     @SerialName("editorial_story") val editorialStory: String? = null,
     @SerialName("editorial_source") val editorialSource: String? = null,
     @SerialName("events") val events: List<MatchEventDto>? = null,
+    @SerialName("home_color") val homeColor: String? = null,
+    @SerialName("away_color") val awayColor: String? = null,
     @SerialName("youtube_region_info") val youtubeRegionInfo: RegionRestrictionDto? = null,
     @SerialName("backup_youtube_region_info") val backupYoutubeRegionInfo: RegionRestrictionDto? = null,
     @SerialName("viewer_availability") val viewerAvailability: String? = null,
-    @SerialName("external_video_id") val externalVideoId: String? = null
+    @SerialName("external_video_id") val externalVideoId: String? = null,
 )
 
 @Serializable

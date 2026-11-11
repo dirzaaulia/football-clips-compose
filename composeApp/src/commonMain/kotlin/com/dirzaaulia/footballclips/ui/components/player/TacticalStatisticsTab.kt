@@ -17,15 +17,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.domain.model.Match
+import com.dirzaaulia.footballclips.util.toLegibleColor
 
 @Composable
 internal fun TacticalStatisticsTab(match: Match) {
     val stats = match.statistics ?: return
     val homeStats = stats["home"] ?: emptyMap()
     val awayStats = stats["away"] ?: emptyMap()
+
+    val homeColor = match.homeColor.toLegibleColor(MaterialTheme.colorScheme.primary)
+    val awayColor = match.awayColor.toLegibleColor(Color(0xFF38BDF8))
 
     val metricKeys = listOf(
         "possessionPct" to "Possession %",
@@ -59,6 +64,8 @@ internal fun TacticalStatisticsTab(match: Match) {
                     label = label,
                     homeValue = homeVal ?: "-",
                     awayValue = awayVal ?: "-",
+                    homeColor = homeColor,
+                    awayColor = awayColor,
                 )
             }
         }
@@ -70,6 +77,8 @@ private fun StatDuelRow(
     label: String,
     homeValue: String,
     awayValue: String,
+    homeColor: Color,
+    awayColor: Color,
 ) {
     val homeNum = homeValue.filter { it.isDigit() }.toFloatOrNull() ?: 1f
     val awayNum = awayValue.filter { it.isDigit() }.toFloatOrNull() ?: 1f
@@ -90,7 +99,7 @@ private fun StatDuelRow(
                 text = homeValue,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = homeColor,
             )
             Text(
                 text = label,
@@ -102,7 +111,7 @@ private fun StatDuelRow(
                 text = awayValue,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = awayColor,
             )
         }
 
@@ -117,14 +126,14 @@ private fun StatDuelRow(
                 modifier = Modifier
                     .weight(homeRatio)
                     .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.primary),
+                    .background(homeColor),
             )
             Spacer(modifier = Modifier.width(2.dp))
             Box(
                 modifier = Modifier
                     .weight(awayRatio)
                     .fillMaxHeight()
-                    .background(MaterialTheme.colorScheme.secondary),
+                    .background(awayColor),
             )
         }
     }

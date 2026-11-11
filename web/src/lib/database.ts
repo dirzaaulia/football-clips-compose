@@ -20,6 +20,7 @@ export interface StarterPlayer {
 
 export interface TeamFormation {
   formation?: string;
+  color?: string | null;
   starters?: StarterPlayer[];
 }
 
@@ -63,6 +64,8 @@ export interface MatchRecord {
   editorial_story?: string | null;
   editorial_source?: string | null;
   events?: MatchEvent[] | null;
+  home_color?: string | null;
+  away_color?: string | null;
   display_clock?: string | null;
   round_name?: string | null;
   youtube_region_info?: RegionRestriction | null;

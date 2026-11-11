@@ -55,12 +55,11 @@ func runStep(name string, dir string, command string, args ...string) suiteResul
 func main() {
 	allFlag := flag.Bool("all", false, "Run all suites")
 	goFlag := flag.Bool("go", false, "Run Go test suite")
-	pyFlag := flag.Bool("backend", false, "Run Python pytest suite")
 	webFlag := flag.Bool("web", false, "Run Next.js web test suite")
 	androidFlag := flag.Bool("android", false, "Run Android CMP test suite")
 	flag.Parse()
 
-	runAll := *allFlag || (!*goFlag && !*pyFlag && !*webFlag && !*androidFlag)
+	runAll := *allFlag || (!*goFlag && !*webFlag && !*androidFlag)
 	rootDir, _ := filepath.Abs("../..")
 	if _, err := os.Stat(filepath.Join(rootDir, "core-go")); err != nil {
 		rootDir, _ = filepath.Abs(".")
@@ -80,14 +79,6 @@ func main() {
 			"Golang 1.23+ Core Domain & Parity Suite (go test)",
 			filepath.Join(rootDir, "core-go"),
 			goBin, "test", "-v", "./...",
-		))
-	}
-
-	if runAll || *pyFlag {
-		results = append(results, runStep(
-			"Python Backend & E2E Lifecycle Suite (pytest)",
-			rootDir,
-			"uv", "run", "pytest", "worker/tests/", "-q",
 		))
 	}
 

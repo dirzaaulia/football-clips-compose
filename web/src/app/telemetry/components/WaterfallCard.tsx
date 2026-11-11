@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import {
   ChevronDown, ChevronUp, CheckCircle, Clock, AlertTriangle,
-  Copy, Check, Calendar, ChevronLeft, ChevronRight, RotateCcw, Loader2,
+  Copy, Check, Calendar, RotateCcw, Loader2,
 } from 'lucide-react';
 import { MatchWaterfall } from '../types';
 import { WaterfallSteps } from './WaterfallSteps';
@@ -66,10 +66,7 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
         })
         .eq('id', waterfall.matchId);
 
-      if (error) {
-        throw new Error(error.message);
-      }
-
+      if (error) throw new Error(error.message);
       fetch('https://edge.fc.dirzaaulia.com/api/purge-cache', { method: 'POST' }).catch(() => {});
       setIsReset(true);
       if (onOverrideSuccess) onOverrideSuccess();
@@ -82,172 +79,130 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
 
   const statusBadge = isReset ? (
     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30">
-      <Clock className="w-3.5 h-3.5" />
+      <Clock className="w-3 h-3" />
       DUE NOW
     </span>
   ) : isLinked ? (
     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-      <CheckCircle className="w-3.5 h-3.5" />
+      <CheckCircle className="w-3 h-3" />
       LINKED
     </span>
   ) : isCooldown ? (
     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-      <Clock className="w-3.5 h-3.5" />
+      <Clock className="w-3 h-3" />
       COOLDOWN
     </span>
   ) : (
     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-500/15 text-slate-400 border border-slate-500/30">
-      <AlertTriangle className="w-3.5 h-3.5" />
+      <AlertTriangle className="w-3 h-3" />
       {activeCycle.status}
     </span>
   );
 
-  const sourceBadge = isLinked && (waterfall.ingestionSource || activeCycle.ingestionSource) && (
-    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border flex items-center gap-1 ${
-      (waterfall.ingestionSource || activeCycle.ingestionSource) === 'WEBSUB'
-        ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-        : (waterfall.ingestionSource || activeCycle.ingestionSource) === 'RSS'
-        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-        : (waterfall.ingestionSource || activeCycle.ingestionSource) === 'API'
-        ? 'bg-sky-500/15 text-sky-300 border-sky-500/30'
-        : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
-    }`} title={`Ingestion Source: ${waterfall.ingestionSource || activeCycle.ingestionSource}`}>
-      {(waterfall.ingestionSource || activeCycle.ingestionSource) === 'WEBSUB' && '⚡ WebSub'}
-      {(waterfall.ingestionSource || activeCycle.ingestionSource) === 'RSS' && '📡 RSS Feed'}
-      {(waterfall.ingestionSource || activeCycle.ingestionSource) === 'API' && '🔑 YouTube API'}
-      {(waterfall.ingestionSource || activeCycle.ingestionSource) === 'MANUAL' && '👤 Manual'}
-    </span>
-  );
+  const sourceName = waterfall.ingestionSource || activeCycle.ingestionSource;
+  const wwText = waterfall.cumulativeAvailability?.text || waterfall.worldwideAvailabilityText || activeCycle.worldwideAvailabilityText;
+  const isWorldwideGood = waterfall.cumulativeAvailability?.targetMarketsStatus === 'ALL_COVERED' || (waterfall.worldwidePercentage ?? 0) >= 90;
 
   return (
     <div className="bg-slate-900/80 border border-slate-800 rounded-xl transition-all duration-200">
+      {/* Clean 2-Line Header */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-between p-4 cursor-pointer select-none transition ${
+        className={`p-3.5 sm:p-4 cursor-pointer select-none transition ${
           isOpen
             ? 'sticky top-24 z-10 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/90 rounded-t-xl shadow-md'
             : 'hover:bg-slate-800/40 rounded-xl'
         }`}
       >
-        <div className="flex flex-col gap-1 min-w-0 pr-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="text-base font-bold text-slate-100 truncate">
+        {/* Line 1: Match Title, Score, Status Badge & Chevron */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <h4 className="text-sm sm:text-base font-bold text-slate-100 truncate">
               {waterfall.title}
             </h4>
             {waterfall.homeScore !== null && waterfall.homeScore !== undefined && (
-              <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-200 font-mono text-xs font-bold border border-slate-700">
+              <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-200 font-mono text-xs font-bold border border-slate-700 shrink-0">
                 {waterfall.homeScore} - {waterfall.awayScore ?? 0}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 flex-wrap">
-            <span>Match ID: {waterfall.matchId}</span>
+          <div className="flex items-center gap-2 shrink-0">
+            {statusBadge}
+            {isOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+          </div>
+        </div>
+
+        {/* Line 2: Match ID, Date, Source, Worldwide % badge, Quick Re-search & Copy */}
+        <div className="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-800/60 text-xs font-mono text-slate-400">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <span>ID: {waterfall.matchId}</span>
             {waterfall.date && (
               <span className="flex items-center gap-1">
                 <Calendar className="w-3 h-3 text-slate-500" />
                 {waterfall.date}
               </span>
             )}
-            {sourceBadge}
-            {isLinked && (waterfall.linkedChannelHandle || activeCycle.linkedChannelHandle) && (
-              <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 text-[10px] font-semibold">
-                {waterfall.linkedChannelHandle || activeCycle.linkedChannelHandle} · {waterfall.linkedChannelTier || activeCycle.linkedChannelTier || 'Official Channel'}
+            {isLinked && sourceName && (
+              <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                {sourceName === 'WEBSUB' ? '⚡ WebSub' : sourceName === 'RSS' ? '📡 RSS' : sourceName === 'API' ? '🔑 API' : sourceName}
               </span>
             )}
-            {isLinked && (waterfall.cumulativeAvailability?.text || waterfall.worldwideAvailabilityText || activeCycle.worldwideAvailabilityText) && (
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                waterfall.cumulativeAvailability?.targetMarketsStatus === 'ALL_COVERED' || (waterfall.worldwidePercentage ?? 0) >= 90
+            {isLinked && wwText && (
+              <span className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border ${
+                isWorldwideGood
                   ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                   : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
               }`}>
-                🌍 {waterfall.cumulativeAvailability?.text || waterfall.worldwideAvailabilityText || activeCycle.worldwideAvailabilityText}
+                🌍 {wwText}
+              </span>
+            )}
+            {!isLinked && !isReset && (activeCycle.nextCycleEta || waterfall.nextCycleEta) && (
+              <span className="text-sky-400 text-[11px] flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                <span>{activeCycle.nextCycleEta || waterfall.nextCycleEta}</span>
               </span>
             )}
           </div>
-        </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
-          <button
-            onClick={handleReSearch}
-            disabled={isReSearching}
-            title="Reset highlight and add back to search backlog"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-amber-500/10 transition border border-slate-800/80 disabled:opacity-50"
-          >
-            {isReSearching ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
-            ) : isReset ? (
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-            ) : (
-              <RotateCcw className="w-3.5 h-3.5" />
-            )}
-          </button>
-          <button
-            onClick={handleCopyCardJson}
-            title="Copy this match's trace JSON"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition border border-slate-800/80"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-          </button>
-          {!isLinked && !isReset && (activeCycle.nextCycleEta || waterfall.nextCycleEta) && (
-            <span
-              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0"
-              title={activeCycle.nextCycleTimestamp || waterfall.nextCycleTimestamp}
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={handleReSearch}
+              disabled={isReSearching}
+              title="Reset highlight and re-queue search"
+              className="p-1 rounded text-slate-400 hover:text-amber-300 hover:bg-amber-500/10 transition border border-slate-800 disabled:opacity-50"
             >
-              <Clock className="w-3 h-3 text-sky-400" />
-              <span>{activeCycle.nextCycleEta || waterfall.nextCycleEta}</span>
-            </span>
-          )}
-          {statusBadge}
-          {isOpen ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+              {isReSearching ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+              ) : isReset ? (
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <RotateCcw className="w-3.5 h-3.5" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={handleCopyCardJson}
+              title="Copy match JSON"
+              className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition border border-slate-800"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* Expanded Segmented Accordion Body */}
       {isOpen && (
-        <div className="px-4 pb-4 pt-2 border-t border-slate-800/80 space-y-3 bg-slate-950/40 rounded-b-xl">
-          {/* Cycle Selector Bar: Visible when multiple execution runs exist */}
-          {cycles.length > 1 && (
-            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono">
-              <span className="text-slate-400 text-[11px] font-semibold">
-                Execution Cycle History ({cycles.length} runs):
-              </span>
-              <div className="flex items-center gap-1.5">
-                <button
-                  disabled={selectedCycleIdx >= cycles.length - 1}
-                  onClick={(e) => { e.stopPropagation(); setSelectedCycleIdx((i) => i + 1); }}
-                  className="p-1 rounded bg-slate-800 text-slate-300 hover:text-white disabled:opacity-40 transition"
-                  title="Older Run"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </button>
-                <select
-                  value={selectedCycleIdx}
-                  onChange={(e) => setSelectedCycleIdx(Number(e.target.value))}
-                  className="bg-slate-950 border border-slate-700 text-slate-200 px-2 py-1 rounded text-xs focus:outline-none"
-                >
-                  {cycles.map((c, idx) => (
-                    <option key={idx} value={idx}>
-                      {idx === 0 ? 'Latest: ' : `Run #${cycles.length - idx}: `}
-                      {c.timestamp} ({c.status})
-                    </option>
-                  ))}
-                </select>
-                <button
-                  disabled={selectedCycleIdx <= 0}
-                  onClick={(e) => { e.stopPropagation(); setSelectedCycleIdx((i) => i - 1); }}
-                  className="p-1 rounded bg-slate-800 text-slate-300 hover:text-white disabled:opacity-40 transition"
-                  title="Newer Run"
-                >
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
-
+        <div className="px-3.5 sm:px-4 pb-4 pt-2 border-t border-slate-800/80 bg-slate-950/40 rounded-b-xl">
           <WaterfallSteps
             cycle={activeCycle}
             matchId={waterfall.matchId}
             matchTitle={waterfall.title}
             waterfall={waterfall}
+            cycles={cycles}
+            selectedCycleIdx={selectedCycleIdx}
+            onSelectCycle={setSelectedCycleIdx}
             onOpenOverride={() => setIsOverrideOpen(true)}
           />
         </div>

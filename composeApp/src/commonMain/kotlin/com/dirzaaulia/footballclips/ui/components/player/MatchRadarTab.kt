@@ -35,6 +35,7 @@ import com.dirzaaulia.footballclips.domain.model.MatchEvent
 import com.dirzaaulia.footballclips.domain.model.PitchPlay
 import com.dirzaaulia.footballclips.ui.score.companion.PitchRadarDeck
 import com.dirzaaulia.footballclips.util.VoiceCommentaryManager
+import com.dirzaaulia.footballclips.util.toLegibleColor
 import org.koin.compose.koinInject
 
 @Composable
@@ -77,8 +78,13 @@ internal fun MatchRadarTab(
             },
         )
 
+        val homeColor = match.homeColor.toLegibleColor(Color(0xFF3B82F6))
+        val awayColor = match.awayColor.toLegibleColor(Color(0xFFEC4899))
+
         PitchRadarDeck(
             plays = plays,
+            homeColor = homeColor,
+            awayColor = awayColor,
             modifier = Modifier.fillMaxWidth(),
             onPlaySelected = { play ->
                 if (isVoiceEnabled) {

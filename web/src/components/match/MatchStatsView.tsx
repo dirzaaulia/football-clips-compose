@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { MatchRecord } from '@/lib/database';
+import { ensureLegibleHex } from '@/lib/colors';
 import MatchMomentumChart from './MatchMomentumChart';
 
 interface MatchStatsViewProps {
@@ -47,6 +48,9 @@ export default function MatchStatsView({
         (stats.away && Object.keys(stats.away).length > 0))
   );
 
+  const homeColor = ensureLegibleHex(match.home_color, '#7098F8');
+  const awayColor = ensureLegibleHex(match.away_color, '#4FC3F7');
+
   if (!hasStats) {
     if (isLive) {
       return (
@@ -77,9 +81,9 @@ export default function MatchStatsView({
         awayScore={match.away_score}
       />
       <div className="flex items-center justify-between text-xs font-black text-white px-2">
-        <span className="text-[#7098F8] truncate max-w-[45%]">{homeName}</span>
+        <span className="truncate max-w-[45%]" style={{ color: homeColor }}>{homeName}</span>
         <span className="text-[#94A3B8] text-[10px] uppercase tracking-wider">Metrics</span>
-        <span className="text-[#4FC3F7] truncate max-w-[45%] text-right">{awayName}</span>
+        <span className="truncate max-w-[45%] text-right" style={{ color: awayColor }}>{awayName}</span>
       </div>
 
       <div className="space-y-3">
@@ -97,13 +101,13 @@ export default function MatchStatsView({
           return (
             <div key={key} className="space-y-1">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-mono text-[#7098F8]">{formatStatDisplay(rawHome || '0', isPct, key)}</span>
+                <span className="font-mono" style={{ color: homeColor }}>{formatStatDisplay(rawHome || '0', isPct, key)}</span>
                 <span className="text-[11px] text-[#94A3B8] font-medium">{label}</span>
-                <span className="font-mono text-[#4FC3F7]">{formatStatDisplay(rawAway || '0', isPct, key)}</span>
+                <span className="font-mono" style={{ color: awayColor }}>{formatStatDisplay(rawAway || '0', isPct, key)}</span>
               </div>
               <div className="h-1.5 w-full bg-[#101418] rounded-full overflow-hidden flex gap-0.5">
-                <div className="h-full bg-[#7098F8] rounded-l-full transition-all duration-500" style={{ width: `${homeWidth}%` }} />
-                <div className="h-full bg-[#4FC3F7] rounded-r-full transition-all duration-500" style={{ width: `${awayWidth}%` }} />
+                <div className="h-full rounded-l-full transition-all duration-500" style={{ width: `${homeWidth}%`, backgroundColor: homeColor }} />
+                <div className="h-full rounded-r-full transition-all duration-500" style={{ width: `${awayWidth}%`, backgroundColor: awayColor }} />
               </div>
             </div>
           );

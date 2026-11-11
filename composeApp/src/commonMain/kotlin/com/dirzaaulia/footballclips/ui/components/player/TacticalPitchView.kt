@@ -50,6 +50,7 @@ fun TacticalPitchView(
     formation: String?,
     starters: List<StarterPlayer>,
     isHome: Boolean = true,
+    teamColor: Color? = null,
     modifier: Modifier = Modifier,
 ) {
     var selectedPlayer by remember { mutableStateOf<StarterPlayer?>(null) }
@@ -72,6 +73,7 @@ fun TacticalPitchView(
                 starters = starters,
                 lineCounts = lineCounts,
                 isHome = isHome,
+                teamColor = teamColor,
                 selectedPlayer = selectedPlayer,
                 onPlayerClick = { selectedPlayer = if (selectedPlayer == it) null else it },
                 widthPx = widthPx,
@@ -161,6 +163,7 @@ private fun PitchPlayersOverlay(
     starters: List<StarterPlayer>,
     lineCounts: List<Int>,
     isHome: Boolean,
+    teamColor: Color?,
     selectedPlayer: StarterPlayer?,
     onPlayerClick: (StarterPlayer) -> Unit,
     widthPx: Float,
@@ -191,6 +194,7 @@ private fun PitchPlayersOverlay(
                     TacticalPlayerNode(
                         player = player,
                         isHome = isHome,
+                        teamColor = teamColor,
                         isSelected = selectedPlayer == player,
                         onClick = { onPlayerClick(player) },
                     )
@@ -204,10 +208,11 @@ private fun PitchPlayersOverlay(
 private fun TacticalPlayerNode(
     player: StarterPlayer,
     isHome: Boolean,
+    teamColor: Color?,
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-    val teamColor = if (isHome) Color(0xFF3B82F6) else Color(0xFFEC4899)
+    val activeTeamColor = teamColor ?: if (isHome) Color(0xFF3B82F6) else Color(0xFFEC4899)
     val shortName = remember(player.name) {
         val parts = player.name.trim().split(" ")
         if (parts.size > 1) parts.last() else player.name
@@ -225,7 +230,7 @@ private fun TacticalPlayerNode(
             modifier = Modifier
                 .size(26.dp)
                 .clip(CircleShape)
-                .background(if (isSelected) Color.White else teamColor),
+                .background(if (isSelected) Color.White else activeTeamColor),
         ) {
             Text(
                 text = player.jersey.ifBlank { "?" },

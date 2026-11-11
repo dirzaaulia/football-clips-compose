@@ -68,7 +68,7 @@ func (r *Repository) UpdateMatchHighlight(ctx context.Context, matchID int64, vi
 		UPDATE matches
 		SET highlight_video_id = $1,
 		    last_youtube_check = NOW(),
-		    youtube_region_info = COALESCE($2::jsonb, youtube_region_info),
+		    youtube_region_info = $2::jsonb,
 		    highlight_videos = CASE WHEN $3::jsonb IS NOT NULL THEN $3::jsonb ELSE highlight_videos END,
 		    updated_at = NOW()
 		WHERE id = $4 AND season >= 2026`

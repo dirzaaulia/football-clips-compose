@@ -117,24 +117,26 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
 
   return (
     <section aria-label="Tactical Boxscore & Formations" className="space-y-4">
-      {/* Tab Navigation Header */}
-      <div className="flex items-center justify-between border-b border-[#334155]/60 pb-2">
-        <h2 className="text-xs font-black uppercase tracking-wider text-[#94A3B8] flex items-center gap-1.5">
+      {/* Modern Glassmorphic Pill Segmented Bar */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <h2 className="text-xs font-black uppercase tracking-wider text-[#94A3B8] flex items-center gap-1.5 shrink-0">
           <Shield className="w-3.5 h-3.5 text-[#7098F8]" />
           <span>Match Intelligence</span>
         </h2>
 
-        <div className="flex items-center gap-1 text-xs font-bold">
+        <div className="flex items-center gap-1 p-1 rounded-2xl bg-[#14181F]/90 backdrop-blur-md border border-[#334155]/60 overflow-x-auto scrollbar-none text-xs">
           {(hasEvents || isLive) && (
             <button
               type="button"
               onClick={() => setActiveTab('timeline')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                effectiveTab === 'timeline' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-[#94A3B8] hover:text-white'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap ${
+                effectiveTab === 'timeline'
+                  ? 'bg-[#7098F8] text-white shadow-[0_2px_10px_rgba(112,152,248,0.4)]'
+                  : 'text-[#94A3B8] hover:text-white hover:bg-white/5'
               }`}
             >
-              <Clock className="w-3.5 h-3.5 text-[#4FC3F7]" />
-              <span>TIMELINE</span>
+              <Clock className={`w-3.5 h-3.5 ${effectiveTab === 'timeline' ? 'text-white' : 'text-[#4FC3F7]'}`} />
+              <span>Timeline</span>
             </button>
           )}
 
@@ -142,12 +144,14 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
             <button
               type="button"
               onClick={() => setActiveTab('radar')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                effectiveTab === 'radar' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-[#94A3B8] hover:text-white'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap ${
+                effectiveTab === 'radar'
+                  ? 'bg-[#7098F8] text-white shadow-[0_2px_10px_rgba(112,152,248,0.4)]'
+                  : 'text-[#94A3B8] hover:text-white hover:bg-white/5'
               }`}
             >
-              <Crosshair className="w-3.5 h-3.5 text-cyan-400" />
-              <span>PITCH RADAR</span>
+              <Crosshair className={`w-3.5 h-3.5 ${effectiveTab === 'radar' ? 'text-white' : 'text-cyan-400'}`} />
+              <span>Pitch Radar</span>
             </button>
           )}
 
@@ -155,12 +159,14 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
             <button
               type="button"
               onClick={() => setActiveTab('stats')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                effectiveTab === 'stats' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-[#94A3B8] hover:text-white'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap ${
+                effectiveTab === 'stats'
+                  ? 'bg-[#7098F8] text-white shadow-[0_2px_10px_rgba(112,152,248,0.4)]'
+                  : 'text-[#94A3B8] hover:text-white hover:bg-white/5'
               }`}
             >
-              <BarChart3 className="w-3.5 h-3.5 text-[#4FC3F7]" />
-              <span>STATS</span>
+              <BarChart3 className={`w-3.5 h-3.5 ${effectiveTab === 'stats' ? 'text-white' : 'text-[#4FC3F7]'}`} />
+              <span>Statistics</span>
             </button>
           )}
 
@@ -168,12 +174,14 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
             <button
               type="button"
               onClick={() => setActiveTab('lineups')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                effectiveTab === 'lineups' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-[#94A3B8] hover:text-white'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap ${
+                effectiveTab === 'lineups'
+                  ? 'bg-[#7098F8] text-white shadow-[0_2px_10px_rgba(112,152,248,0.4)]'
+                  : 'text-[#94A3B8] hover:text-white hover:bg-white/5'
               }`}
             >
-              <Users className="w-3.5 h-3.5 text-[#4FC3F7]" />
-              <span>LINEUPS</span>
+              <Users className={`w-3.5 h-3.5 ${effectiveTab === 'lineups' ? 'text-white' : 'text-[#4FC3F7]'}`} />
+              <span>Lineups</span>
             </button>
           )}
 
@@ -181,12 +189,14 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
             <button
               type="button"
               onClick={() => setActiveTab('story')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                effectiveTab === 'story' ? 'bg-[#1E3A8A] text-white shadow-sm' : 'text-[#94A3B8] hover:text-white'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap ${
+                effectiveTab === 'story'
+                  ? 'bg-[#7098F8] text-white shadow-[0_2px_10px_rgba(112,152,248,0.4)]'
+                  : 'text-[#94A3B8] hover:text-white hover:bg-white/5'
               }`}
             >
-              <Newspaper className="w-3.5 h-3.5 text-[#4FC3F7]" />
-              <span>REPORT</span>
+              <Newspaper className={`w-3.5 h-3.5 ${effectiveTab === 'story' ? 'text-white' : 'text-[#4FC3F7]'}`} />
+              <span>Report</span>
             </button>
           )}
         </div>
@@ -232,7 +242,14 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
           )}
 
           {effectiveTab === 'radar' && (
-            <WebPitchRadar plays={pitchPlays} homeTeam={homeName} awayTeam={awayName} isLive={isLive} />
+            <WebPitchRadar
+              plays={pitchPlays}
+              homeTeam={homeName}
+              awayTeam={awayName}
+              isLive={isLive}
+              homeColor={match.home_color}
+              awayColor={match.away_color}
+            />
           )}
 
           {effectiveTab === 'stats' && (
@@ -240,7 +257,13 @@ export default function MatchTacticalBoxscore({ match }: MatchTacticalBoxscorePr
           )}
 
           {effectiveTab === 'lineups' && hasFormations && (
-            <MatchLineupsView formations={formations} homeName={homeName} awayName={awayName} />
+            <MatchLineupsView
+              formations={formations}
+              homeName={homeName}
+              awayName={awayName}
+              homeColor={match.home_color}
+              awayColor={match.away_color}
+            />
           )}
 
           {effectiveTab === 'story' && hasStory && (

@@ -158,32 +158,29 @@ Whenever the user instructs this agent or any other AI agent with deployment com
 
 ---
 
-## 6. Backend Enterprise Architecture, Clean Code & Ingestion Standards
-Applies strictly to all Python services (`worker/`, `clients/`):
+## 6. Backend Enterprise Architecture & Micro-Daemon Standards
+Applies strictly to the Golang 1.23+ micro-daemon (`core-go/`) running natively on Oracle VM:
 
-### Clean Code, Modularity & Type Safety
-- **Zero Untyped Dictionary Passing**: Never pass raw `dict[str, Any]` across business logic or pipeline layers. All entities, incoming API payloads, and pipeline outputs must be modeled as strict **Pydantic v2** models (e.g. `MatchFixture`, `CandidateVideo`, `CandidateEvaluation`, `MatchTraceReport`).
-- **File Length Budget**: Target **250 lines**, hard ceiling **350 lines** per Python file. Decompose bloated monolithic files into single-responsibility modules (`domain/`, `use_cases/`, `adapters/`).
-- **Hexagonal Architecture Layering**:
-  - **Domain Layer**: Pure business logic, mathematical scorers, title filters, and Pydantic models. Zero network, database, or cloud dependencies.
-  - **Use Cases Layer**: Single-action interactors (`FindMatchHighlightUseCase`, `SyncLiveMatchesUseCase`).
-  - **Ports & Adapters Layer**: Abstract protocols and concrete adapters for ESPN, YouTube API/RSS, Oracle VM AI Gateway, and PostgreSQL.
-- **Fail-Safe Defensive Parsing**: Always use Pydantic validators or safe parsing helpers for nested JSON (e.g., `youtube_region_info`). Never invoke `.get()` on a variable that could be a serialized string.
+### Hexagonal Architecture & Clean Code
+- **Zero Untyped Dictionary Passing**: Pure domain entities with strict Go structs (`MatchFixture`, `CandidateVideo`, `CandidateEvaluation`, `ShortsCandidate`). Zero `map[string]any` passing across use cases.
+- **File Length Budget**: Target **250 lines**, hard ceiling **300 lines** per Go file. Functions max **40 lines**.
+- **Hexagonal Layering**:
+  - **Domain Layer (`domain/`)**: Pure business logic, geo-cutoff algorithms, cooldown rules. Zero network or DB imports.
+  - **Use Cases Layer (`usecases/`)**: Single-action interactors (`SyncScoresUseCase`, `FindHighlightUseCase`, `IngestShortsUseCase`).
+  - **Ports & Adapters (`adapters/`)**: Abstract protocols and concrete adapters for ESPN, YouTube API/RSS, Oracle VM AI Gateway, and PostgreSQL.
+- **Fail-Safe Defensive Parsing**: Comprehensive JSON validation with explicit error wrapping (`fmt.Errorf("...: %w", err)`).
 
-### Per-Match Waterfall Diagnostics
+### Per-Match Waterfall Diagnostics & Telemetry
 - **Mandatory Granular Telemetry**: Every match highlight search MUST emit a structured waterfall trace containing:
   1. `[CHANNELS]`: Official club, league, and broadcaster targets queried.
   2. `[CANDIDATES]`: Complete list of discovered videos (ID, title, channel handle, duration, upload age).
-  3. `[AI_VERDICTS]`: Per-candidate evaluation result:
-     - `ACCEPTED`: Score (0-100) and exact AI rationale.
-     - `REJECTED`: Score (0-100) and exact AI rejection reason (e.g., press conference, wrong opponent, general highlights).
+  3. `[AI_VERDICTS]`: Per-candidate evaluation result (score 0-100, AI rationale, or deterministic regex fallback).
   4. `[OUTCOME]`: Final video ID linked, duration, and worldwide watchability percentage.
-- **Telemetry UI Integration**: The Next.js Telemetry Hub (`web/src/app/telemetry`) renders these candidate cards with color-coded badges (Green for `ACCEPTED`, Red for `REJECTED`) so operators instantly know why a video was selected or dropped.
+- **Telemetry UI Integration**: Persisted directly to PostgreSQL/PostgREST on Oracle VM for rendering in Next.js Telemetry Hub.
 
 ### Fault Isolation & Execution Reliability
-- **Task Granularity**: Individual matches must run as isolated tasks (e.g. via Cloud Tasks or independent UseCase invocations). A failure, timeout, or weird title on Match #1 must never block, crash, or delay Match #2 through #50.
-- **Idempotency**: All highlight search operations must be idempotent. Repeating an execution for a finished match within its cooldown window must return cached results in $< 5\text{ms}$ with zero duplicate YouTube API quota consumption.
-- **Circuit Breakers**: External integrations (Oracle VM AI Gateway, YouTube API) must employ circuit-breaking: if 3 consecutive calls fail, automatically fall back to deterministic mathematical scoring (`scorer.py`) with zero latency.
+- **Task Granularity**: Individual matches run as isolated tasks with strict context timeouts (`context.WithTimeout(ctx, 45*time.Second)`).
+- **Idempotency & Circuit Breaking**: Cooldown guardrails prevent duplicate scraping. If AI Gateway is unreachable, fall back to deterministic scoring with zero latency.
 
 ---
 
@@ -195,7 +192,7 @@ All AI models and autonomous agents working in this repository (Claude, Cursor, 
    - Android/CMP & Web: Max **250 lines** (hard ceiling **300 lines**).
    - Composable function: Max **40 lines**.
    - ViewModel: Max **150 lines** (orchestrator only).
-   - Python: Target **250 lines**, hard ceiling **350 lines**.
+   - Golang: Max **250 lines** (hard ceiling **300 lines**), functions max **40 lines**.
 2. **Zero Wildcard Imports**: `import foo.*` is strictly forbidden. Explicit imports only.
 3. **Mandatory Trailing Commas**: Required on all multi-line parameter lists, argument calls, and collection literals.
 4. **Historical Archive Immutability**: Seasons `< 2026` must remain immutable. Never run unconstrained delete/purge operations against archive records in PostgreSQL or Supabase (`protect_archive_matches`).
@@ -212,7 +209,7 @@ Before presenting completion, execute and verify all applicable automated gates:
 1. **Kotlin Multiplatform**: `./gradlew :composeApp:compileAndroidMain` MUST succeed with 0 errors.
 2. **Android Release**: `./gradlew :androidApp:compileReleaseKotlin` (for deployments).
 3. **Next.js Web**: `npm run build` in `web/` MUST compile all routes with 0 errors.
-4. **Python Backend**: `uv run pytest worker/tests/` MUST pass 100% of tests.
+4. **Golang Backend**: `cd core-go && go test ./...` MUST pass 100% of tests.
 
 ### Gate 4: Documentation & Multi-Agent Mirror Invariant
 Whenever rules, architectural standards, or workflows are updated:
@@ -225,17 +222,17 @@ Whenever rules, architectural standards, or workflows are updated:
 Applies strictly to `core-go/` and cross-platform verification:
 
 ### Golang 1.23+ Clean Architecture
-- **Directory Layout**: `cmd/` (entrypoint <100 lines), `internal/domain/` (pure entities & models), `internal/usecase/` (single-action interactors), `internal/adapter/` (`postgres`, `espn`, `youtube`, `aigw`), `internal/delivery/http/`.
+- **Directory Layout**: `cmd/` (entrypoint <100 lines), `domain/` (pure entities & models), `usecases/` (single-action interactors), `adapters/` (`postgres`, `espn`, `youtube`, `aigw`, `websub`, `fcm`, `edge`), `ports/`.
 - **Database Driver**: `jackc/pgx/v5` with connection pooling (`pgxpool`) and binary protocol.
-- **HTTP Routing & Logging**: Standard library `net/http` modern routing (or `chi`), structured logging with `log/slog`.
+- **HTTP Routing & Logging**: Standard library `net/http` modern routing, structured logging with `log/slog`.
 - **Hard Code Constraints**: Max **250 lines** per file (hard limit **300 lines**). Functions max **40 lines**. Table-driven tests with `-race`.
 - **Error Handling & Concurrency**: Explicit error wrapping (`fmt.Errorf("...: %w", err)`). All network/DB calls MUST take `context.Context` with explicit timeout. Zero global variables.
-- **Migration Invariant**: Strangler Fig pattern with **7-day shadow mode** (read-only comparison, 0 delta gate) before cutting over any module from Python to Go.
 
 ### Full-Stack 4-Layer E2E Testing Pipeline
-- **L1 Contract Tests**: Frozen PostgREST JSON schema contracts verified across Android DTOs, Web types, Python, and Go models.
+- **L1 Contract Tests**: Frozen PostgREST JSON schema contracts verified across Android DTOs, Web types, and Go models.
 - **L2 Pipeline Integration**: PostgreSQL container + recorded ESPN & YouTube replay suites.
-- **L3 Parity Testing**: Golden dataset comparing Python vs Go verdicts (must match 100%).
-- **L4 UI E2E**: Single-command orchestrator `core-go/bin/e2e-runner --all` (or `go run ./cmd/e2e-runner --all`) verifying Android Compose UI and Next.js Web under 8-minute remote device execution budget.
+- **L3 Domain & Parity Replay**: Accelerated parity test verifying Go domain entities and highlight reranking against golden replay datasets.
+- **L4 UI E2E**: Single-command orchestrator `core-go/bin/e2e-runner --all` verifying Android Compose UI and Next.js Web under 8-minute remote device execution budget.
+
 
 

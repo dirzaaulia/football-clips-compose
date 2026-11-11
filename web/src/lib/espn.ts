@@ -1,21 +1,8 @@
 export const ESPN_COMPETITION_SLUGS: Record<string, string> = {
-  CL: 'uefa.champions',
-  EL: 'uefa.europa',
-  ECL: 'uefa.ecl',
-  PL: 'eng.1',
-  PD: 'esp.1',
-  SA: 'ita.1',
-  BL1: 'ger.1',
-  FL1: 'fra.1',
-  SPL: 'ksa.1',
-  MLS: 'usa.1',
-  DED: 'ned.1',
-  PPL: 'por.1',
-  FAC: 'eng.fa',
-  CDR: 'esp.copa_del_rey',
-  DFB: 'ger.dfb_pokal',
-  CI: 'ita.coppa_italia',
-  CDF: 'fra.coupe_de_france',
+  CL: 'uefa.champions', EL: 'uefa.europa', ECL: 'uefa.ecl',
+  PL: 'eng.1', PD: 'esp.1', SA: 'ita.1', BL1: 'ger.1', FL1: 'fra.1',
+  SPL: 'ksa.1', MLS: 'usa.1', DED: 'ned.1', PPL: 'por.1',
+  FAC: 'eng.fa', CDR: 'esp.copa_del_rey', DFB: 'ger.dfb_pokal', CI: 'ita.coppa_italia', CDF: 'fra.coupe_de_france',
 };
 
 export interface MatchEvent {
@@ -41,8 +28,8 @@ export interface EspnSummaryResult {
     away?: Record<string, string>;
   } | null;
   formations?: {
-    home?: { formation?: string; starters?: Array<{ name: string; jersey?: string; position?: string }> };
-    away?: { formation?: string; starters?: Array<{ name: string; jersey?: string; position?: string }> };
+    home?: { formation?: string; color?: string; starters?: Array<{ name: string; jersey?: string; position?: string }> };
+    away?: { formation?: string; color?: string; starters?: Array<{ name: string; jersey?: string; position?: string }> };
   } | null;
   editorial_headline?: string | null;
   editorial_story?: string | null;
@@ -50,6 +37,8 @@ export interface EspnSummaryResult {
   events?: MatchEvent[] | null;
   home_score?: number | null;
   away_score?: number | null;
+  home_color?: string | null;
+  away_color?: string | null;
   home_penalties?: number | null;
   away_penalties?: number | null;
   display_clock?: string | null;
@@ -100,8 +89,10 @@ export async function fetchEspnMatchSummary(
       const formationsObj: Record<string, any> = { home: {}, away: {} };
       for (const r of data.rosters || []) {
         const side = r.homeAway === 'home' ? 'home' : 'away';
+        const uColor = r.uniform?.color ? `#${r.uniform.color.replace(/^#/, '')}` : null;
         formationsObj[side] = {
           formation: r.formation,
+          color: uColor,
           starters: (r.roster || [])
             .filter((p: any) => p.starter)
             .map((p: any) => ({
@@ -224,6 +215,9 @@ export async function fetchEspnMatchSummary(
         liveStatus = 'FINISHED';
       }
 
+      const hColor = homeTeam?.team?.color ? `#${homeTeam.team.color.replace(/^#/, '')}` : null;
+      const aColor = awayTeam?.team?.color ? `#${awayTeam.team.color.replace(/^#/, '')}` : null;
+
       return {
         statistics: hasStats ? statsObj : null,
         formations: hasFormations ? formationsObj : null,
@@ -233,6 +227,8 @@ export async function fetchEspnMatchSummary(
         events: parsedEvents.length > 0 ? parsedEvents : null,
         home_score: hScore,
         away_score: aScore,
+        home_color: hColor || formationsObj.home?.color || null,
+        away_color: aColor || formationsObj.away?.color || null,
         home_penalties: hPen,
         away_penalties: aPen,
         display_clock: displayClock,

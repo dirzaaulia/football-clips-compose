@@ -1,25 +1,33 @@
 package com.dirzaaulia.footballclips.ui.components.player
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.LocationSearching
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -134,34 +142,69 @@ fun MatchTacticalBoxscore(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (tabs.size > 1) {
-                PrimaryTabRow(
-                    selectedTabIndex = selectedTabIndex.coerceIn(0, tabs.lastIndex),
-                    containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.primary,
-                    divider = {},
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 2.dp, vertical = 2.dp),
                 ) {
-                    tabs.forEachIndexed { index, tabTitle ->
-                        Tab(
-                            selected = selectedTabIndex == index,
-                            onClick = { selectedTabIndex = index },
-                            text = {
-                                Text(
-                                    text = tabTitle,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Black,
-                                    letterSpacing = 0.5.sp,
-                                )
+                    itemsIndexed(tabs) { index, tabTitle ->
+                        val isSelected = selectedTabIndex == index
+                        val (icon, label) = when (tabTitle) {
+                            "TIMELINE" -> Icons.Default.Schedule to "Timeline"
+                            "PITCH RADAR" -> Icons.Default.LocationSearching to "Pitch Radar"
+                            "STATISTICS" -> Icons.Default.BarChart to "Statistics"
+                            "LINEUPS" -> Icons.Default.Groups to "Lineups"
+                            "REPORT" -> Icons.Default.Description to "Report"
+                            else -> Icons.Default.Schedule to tabTitle.lowercase().replaceFirstChar { it.uppercase() }
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = if (isSelected) {
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.45f)
                             },
-                        )
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = if (isSelected) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                                },
+                            ),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .clickable { selectedTabIndex = index },
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(15.dp),
+                                    tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
                     }
                 }
             } else {
                 Text(
-                    text = tabs.firstOrNull() ?: "TACTICAL DATA",
+                    text = tabs.firstOrNull() ?: "Tactical Data",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Black,
                     color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = 0.8.sp,
+                    letterSpacing = 0.5.sp,
                 )
             }
 

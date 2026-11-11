@@ -103,24 +103,46 @@ export default function MatchEventsTimeline({
 
               {/* Event Content */}
               <div className="flex-1 bg-[#181C20]/80 border border-[#334155]/60 hover:border-[#7098F8]/40 rounded-xl p-2.5 transition-colors">
-                <div className="flex items-center justify-between gap-2 text-xs">
-                  <div className="flex items-center gap-1.5 font-bold text-white">
-                    <span>{e.player || 'Player'}</span>
-                    {isGoal && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#10B981]/20 text-[#10B981] font-black">
-                        GOAL
+                {isSub ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-1.5 font-bold text-white">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#10B981]/20 text-[#10B981] font-black">IN</span>
+                        <span>{e.player || 'Player'}</span>
+                      </div>
+                      <span className="font-mono text-xs font-black text-[#7098F8] shrink-0">
+                        {e.clock || `${idx + 1}'`}
                       </span>
+                    </div>
+                    {e.assist && (
+                      <div className="flex items-center gap-1.5 text-xs text-[#94A3B8]">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#F97316]/20 text-[#F97316] font-black">OUT</span>
+                        <span className="text-[#94A3B8] font-medium">{e.assist}</span>
+                      </div>
                     )}
                   </div>
-                  <span className="font-mono text-xs font-black text-[#7098F8] shrink-0">
-                    {e.clock || `${idx + 1}'`}
-                  </span>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-1.5 font-bold text-white">
+                        <span>{e.player || 'Player'}</span>
+                        {isGoal && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#10B981]/20 text-[#10B981] font-black">
+                            GOAL
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-mono text-xs font-black text-[#7098F8] shrink-0">
+                        {e.clock || `${idx + 1}'`}
+                      </span>
+                    </div>
 
-                {e.assist && (
-                  <div className="text-[11px] text-[#94A3B8] mt-0.5">
-                    Assist: <span className="text-white/80 font-medium">{e.assist}</span>
-                  </div>
+                    {isGoal && e.assist && (
+                      <div className="text-[11px] text-[#94A3B8] mt-0.5">
+                        Assist: <span className="text-white/80 font-medium">{e.assist}</span>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 <div className="flex items-center justify-between text-[10px] text-[#64748B] mt-1 pt-1 border-t border-[#334155]/40">

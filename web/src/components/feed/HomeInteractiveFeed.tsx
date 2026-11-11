@@ -51,7 +51,6 @@ export default function HomeInteractiveFeed({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedLeagues, setSelectedLeagues] = useState<string[]>([]);
-
   const { favoriteClubs, favoriteCount } = useMyClubs();
   const { isMerchandiseEnabled } = useMerchandisePreference();
   const scrollRef = useDragScroll<HTMLDivElement>();
@@ -79,16 +78,22 @@ export default function HomeInteractiveFeed({
     return () => clearTimeout(timer);
   }, []);
 
+  const filterKey = `${selectedComp}-${selectedSeason}-${searchQuery.trim()}`;
+  const prevFilterKeyRef = useRef(filterKey);
   const catalog = useInfiniteHighlights(selectedComp, selectedSeason, 20, searchQuery);
   const isDefaultFeed = selectedComp === 'ALL' && selectedSeason === 2026 && !searchQuery.trim();
-  const isFilterLoading = (catalog.isLoading || catalog.isPending || (catalog.isFetching && catalog.highlights.length === 0)) && !isDefaultFeed;
-  const matches = catalog.highlights.length > 0 ? catalog.highlights : (isDefaultFeed ? initialMatches : []);
+  const isTransitioning = filterKey !== prevFilterKeyRef.current;
+  const isFilterLoading = (isTransitioning || catalog.isFetching || catalog.isLoading || catalog.isPending) && (!isDefaultFeed || isTransitioning);
+
+  useEffect(() => {
+    if (!catalog.isFetching && !catalog.isLoading) {
+      prevFilterKeyRef.current = filterKey;
+    }
+  }, [catalog.isFetching, catalog.isLoading, filterKey]);
+
+  const matches = (isFilterLoading && isTransitioning) ? [] : catalog.highlights.length > 0 ? catalog.highlights : (isDefaultFeed ? initialMatches : []);
   const isInitialLoading = (catalog.isLoading && initialMatches.length === 0) || isFilterLoading;
-  const loading = {
-    initial: isInitialLoading,
-    more: catalog.isLoadingMore,
-    hasMore: catalog.hasMore,
-  };
+  const loading = { initial: isInitialLoading, more: catalog.isLoadingMore, hasMore: catalog.hasMore };
   const handleLoadMore = catalog.loadMore;
 
   useEffect(() => {
@@ -239,7 +244,7 @@ export default function HomeInteractiveFeed({
           })}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 my-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 my-6 animate-in fade-in duration-300">
           {displayedMatches.map((m, idx) => (
             <React.Fragment key={m.id}>
               <HighlightCard

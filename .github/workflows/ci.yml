@@ -5,6 +5,19 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Select component to build / test / deploy:"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - "all"
+          - "backend-go"
+          - "web-suite"
+          - "android-kmp"
+          - "deploy-telemetry"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,6 +27,10 @@ jobs:
   backend-go:
     name: Golang Core Micro-Daemon Suite
     runs-on: ubuntu-latest
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      inputs.target == 'all' ||
+      inputs.target == 'backend-go'
     defaults:
       run:
         working-directory: core-go
@@ -30,6 +47,11 @@ jobs:
   web-suite:
     name: Next.js 16 Web Suite & Build
     runs-on: ubuntu-latest
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      inputs.target == 'all' ||
+      inputs.target == 'web-suite' ||
+      inputs.target == 'deploy-telemetry'
     defaults:
       run:
         working-directory: web
@@ -48,9 +70,44 @@ jobs:
       - name: Verify Web Next.js Build
         run: npm run build
 
+  deploy-telemetry:
+    name: Deploy Web / Telemetry to Firebase Hosting
+    needs: [web-suite]
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      (inputs.target == 'deploy-telemetry' || inputs.target == 'all')
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: web/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Build Web Export
+        run: npm run build
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_HIGHLIGHTDATA }}
+          projectId: highlightdata
+          channelId: live
+        continue-on-error: true
+
   android-kmp:
     name: Kotlin Multiplatform Compilation Check
     runs-on: ubuntu-latest
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      inputs.target == 'all' ||
+      inputs.target == 'android-kmp'
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21

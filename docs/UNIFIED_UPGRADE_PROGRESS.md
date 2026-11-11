@@ -369,5 +369,24 @@ Final continuation verification at approximately 17:55 WIB: final Wasm productio
   - **Timeline Scrubber Slider & Auto-Replay**: Interactive minute-by-minute scrubber slider with Play/Pause Auto-Replay mode and Reset controls, speaking tactical audio summaries chronologically via Web Speech API (`window.speechSynthesis`) on Web and native Android `TextToSpeech` via `VoiceCommentaryManager`.
   - **Smooth Ripple Animation**: Replaced abrasive Tailwind `animate-ping` with smooth SVG radial ripple animation.
 
+## Football Manager 2D Interactive Match Canvas, Team Color-Coding & Natural Broadcaster Audio — 10 November 2026
 
-
+- **Timeline Substitution & Assist Badges**:
+  - Fixed substitution parsing bug on Android (`MatchEventsTimeline.kt`) and Web (`MatchEventsTimeline.tsx` and `HorizontalMatchTimeline.tsx`) where secondary player was labeled as `Assist: [Substitute]`.
+  - Replaced with distinct 🟢 `IN: [Player]` and 🟠 `OUT: [Player]` badges; `Assist:` is reserved strictly for goals.
+- **Glassmorphic Pill Segmented Tab Bar**:
+  - Revamped the 4/5 tab bar (Timeline, Pitch Radar, Statistics, Lineups, Report) in Match Centre into a modern Glassmorphic Pill Segmented Bar on both Android and Web, complete with icons and title-case labels.
+- **Team & Kit Uniform Color-Coding with Contrast Guard**:
+  - Implemented automated dark mode Contrast Guard (`ensureLegibleHex` / `toLegibleColor`) boosting luminance when $Y < 0.22$, preventing deep navy or black team colors from washing out against dark stadium backgrounds.
+  - Color-coded dual-meters in Statistics (`MatchStatsView.tsx` & `TacticalStatisticsTab.kt`) and player starter tokens in Formation Lineups (`MatchLineupsView.tsx` & `TacticalPitchView.kt`).
+- **Football Manager (FM) 2D Interactive Canvas Engine**:
+  - Alternating mowing lawn turf stripes (`#0B2213` and `#0F2C18`).
+  - FM-style team-colored numbered player tokens with floating translucent name tag pills.
+  - Defending goalkeeper token stationed on the goal line during danger plays.
+  - Semi-transparent radial danger shooting cone polygon directed at the goalposts.
+  - Animated 3D-shaded soccer ball traveling along trajectory curves.
+  - Direct pitch tap/click to inspect nearest tactical play with 1x/2x replay speed controls.
+- **Natural Broadcaster Voice Commentary**:
+  - Completely eliminated robotic tone generator beeps and robotic TTS voices.
+  - Prioritized high-quality neural British/English voices (`Voice.QUALITY_HIGH` on Android, Neural/Google UK/US voices on Web).
+  - Broadcast-style dynamic phrasing for goals, saves, shots, and disciplinary actions.

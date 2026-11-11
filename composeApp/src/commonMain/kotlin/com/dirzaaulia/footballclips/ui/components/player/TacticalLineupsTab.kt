@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.domain.model.StarterPlayer
+import com.dirzaaulia.footballclips.util.toLegibleColor
 
 @Composable
 internal fun TacticalLineupsTab(match: Match) {
@@ -117,10 +118,17 @@ internal fun TacticalLineupsTab(match: Match) {
                 modifier = Modifier.padding(vertical = 12.dp),
             )
         } else {
+            val activeColor = (if (selectedTeamTab == 0) {
+                homeForm?.color ?: match.homeColor
+            } else {
+                awayForm?.color ?: match.awayColor
+            }).toLegibleColor(if (selectedTeamTab == 0) Color(0xFF3B82F6) else Color(0xFFEC4899))
+
             TacticalPitchView(
                 formation = if (selectedTeamTab == 0) homeForm?.formation else awayForm?.formation,
                 starters = activeStarters,
                 isHome = selectedTeamTab == 0,
+                teamColor = activeColor,
             )
             Column(
                 modifier = Modifier.fillMaxWidth(),

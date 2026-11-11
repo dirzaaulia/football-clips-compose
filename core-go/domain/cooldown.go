@@ -15,10 +15,10 @@ var compPriority = map[string]int{
 }
 
 // ShouldCheckYouTubeForMatch implements the 4-tier quota guardrail:
-// Tier 1 (<6h): check at most once every 30m.
-// Tier 2 (6-24h): check at most once every 2h (120m).
-// Tier 3 (24-72h): check at most once every 6h (360m).
-// Tier 4 (>72h): check at most once every 24h (1440m).
+// Tier 1 (0-14 days / <336h): check at most once every 30m. Top priority for highlights & worldwide availability.
+// Tier 2 (14-30 days / 336-720h): check at most once every 2h (120m).
+// Tier 3 (30-90 days / 720-2160h): check at most once every 6h (360m).
+// Tier 4 (>90 days / >2160h): check at most once every 24h (1440m).
 func ShouldCheckYouTubeForMatch(m Match, now time.Time) (bool, string) {
 	if m.LastYouTubeCheck == nil {
 		return true, "Never checked"
@@ -31,17 +31,17 @@ func ShouldCheckYouTubeForMatch(m Match, now time.Time) (bool, string) {
 	var cooldownMin float64
 
 	switch {
-	case sinceMatch < 6:
-		tierName = "Tier 1 (<6h)"
+	case sinceMatch < 14*24: // < 14 days (336h)
+		tierName = "Tier 1 (<14d)"
 		cooldownMin = 30
-	case sinceMatch < 24:
-		tierName = "Tier 2 (6-24h)"
+	case sinceMatch < 30*24: // 14-30 days
+		tierName = "Tier 2 (14-30d)"
 		cooldownMin = 120
-	case sinceMatch < 72:
-		tierName = "Tier 3 (24-72h)"
+	case sinceMatch < 90*24: // 30-90 days
+		tierName = "Tier 3 (30-90d)"
 		cooldownMin = 360
-	default:
-		tierName = "Tier 4 (>72h)"
+	default: // > 90 days
+		tierName = "Tier 4 (>90d)"
 		cooldownMin = 1440
 	}
 
@@ -94,12 +94,18 @@ func getPriorityRank(m Match, now time.Time) int {
 		if ageHours < 24.0 {
 			return 0 // P1: Urgent missing (<24h)
 		}
-		return 2 // P3: Older missing (>24h)
+		if ageHours < 336.0 {
+			return 1 // P2: Recent missing (last 14 days, Tier 1 priority)
+		}
+		return 3 // P4: Older missing (>14 days)
 	}
 
 	// Has video: check watchability
 	if m.RegionInfo != nil && len(m.RegionInfo.Blocked) > 0 {
-		return 1 // P2: High Geo Deficit
+		if ageHours < 336.0 {
+			return 1 // P2: Recent match with Geo Deficit (<14 days)
+		}
+		return 2 // P3: Older Geo Deficit
 	}
 	return 4 // P5: Satisfied
 }

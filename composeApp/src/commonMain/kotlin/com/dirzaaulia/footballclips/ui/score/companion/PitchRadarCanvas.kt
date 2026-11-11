@@ -1,162 +1,94 @@
 package com.dirzaaulia.footballclips.ui.score.companion
 
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.domain.model.PitchPlay
+import kotlin.math.hypot
 
 @Composable
-fun PitchRadarDeck(
-    plays: List<PitchPlay>,
-    modifier: Modifier = Modifier,
-    onPlaySelected: ((PitchPlay) -> Unit)? = null,
-) {
-    var selectedCategory by remember { mutableStateOf("ALL") }
-    val filteredPlays = remember(plays, selectedCategory) {
-        filterPlaysByCategory(plays, selectedCategory)
-    }
-    var selectedPlay by remember(filteredPlays) { mutableStateOf(filteredPlays.lastOrNull()) }
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(Color(0xFF0F172A), RoundedCornerShape(16.dp))
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        PitchCategoryFilters(
-            selectedCategory = selectedCategory,
-            onSelect = { selectedCategory = it },
-        )
-
-        PitchCanvas(
-            plays = filteredPlays,
-            selectedPlay = selectedPlay,
-            modifier = Modifier.fillMaxWidth().aspectRatio(1.54f),
-        )
-
-        selectedPlay?.let { play ->
-            PitchActionBanner(play = play)
-        }
-
-        PitchEventChips(
-            plays = filteredPlays,
-            selectedPlay = selectedPlay,
-            onSelect = {
-                selectedPlay = it
-                onPlaySelected?.invoke(it)
-            },
-        )
-    }
-}
-
-private fun filterPlaysByCategory(plays: List<PitchPlay>, cat: String): List<PitchPlay> {
-    if (cat == "ALL") return plays
-    return plays.filter { p ->
-        when (cat) {
-            "GOALS" -> p.isGoal
-            "SHOTS" -> p.isShot
-            "CARDS" -> p.isCard
-            "CORNERS" -> p.isCorner
-            "SUBS" -> p.isSub
-            else -> true
-        }
-    }
-}
-
-@Composable
-private fun PitchCategoryFilters(
-    selectedCategory: String,
-    onSelect: (String) -> Unit,
-) {
-    val categories = listOf("ALL", "GOALS", "SHOTS", "CARDS", "CORNERS", "SUBS")
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        contentPadding = PaddingValues(bottom = 2.dp),
-    ) {
-        items(categories) { cat ->
-            val isSelected = cat == selectedCategory
-            Surface(
-                shape = RoundedCornerShape(6.dp),
-                color = if (isSelected) Color(0xFF2563EB) else Color(0xFF1E293B),
-                modifier = Modifier.clickable { onSelect(cat) },
-            ) {
-                Text(
-                    text = cat,
-                    color = Color.White,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PitchCanvas(
+internal fun PitchCanvas(
     plays: List<PitchPlay>,
     selectedPlay: PitchPlay?,
+    homeColor: Color?,
+    awayColor: Color?,
+    onSelectPlay: (PitchPlay) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val transition = rememberInfiniteTransition()
     val pulseRadius by transition.animateFloat(
         initialValue = 6f,
-        targetValue = 26f,
+        targetValue = 24f,
         animationSpec = infiniteRepeatable(
             animation = tween(1200, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Restart,
         ),
     )
     val pulseAlpha by transition.animateFloat(
-        initialValue = 0.7f,
+        initialValue = 0.6f,
         targetValue = 0.0f,
         animationSpec = infiniteRepeatable(
             animation = tween(1200, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Restart,
         ),
     )
+    val ballProgress by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+    )
 
-    Canvas(modifier = modifier) {
-        drawPitchMarkings()
+    Canvas(
+        modifier = modifier.pointerInput(plays) {
+            detectTapGestures { tapOffset ->
+                var closest: PitchPlay? = null
+                var minDist = Float.MAX_VALUE
+                plays.forEach { p ->
+                    val px = (p.xPercent ?: 50f) / 100f * size.width
+                    val py = (p.yPercent ?: 50f) / 100f * size.height
+                    val d = hypot(px - tapOffset.x, py - tapOffset.y)
+                    if (d < minDist) {
+                        minDist = d
+                        closest = p
+                    }
+                }
+                if (closest != null && minDist < 80f) {
+                    onSelectPlay(closest)
+                }
+            }
+        },
+    ) {
+        drawFmPitchMarkings()
         drawPlayNodes(plays, selectedPlay)
-        drawSelectedPlay(selectedPlay, pulseRadius, pulseAlpha)
+        drawSelectedFmPlay(
+            play = selectedPlay,
+            pulseRadius = pulseRadius,
+            pulseAlpha = pulseAlpha,
+            ballProgress = ballProgress,
+            homeColor = homeColor,
+            awayColor = awayColor,
+        )
     }
 }
 
@@ -167,7 +99,7 @@ private fun DrawScope.drawPlayNodes(plays: List<PitchPlay>, selected: PitchPlay?
         val py = p.yPercent
         if (px != null && py != null) {
             drawCircle(
-                color = resolveMarkerColor(p).copy(alpha = 0.6f),
+                color = resolveMarkerColor(p).copy(alpha = 0.65f),
                 radius = 2.5.dp.toPx(),
                 center = Offset((px / 100f) * size.width, (py / 100f) * size.height),
             )
@@ -175,34 +107,79 @@ private fun DrawScope.drawPlayNodes(plays: List<PitchPlay>, selected: PitchPlay?
     }
 }
 
-private fun DrawScope.drawSelectedPlay(play: PitchPlay?, pulseRadius: Float, pulseAlpha: Float) {
+private fun DrawScope.drawSelectedFmPlay(
+    play: PitchPlay?,
+    pulseRadius: Float,
+    pulseAlpha: Float,
+    ballProgress: Float,
+    homeColor: Color?,
+    awayColor: Color?,
+) {
     play ?: return
     val px = play.xPercent ?: return
     val py = play.yPercent ?: return
     val cx = (px / 100f) * size.width
     val cy = (py / 100f) * size.height
     val ringColor = resolveMarkerColor(play)
+    val tokenColor = if (cx > size.width / 2f) (homeColor ?: Color(0xFF3B82F6)) else (awayColor ?: Color(0xFFEC4899))
 
-    val tx = play.targetXPercent
-    val ty = play.targetYPercent
+    val tx = play.targetXPercent ?: if (play.isShot || play.isGoal) (if (cx > size.width / 2f) 98f else 2f) else null
+    val ty = play.targetYPercent ?: if (play.isShot || play.isGoal) 50f else null
+
     if (tx != null && ty != null) {
+        val targetX = (tx / 100f) * size.width
+        val targetY = (ty / 100f) * size.height
+
+        // Danger Shooting Cone
+        if (play.isShot || play.isGoal) {
+            val conePath = Path().apply {
+                moveTo(cx, cy)
+                lineTo(targetX, size.height * 0.35f)
+                lineTo(targetX, size.height * 0.65f)
+                close()
+            }
+            drawPath(conePath, Color(0xFFEF4444).copy(alpha = 0.15f))
+
+            // Defending Goalkeeper token
+            drawCircle(
+                color = Color(0xFFF59E0B),
+                radius = 3.5.dp.toPx(),
+                center = Offset(targetX, size.height * 0.5f),
+            )
+        }
+
+        // Trajectory arc
         drawLine(
-            color = ringColor.copy(alpha = 0.7f),
+            color = ringColor.copy(alpha = 0.8f),
             start = Offset(cx, cy),
-            end = Offset((tx / 100f) * size.width, (ty / 100f) * size.height),
+            end = Offset(targetX, targetY),
             strokeWidth = 2.dp.toPx(),
-            pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 10f)),
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f)),
+        )
+
+        // Animated Ball
+        val ballX = cx + (targetX - cx) * ballProgress
+        val ballY = cy + (targetY - cy) * ballProgress
+        drawCircle(
+            color = Color.White,
+            radius = 3.dp.toPx(),
+            center = Offset(ballX, ballY),
         )
     }
 
     drawCircle(
-        color = ringColor.copy(alpha = pulseAlpha),
+        color = tokenColor.copy(alpha = pulseAlpha),
         radius = pulseRadius * density,
         center = Offset(cx, cy),
     )
     drawCircle(
-        color = ringColor,
-        radius = 5.dp.toPx(),
+        color = Color.White,
+        radius = 5.5.dp.toPx(),
+        center = Offset(cx, cy),
+    )
+    drawCircle(
+        color = tokenColor,
+        radius = 4.2.dp.toPx(),
         center = Offset(cx, cy),
     )
 }
@@ -216,18 +193,22 @@ private fun resolveMarkerColor(play: PitchPlay): Color = when {
     else -> Color(0xFF94A3B8)
 }
 
-private fun DrawScope.drawPitchMarkings() {
+private fun DrawScope.drawFmPitchMarkings() {
     val w = size.width
     val h = size.height
 
-    drawRoundRect(
-        brush = Brush.verticalGradient(
-            colors = listOf(Color(0xFF132A1C), Color(0xFF193B26)),
-        ),
-        cornerRadius = CornerRadius(12.dp.toPx(), 12.dp.toPx()),
-    )
+    // Mowing turf lawn stripes
+    val stripes = 8
+    val stripeW = w / stripes
+    for (i in 0 until stripes) {
+        drawRect(
+            color = if (i % 2 == 0) Color(0xFF0B2213) else Color(0xFF0F2C18),
+            topLeft = Offset(i * stripeW, 0f),
+            size = Size(stripeW, h),
+        )
+    }
 
-    val lineStroke = Stroke(width = 1.5.dp.toPx())
+    val lineStroke = Stroke(width = 1.2.dp.toPx())
     val lineColor = Color.White.copy(alpha = 0.35f)
 
     drawRect(color = lineColor, style = lineStroke)
@@ -238,60 +219,4 @@ private fun DrawScope.drawPitchMarkings() {
     val boxH = h * 0.54f
     drawRect(color = lineColor, topLeft = Offset(0f, h * 0.23f), size = Size(boxW, boxH), style = lineStroke)
     drawRect(color = lineColor, topLeft = Offset(w - boxW, h * 0.23f), size = Size(boxW, boxH), style = lineStroke)
-}
-
-@Composable
-private fun PitchActionBanner(play: PitchPlay) {
-    Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = Color(0xFF1E293B),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                text = play.clock,
-                color = Color(0xFF38BDF8),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = play.text.ifBlank { "${play.teamName.orEmpty()} ${play.typeText}" },
-                color = Color.White,
-                fontSize = 11.sp,
-                maxLines = 1,
-            )
-        }
-    }
-}
-
-@Composable
-private fun PitchEventChips(
-    plays: List<PitchPlay>,
-    selectedPlay: PitchPlay?,
-    onSelect: (PitchPlay) -> Unit,
-) {
-    LazyRow(
-        contentPadding = PaddingValues(vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        items(plays.takeLast(12).reversed()) { play ->
-            val isSelected = play.id == selectedPlay?.id
-            Surface(
-                shape = RoundedCornerShape(6.dp),
-                color = if (isSelected) Color(0xFF2563EB) else Color(0xFF1E293B),
-                modifier = Modifier.clickable { onSelect(play) },
-            ) {
-                Text(
-                    text = "${play.clock} ${play.typeText.take(6)}",
-                    color = Color.White,
-                    fontSize = 10.sp,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                )
-            }
-        }
-    }
 }
