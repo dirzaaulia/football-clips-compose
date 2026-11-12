@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import ShimmerImage from '@/components/common/ShimmerImage';
 import { Play, Sparkles, Trophy } from 'lucide-react';
 import { MatchRecord } from '@/lib/database';
 import Link from 'next/link';
@@ -64,12 +64,13 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
             handlePlay();
           }}
         >
-          <Image
+          <ShimmerImage
             src={thumbnailUrl}
             alt={`${homeName} vs ${awayName} Highlights`}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+            containerClassName="w-full h-full"
             unoptimized
           />
 

@@ -17,6 +17,8 @@ interface MatchMomentumChartProps {
   awayTeam: string;
   homeScore?: number | null;
   awayScore?: number | null;
+  homeColor?: string;
+  awayColor?: string;
 }
 
 export default function MatchMomentumChart({
@@ -24,6 +26,8 @@ export default function MatchMomentumChart({
   awayTeam,
   homeScore = 0,
   awayScore = 0,
+  homeColor = '#3B82F6',
+  awayColor = '#F43F5E',
 }: MatchMomentumChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -50,9 +54,10 @@ export default function MatchMomentumChart({
           const item = params[0];
           const val = Number(item.value);
           const dominantTeam = val >= 0 ? homeTeam : awayTeam;
+          const dominantColor = val >= 0 ? homeColor : awayColor;
           return `<div class="p-1 font-mono text-xs">
             <span class="font-bold text-gray-400">${item.name}</span><br/>
-            <span class="${val >= 0 ? 'text-blue-400' : 'text-rose-400'} font-bold">
+            <span style="color: ${dominantColor}; font-weight: 800;">
               ${dominantTeam} Dominance (+${Math.abs(val)}%)
             </span>
           </div>`;
@@ -85,8 +90,8 @@ export default function MatchMomentumChart({
         show: false,
         dimension: 1,
         pieces: [
-          { gt: 0, color: '#3B82F6' },
-          { lte: 0, color: '#F43F5E' },
+          { gt: 0, color: homeColor },
+          { lte: 0, color: awayColor },
         ],
       },
       series: [

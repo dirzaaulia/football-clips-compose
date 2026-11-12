@@ -201,6 +201,7 @@ private fun EspnCommentaryDto.toPitchPlay(homeTeamName: String, awayTeamName: St
         text = text ?: p.text ?: "$sideName $pType",
         teamName = sideName,
         player = p.participants?.firstOrNull()?.athlete?.displayName,
+        assistPlayer = p.participants?.getOrNull(1)?.athlete?.displayName,
         xPercent = fx,
         yPercent = fy,
         targetXPercent = p.fieldPosition2X?.times(100f) ?: if (isShot) (if (isHome) 100f else 0f) else null,

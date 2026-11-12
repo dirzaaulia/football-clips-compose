@@ -405,3 +405,20 @@ Final continuation verification at approximately 17:55 WIB: final Wasm productio
   - Published release bundle via GPP (`publishReleaseBundle -Ptrack=internal`).
   - Active on Google Play Internal Testing Track: `com.dirzaaulia.footballclips:[89832589]`.
   - Git release tag `v3.0.1-internal-89832589` created and pushed to `origin/main`.
+
+## Upgrade: FM 2D Simulation & Analytics Suite + Universal Shimmer — 11 November 2026
+
+- **Next.js Universal Shimmer Image Loader & Highlights Mount Entrance**:
+  - Added `ShimmerImage.tsx` with animated `.shimmer-effect` and crossfading `onLoad` opacity.
+  - Upgraded `HighlightCard.tsx` thumbnails and `GlassLogoBadge.tsx` team crests with shimmer placeholders.
+  - Added 600ms mount entrance timer (`isMountEntrance`) in `HomeInteractiveFeed.tsx` for immediate tactile skeleton visibility.
+- **Tactical FM 2D Match Engine & Analytics Overlays**:
+  - Restored real Opta field coordinates (`fieldPositionX/Y`, `fieldPosition2X/Y`, assist) in `espn.ts` and `MatchDetailClient.tsx`.
+  - Rendered 22 starters in tactical formation positions (`WebPitchFormationHelper.ts` & `WebPitchPlayersOverlay.tsx`).
+  - **3-Mode Segmented Suite** (`WebPitchRadarCanvas.tsx` & `WebPitchRadarControls.tsx`):
+    1. **`[2D Replay Engine]`**: Animated play-by-play with 22 starters, reactive goalkeeper, danger shooting cone, and traveling ball.
+    2. **`[Shot & Goal Map]`**: All match shots plotted simultaneously with color-coded outcomes (Goal, Saved, Blocked, Miss) and trajectory arrows to goalmouth.
+    3. **`[Density Heatmap]`**: Gaussian radial blur action density heatmap supporting **Match-wide**, **Home vs Away Territory**, and **Individual Player Heatmap**.
+  - Parity implemented in Android CMP (`PitchRadarCanvas.kt` & `PitchRadarDeck.kt`).
+  - All verification gates passed (129 web static routes, 14 Vitest tests, CMP Android compilation, 100% Go tests).
+

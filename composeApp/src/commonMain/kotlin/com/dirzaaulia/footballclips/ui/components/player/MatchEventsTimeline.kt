@@ -1,13 +1,17 @@
 package com.dirzaaulia.footballclips.ui.components.player
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.domain.model.MatchEvent
@@ -31,6 +37,8 @@ fun MatchEventsTimeline(
     events: List<MatchEvent>?,
     homeName: String,
     awayName: String,
+    homeColor: Color? = null,
+    awayColor: Color? = null,
     isSpoilerFree: Boolean = false,
     isLive: Boolean = false,
     modifier: Modifier = Modifier,
@@ -63,59 +71,113 @@ fun MatchEventsTimeline(
         return
     }
 
+    val effectiveHomeColor = homeColor ?: Color(0xFF7098F8)
+    val effectiveAwayColor = awayColor ?: Color(0xFF4FC3F7)
+
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        filteredEvents.forEach { event ->
-            TimelineEventRow(
+        TimelineMilestoneBadge("0' • Kickoff")
+        filteredEvents.forEachIndexed { idx, event ->
+            CentralSpineEventRow(
                 event = event,
                 homeName = homeName,
                 awayName = awayName,
+                homeColor = effectiveHomeColor,
+                awayColor = effectiveAwayColor,
+                isLast = idx == filteredEvents.lastIndex,
+            )
+        }
+        TimelineMilestoneBadge(if (isLive) "LIVE IN PLAY" else "Full Time")
+    }
+}
+
+@Composable
+private fun CentralSpineEventRow(
+    event: MatchEvent,
+    homeName: String,
+    awayName: String,
+    homeColor: Color,
+    awayColor: Color,
+    isLast: Boolean,
+) {
+    val isHome = event.side == "home"
+    val clubColor = if (isHome) homeColor else awayColor
+    val clockText = event.clock?.ifBlank { "•" } ?: "•"
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier.weight(1f).padding(end = 6.dp),
+            contentAlignment = Alignment.CenterEnd,
+        ) {
+            if (isHome) {
+                SpineBroadcastCard(event = event, clubColor = clubColor, teamName = homeName, isHome = true)
+            }
+        }
+
+        SpineCenterAxis(clockText = clockText, clubColor = clubColor, isLast = isLast)
+
+        Box(
+            modifier = Modifier.weight(1f).padding(start = 6.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            if (!isHome) {
+                SpineBroadcastCard(event = event, clubColor = clubColor, teamName = awayName, isHome = false)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SpineCenterAxis(clockText: String, clubColor: Color, isLast: Boolean) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(42.dp),
+    ) {
+        Box(
+            modifier = Modifier.width(2.dp).height(12.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        )
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            border = BorderStroke(1.5.dp, clubColor),
+            modifier = Modifier.size(34.dp),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    text = clockText,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Black,
+                    color = clubColor,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+        if (!isLast) {
+            Box(
+                modifier = Modifier.width(2.dp).height(12.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
             )
         }
     }
 }
 
 @Composable
-private fun TimelineEmptyState(message: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 24.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun TimelineEventRow(
+private fun SpineBroadcastCard(
     event: MatchEvent,
-    homeName: String,
-    awayName: String,
+    clubColor: Color,
+    teamName: String,
+    isHome: Boolean,
 ) {
-    val isGoal = event.scoringPlay ||
-        (event.type?.contains("goal", ignoreCase = true) == true) ||
-        event.text.contains("goal", ignoreCase = true)
+    val isGoal = event.scoringPlay || (event.type?.contains("goal", ignoreCase = true) == true)
     val isRed = event.type?.contains("red-card", ignoreCase = true) == true
     val isYellow = event.type?.contains("yellow-card", ignoreCase = true) == true && !isRed
     val isSub = event.type?.contains("sub", ignoreCase = true) == true
-    val isHome = event.side == "home"
-
-    val badgeColor = when {
-        isGoal -> Color(0xFF10B981)
-        isRed -> Color(0xFFEF4444)
-        isYellow -> Color(0xFFF59E0B)
-        isSub -> MaterialTheme.colorScheme.primary
-        else -> MaterialTheme.colorScheme.outline
-    }
 
     val badgeIcon = when {
         isGoal -> "⚽"
@@ -126,53 +188,46 @@ private fun TimelineEventRow(
     }
 
     Surface(
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+        shape = RoundedCornerShape(10.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.95f),
+        border = BorderStroke(1.dp, clubColor.copy(alpha = 0.55f)),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        Column(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+            horizontalAlignment = if (isHome) Alignment.End else Alignment.Start,
         ) {
-            Surface(
-                color = badgeColor.copy(alpha = 0.15f),
-                shape = CircleShape,
-                modifier = Modifier.size(32.dp),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(text = badgeIcon, fontSize = 14.sp)
-                }
-            }
-
-            Column(modifier = Modifier.weight(1f)) {
-                if (isSub) {
-                    SubstitutionDetails(event = event)
-                } else {
-                    GeneralEventDetails(event = event, isGoal = isGoal)
-                }
-
+                if (!isHome) Text(text = badgeIcon, fontSize = 12.sp)
                 Text(
-                    text = if (isHome) homeName else awayName,
+                    text = event.player.ifBlank { teamName },
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (isHome) Text(text = badgeIcon, fontSize = 12.sp)
+            }
+            if (isGoal && !event.assist.isNullOrBlank()) {
+                Text(
+                    text = "Ast: ${event.assist}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold,
+                    color = clubColor,
+                    fontSize = 9.sp,
+                    maxLines = 1,
                 )
             }
-
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                shape = RoundedCornerShape(8.dp),
-            ) {
+            if (isSub && !event.assist.isNullOrBlank()) {
                 Text(
-                    text = event.clock?.ifBlank { "" } ?: "",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    text = "Out: ${event.assist}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 9.sp,
+                    maxLines = 1,
                 )
             }
         }
@@ -180,70 +235,33 @@ private fun TimelineEventRow(
 }
 
 @Composable
-private fun SubstitutionDetails(event: MatchEvent) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+private fun TimelineMilestoneBadge(text: String) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+        modifier = Modifier.padding(vertical = 4.dp),
     ) {
-        BadgeTag(text = "IN", color = Color(0xFF10B981))
-        Text(
-            text = event.player.ifBlank { "Player" },
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-    }
-    if (!event.assist.isNullOrBlank()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.padding(top = 2.dp),
-        ) {
-            BadgeTag(text = "OUT", color = Color(0xFFF97316))
-            Text(
-                text = event.assist,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun GeneralEventDetails(event: MatchEvent, isGoal: Boolean) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Text(
-            text = event.player.ifBlank { "Player" },
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        if (isGoal) {
-            BadgeTag(text = "GOAL", color = Color(0xFF10B981))
-        }
-    }
-
-    if (isGoal && !event.assist.isNullOrBlank()) {
-        Text(
-            text = "Assist: ${event.assist}",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
-@Composable
-private fun BadgeTag(text: String, color: Color) {
-    Surface(color = color.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp)) {
         Text(
             text = text,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Black,
-            color = color,
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+        )
+    }
+}
+
+@Composable
+private fun TimelineEmptyState(message: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.fillMaxWidth().padding(vertical = 24.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

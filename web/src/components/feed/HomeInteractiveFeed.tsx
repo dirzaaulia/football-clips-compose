@@ -46,6 +46,7 @@ export default function HomeInteractiveFeed({
   const [showEducation, setShowEducation] = useState(false);
   const [activeVideoMatch, setActiveVideoMatch] = useState<MatchRecord | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [isMountEntrance, setIsMountEntrance] = useState(true);
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,12 +70,11 @@ export default function HomeInteractiveFeed({
   useEffect(() => {
     trackSessionStart();
     trackScreenView('Home');
-    const timer = setTimeout(() => {
-      setMounted(true);
-      if (typeof window !== 'undefined' && !localStorage.getItem('is_spoiler_free_configured')) {
-        setShowEducation(true);
-      }
-    }, 0);
+    setMounted(true);
+    if (typeof window !== 'undefined' && !localStorage.getItem('is_spoiler_free_configured')) {
+      setShowEducation(true);
+    }
+    const timer = setTimeout(() => setIsMountEntrance(false), 600);
     return () => clearTimeout(timer);
   }, []);
 
@@ -92,7 +92,7 @@ export default function HomeInteractiveFeed({
   }, [catalog.isFetching, catalog.isLoading, filterKey]);
 
   const matches = (isFilterLoading && isTransitioning) ? [] : catalog.highlights.length > 0 ? catalog.highlights : (isDefaultFeed ? initialMatches : []);
-  const isInitialLoading = (catalog.isLoading && initialMatches.length === 0) || isFilterLoading;
+  const isInitialLoading = isMountEntrance || (catalog.isLoading && initialMatches.length === 0) || isFilterLoading;
   const loading = { initial: isInitialLoading, more: catalog.isLoadingMore, hasMore: catalog.hasMore };
   const handleLoadMore = catalog.loadMore;
 

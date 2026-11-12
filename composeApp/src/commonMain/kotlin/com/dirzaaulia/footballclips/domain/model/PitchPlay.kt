@@ -9,6 +9,7 @@ data class PitchPlay(
     val text: String,
     val teamName: String? = null,
     val player: String? = null,
+    val assistPlayer: String? = null,
     val xPercent: Float? = null,
     val yPercent: Float? = null,
     val targetXPercent: Float? = null,

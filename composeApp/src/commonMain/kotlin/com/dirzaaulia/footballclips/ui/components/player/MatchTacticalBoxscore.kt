@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.domain.model.Match
+import com.dirzaaulia.footballclips.util.toLegibleColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -212,10 +213,14 @@ fun MatchTacticalBoxscore(
 
             when (currentTab) {
                 "TIMELINE" -> {
+                    val hColor = match.homeColor.toLegibleColor(Color(0xFF7098F8))
+                    val aColor = match.awayColor.toLegibleColor(Color(0xFF4FC3F7))
                     MatchEventsTimeline(
                         events = match.events,
                         homeName = match.homeTeamName,
                         awayName = match.awayTeamName,
+                        homeColor = hColor,
+                        awayColor = aColor,
                         isSpoilerFree = false,
                     )
                 }

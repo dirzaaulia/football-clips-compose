@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -29,8 +30,8 @@ internal fun TacticalStatisticsTab(match: Match) {
     val homeStats = stats["home"] ?: emptyMap()
     val awayStats = stats["away"] ?: emptyMap()
 
-    val homeColor = match.homeColor.toLegibleColor(MaterialTheme.colorScheme.primary)
-    val awayColor = match.awayColor.toLegibleColor(Color(0xFF38BDF8))
+    val homeColor = match.homeColor.toLegibleColor(Color(0xFF7098F8))
+    val awayColor = match.awayColor.toLegibleColor(Color(0xFF4FC3F7))
 
     val metricKeys = listOf(
         "possessionPct" to "Possession %",
@@ -55,7 +56,35 @@ internal fun TacticalStatisticsTab(match: Match) {
             awayTeam = match.awayTeamName,
             homeScore = match.homeScore ?: 0,
             awayScore = match.awayScore ?: 0,
+            homeColor = homeColor,
+            awayColor = awayColor,
         )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = match.homeTeamName,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = homeColor,
+                maxLines = 1,
+            )
+            Text(
+                text = "MATCH STATS",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = match.awayTeamName,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = awayColor,
+                maxLines = 1,
+            )
+        }
         metricKeys.forEach { (key, label) ->
             val homeVal = homeStats[key]
             val awayVal = awayStats[key]

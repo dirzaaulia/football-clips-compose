@@ -88,12 +88,15 @@ export default function MatchDetailClient({
       id: e.id || `play-${idx}`,
       clock: e.clock || '',
       type: e.type || '',
-      type_text: e.type,
+      type_text: e.type_text || e.type,
       text: e.text || '',
       player: e.player,
+      assist: e.assist,
       team_name: e.side === 'home' ? homeName : awayName,
-      x_percent: e.side === 'home' ? 75 : 25,
-      y_percent: 50 + ((idx % 3) - 1) * 18,
+      x_percent: e.x_coord ?? (e.side === 'home' ? 75 : 25),
+      y_percent: e.y_coord ?? (50 + ((idx % 3) - 1) * 18),
+      target_x: e.target_x,
+      target_y: e.target_y,
     }));
   }, [match?.events, homeName, awayName]);
 
@@ -188,7 +191,14 @@ export default function MatchDetailClient({
           ) : (
             <>
               {pitchPlays.length > 0 && (
-                <WebPitchRadar plays={pitchPlays} homeTeam={homeName} awayTeam={awayName} />
+                <WebPitchRadar
+                  plays={pitchPlays}
+                  homeTeam={homeName}
+                  awayTeam={awayName}
+                  homeColor={match.home_color}
+                  awayColor={match.away_color}
+                  formations={match.formations}
+                />
               )}
 
               {match.events && match.events.length > 0 && (
@@ -196,6 +206,8 @@ export default function MatchDetailClient({
                   events={match.events}
                   homeName={homeName}
                   awayName={awayName}
+                  homeColor={match.home_color}
+                  awayColor={match.away_color}
                   isSpoilerFree={false}
                   isLive={['IN_PLAY', 'PAUSED', 'LIVE'].includes(match.status)}
                 />

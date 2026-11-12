@@ -79,6 +79,8 @@ export default function MatchStatsView({
         awayTeam={awayName}
         homeScore={match.home_score}
         awayScore={match.away_score}
+        homeColor={homeColor}
+        awayColor={awayColor}
       />
       <div className="flex items-center justify-between text-xs font-black text-white px-2">
         <span className="truncate max-w-[45%]" style={{ color: homeColor }}>{homeName}</span>

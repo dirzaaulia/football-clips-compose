@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -40,6 +41,7 @@ import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.ui.components.common.MarkdownText
 import com.dirzaaulia.footballclips.util.MatchAnalysisUtils
 import com.dirzaaulia.footballclips.util.shareText
+import com.dirzaaulia.footballclips.util.toLegibleColor
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable
@@ -65,13 +67,16 @@ internal fun VideoMetadata(
             )
 
             if (meta.scoreText != null && meta.homeCrest != null && meta.awayCrest != null) {
+                val match = (item as? HighlightUiItem.OracleMatch)?.match
                 VideoMetadataTeamsRow(
-                    homeName = (item as? HighlightUiItem.OracleMatch)?.match?.homeTeamName.orEmpty(),
+                    homeName = match?.homeTeamName.orEmpty(),
                     homeCrest = meta.homeCrest,
                     homeScore = meta.homeScore,
-                    awayName = (item as? HighlightUiItem.OracleMatch)?.match?.awayTeamName.orEmpty(),
+                    awayName = match?.awayTeamName.orEmpty(),
                     awayCrest = meta.awayCrest,
                     awayScore = meta.awayScore,
+                    homeColor = match?.homeColor.toLegibleColor(Color(0xFF7098F8)),
+                    awayColor = match?.awayColor.toLegibleColor(Color(0xFF4FC3F7)),
                     isSpoilerFree = isGuarded,
                     onRevealClick = onRevealClick,
                 )

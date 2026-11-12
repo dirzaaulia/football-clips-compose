@@ -35,6 +35,8 @@ import com.dirzaaulia.footballclips.util.toLegibleColor
 internal fun TacticalLineupsTab(match: Match) {
     val homeForm = match.formations?.home
     val awayForm = match.formations?.away
+    val homeColor = (homeForm?.color ?: match.homeColor).toLegibleColor(Color(0xFF7098F8))
+    val awayColor = (awayForm?.color ?: match.awayColor).toLegibleColor(Color(0xFF4FC3F7))
     var selectedTeamTab by remember { mutableStateOf(0) }
 
     Column(
@@ -57,7 +59,7 @@ internal fun TacticalLineupsTab(match: Match) {
                     text = "${match.homeTeamName}: ${homeForm?.formation ?: "N/A"}",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = homeColor,
                 )
                 Text(
                     text = "vs",
@@ -68,7 +70,7 @@ internal fun TacticalLineupsTab(match: Match) {
                     text = "${match.awayTeamName}: ${awayForm?.formation ?: "N/A"}",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.secondary,
+                    color = awayColor,
                 )
             }
         }
@@ -87,6 +89,7 @@ internal fun TacticalLineupsTab(match: Match) {
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         fontWeight = FontWeight.Bold,
+                        color = if (selectedTeamTab == 0) homeColor else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 },
             )
@@ -99,6 +102,7 @@ internal fun TacticalLineupsTab(match: Match) {
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         fontWeight = FontWeight.Bold,
+                        color = if (selectedTeamTab == 1) awayColor else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 },
             )
@@ -118,11 +122,7 @@ internal fun TacticalLineupsTab(match: Match) {
                 modifier = Modifier.padding(vertical = 12.dp),
             )
         } else {
-            val activeColor = (if (selectedTeamTab == 0) {
-                homeForm?.color ?: match.homeColor
-            } else {
-                awayForm?.color ?: match.awayColor
-            }).toLegibleColor(if (selectedTeamTab == 0) Color(0xFF3B82F6) else Color(0xFFEC4899))
+            val activeColor = if (selectedTeamTab == 0) homeColor else awayColor
 
             TacticalPitchView(
                 formation = if (selectedTeamTab == 0) homeForm?.formation else awayForm?.formation,

@@ -33,6 +33,8 @@ fun MatchMomentumCanvas(
     awayTeam: String,
     homeScore: Int = 0,
     awayScore: Int = 0,
+    homeColor: Color = Color(0xFF7098F8),
+    awayColor: Color = Color(0xFF4FC3F7),
     modifier: Modifier = Modifier,
 ) {
     val points = remember(homeScore, awayScore) {
@@ -46,8 +48,17 @@ fun MatchMomentumCanvas(
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        MomentumHeader(homeTeam = homeTeam, awayTeam = awayTeam)
-        MomentumWave(points = points)
+        MomentumHeader(
+            homeTeam = homeTeam,
+            awayTeam = awayTeam,
+            homeColor = homeColor,
+            awayColor = awayColor,
+        )
+        MomentumWave(
+            points = points,
+            homeColor = homeColor,
+            awayColor = awayColor,
+        )
         MomentumTimeAxis()
     }
 }
@@ -67,6 +78,8 @@ private fun Modifier.clipContainer(): Modifier = this
 private fun MomentumHeader(
     homeTeam: String,
     awayTeam: String,
+    homeColor: Color,
+    awayColor: Color,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -77,7 +90,7 @@ private fun MomentumHeader(
             text = "▲ $homeTeam",
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF7098F8),
+            color = homeColor,
             maxLines = 1,
         )
         Text(
@@ -91,7 +104,7 @@ private fun MomentumHeader(
             text = "$awayTeam ▼",
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF4FC3F7),
+            color = awayColor,
             maxLines = 1,
         )
     }
@@ -100,6 +113,8 @@ private fun MomentumHeader(
 @Composable
 private fun MomentumWave(
     points: List<Float>,
+    homeColor: Color,
+    awayColor: Color,
 ) {
     Canvas(
         modifier = Modifier
@@ -130,7 +145,7 @@ private fun MomentumWave(
         drawPath(
             path = wavePath,
             brush = Brush.verticalGradient(
-                colors = listOf(Color(0xFF7098F8), Color(0xFF4FC3F7)),
+                colors = listOf(homeColor, awayColor),
             ),
             style = Stroke(width = 2.5f),
         )

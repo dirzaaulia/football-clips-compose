@@ -182,6 +182,8 @@ export async function fetchEspnMatchSummary(
           else if (isCard) { x = isHome ? 58 : 42; y = 50; }
           else { x = 50; y = isHome ? 90 : 10; }
         }
+        const tx = p.fieldPosition2X != null ? Math.round(p.fieldPosition2X * 100) : (isShot ? (isHome ? 100 : 0) : null);
+        const ty = p.fieldPosition2Y != null ? Math.round(p.fieldPosition2Y * 100) : (isShot ? 50 : null);
         seenIds.add(pId);
         parsedEvents.push({
           id: pId,
@@ -196,8 +198,8 @@ export async function fetchEspnMatchSummary(
           text: c.text || p.text || '',
           x_coord: x,
           y_coord: y,
-          target_x: isShot ? (isHome ? 100 : 0) : null,
-          target_y: isShot ? 50 : null,
+          target_x: tx,
+          target_y: ty,
         });
       }
 

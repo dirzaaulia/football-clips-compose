@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import ShimmerImage from './ShimmerImage';
 
 interface GlassLogoBadgeProps {
   src?: string | null;
@@ -32,16 +32,19 @@ export default function GlassLogoBadge({
       {children ? (
         children
       ) : src && !hasError ? (
-        <div className="relative w-full h-full">
-          <Image
-            src={src}
-            alt={alt}
-            fill
-            className={imageClassName}
-            unoptimized
-            onError={() => setHasError(true)}
-          />
-        </div>
+        <ShimmerImage
+          src={src}
+          alt={alt}
+          fill
+          className={imageClassName}
+          containerClassName="w-full h-full rounded-[inherit]"
+          unoptimized
+          fallbackIcon={
+            <span className="text-[10px] font-bold text-[#7098F8] select-none">
+              {fallbackText || (alt ? alt.charAt(0) : '?')}
+            </span>
+          }
+        />
       ) : (
         <span className="text-[10px] font-bold text-[#7098F8] select-none">
           {fallbackText || (alt ? alt.charAt(0) : '?')}

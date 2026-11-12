@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Crosshair, Volume2, VolumeX } from 'lucide-react';
+import { Crosshair } from 'lucide-react';
+import { MatchFormations } from '@/lib/database';
 import WebPitchRadarCanvas from './WebPitchRadarCanvas';
 import WebPitchRadarControls from './WebPitchRadarControls';
 
@@ -14,6 +15,7 @@ export interface WebPitchPlay {
   text: string;
   team_name?: string;
   player?: string | null;
+  assist?: string | null;
   x_percent?: number | null;
   y_percent?: number | null;
   target_x?: number | null;
@@ -27,18 +29,21 @@ interface WebPitchRadarProps {
   isLive?: boolean;
   homeColor?: string | null;
   awayColor?: string | null;
+  formations?: MatchFormations | null;
 }
 
 export default function WebPitchRadar({
   plays = [],
   homeTeam,
   awayTeam,
-  isLive = false,
   homeColor,
   awayColor,
+  formations,
 }: WebPitchRadarProps) {
+  const [viewMode, setViewMode] = useState<'REPLAY' | 'SHOTS' | 'HEATMAP'>('REPLAY');
+  const [heatmapTeam, setHeatmapTeam] = useState<'ALL' | 'HOME' | 'AWAY'>('ALL');
+  const [selectedPlayerName, setSelectedPlayerName] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('ALL');
-  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<1 | 2>(1);
 
@@ -66,78 +71,25 @@ export default function WebPitchRadar({
     }
   }, [filteredPlays, selectedPlay]);
 
-  const speakPlay = useCallback((play: WebPitchPlay) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const isGoal = (play.type_text || play.type || '').toLowerCase().includes('goal');
-      const textToSpeak = isGoal
-        ? `Goal! ${play.text}`
-        : `${play.clock ? play.clock + '. ' : ''}${play.text}`;
-
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.rate = 1.0;
-      utterance.pitch = isGoal ? 1.05 : 1.0;
-
-      const voices = window.speechSynthesis.getVoices();
-      const broadcasterVoice = voices.find(
-        (v) => (v.lang.startsWith('en-GB') || v.lang.startsWith('en')) &&
-               (v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Google') || v.name.includes('Online'))
-      ) || voices.find((v) => v.lang.startsWith('en-GB')) || voices.find((v) => v.lang.startsWith('en'));
-
-      if (broadcasterVoice) utterance.voice = broadcasterVoice;
-      window.speechSynthesis.speak(utterance);
-    } catch {
-      // Safe fallback if speech synthesis is restricted
-    }
-  }, []);
-
   const handleSelectPlay = useCallback((play: WebPitchPlay) => {
     setSelectedPlay(play);
-    if (isVoiceEnabled) {
-      speakPlay(play);
-    }
-  }, [isVoiceEnabled, speakPlay]);
+    if (play.player) setSelectedPlayerName(play.player);
+  }, []);
 
-  // Auto-play replay interval timer
   useEffect(() => {
     if (!isPlaying || filteredPlays.length === 0) return;
-
     const intervalMs = Math.round(1600 / playbackSpeed);
     const timer = setInterval(() => {
       setSelectedPlay((prev) => {
         const curIdx = filteredPlays.findIndex((p) => p.id === prev?.id);
         const nextIdx = curIdx + 1 < filteredPlays.length ? curIdx + 1 : 0;
         const nextPlay = filteredPlays[nextIdx] || null;
-        if (nextPlay && isVoiceEnabled) speakPlay(nextPlay);
         if (nextIdx === filteredPlays.length - 1) setIsPlaying(false);
         return nextPlay;
       });
     }, intervalMs);
-
     return () => clearInterval(timer);
-  }, [isPlaying, filteredPlays, isVoiceEnabled, playbackSpeed, speakPlay]);
-
-  // Clean up speech on unmount
-  useEffect(() => {
-    return () => {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
-
-  const toggleVoiceCommentary = () => {
-    const next = !isVoiceEnabled;
-    setIsVoiceEnabled(next);
-    if (!next) {
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-    } else if (selectedPlay) {
-      speakPlay(selectedPlay);
-    }
-  };
+  }, [isPlaying, filteredPlays, playbackSpeed]);
 
   const getMarkerColor = (play: WebPitchPlay): string => {
     const t = (play.type_text || play.type || '').toLowerCase();
@@ -150,33 +102,17 @@ export default function WebPitchRadar({
   };
 
   return (
-    <div className="rounded-2xl bg-[#0F141A] border border-[#334155]/70 p-4 space-y-3.5 shadow-md">
-      {/* Header with Title and Voice Toggle */}
+    <div className="space-y-3.5 bg-[#101418] border border-[#334155]/60 rounded-2xl p-3.5 sm:p-4 shadow-xl">
       <div className="flex items-center justify-between gap-2 text-xs text-[#94A3B8]">
         <div className="flex items-center gap-2">
           <Crosshair className="w-4 h-4 text-[#7098F8]" />
-          <span className="font-extrabold text-white tracking-wide">Interactive 2D Pitch Radar</span>
+          <span className="font-extrabold text-white tracking-wide">Tactical Pitch Analytics</span>
           <span className="hidden sm:inline text-[11px] text-[#64748B]">
             ({homeTeam} vs {awayTeam})
           </span>
         </div>
-
-        <button
-          type="button"
-          onClick={toggleVoiceCommentary}
-          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
-            isVoiceEnabled
-              ? 'bg-[#7098F8]/20 text-[#7098F8] border-[#7098F8]/40 shadow-sm'
-              : 'bg-[#181C20] text-[#94A3B8] border-[#334155]/60 hover:text-white hover:bg-[#1E2227]'
-          }`}
-          title={isVoiceEnabled ? 'Voice Commentary Active' : 'Enable Voice Commentary'}
-        >
-          {isVoiceEnabled ? <Volume2 className="w-3.5 h-3.5 text-[#7098F8]" /> : <VolumeX className="w-3.5 h-3.5" />}
-          <span>{isVoiceEnabled ? 'Audio ON' : 'Audio Replay'}</span>
-        </button>
       </div>
 
-      {/* Interactive Pitch Canvas with Trajectories and Nodes */}
       <WebPitchRadarCanvas
         plays={filteredPlays}
         selectedPlay={selectedPlay}
@@ -184,9 +120,18 @@ export default function WebPitchRadar({
         getMarkerColor={getMarkerColor}
         homeColor={homeColor}
         awayColor={awayColor}
+        viewMode={viewMode}
+        formations={formations}
+        selectedPlayerName={selectedPlayerName}
+        onSelectPlayerName={(name) => {
+          setSelectedPlayerName(name);
+          if (name) setViewMode('HEATMAP');
+        }}
+        heatmapTeam={heatmapTeam}
+        homeTeam={homeTeam}
+        awayTeam={awayTeam}
       />
 
-      {/* Filters, Scrubber Slider and Playback Controls */}
       <WebPitchRadarControls
         plays={filteredPlays}
         selectedPlay={selectedPlay}
@@ -202,6 +147,14 @@ export default function WebPitchRadar({
         playbackSpeed={playbackSpeed}
         onToggleSpeed={() => setPlaybackSpeed((s) => (s === 1 ? 2 : 1))}
         getMarkerColor={getMarkerColor}
+        viewMode={viewMode}
+        onSelectViewMode={setViewMode}
+        heatmapTeam={heatmapTeam}
+        onSelectHeatmapTeam={setHeatmapTeam}
+        selectedPlayerName={selectedPlayerName}
+        onClearPlayerFilter={() => setSelectedPlayerName(null)}
+        homeTeam={homeTeam}
+        awayTeam={awayTeam}
       />
     </div>
   );

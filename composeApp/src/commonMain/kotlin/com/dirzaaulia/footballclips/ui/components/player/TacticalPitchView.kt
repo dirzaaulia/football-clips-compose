@@ -1,5 +1,6 @@
 package com.dirzaaulia.footballclips.ui.components.player
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,13 +12,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,10 +29,10 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -92,70 +89,31 @@ private fun PitchCanvas(modifier: Modifier = Modifier) {
 }
 
 private fun DrawScope.drawGrassStripes() {
-    val stripeCount = 6
-    val stripeHeight = size.height / stripeCount
-    for (i in 0 until stripeCount) {
-        if (i % 2 == 1) {
-            drawRect(
-                color = PitchGrassLight,
-                topLeft = Offset(0f, i * stripeHeight),
-                size = Size(size.width, stripeHeight),
-            )
-        }
+    val stripeHeight = size.height / 6
+    for (i in 1 until 6 step 2) {
+        drawRect(color = PitchGrassLight, topLeft = Offset(0f, i * stripeHeight), size = Size(size.width, stripeHeight))
     }
 }
 
 private fun DrawScope.drawPitchMarkings() {
-    val strokeWidth = 1.5f.dp.toPx()
-    val stroke = Stroke(width = strokeWidth)
-    val margin = 8f.dp.toPx()
+    val stroke = Stroke(width = 1.5.dp.toPx())
+    val margin = 8.dp.toPx()
+    val bw = size.width * 0.58f
+    val bh = size.height * 0.22f
 
-    // Outer pitch border
     drawRoundRect(
         color = PitchLineColor,
         topLeft = Offset(margin, margin),
         size = Size(size.width - (margin * 2), size.height - (margin * 2)),
-        cornerRadius = CornerRadius(8f.dp.toPx(), 8f.dp.toPx()),
+        cornerRadius = CornerRadius(8.dp.toPx(), 8.dp.toPx()),
         style = stroke,
     )
-
-    // Center circle at top (attacking half view)
-    val circleRadius = size.width * 0.18f
-    drawCircle(
-        color = PitchLineColor,
-        radius = circleRadius,
-        center = Offset(size.width / 2f, margin),
-        style = stroke,
-    )
-
-    // Penalty box at bottom (defending goal)
-    val boxWidth = size.width * 0.58f
-    val boxHeight = size.height * 0.22f
-    val boxLeft = (size.width - boxWidth) / 2f
-    val boxTop = size.height - margin - boxHeight
-    drawRect(
-        color = PitchLineColor,
-        topLeft = Offset(boxLeft, boxTop),
-        size = Size(boxWidth, boxHeight),
-        style = stroke,
-    )
-
-    // 6-yard goal area
-    val smallBoxWidth = size.width * 0.28f
-    val smallBoxHeight = size.height * 0.08f
-    drawRect(
-        color = PitchLineColor,
-        topLeft = Offset((size.width - smallBoxWidth) / 2f, size.height - margin - smallBoxHeight),
-        size = Size(smallBoxWidth, smallBoxHeight),
-        style = stroke,
-    )
-
-    // Penalty spot
-    drawCircle(
-        color = PitchLineColor,
-        radius = 2.5f.dp.toPx(),
-        center = Offset(size.width / 2f, size.height - margin - (boxHeight * 0.65f)),
-    )
+    drawCircle(color = PitchLineColor, radius = size.width * 0.18f, center = Offset(size.width / 2f, margin), style = stroke)
+    drawRect(color = PitchLineColor, topLeft = Offset((size.width - bw) / 2f, size.height - margin - bh), size = Size(bw, bh), style = stroke)
+    val sbw = size.width * 0.28f
+    val sbh = size.height * 0.08f
+    drawRect(color = PitchLineColor, topLeft = Offset((size.width - sbw) / 2f, size.height - margin - sbh), size = Size(sbw, sbh), style = stroke)
+    drawCircle(color = PitchLineColor, radius = 2.5f.dp.toPx(), center = Offset(size.width / 2f, size.height - margin - (bh * 0.65f)))
 }
 
 @Composable
@@ -212,7 +170,9 @@ private fun TacticalPlayerNode(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-    val activeTeamColor = teamColor ?: if (isHome) Color(0xFF3B82F6) else Color(0xFFEC4899)
+    val isGK = player.position.equals("GK", ignoreCase = true) || player.position.equals("G", ignoreCase = true)
+    val baseColor = teamColor ?: if (isHome) Color(0xFF7098F8) else Color(0xFF4FC3F7)
+    val jerseyColor = if (isGK) Color(0xFFF59E0B) else baseColor
     val shortName = remember(player.name) {
         val parts = player.name.trim().split(" ")
         if (parts.size > 1) parts.last() else player.name
@@ -223,30 +183,54 @@ private fun TacticalPlayerNode(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
             .clickable { onClick() }
-            .padding(2.dp),
+            .padding(1.dp),
     ) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(26.dp)
-                .clip(CircleShape)
-                .background(if (isSelected) Color.White else activeTeamColor),
+            modifier = Modifier.size(26.dp),
         ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val cx = size.width / 2f
+                val cy = size.height / 2f
+                val s = 9.dp.toPx()
+                val path = Path().apply {
+                    moveTo(cx - s * 0.9f, cy - s * 1.0f)
+                    lineTo(cx - s * 0.4f, cy - s * 1.2f)
+                    lineTo(cx - s * 0.2f, cy - s * 0.95f)
+                    lineTo(cx + s * 0.2f, cy - s * 0.95f)
+                    lineTo(cx + s * 0.4f, cy - s * 1.2f)
+                    lineTo(cx + s * 0.9f, cy - s * 1.0f)
+                    lineTo(cx + s * 1.2f, cy - s * 0.35f)
+                    lineTo(cx + s * 0.8f, cy - s * 0.25f)
+                    lineTo(cx + s * 0.8f, cy + s * 1.0f)
+                    lineTo(cx - s * 0.8f, cy + s * 1.0f)
+                    lineTo(cx - s * 0.8f, cy - s * 0.25f)
+                    lineTo(cx - s * 1.2f, cy - s * 0.35f)
+                    close()
+                }
+                drawPath(path = path, color = if (isSelected) Color.White else jerseyColor)
+                drawPath(
+                    path = path,
+                    color = if (isSelected) jerseyColor else Color.White,
+                    style = Stroke(width = 1.dp.toPx()),
+                )
+            }
             Text(
                 text = player.jersey.ifBlank { "?" },
-                fontSize = 11.sp,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Black,
                 color = if (isSelected) Color.Black else Color.White,
             )
         }
         Surface(
-            color = Color.Black.copy(alpha = 0.65f),
+            color = Color.Black.copy(alpha = 0.8f),
             shape = RoundedCornerShape(4.dp),
-            modifier = Modifier.padding(top = 2.dp),
+            border = if (isSelected) BorderStroke(1.dp, jerseyColor) else null,
+            modifier = Modifier.padding(top = 1.dp),
         ) {
             Text(
                 text = shortName,
-                fontSize = 9.sp,
+                fontSize = 8.5.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 maxLines = 1,
@@ -258,13 +242,6 @@ private fun TacticalPlayerNode(
 }
 
 private fun parseFormationLines(formation: String?): List<Int> {
-    if (formation.isNullOrBlank()) {
-        return listOf(1, 4, 3, 3) // GK, Def, Mid, Att
-    }
-    val parts = formation.split("-").mapNotNull { it.trim().toIntOrNull() }
-    return if (parts.isEmpty()) {
-        listOf(1, 4, 3, 3)
-    } else {
-        listOf(1) + parts // Add 1 GK at the beginning
-    }
+    val parts = formation?.split("-")?.mapNotNull { it.trim().toIntOrNull() }
+    return if (parts.isNullOrEmpty()) listOf(1, 4, 3, 3) else listOf(1) + parts
 }

@@ -8,6 +8,8 @@ interface HorizontalMatchTimelineProps {
   events?: MatchEvent[] | null;
   homeName: string;
   awayName: string;
+  homeColor?: string | null;
+  awayColor?: string | null;
   isSpoilerFree?: boolean;
   isLive?: boolean;
 }
@@ -16,11 +18,16 @@ export default function HorizontalMatchTimeline({
   events,
   homeName,
   awayName,
+  homeColor,
+  awayColor,
   isSpoilerFree = false,
   isLive = false,
 }: HorizontalMatchTimelineProps) {
   const [isRevealed, setIsRevealed] = useState(!isSpoilerFree || isLive);
   const [hoveredEvent, setHoveredEvent] = useState<MatchEvent | null>(null);
+
+  const effectiveHomeColor = homeColor || '#7098F8';
+  const effectiveAwayColor = awayColor || '#4FC3F7';
 
   if (!events || events.length === 0) {
     return (
@@ -112,8 +119,8 @@ export default function HorizontalMatchTimeline({
           </span>
         </div>
         <div className="flex items-center gap-3 sm:gap-4 text-[11px] text-[#94A3B8]">
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#7098F8]" /> {homeName} (Top)</span>
-          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#4FC3F7]" /> {awayName} (Bottom)</span>
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: effectiveHomeColor }} /> {homeName} (Top)</span>
+          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: effectiveAwayColor }} /> {awayName} (Bottom)</span>
         </div>
       </div>
 
@@ -152,9 +159,12 @@ export default function HorizontalMatchTimeline({
                 >
                   {/* Connecting Pin line */}
                   <div
-                    className={`absolute left-1/2 -translate-x-1/2 w-0.5 ${
-                      isHome ? 'top-6 h-4 bg-[#7098F8]/60' : '-top-2 h-3 bg-[#4FC3F7]/60'
-                    }`}
+                    className="absolute left-1/2 -translate-x-1/2 w-0.5"
+                    style={{
+                      height: isHome ? '1rem' : '0.75rem',
+                      top: isHome ? '1.5rem' : '-0.5rem',
+                      backgroundColor: `${isHome ? effectiveHomeColor : effectiveAwayColor}99`,
+                    }}
                   />
 
                   {/* Event Marker Bubble */}

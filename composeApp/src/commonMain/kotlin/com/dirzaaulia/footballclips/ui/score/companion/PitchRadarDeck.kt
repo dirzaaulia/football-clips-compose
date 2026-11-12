@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.domain.model.PitchPlay
 
+enum class PitchViewMode { REPLAY, SHOTS, HEATMAP }
+
 @Composable
 fun PitchRadarDeck(
     plays: List<PitchPlay>,
@@ -35,6 +37,7 @@ fun PitchRadarDeck(
     modifier: Modifier = Modifier,
     onPlaySelected: ((PitchPlay) -> Unit)? = null,
 ) {
+    var selectedMode by remember { mutableStateOf(PitchViewMode.REPLAY) }
     var selectedCategory by remember { mutableStateOf("ALL") }
     val filteredPlays = remember(plays, selectedCategory) {
         filterPlaysByCategory(plays, selectedCategory)
@@ -48,10 +51,17 @@ fun PitchRadarDeck(
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        PitchCategoryFilters(
-            selectedCategory = selectedCategory,
-            onSelect = { selectedCategory = it },
+        PitchModeSelector(
+            selectedMode = selectedMode,
+            onSelectMode = { selectedMode = it },
         )
+
+        if (selectedMode == PitchViewMode.REPLAY) {
+            PitchCategoryFilters(
+                selectedCategory = selectedCategory,
+                onSelect = { selectedCategory = it },
+            )
+        }
 
         PitchCanvas(
             plays = filteredPlays,
@@ -62,6 +72,7 @@ fun PitchRadarDeck(
                 selectedPlay = it
                 onPlaySelected?.invoke(it)
             },
+            viewMode = selectedMode,
             modifier = Modifier.fillMaxWidth().aspectRatio(1.54f),
         )
 
@@ -69,14 +80,50 @@ fun PitchRadarDeck(
             PitchActionBanner(play = play)
         }
 
-        PitchEventChips(
-            plays = filteredPlays,
-            selectedPlay = selectedPlay,
-            onSelect = {
-                selectedPlay = it
-                onPlaySelected?.invoke(it)
-            },
-        )
+        if (selectedMode == PitchViewMode.REPLAY) {
+            PitchEventChips(
+                plays = filteredPlays,
+                selectedPlay = selectedPlay,
+                onSelect = {
+                    selectedPlay = it
+                    onPlaySelected?.invoke(it)
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun PitchModeSelector(
+    selectedMode: PitchViewMode,
+    onSelectMode: (PitchViewMode) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        PitchViewMode.entries.forEach { mode ->
+            val label = when (mode) {
+                PitchViewMode.REPLAY -> "2D Replay"
+                PitchViewMode.SHOTS -> "Shot Map"
+                PitchViewMode.HEATMAP -> "Heatmap"
+            }
+            val isSelected = mode == selectedMode
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = if (isSelected) Color(0xFF2563EB) else Color(0xFF1E293B),
+                modifier = Modifier.weight(1f).clickable { onSelectMode(mode) },
+            ) {
+                Text(
+                    text = label,
+                    color = Color.White,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.padding(vertical = 6.dp),
+                )
+            }
+        }
     }
 }
 

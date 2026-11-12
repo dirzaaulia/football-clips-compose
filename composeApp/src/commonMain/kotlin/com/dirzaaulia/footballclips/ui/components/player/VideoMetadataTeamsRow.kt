@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -34,6 +35,8 @@ internal fun VideoMetadataTeamsRow(
     awayName: String,
     awayCrest: String,
     awayScore: Int?,
+    homeColor: Color? = null,
+    awayColor: Color? = null,
     isSpoilerFree: Boolean,
     onRevealClick: () -> Unit,
 ) {
@@ -67,7 +70,7 @@ internal fun VideoMetadataTeamsRow(
                         text = homeName,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = homeColor ?: MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -86,7 +89,7 @@ internal fun VideoMetadataTeamsRow(
                         text = awayName,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = awayColor ?: MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -98,6 +101,8 @@ internal fun VideoMetadataTeamsRow(
             VideoScoreColumn(
                 homeScore = homeScore,
                 awayScore = awayScore,
+                homeColor = homeColor,
+                awayColor = awayColor,
                 isSpoilerFree = isSpoilerFree,
                 onRevealClick = onRevealClick,
             )
@@ -109,6 +114,8 @@ internal fun VideoMetadataTeamsRow(
 private fun VideoScoreColumn(
     homeScore: Int?,
     awayScore: Int?,
+    homeColor: Color?,
+    awayColor: Color?,
     isSpoilerFree: Boolean,
     onRevealClick: () -> Unit,
 ) {
@@ -146,13 +153,13 @@ private fun VideoScoreColumn(
                 text = (homeScore ?: "-").toString(),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary,
+                color = homeColor ?: MaterialTheme.colorScheme.primary,
             )
             Text(
                 text = (awayScore ?: "-").toString(),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary,
+                color = awayColor ?: MaterialTheme.colorScheme.primary,
             )
         }
     }
