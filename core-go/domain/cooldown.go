@@ -100,8 +100,8 @@ func getPriorityRank(m Match, now time.Time) int {
 		return 3 // P4: Older missing (>14 days)
 	}
 
-	// Has video: check watchability
-	if m.RegionInfo != nil && len(m.RegionInfo.Blocked) > 0 {
+	// Has video: check watchability (blocked lists or whitelist restrictions)
+	if m.HasGeoDeficit() {
 		if ageHours < 336.0 {
 			return 1 // P2: Recent match with Geo Deficit (<14 days)
 		}

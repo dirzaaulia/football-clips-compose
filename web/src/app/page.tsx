@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { supabase, getLiveMatches, MatchRecord } from '@/lib/database';
 import { getAllArticles } from '@/lib/editorial-articles';
 import HomeInteractiveFeed from '@/components/feed/HomeInteractiveFeed';
+import RecentMatchesSection from '@/components/feed/RecentMatchesSection';
 import { Wrench, BookOpen, ChevronRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
@@ -123,6 +124,9 @@ export default async function HomePage() {
         initialMatches={initialMatches}
         initialLiveMatches={initialLiveMatches}
       />
+
+      {/* 20 Recent Matches Across Competitions */}
+      <RecentMatchesSection matches={initialMatches} className="pt-6 border-t border-[#334155]/60" />
 
       {/* Server-Side Rendered Editorial Spotlight for Search Crawlers & Readers */}
       <section className="pt-6 border-t border-[#334155]/60 space-y-4">

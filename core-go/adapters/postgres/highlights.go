@@ -17,10 +17,21 @@ func (r *Repository) GetPendingHighlights(ctx context.Context, limit int) ([]dom
 		       last_youtube_check, youtube_region_info
 		FROM matches
 		WHERE status = 'FINISHED'
-		  AND (highlight_video_id IS NULL OR highlight_video_id = '')
 		  AND (youtube_region_info IS NULL OR (youtube_region_info->>'terminal') IS DISTINCT FROM 'true')
 		  AND season >= 2026
 		  AND utc_date >= NOW() - INTERVAL '30 days'
+		  AND (
+		      (highlight_video_id IS NULL OR highlight_video_id = '')
+		      OR (
+		          utc_date >= NOW() - INTERVAL '14 days'
+		          AND COALESCE((youtube_region_info->>'sweep_count')::int, 0) < 3
+		          AND (youtube_region_info->>'target_market_exhausted') IS DISTINCT FROM 'true'
+		          AND (
+		              jsonb_array_length(COALESCE(youtube_region_info->'allowed', '[]'::jsonb)) BETWEEN 1 AND 235
+		              OR jsonb_array_length(COALESCE(youtube_region_info->'blocked', '[]'::jsonb)) > 15
+		          )
+		      )
+		  )
 		ORDER BY utc_date DESC
 		LIMIT $1`
 

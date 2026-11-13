@@ -62,6 +62,13 @@ export default function RootLayout({
             __html: `(function(){try{var t=localStorage.getItem('fc-theme');if(t==='light'){document.documentElement.classList.remove('dark');document.documentElement.classList.add('light');}}catch(e){}})()`,
           }}
         />
+        {/* Official Google AdSense Account Verification */}
+        <meta name="google-adsense-account" content="ca-pub-6717632447198427" />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6717632447198427"
+          crossOrigin="anonymous"
+        />
         {/* Google Identity Services (Client-side in-app login) */}
         <script
           async

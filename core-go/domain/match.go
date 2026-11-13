@@ -51,13 +51,44 @@ func (m Match) IsFinished() bool {
 	return m.Status == "FINISHED"
 }
 
-// NeedsHighlight returns true if match is finished, not terminal, and has no highlight linked.
-func (m Match) NeedsHighlight() bool {
+// HasGeoDeficit returns true if the current highlight has restricted watchability (<95% WW).
+func (m Match) HasGeoDeficit() bool {
+	if m.RegionInfo == nil {
+		return false
+	}
+	if len(m.RegionInfo.Allowed) > 0 && len(m.RegionInfo.Allowed) < 235 {
+		return true
+	}
+	if len(m.RegionInfo.Blocked) > 15 {
+		return true
+	}
+	return false
+}
+
+// NeedsHighlight returns true if match is finished, not terminal, and either has no highlight
+// or has a severe geo deficit within the 14-day upgrade window with sweep_count < 3.
+func (m Match) NeedsHighlight(now ...time.Time) bool {
 	if !m.IsFinished() {
 		return false
 	}
-	if m.RegionInfo != nil && m.RegionInfo.Terminal {
+	if m.RegionInfo != nil && (m.RegionInfo.Terminal || m.RegionInfo.TargetMarketExhausted) {
 		return false
 	}
-	return m.HighlightVideoID == nil || *m.HighlightVideoID == ""
+	if m.HighlightVideoID == nil || *m.HighlightVideoID == "" {
+		return true
+	}
+	curTime := time.Now().UTC()
+	if len(now) > 0 {
+		curTime = now[0]
+	}
+	if curTime.Sub(m.UTCDate).Hours() < 336.0 { // < 14 days
+		sweepCount := 0
+		if m.RegionInfo != nil {
+			sweepCount = m.RegionInfo.SweepCount
+		}
+		if sweepCount < 3 && m.HasGeoDeficit() {
+			return true
+		}
+	}
+	return false
 }

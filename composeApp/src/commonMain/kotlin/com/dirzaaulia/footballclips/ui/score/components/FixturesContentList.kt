@@ -81,6 +81,13 @@ fun FixturesContentList(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            item(key = "recent-20-matches", span = { GridItemSpan(maxLineSpan) }) {
+                RecentMatchesSection(
+                    matches = matches,
+                    onMatchClick = { onVideoClick(it) {} },
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+            }
             groupedItems.forEachIndexed { groupIndex, (comp, compMatches) ->
                 val isExpanded = comp == null || !collapsedCompIds.contains(comp.id)
                 if (comp != null) {
@@ -153,6 +160,13 @@ fun FixturesContentList(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            item(key = "recent-20-matches") {
+                RecentMatchesSection(
+                    matches = matches,
+                    onMatchClick = { onVideoClick(it) {} },
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+            }
             groupedItems.forEachIndexed { groupIndex, (comp, compMatches) ->
                 val isExpanded = comp == null || !collapsedCompIds.contains(comp.id)
                 if (comp != null) {

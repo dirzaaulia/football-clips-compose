@@ -56,14 +56,6 @@
       ],
       "rewrites": [
         {
-          "source": "/telemetry",
-          "destination": "/telemetry/index.html"
-        },
-        {
-          "source": "/telemetry/**",
-          "destination": "/telemetry/index.html"
-        },
-        {
           "source": "/match/**",
           "destination": "/match.html"
         },

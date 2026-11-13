@@ -4,6 +4,7 @@ import React from 'react';
 import { ExternalLink, CheckCircle2, AlertTriangle, ShieldCheck, Video, Clock } from 'lucide-react';
 import { MatchCycleRun, MatchWaterfall } from '../types';
 import { CORE_TARGET_MARKETS } from '../availabilityHelper';
+import { RegionalTargetMarketsDeck } from './RegionalTargetMarketsDeck';
 
 interface WaterfallExecutiveSummaryProps {
   cycle: MatchCycleRun;
@@ -79,26 +80,8 @@ export function WaterfallExecutiveSummary({
               {availability?.percentage ?? 99}% WW
             </span>
           </div>
-          {/* Target Markets Coverage Matrix */}
-          <div className="pt-1 flex items-center gap-1 flex-wrap">
-            <span className="text-[10px] text-slate-400 uppercase font-mono mr-1">Target Markets:</span>
-            {CORE_TARGET_MARKETS.map((market) => {
-              const covered = availability?.coveredTargetMarkets.includes(market) ?? true;
-              return (
-                <span
-                  key={market}
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border ${
-                    covered
-                      ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                      : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                  }`}
-                  title={covered ? `Market ${market} covered` : `Market ${market} blocked / exhausted`}
-                >
-                  {market}
-                </span>
-              );
-            })}
-          </div>
+          {/* Aesthetic Regional Target Markets Deck */}
+          <RegionalTargetMarketsDeck coveredMarkets={availability?.coveredTargetMarkets ?? CORE_TARGET_MARKETS} />
 
           {/* Target Market Next Check or Exhaustion Status */}
           {!isAllCovered && (

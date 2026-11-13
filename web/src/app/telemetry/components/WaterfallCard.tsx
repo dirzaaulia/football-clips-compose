@@ -147,13 +147,21 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
                 {sourceName === 'WEBSUB' ? '⚡ WebSub' : sourceName === 'RSS' ? '📡 RSS' : sourceName === 'API' ? '🔑 API' : sourceName}
               </span>
             )}
-            {isLinked && wwText && (
-              <span className={`px-1.5 py-0.2 rounded text-[10px] font-semibold border ${
+            {isLinked && (waterfall.linkedChannelHandle || activeCycle.linkedChannelHandle) && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
+                <span>📺</span>
+                <span className="truncate max-w-[140px] sm:max-w-[200px]">
+                  {waterfall.linkedChannelHandle || activeCycle.linkedChannelHandle}
+                </span>
+              </span>
+            )}
+            {isLinked && (waterfall.cumulativeAvailability?.percentage ?? waterfall.worldwidePercentage ?? activeCycle.worldwidePercentage) !== undefined && (
+              <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
                 isWorldwideGood
                   ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                   : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
               }`}>
-                🌍 {wwText}
+                🌍 {waterfall.cumulativeAvailability?.percentage ?? waterfall.worldwidePercentage ?? activeCycle.worldwidePercentage}% WW
               </span>
             )}
             {!isLinked && !isReset && (activeCycle.nextCycleEta || waterfall.nextCycleEta) && (
