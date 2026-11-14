@@ -47,7 +47,7 @@ class ProfilesRepositoryImpl(
         if (currentUser != null) {
             val userId = currentUser.id
             val userEmail = currentUser.email
-            println("ProfilesRepositoryImpl: User found $userId ($userEmail). Querying Supabase profile...")
+            println("ProfilesRepositoryImpl: User found $userId ($userEmail). Querying PostgREST profile...")
 
             flow<Profile?> {
                 try {
@@ -60,10 +60,10 @@ class ProfilesRepositoryImpl(
                         .decodeSingleOrNull<Profile>()
 
                     if (dbProfile != null) {
-                        println("ProfilesRepositoryImpl: Found dbProfile in Supabase: $dbProfile")
+                        println("ProfilesRepositoryImpl: Found dbProfile in PostgREST: $dbProfile")
                         emit(dbProfile)
                     } else {
-                        println("ProfilesRepositoryImpl: No profile row in Supabase for $userId, creating fallback...")
+                        println("ProfilesRepositoryImpl: No profile row in PostgREST for $userId, creating fallback...")
                         val fallback = Profile(
                             id = userId,
                             isPremium = false,
@@ -96,7 +96,7 @@ class ProfilesRepositoryImpl(
 
     override suspend fun updatePremiumStatus(isPremium: Boolean) {
         val user = auth.currentUserOrNull() ?: run {
-            println("ProfilesRepositoryImpl: Cannot update is_premium, user is not logged in to Supabase!")
+            println("ProfilesRepositoryImpl: Cannot update is_premium, user is not logged in!")
             return
         }
         try {
@@ -107,9 +107,9 @@ class ProfilesRepositoryImpl(
             )
             postgrest["profiles"].upsert(updated)
             refreshTrigger.value++
-            println("Successfully updated is_premium to $isPremium in Supabase for user ${user.id} (${user.email})")
+            println("Successfully updated is_premium to $isPremium in PostgREST for user ${user.id} (${user.email})")
         } catch (e: Exception) {
-            println("Failed to upsert is_premium in Supabase: $e, attempting fallback update...")
+            println("Failed to upsert is_premium in PostgREST: $e, attempting fallback update...")
             try {
                 postgrest["profiles"].update(
                     {
@@ -121,9 +121,9 @@ class ProfilesRepositoryImpl(
                     }
                 }
                 refreshTrigger.value++
-                println("Fallback update succeeded for is_premium to $isPremium in Supabase for user ${user.id}")
+                println("Fallback update succeeded for is_premium to $isPremium in PostgREST for user ${user.id}")
             } catch (e2: Exception) {
-                println("Fallback update also failed in Supabase: $e2")
+                println("Fallback update also failed in PostgREST: $e2")
             }
         }
     }

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
-import { ChevronUp, ChevronDown } from 'lucide-react';
 import { FootballShortRecord } from '@/lib/shorts';
 import ShortsReelItem from './ShortsReelItem';
 
@@ -137,26 +136,6 @@ export default function ShortsReelContainer({ shorts }: ShortsReelContainerProps
             />
           </div>
         ))}
-      </div>
-
-      {/* Floating Desktop Navigation Arrows */}
-      <div className="hidden md:flex flex-col gap-2 absolute right-6 top-1/2 -translate-y-1/2 z-20">
-        <button
-          onClick={() => scrollToIndex(activeIndex - 1)}
-          disabled={activeIndex === 0}
-          className="p-3 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-20 text-white backdrop-blur-md transition border border-white/10"
-          title="Previous Short (Arrow Up)"
-        >
-          <ChevronUp className="w-5 h-5" />
-        </button>
-        <button
-          onClick={() => scrollToIndex(activeIndex + 1)}
-          disabled={activeIndex === shorts.length - 1}
-          className="p-3 rounded-full bg-white/10 hover:bg-white/20 disabled:opacity-20 text-white backdrop-blur-md transition border border-white/10"
-          title="Next Short (Arrow Down)"
-        >
-          <ChevronDown className="w-5 h-5" />
-        </button>
       </div>
     </div>
   );

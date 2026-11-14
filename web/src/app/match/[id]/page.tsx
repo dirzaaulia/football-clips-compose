@@ -1,7 +1,7 @@
 import React, { cache } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getMatchById, getRelatedMatches, MatchRecord, supabase } from '@/lib/database';
+import { getMatchById, getRelatedMatches, MatchRecord, database } from '@/lib/database';
 import { generateMatchRecap } from '@/lib/gemini';
 import { fetchEspnMatchSummary } from '@/lib/espn';
 import MatchDetailClient from '@/components/match/MatchDetailClient';
@@ -51,7 +51,7 @@ const resolveMatch = cache(async function resolveMatch(id: string): Promise<Matc
 
 export async function generateStaticParams() {
   try {
-    const { data } = await supabase
+    const { data } = await database
       .from('matches')
       .select('id')
       .order('utc_date', { ascending: false })

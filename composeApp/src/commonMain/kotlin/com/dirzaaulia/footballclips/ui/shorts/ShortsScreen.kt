@@ -1,5 +1,8 @@
 package com.dirzaaulia.footballclips.ui.shorts
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,9 +16,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -34,12 +41,18 @@ fun ShortsRoute(
 
     when (val state = uiState) {
         is ShortsUiState.Loading -> {
-            Box(modifier = modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = modifier.fillMaxSize().background(Color.Black),
+                contentAlignment = Alignment.Center,
+            ) {
                 CircularProgressIndicator(color = Color(0xFF2563EB))
             }
         }
         is ShortsUiState.Error -> {
-            Box(modifier = modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = modifier.fillMaxSize().background(Color.Black),
+                contentAlignment = Alignment.Center,
+            ) {
                 Text(text = state.message, color = Color.White)
             }
         }
@@ -110,7 +123,9 @@ private fun ShortVideoPage(
     onAction: (ShortsUiAction) -> Unit,
     onOpenYouTube: () -> Unit,
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
+    var isPlaybackActive by remember(short.youtubeVideoId) { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         if (isCurrent) {
             YouTubePlayerView(
                 videoId = short.youtubeVideoId,
@@ -119,15 +134,15 @@ private fun ShortVideoPage(
                 backupRegionInfo = null,
                 modifier = Modifier.fillMaxSize(),
                 onDismiss = {},
-            )
-        } else {
-            AsyncImage(
-                model = short.thumbnailUrl,
-                contentDescription = short.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
+                onPlaybackStarted = { isPlaybackActive = true },
             )
         }
+
+        ShortVideoPosterCover(
+            thumbnailUrl = short.thumbnailUrl,
+            title = short.title,
+            visible = !isCurrent || !isPlaybackActive,
+        )
 
         ShortsOverlayControls(
             short = short,
@@ -139,5 +154,37 @@ private fun ShortVideoPage(
             onShare = {},
             onOpenYouTube = onOpenYouTube,
         )
+    }
+}
+
+@Composable
+private fun ShortVideoPosterCover(
+    thumbnailUrl: String,
+    title: String,
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        exit = fadeOut(animationSpec = tween(400)),
+        modifier = modifier.fillMaxSize(),
+    ) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+            AsyncImage(
+                model = thumbnailUrl,
+                contentDescription = title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color.Transparent, Color.Black.copy(alpha = 0.75f)),
+                        ),
+                    ),
+            )
+        }
     }
 }

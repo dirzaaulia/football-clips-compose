@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { supabase, getLiveMatches, MatchRecord } from '@/lib/database';
+import { database, getLiveMatches, MatchRecord } from '@/lib/database';
 import { getAllArticles } from '@/lib/editorial-articles';
 import HomeInteractiveFeed from '@/components/feed/HomeInteractiveFeed';
 import RecentMatchesSection from '@/components/feed/RecentMatchesSection';
@@ -30,7 +30,7 @@ export default async function HomePage() {
 
   try {
     const [matchesRes, liveRes] = await Promise.all([
-      supabase
+      database
         .from('matches')
         .select('*')
         .order('utc_date', { ascending: false })

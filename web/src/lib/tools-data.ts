@@ -1,4 +1,4 @@
-import { supabase, StandingRecord } from '@/lib/database';
+import { database, StandingRecord } from '@/lib/database';
 
 export interface SupportedCompetition {
   code: string;
@@ -111,7 +111,7 @@ export function standingToTacticalProfile(s: StandingRecord, leagueName: string)
 
 export async function fetchLiveStandings(compCode: string, season = 2026): Promise<StandingRecord[]> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await database
       .from('standings')
       .select('*')
       .ilike('competition_code', compCode)

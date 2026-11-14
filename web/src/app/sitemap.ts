@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { supabase } from '@/lib/database';
+import { database } from '@/lib/database';
 
 export const dynamic = 'force-static';
 
@@ -70,7 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const { data: matches } = await supabase
+    const { data: matches } = await database
       .from('matches')
       .select('id,updated_at,utc_date')
       .order('utc_date', { ascending: false })

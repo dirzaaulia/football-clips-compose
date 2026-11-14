@@ -10,6 +10,7 @@ internal fun buildYouTubeHtml(videoId: String): String {
             <style>
                 html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
                 iframe { width: 100%; height: 100%; border: none; }
+                .ytp-chrome-top, .ytp-chrome-bottom, .ytp-watermark, .ytp-pause-overlay { display: none !important; opacity: 0 !important; }
             </style>
         </head>
         <body>
@@ -30,8 +31,11 @@ internal fun buildYouTubeHtml(videoId: String): String {
                             'autoplay': 1,
                             'playsinline': 1,
                             'rel': 0,
+                            'controls': 0,
+                            'disablekb': 1,
+                            'iv_load_policy': 3,
                             'modestbranding': 1,
-                            'fs': 1,
+                            'fs': 0,
                             'origin': 'https://dirzaaulia.com',
                             'enablejsapi': 1
                         },

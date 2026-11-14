@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Sparkles, ArrowRight, Trophy, ExternalLink, Newspaper, BookOpen, Clock } from 'lucide-react';
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
-import { supabase, MatchRecord } from '@/lib/database';
+import { database, MatchRecord } from '@/lib/database';
 import { getVerifiedFootballNews, FeedArticle } from '@/lib/articles';
 import { generateAlgorithmicTacticalRecap } from '@/lib/match-analysis';
 import { getAllArticles, EditorialArticle } from '@/lib/editorial-articles';
@@ -27,7 +27,7 @@ export default async function ArticlesPage() {
   const editorialArticles: EditorialArticle[] = getAllArticles();
 
   // 2. Fetch real European matches for tactical debriefs
-  const { data: rawMatches } = await supabase
+  const { data: rawMatches } = await database
     .from('matches')
     .select('*')
     .not('highlight_video_id', 'is', null)

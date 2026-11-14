@@ -48,7 +48,7 @@ object MatchAnalysisUtils {
             return "$headline${match.editorialStory}$source"
         }
 
-        // 3. Stored recap analysis from Supabase
+        // 3. Stored recap analysis from PostgreSQL
         if (!match.recapAnalysis.isNullOrBlank() && match.recapAnalysis.length > 50) {
             return match.recapAnalysis
         }

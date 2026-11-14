@@ -80,7 +80,7 @@ Applies strictly to **`composeApp` / `androidApp` (Android Native)** and **`web`
   - Production track: `$major.$minor.$patch ($buildNumber)` e.g. `3.0.1 (89832569)`.
   - Beta / Alpha / Internal tracks: suffixed with `-beta.$buildNumber`, `-alpha.$buildNumber`, `-internal.$buildNumber`.
 - **Historical Archive Immutability**:
-  - Historical archive seasons (`season < 2026`) must remain immutable. Never run unconstrained delete/purge operations against archive records in PostgreSQL or Supabase.
+  - Historical archive seasons (`season < 2026`) must remain immutable. Never run unconstrained delete/purge operations against archive records in PostgreSQL 16.
   - The database-level `protect_archive_matches` trigger silently rejects deletions on archive rows.
 - **Secret Management**: Always use the `getSecret(key)` helper in `androidApp/build.gradle.kts` to fallback gracefully between `local.properties`, Gradle properties (`-PKEY=...`), and Environment Variables (`ENV['KEY']`).
 - **RevenueCat Billing**: Ensure `BuildConfig.REVENUECAT_API_KEY` is checked for `isNotBlank()` before invoking `Purchases.configure(...)` in `Application.kt`.
@@ -108,19 +108,19 @@ Applies strictly to **`composeApp` / `androidApp` (Android Native)** and **`web`
     2. Candidate detection: Number of valid candidate videos found per channel.
     3. `[AI EVAL]` / `[AI_ACCEPTED]`: AI reranking evaluation of candidates using Oracle VM AI Gateway (`jarvis-gateway:8080` / Ollama ARM64).
     4. `[FALLBACK SELECT]` / `[DETERMINISTIC_FALLBACK]`: Title regex ranking if the AI Gateway is busy or unreachable.
-    5. `[LINKED]` or `[NOT FOUND]`: Final YouTube video ID linked and saved to Supabase, or marked as unavailable.
+    5. `[LINKED]` or `[NOT FOUND]`: Final YouTube video ID linked and saved to PostgreSQL, or marked as unavailable.
 - **Sync Intervals & YouTube Quota Tiering**:
   - Live matches: 1 minute (60s) tick for semi-live score and status updates, executed exclusively on Oracle VM (`footballclips-operations`). Cloud Run `fc-worker-sync` remains paused to eliminate dual-writer race conditions.
   - YouTube Data API v3 Approved Quota: **60,000 units/day** (target daily consumption: **54,000 units/day**). The `QuotaMaximizer` actively maintains healthy utilization for official queries (`search.list` & `videos.list`) to protect Google Cloud quota standing.
   - Kickoff within 45 minutes: 30 minutes.
   - Standard idle / off-peak: 2 hours.
   - YouTube Highlight Scraping: Runs only after match status is `FINISHED` under 4-tier quota guardrails (Tier 1: 30m, Tier 2: 2h, Tier 3: 6h, Tier 4: 24h).
-- **Mandatory Backward Compatibility**:
-  - As of October 2026, because users on Google Play update at different cadences, all backend, pipeline, and API changes MUST preserve backward compatibility across all 3 historical endpoint tiers:
-    1. Legacy Supabase Cloud tier (`eiomktvavndorazreyba.supabase.co`): must remain populated with fresh finished highlights.
-    2. Transitional Cloudflare Edge tier (`fc-edge-proxy.dirzaaulia11.workers.dev`): must remain routed to PostgreSQL 16.
-    3. Production Caddy / PostgREST tier (`edge.fc.dirzaaulia.com`): must strip client JWT headers (`header_up -Authorization`) to serve `web_anon` without HTTP 500 errors.
-  - Never deprecate or shut down a legacy endpoint or auth bridge until active version telemetry proves <1% of active users remain on that tier.
+- **Mandatory Backward Compatibility & Database Architecture**:
+  - All operational datastores, daemon pipelines, and clients are unified on **PostgreSQL 16 + PostgREST + Caddy on Oracle VM (`edge.fc.dirzaaulia.com`)**.
+  - The legacy cloud Supabase project (`eiomktvavndorazreyba.supabase.co`) is officially **DECOMMISSIONED**. All AI models MUST strictly refer to the datastore as **PostgreSQL 16 / PostgREST (Oracle VM)** and never use "Supabase".
+  - Active endpoint tiers:
+    1. Transitional Cloudflare Edge tier (`fc-edge-proxy.dirzaaulia11.workers.dev`): routed to PostgreSQL 16 on Oracle VM.
+    2. Production Caddy / PostgREST tier (`edge.fc.dirzaaulia.com`): serves public PostgREST endpoints directly with client JWT stripping (`header_up -Authorization`).
 
 ---
 
@@ -195,14 +195,14 @@ All AI models and autonomous agents working in this repository (Claude, Cursor, 
    - Golang: Max **250 lines** (hard ceiling **300 lines**), functions max **40 lines**.
 2. **Zero Wildcard Imports**: `import foo.*` is strictly forbidden. Explicit imports only.
 3. **Mandatory Trailing Commas**: Required on all multi-line parameter lists, argument calls, and collection literals.
-4. **Historical Archive Immutability**: Seasons `< 2026` must remain immutable. Never run unconstrained delete/purge operations against archive records in PostgreSQL or Supabase (`protect_archive_matches`).
+4. **Historical Archive Immutability**: Seasons `< 2026` must remain immutable. Never run unconstrained delete/purge operations against archive records in PostgreSQL 16 (`protect_archive_matches`).
 5. **Zero Secret & IP Exposure**: Never hardcode production IP addresses (`168.110.196.30`) or plain-text credentials. Always read from environment variables or `getSecret()`.
 6. **Lean Database Storage**: Never persist tactical boxscore coordinates, formations, statistics, or editorial stories to PostgreSQL `matches`. Stream them 100% on-demand from ESPN API.
 
 ### Gate 2: Planning & Approval Gate
 1. For any multi-file refactoring, architectural shift, or feature introduction, generate or update a structured Implementation Plan Artifact (`...plan.md`) and Walkthrough Artifact (`walkthrough.md`).
 2. Clearly highlight architectural trade-offs, security invariants, and user experience.
-3. Never introduce breaking changes to historical backward compatibility tiers (Legacy Supabase Cloud, Transitional Cloudflare Edge, Production Caddy / PostgREST).
+3. Never introduce breaking changes to active endpoint tiers (Transitional Cloudflare Edge, Production Caddy / PostgREST).
 
 ### Gate 3: Automated Quality & Compilation Verification
 Before presenting completion, execute and verify all applicable automated gates:

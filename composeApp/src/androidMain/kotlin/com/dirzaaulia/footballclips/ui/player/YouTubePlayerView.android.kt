@@ -45,6 +45,7 @@ actual fun YouTubePlayerView(
     backupRegionInfo: RegionRestriction?,
     modifier: Modifier,
     onDismiss: (Boolean) -> Unit,
+    onPlaybackStarted: () -> Unit,
 ) {
     val context = LocalContext.current
     val activity = remember(context) { context.findActivity() }
@@ -123,6 +124,7 @@ actual fun YouTubePlayerView(
                         },
                         onCustomViewChange = { v, cb -> customView = v; customViewCallback = cb },
                         onInstanceCreated = { webViewInstance = it },
+                        onPlaybackStarted = onPlaybackStarted,
                     )
                 },
                 onRelease = { wv -> cleanupWebView(wv) },
@@ -204,16 +206,19 @@ private fun createConfiguredWebView(
     onSwitchedToBackup: (String) -> Unit,
     onCustomViewChange: (View?, WebChromeClient.CustomViewCallback?) -> Unit,
     onInstanceCreated: (WebView) -> Unit,
+    onPlaybackStarted: () -> Unit,
 ): WebView {
     return WebView(context).apply {
         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val url = request?.url?.toString().orEmpty()
-                if (url.startsWith("fc-ready://") || url.startsWith("fc-state://")) {
-                    if (url.startsWith("fc-ready://") || url.startsWith("fc-state://1")) {
-                        onLoadingState(false)
-                    }
+                if (url.startsWith("fc-state://1") || url.startsWith("fc-state://2")) {
+                    onLoadingState(false)
+                    onPlaybackStarted()
+                    return true
+                }
+                if (url.startsWith("fc-ready://")) {
                     return true
                 }
                 if (url.startsWith("fc-error://")) {

@@ -4,7 +4,7 @@ import { PipelineInfo, TelemetryEvent } from '../types';
 import { MatchLiveCard, GroupedMatchLive } from './MatchLiveCard';
 import { CompetitionFixtureCard, GroupedCompetitionFixtures, FixtureItem } from './CompetitionFixtureCard';
 import { parseEventMatchDetails } from './liveScoreHelper';
-import { supabase } from '@/lib/database';
+import { database } from '@/lib/database';
 
 interface LiveScoresPipelineViewProps {
   pipelineInfo?: PipelineInfo;
@@ -146,7 +146,7 @@ export function LiveScoresPipelineView({ pipelineInfo, events }: LiveScoresPipel
   useEffect(() => {
     async function loadScheduledFixtures() {
       try {
-        const { data } = await supabase
+        const { data } = await database
           .from('matches')
           .select('id, home_team_name, away_team_name, competition_name, utc_date, status, round_name')
           .in('status', ['TIMED', 'SCHEDULED'])
