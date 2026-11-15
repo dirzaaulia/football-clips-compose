@@ -37,33 +37,33 @@ export default function FixturesDateAndTabs({
 }: FixturesDateAndTabsProps) {
   if (selectedSeason !== 2026) {
     return (
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#181C20] border border-amber-500/30 rounded-2xl p-2 mb-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#121316] border border-[#DFFF00]/30 rounded-2xl p-2.5 mb-4 select-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setArchiveFilter('ALL')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-3.5 py-1.5 rounded-xl font-tech text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               archiveFilter === 'ALL'
-                ? 'bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-sm'
-                : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
+                ? 'bg-[#DFFF00] text-[#0A0A0C] shadow-[0_0_12px_rgba(223,255,0,0.3)]'
+                : 'text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >
             All Matches
           </button>
           <button
             onClick={() => setArchiveFilter('HIGHLIGHTS')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-tech text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               archiveFilter === 'HIGHLIGHTS'
-                ? 'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-sm'
-                : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
+                ? 'bg-[#FF2E4D] text-white shadow-[0_0_12px_rgba(255,46,77,0.4)]'
+                : 'text-white/60 hover:text-white hover:bg-white/5'
             }`}
           >
-            <Film className="w-3.5 h-3.5 text-red-400" />
+            <Film className="w-3.5 h-3.5 text-white" />
             <span>With Highlights</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-xl px-3 py-1.5 text-xs font-bold text-amber-400">
-          <Trophy className="w-3.5 h-3.5 text-amber-400" />
+        <div className="flex items-center gap-2 bg-[#DFFF00]/10 border border-[#DFFF00]/30 rounded-xl px-3 py-1.5 font-tech text-xs font-bold text-[#DFFF00]">
+          <Trophy className="w-3.5 h-3.5 text-[#DFFF00]" />
           <span>Archive Season {currentOption.shortLabel || currentOption.label}</span>
         </div>
       </div>
@@ -71,73 +71,73 @@ export default function FixturesDateAndTabs({
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#181C20] border border-[#334155]/60 rounded-2xl p-2 mb-3">
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#121316] border border-white/10 rounded-2xl p-2 mb-4 select-none">
       {/* Category / Status Filter Tabs */}
-      <div className="flex items-center gap-1 bg-[#101418] p-1 rounded-xl overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-1 bg-[#0A0A0C] p-1 rounded-xl overflow-x-auto no-scrollbar border border-white/5">
         <button
           onClick={() => setActiveTab('ALL')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-3.5 py-1.5 rounded-lg font-tech text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'ALL'
-              ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
-              : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
+              ? 'bg-[#DFFF00] text-[#0A0A0C] shadow-[0_0_10px_rgba(223,255,0,0.4)]'
+              : 'text-white/60 hover:text-white hover:bg-white/5'
           }`}
         >
           All
         </button>
         <button
           onClick={() => setActiveTab('LIVE')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-tech text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'LIVE'
-              ? 'bg-gradient-to-r from-red-600 to-rose-500 text-white shadow-[0_0_12px_rgba(239,68,68,0.4)]'
-              : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
+              ? 'bg-[#FF2E4D] text-white shadow-[0_0_10px_rgba(255,46,77,0.4)]'
+              : 'text-white/60 hover:text-white hover:bg-white/5'
           }`}
         >
-          <Radio className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+          <Radio className="w-3.5 h-3.5 text-white animate-pulse" />
           <span>Live</span>
         </button>
         <button
           onClick={() => setActiveTab('RESULTS')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-tech text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'RESULTS'
-              ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
-              : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
+              ? 'bg-[#1A1C22] text-[#DFFF00] border border-[#DFFF00]/40'
+              : 'text-white/60 hover:text-white hover:bg-white/5'
           }`}
         >
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+          <CheckCircle2 className="w-3.5 h-3.5 text-[#DFFF00]" />
           <span>Results</span>
         </button>
         <button
           onClick={() => setActiveTab('UPCOMING')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-tech text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'UPCOMING'
-              ? 'bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white border border-[#7098F8]/50 shadow-[0_0_12px_rgba(112,152,248,0.3)]'
-              : 'text-[#94A3B8] hover:text-white hover:bg-[#1E2227]'
+              ? 'bg-[#1A1C22] text-[#38BDF8] border border-[#38BDF8]/40'
+              : 'text-white/60 hover:text-white hover:bg-white/5'
           }`}
         >
-          <Clock className="w-3.5 h-3.5 text-[#4FC3F7]" />
+          <Clock className="w-3.5 h-3.5 text-[#38BDF8]" />
           <span>Upcoming</span>
         </button>
       </div>
 
-      {/* Compact Date Stepper */}
-      <div className="flex items-center justify-between sm:justify-end gap-1.5 bg-[#1E2227]/80 rounded-xl px-2 py-1 border border-[#334155]/60">
+      {/* Date Stepper */}
+      <div className="flex items-center justify-between sm:justify-end gap-1.5 bg-[#0A0A0C] rounded-xl px-2 py-1 border border-white/10">
         <button
           onClick={() => changeDay(-1)}
           aria-label="Previous day"
-          className="p-1 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#252B33] transition-all cursor-pointer"
+          className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
         >
-          <ChevronLeft className="w-3.5 h-3.5" />
+          <ChevronLeft className="w-4 h-4" />
         </button>
-        <div className="flex items-center gap-1.5 px-2 text-xs font-bold text-white">
-          <CalendarIcon className="w-3.5 h-3.5 text-[#7098F8]" />
+        <div className="flex items-center gap-1.5 px-2 font-tech text-xs font-bold text-white">
+          <CalendarIcon className="w-3.5 h-3.5 text-[#DFFF00]" />
           <span>{formattedDate}</span>
         </div>
         <button
           onClick={() => changeDay(1)}
           aria-label="Next day"
-          className="p-1 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#252B33] transition-all cursor-pointer"
+          className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/5 transition-all cursor-pointer"
         >
-          <ChevronRight className="w-3.5 h-3.5" />
+          <ChevronRight className="w-4 h-4" />
         </button>
       </div>
     </div>

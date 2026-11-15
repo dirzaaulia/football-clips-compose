@@ -44,6 +44,10 @@ import com.dirzaaulia.footballclips.data.affiliate.AffiliateConfiguration
 import com.dirzaaulia.footballclips.data.affiliate.AmazonUrlBuilder
 import com.dirzaaulia.footballclips.data.model.remote.SupportedClub
 import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
+import com.dirzaaulia.footballclips.ui.theme.GhostBorder
+import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
+import com.dirzaaulia.footballclips.ui.theme.VoltLime
+import com.dirzaaulia.footballclips.ui.theme.VoltLimeDarkText
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable
@@ -61,14 +65,14 @@ fun ClubStoreCard(
             .clickable { uriHandler.openUri(affiliateUrl) },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            containerColor = ObsidianSurfaceTier1,
         ),
         border = BorderStroke(
             width = 1.dp,
             color = if (isFavorite) {
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                VoltLime.copy(alpha = 0.6f)
             } else {
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                GhostBorder
             },
         ),
     ) {
@@ -90,8 +94,8 @@ fun ClubStoreCard(
                     .height(36.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    containerColor = VoltLime,
+                    contentColor = VoltLimeDarkText,
                 ),
             ) {
                 Icon(

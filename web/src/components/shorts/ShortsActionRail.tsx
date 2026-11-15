@@ -65,7 +65,7 @@ export default function ShortsActionRail({
         title={isMuted ? 'Unmute' : 'Mute'}
       >
         <div className="p-3 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/10 group-hover:bg-black/80 transition-colors">
-          {isMuted ? <VolumeX className="w-5 h-5 text-amber-400" /> : <Volume2 className="w-5 h-5 text-[#7098F8]" />}
+          {isMuted ? <VolumeX className="w-5 h-5 text-amber-400" /> : <Volume2 className="w-5 h-5 text-[#DFFF00]" />}
         </div>
         <span className="text-[11px] font-mono font-semibold text-white drop-shadow">
           {isMuted ? 'Muted' : 'Sound'}

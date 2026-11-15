@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Smartphone,
 } from 'lucide-react';
+import GooglePlayBadge from '@/components/common/GooglePlayBadge';
 
 interface SidebarBottomControlsProps {
   isCollapsed?: boolean;
@@ -25,7 +26,7 @@ export default function SidebarBottomControls({
   onOpenPaywall,
 }: SidebarBottomControlsProps) {
   return (
-    <div className={`space-y-1.5 pt-2.5 border-t border-[#334155]/60 w-full ${isCollapsed ? 'flex flex-col items-center' : ''}`}>
+    <div className={`space-y-1.5 pt-2.5 border-t border-white/10 w-full ${isCollapsed ? 'flex flex-col items-center' : ''}`}>
       {/* Minimalist Spoiler-Free Toggle */}
       <button
         onClick={onToggleSpoilerFree}
@@ -36,22 +37,22 @@ export default function SidebarBottomControls({
             : 'w-full justify-between px-3 py-1.5 rounded-xl text-xs font-bold'
         } ${
           isSpoilerFree
-            ? 'bg-[#1E3A8A]/40 text-[#4FC3F7] border-[#7098F8]/40 shadow-sm'
-            : 'bg-[#181C20] text-[#94A3B8] hover:text-white hover:bg-[#1E2227] border border-[#334155]'
+            ? 'bg-[#DFFF00]/15 text-[#DFFF00] border-[#DFFF00]/40 shadow-sm'
+            : 'bg-[#121316] text-[#A1A1AA] hover:text-white hover:bg-[#1A1C22] border border-white/10'
         }`}
       >
         <div className="flex items-center gap-2 min-w-0">
           {isSpoilerFree ? (
-            <EyeOff className="w-4 h-4 text-[#4FC3F7] shrink-0" />
+            <EyeOff className="w-4 h-4 text-[#DFFF00] shrink-0" />
           ) : (
-            <Eye className="w-4 h-4 text-[#94A3B8] shrink-0" />
+            <Eye className="w-4 h-4 text-[#A1A1AA] shrink-0" />
           )}
           {!isCollapsed && <span className="truncate">Spoiler-Free</span>}
         </div>
         {!isCollapsed && (
           <span
-            className={`text-[9px] font-black px-1.5 py-0.2 rounded shrink-0 ${
-              isSpoilerFree ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-400'
+            className={`text-[9px] font-tech font-black px-1.5 py-0.2 rounded shrink-0 ${
+              isSpoilerFree ? 'bg-[#DFFF00]/25 text-[#DFFF00]' : 'bg-zinc-800 text-zinc-400'
             }`}
           >
             {isSpoilerFree ? 'ON' : 'OFF'}
@@ -59,56 +60,47 @@ export default function SidebarBottomControls({
         )}
       </button>
 
-      {/* RevenueCat & Paddle PRO Button */}
+      {/* Nike Pro Style High-Energy Volt PRO Button */}
       {!hasPro ? (
         <button
           onClick={onOpenPaywall}
           title="GO PREMIUM"
-          className={`rounded-xl bg-[#D4AF37] hover:bg-[#C29B27] text-black font-black text-xs shadow-[0_0_12px_rgba(212,175,55,0.3)] transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`rounded-xl bg-[#DFFF00] hover:bg-[#c8e600] text-[#0A0A0C] font-black text-xs shadow-[0_0_16px_rgba(223,255,0,0.3)] transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             isCollapsed ? 'w-10 h-10 mx-auto' : 'w-full py-2 px-3'
           }`}
         >
-          <Gem className="w-4 h-4 fill-current shrink-0 text-black" />
-          {!isCollapsed && <span className="truncate tracking-wide text-xs">GO PREMIUM</span>}
+          <Gem className="w-4 h-4 fill-current shrink-0 text-[#0A0A0C]" />
+          {!isCollapsed && <span className="truncate font-scoreboard text-sm tracking-wide">GO PREMIUM</span>}
         </button>
       ) : (
         <button
           onClick={onOpenPaywall}
           title="PREMIUM Active"
-          className={`rounded-xl bg-[#4CAF50] hover:bg-[#43A047] text-white font-black text-xs shadow-[0_0_12px_rgba(76,175,80,0.3)] transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+          className={`rounded-xl bg-emerald-400 hover:bg-emerald-500 text-[#0A0A0C] font-black text-xs shadow-[0_0_12px_rgba(52,211,153,0.3)] transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             isCollapsed ? 'w-10 h-10 mx-auto' : 'w-full py-2 px-3'
           }`}
         >
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-white" />
-          {!isCollapsed && <span className="tracking-wide text-xs">PREMIUM</span>}
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-[#0A0A0C]" />
+          {!isCollapsed && <span className="font-scoreboard text-sm tracking-wide">PREMIUM ACTIVE</span>}
         </button>
       )}
 
       {/* Collapsed vs Expanded Utility Row */}
       {isCollapsed ? (
-        <div className="pt-1.5 border-t border-[#334155]/40 w-full flex flex-col items-center">
+        <div className="pt-1.5 border-t border-white/10 w-full flex flex-col items-center">
           <a
             href="https://play.google.com/store/apps/details?id=com.dirzaaulia.footballclips"
             target="_blank"
             rel="noopener noreferrer"
             title="Get Android App on Google Play"
-            className="w-10 h-10 rounded-xl bg-[#181C20] hover:bg-[#1E2227] text-[#94A3B8] hover:text-[#7098F8] border border-[#334155] transition-all flex items-center justify-center cursor-pointer"
+            className="w-10 h-10 rounded-xl bg-[#121316] hover:bg-[#1A1C22] text-[#A1A1AA] hover:text-[#DFFF00] border border-white/10 transition-all flex items-center justify-center cursor-pointer"
           >
-            <Smartphone className="w-4 h-4 text-[#7098F8]" />
+            <Smartphone className="w-4 h-4 text-[#DFFF00]" />
           </a>
         </div>
       ) : (
-        <div className="pt-2 border-t border-[#334155]/40 flex items-center justify-center text-xs text-[#94A3B8]">
-          <a
-            href="https://play.google.com/store/apps/details?id=com.dirzaaulia.footballclips"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Get Android App on Google Play"
-            className="w-full py-1.5 px-3 rounded-xl bg-[#181C20] hover:bg-[#1E2227] border border-[#334155]/60 hover:border-[#7098F8]/40 inline-flex items-center justify-center gap-2 hover:text-[#7098F8] transition-all group cursor-pointer"
-          >
-            <Smartphone className="w-3.5 h-3.5 text-[#7098F8] group-hover:scale-110 transition-transform shrink-0" />
-            <span className="text-[11px] font-bold">Get Android App</span>
-          </a>
+        <div className="pt-2 border-t border-white/10 flex items-center justify-center">
+          <GooglePlayBadge height={32} />
         </div>
       )}
     </div>

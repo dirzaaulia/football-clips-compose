@@ -90,7 +90,7 @@ func (uc *IngestShortsUseCase) Execute(ctx context.Context, channelLimit int) (i
 				LikeCount:       0,
 				HypeScore:       hype,
 				Source:          "RSS",
-				IsFeatured:      hype >= 80,
+				IsFeatured:      hype >= 85,
 				PublishedAt:     pub,
 				CreatedAt:       now,
 			})
@@ -164,33 +164,34 @@ func classifyShortCategory(title string) string {
 }
 
 func calculateHypeScore(title, channelName string, publishedAt time.Time) int {
-	score := 50
+	score := 20
 	tLow := strings.ToLower(title)
 	cLow := strings.ToLower(channelName)
-
-	superExciting := []string{"golazo", "screamer", "banger", "curler", "rocket", "impossible", "insane"}
-	for _, kw := range superExciting {
-		if strings.Contains(tLow, kw) {
-			score += 25
-			break
-		}
-	}
-
-	exciting := []string{"goal", "gol", "strike", "assist", "nutmeg", "dribble", "save", "tekkers", "winner"}
-	for _, kw := range exciting {
-		if strings.Contains(tLow, kw) {
-			score += 15
-			break
-		}
-	}
 
 	tier1Clubs := []string{
 		"real madrid", "barcelona", "arsenal", "manchester city", "liverpool",
 		"manchester united", "chelsea", "bayern", "juventus", "inter", "milan", "psg",
+		"tottenham", "newcastle", "dortmund", "atletico",
 	}
 	for _, club := range tier1Clubs {
 		if strings.Contains(cLow, club) || strings.Contains(tLow, club) {
+			score += 45
+			break
+		}
+	}
+
+	superExciting := []string{"golazo", "screamer", "banger", "curler", "rocket", "impossible", "insane", "worldie"}
+	for _, kw := range superExciting {
+		if strings.Contains(tLow, kw) {
 			score += 20
+			break
+		}
+	}
+
+	exciting := []string{"goal", "gol", "strike", "assist", "nutmeg", "dribble", "save", "tekkers", "winner", "hat-trick"}
+	for _, kw := range exciting {
+		if strings.Contains(tLow, kw) {
+			score += 10
 			break
 		}
 	}

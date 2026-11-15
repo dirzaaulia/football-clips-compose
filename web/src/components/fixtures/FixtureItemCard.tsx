@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { Play, Radio, Film, Clock, EyeOff } from 'lucide-react';
+'use client';
+
+import React from 'react';
+import { Film, Clock, EyeOff, Play, Activity } from 'lucide-react';
 import { MatchRecord } from '@/lib/database';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
@@ -12,7 +13,7 @@ interface FixtureItemCardProps {
   showLeagueHeader?: boolean;
 }
 
-export default function FixtureItemCard({ match, showLeagueHeader = false }: FixtureItemCardProps) {
+export default function FixtureItemCard({ match }: FixtureItemCardProps) {
   const router = useRouter();
   const { isSpoilerFree } = useSpoilerFree();
   const { playVideo } = useVideoPlayer();
@@ -28,115 +29,91 @@ export default function FixtureItemCard({ match, showLeagueHeader = false }: Fix
     minute: '2-digit',
   });
 
-  // Live matches never hide score; spoiler shielding only applies to finished matches
   const shouldHideScore = isSpoilerFree && isFinished;
 
   return (
-    <div
-      onClick={() => {
-        if (shouldHideScore) {
-          router.push(`/match/${match.id}`);
-        } else {
-          playVideo(match);
-        }
-      }}
-      className={`py-2.5 px-3 sm:px-4 transition-colors flex items-center justify-between gap-2 sm:gap-4 hover:bg-[#22272E] cursor-pointer ${
+    <article
+      onClick={() => router.push(`/match/${match.id}`)}
+      className={`rounded-xl p-3 sm:p-4 transition-all border flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 hover:border-white/20 cursor-pointer select-none ${
         isLive
-          ? 'bg-gradient-to-r from-red-950/20 via-[#181C20] to-red-950/20 border-l-2 border-l-red-500'
-          : 'bg-transparent'
+          ? 'bg-gradient-to-r from-[#FF2E4D]/10 via-[#1A1C22] to-[#121316] border-[#FF2E4D]/40 shadow-[0_0_15px_rgba(255,46,77,0.15)]'
+          : 'bg-[#1A1C22] border-white/10 hover:bg-[#252830]'
       }`}
     >
-      {/* Left Column: Match Status & Time */}
-      <div className="w-16 sm:w-28 shrink-0 flex flex-col items-start justify-center">
-        {showLeagueHeader && (
-          <span className="text-[9px] uppercase font-bold text-[#7098F8] tracking-wider line-clamp-2 leading-tight max-w-[110px] mb-0.5">
-            {match.competition_name || match.competition_id}
-          </span>
-        )}
-
-        {isLive ? (
-          <div className="flex flex-col items-start gap-0.5">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black bg-red-500/20 text-red-400 border border-red-500/30 uppercase animate-pulse">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-              <span>{isPaused ? 'HT' : match.display_clock ? `LIVE ${match.display_clock}` : 'LIVE'}</span>
-            </span>
-            <span className="text-[9px] text-[#94A3B8] font-semibold pl-0.5">
-              KO {matchTime}
-            </span>
-          </div>
-        ) : isFinished ? (
-          hasHighlight ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-              <Film className="w-3 h-3" />
-              <span>FT</span>
-            </span>
-          ) : match.viewer_availability === 'country_blocked' ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30" title="Unavailable in your country">
-              <span>FT · Blocked</span>
-            </span>
-          ) : match.viewer_availability === 'unknown' ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30" title="Availability not verified">
-              <span>FT · Unverified</span>
+      {/* Left: Match Status & Arena */}
+      <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-col items-center justify-center bg-[#0A0A0C] px-3 py-1.5 rounded-lg min-w-[76px] sm:min-w-[84px] border border-white/5">
+          {isLive ? (
+            <div className="flex items-center gap-1 text-[#FF2E4D] font-tech text-xs uppercase tracking-wider font-black">
+              <span className="w-2 h-2 rounded-full bg-[#FF2E4D] animate-ping" />
+              <span>{isPaused ? 'HT' : match.display_clock || 'LIVE'}</span>
+            </div>
+          ) : isFinished ? (
+            <span className="font-tech text-xs font-bold text-white/70 uppercase">
+              FT
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#101418] text-[#94A3B8] border border-[#334155]">
-              <span>FT</span>
-            </span>
-          )
-        ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#101418] text-[#94A3B8] border border-[#334155]">
-            <Clock className="w-3 h-3 text-[#7098F8]" />
-            <span>{matchTime}</span>
+            <div className="flex items-center gap-1 font-tech text-xs font-semibold text-white/60">
+              <Clock className="w-3 h-3 text-[#38BDF8]" />
+              <span>{matchTime}</span>
+            </div>
+          )}
+          <span className="text-[9px] font-tech text-white/40 uppercase mt-0.5">
+            {isLive ? '2nd Half' : isFinished ? 'Full Time' : 'Upcoming'}
           </span>
+        </div>
+
+        {match.competition_name && (
+          <div className="hidden lg:flex flex-col">
+            <span className="text-[10px] font-tech uppercase tracking-widest text-[#DFFF00] font-bold line-clamp-1">
+              {match.competition_name}
+            </span>
+            <span className="text-[11px] text-white/50">Official Matchday Feed</span>
+          </div>
         )}
       </div>
 
-      {/* Center Column: Teams & Scoreline / VS */}
-      <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto_1fr] items-center gap-1.5 sm:gap-3">
+      {/* Center: Scoreboard Core */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center flex-1 max-w-2xl mx-auto w-full gap-2 sm:gap-4">
         {/* Home Team */}
-        <div className="flex items-center justify-end gap-1.5 sm:gap-2.5 min-w-0">
-          <span className="text-xs sm:text-sm font-bold text-white text-right line-clamp-2 leading-tight">{homeName}</span>
+        <div className="flex items-center justify-end gap-2 sm:gap-3 min-w-0">
+          <span className="text-xs sm:text-sm font-bold text-white text-right line-clamp-1 font-body">
+            {homeName}
+          </span>
           <GlassLogoBadge
             src={match.home_team_crest}
             alt={homeName}
-            size={28}
+            size={32}
             imageClassName="object-contain p-0.5"
           />
         </div>
 
-        {/* Score Badge */}
+        {/* Score Centerpiece */}
         <div className="flex justify-center shrink-0">
           {shouldHideScore ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/match/${match.id}`);
-              }}
-              title="Click to view match centre"
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#101418] border border-[#334155] hover:border-[#7098F8]/60 text-xs font-bold text-[#94A3B8] hover:text-white transition-all cursor-pointer min-w-[56px] sm:min-w-[64px] justify-center shadow-inner"
-            >
-              <EyeOff className="w-3 h-3 text-[#7098F8]" />
-              <span className="tracking-wider">? - ?</span>
-            </button>
+            <div className="flex items-center gap-1 px-3 py-1 rounded-lg bg-[#0A0A0C] border border-white/10 text-xs font-tech font-bold text-white/60">
+              <EyeOff className="w-3 h-3 text-[#DFFF00]" />
+              <span>? - ?</span>
+            </div>
           ) : (
             <div
-              className={`px-2.5 py-1 rounded-lg text-center min-w-[56px] sm:min-w-[64px] flex items-center justify-center shadow-inner ${
+              className={`px-3 py-1 rounded-lg text-center min-w-[64px] sm:min-w-[72px] flex items-center justify-center ${
                 isLive
-                  ? 'bg-[#101418] border border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.25)]'
-                  : 'bg-[#101418] border border-[#334155]'
+                  ? 'bg-[#0A0A0C] border border-[#FF2E4D]/50 shadow-[0_0_8px_rgba(255,46,77,0.3)]'
+                  : 'bg-[#0A0A0C] border border-white/10'
               }`}
             >
               <div className="flex flex-col items-center">
                 <span
-                  className={`text-xs sm:text-sm font-black tracking-wider ${
-                    isLive ? 'text-red-400' : 'text-white'
+                  className={`font-scoreboard text-lg sm:text-xl tracking-wider leading-none ${
+                    isLive ? 'text-[#FF2E4D]' : 'text-white'
                   }`}
                 >
-                  {isFinished || isLive ? `${match.home_score ?? 0} - ${match.away_score ?? 0}` : 'vs'}
+                  {isFinished || isLive ? `${match.home_score ?? 0} - ${match.away_score ?? 0}` : 'VS'}
                 </span>
                 {match.home_penalties != null && match.away_penalties != null && (
-                  <span className="text-[10px] font-bold text-[#94A3B8] leading-tight">
-                    ({match.home_penalties} - {match.away_penalties} pen)
+                  <span className="text-[9px] font-tech text-white/50 leading-tight">
+                    ({match.home_penalties}-{match.away_penalties} p)
                   </span>
                 )}
               </div>
@@ -145,68 +122,45 @@ export default function FixtureItemCard({ match, showLeagueHeader = false }: Fix
         </div>
 
         {/* Away Team */}
-        <div className="flex items-center justify-start gap-1.5 sm:gap-2.5 min-w-0">
+        <div className="flex items-center justify-start gap-2 sm:gap-3 min-w-0">
           <GlassLogoBadge
             src={match.away_team_crest}
             alt={awayName}
-            size={28}
+            size={32}
             imageClassName="object-contain p-0.5"
           />
-          <span className="text-xs sm:text-sm font-bold text-white text-left line-clamp-2 leading-tight">{awayName}</span>
+          <span className="text-xs sm:text-sm font-bold text-white text-left line-clamp-1 font-body">
+            {awayName}
+          </span>
         </div>
       </div>
 
-      {/* Right Column: Contextual Action CTA */}
-      <div className="w-auto sm:w-28 shrink-0 flex justify-end">
-        {isLive ? (
+      {/* Right: Quick Action Links */}
+      <div className="flex items-center justify-end gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
+        {hasHighlight && (
           <button
             onClick={(e) => {
               e.stopPropagation();
               playVideo(match);
             }}
-            className="flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-lg bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white text-[11px] sm:text-xs font-black shadow-[0_0_10px_rgba(239,68,68,0.3)] transition-all cursor-pointer"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#DFFF00] hover:bg-[#c8e600] text-[#0A0A0C] font-tech text-xs font-bold uppercase transition-all shadow-[0_0_10px_rgba(223,255,0,0.25)] cursor-pointer"
           >
-            <Radio className="w-3 h-3 animate-pulse" />
-            <span className="hidden sm:inline">Centre</span>
-            <span className="sm:hidden">Live</span>
-          </button>
-        ) : hasHighlight ? (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              playVideo(match);
-            }}
-            className="flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-lg bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white text-[11px] sm:text-xs font-bold shadow-[0_0_10px_rgba(112,152,248,0.3)] hover:brightness-110 transition-all cursor-pointer"
-          >
-            <Play className="w-3 h-3 fill-current" />
-            <span>Watch</span>
-          </button>
-        ) : match.viewer_availability === 'unknown' && match.external_video_id ? (
-          <a
-            href={`https://www.youtube.com/watch?v=${match.external_video_id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1 px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs text-amber-400 font-bold bg-[#101418] rounded-lg border border-amber-500/40 hover:border-amber-400 transition-all cursor-pointer"
-            title="Availability not verified · Watch externally on YouTube"
-          >
-            <span>YouTube ↗</span>
-          </a>
-        ) : (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              playVideo(match);
-            }}
-            className="flex items-center gap-1 px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs text-[#94A3B8] hover:text-white font-semibold bg-[#101418] rounded-lg border border-[#334155]/70 hover:border-[#7098F8]/50 transition-all cursor-pointer"
-          >
-            <span>Details</span>
+            <Play className="w-3.5 h-3.5 fill-[#0A0A0C]" />
+            <span>Highlights</span>
           </button>
         )}
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/match/${match.id}`);
+          }}
+          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#121316] hover:bg-[#1A1C22] text-white/80 hover:text-white font-tech text-xs font-semibold border border-white/10 transition-colors cursor-pointer"
+        >
+          <Activity className="w-3.5 h-3.5 text-[#DFFF00]" />
+          <span>Match Centre</span>
+        </button>
       </div>
-    </div>
+    </article>
   );
 }
-
-
-

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,12 +40,7 @@ fun ShortsRoute(
 
     when (val state = uiState) {
         is ShortsUiState.Loading -> {
-            Box(
-                modifier = modifier.fillMaxSize().background(Color.Black),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator(color = Color(0xFF2563EB))
-            }
+            ShortsScreenShimmer(modifier = modifier)
         }
         is ShortsUiState.Error -> {
             Box(

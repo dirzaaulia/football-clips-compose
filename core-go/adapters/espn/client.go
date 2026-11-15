@@ -51,8 +51,16 @@ var defaultCompetitions = map[string]CompetitionInfo{
 	"LIB": {Slug: "conmebol.libertadores", Name: "CONMEBOL Libertadores", Type: "cup"},
 	"SUD": {Slug: "conmebol.sudamericana", Name: "CONMEBOL Sudamericana", Type: "cup"},
 	"REC": {Slug: "conmebol.recopa", Name: "CONMEBOL Recopa", Type: "cup"},
-	"BRA": {Slug: "bra.1", Name: "Brasileirão Série A", Type: "league"},
-	"ARG": {Slug: "arg.1", Name: "Argentine Liga Profesional", Type: "league"},
+	"BRA":          {Slug: "bra.1", Name: "Brasileirão Série A", Type: "league"},
+	"ARG":          {Slug: "arg.1", Name: "Argentine Liga Profesional", Type: "league"},
+	"UNL":          {Slug: "uefa.nations", Name: "UEFA Nations League", Type: "cup"},
+	"WCQ_CONMEBOL": {Slug: "fifa.worldq.conmebol", Name: "FIFA World Cup Qualifying - CONMEBOL", Type: "cup"},
+	"WCQ_AFC":      {Slug: "fifa.worldq.afc", Name: "FIFA World Cup Qualifying - AFC", Type: "cup"},
+	"WCQ_UEFA":     {Slug: "fifa.worldq.uefa", Name: "FIFA World Cup Qualifying - UEFA", Type: "cup"},
+	"CNL":          {Slug: "concacaf.nations.league", Name: "Concacaf Nations League", Type: "cup"},
+	"WCQ_CONCACAF": {Slug: "fifa.worldq.concacaf", Name: "FIFA World Cup Qualifying - Concacaf", Type: "cup"},
+	"WCQ_CAF":      {Slug: "fifa.worldq.caf", Name: "FIFA World Cup Qualifying - CAF", Type: "cup"},
+	"FRI":          {Slug: "fifa.friendly", Name: "International Friendly", Type: "cup"},
 }
 
 // NewClient returns a new ESPN API client with default timeout and connection limits.
@@ -82,10 +90,27 @@ func (c *Client) setBackoff(slug string, d time.Duration) {
 	c.leagueBackoff[slug] = time.Now().Add(d)
 }
 
+func buildDateList(dateFrom, dateTo string) []string {
+	if dateFrom == "" || dateTo == "" {
+		return []string{""}
+	}
+	t1, err1 := time.Parse("2006-01-02", dateFrom)
+	t2, err2 := time.Parse("2006-01-02", dateTo)
+	if err1 != nil || err2 != nil || t1.After(t2) {
+		return []string{""}
+	}
+	var dates []string
+	for d := t1; !d.After(t2); d = d.AddDate(0, 0, 1) {
+		dates = append(dates, d.Format("20060102"))
+	}
+	return dates
+}
+
 // FetchScoreboard fetches matches across targeted competitions within the date range.
 func (c *Client) FetchScoreboard(ctx context.Context, compCodes []string, dateFrom, dateTo string) ([]domain.Match, error) {
 	var allMatches []domain.Match
 	var mu sync.Mutex
+	dates := buildDateList(dateFrom, dateTo)
 	sem := make(chan struct{}, 4)
 	var wg sync.WaitGroup
 
@@ -95,27 +120,32 @@ func (c *Client) FetchScoreboard(ctx context.Context, compCodes []string, dateFr
 			continue
 		}
 
-		wg.Add(1)
-		go func(leagueCode string, leagueInfo CompetitionInfo) {
-			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
+		for _, dt := range dates {
+			wg.Add(1)
+			go func(leagueCode string, leagueInfo CompetitionInfo, targetDate string) {
+				defer wg.Done()
+				sem <- struct{}{}
+				defer func() { <-sem }()
 
-			matches, err := c.fetchLeagueMatches(ctx, leagueCode, leagueInfo)
-			if err == nil && len(matches) > 0 {
-				mu.Lock()
-				allMatches = append(allMatches, matches...)
-				mu.Unlock()
-			}
-		}(code, info)
+				matches, err := c.fetchLeagueMatches(ctx, leagueCode, leagueInfo, targetDate)
+				if err == nil && len(matches) > 0 {
+					mu.Lock()
+					allMatches = append(allMatches, matches...)
+					mu.Unlock()
+				}
+			}(code, info, dt)
+		}
 	}
 
 	wg.Wait()
 	return allMatches, nil
 }
 
-func (c *Client) fetchLeagueMatches(ctx context.Context, code string, info CompetitionInfo) ([]domain.Match, error) {
+func (c *Client) fetchLeagueMatches(ctx context.Context, code string, info CompetitionInfo, dateStr string) ([]domain.Match, error) {
 	url := fmt.Sprintf("%s/%s/scoreboard", c.baseURL, info.Slug)
+	if dateStr != "" {
+		url = fmt.Sprintf("%s/%s/scoreboard?dates=%s", c.baseURL, info.Slug, dateStr)
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("create req %s: %w", info.Slug, err)

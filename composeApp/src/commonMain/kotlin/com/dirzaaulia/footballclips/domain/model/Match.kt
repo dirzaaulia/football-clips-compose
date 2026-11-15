@@ -41,37 +41,10 @@ data class Match(
     val playbackMode: String? = null,
     val viewerAvailability: String? = null,
     val externalVideoId: String? = null,
+    val leagueEmblemUrl: String = "",
 ) {
     val displayRound: String
         get() = roundName ?: matchday?.let { "Matchweek $it" } ?: competitionName
-
-    val leagueEmblemUrl: String
-        get() = when (competitionId.uppercase()) {
-            "CL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2.png"
-            "EL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2310.png"
-            "ECL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/20296.png"
-            "PL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/23.png"
-            "PD" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/15.png"
-            "SA" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/12.png"
-            "BL1" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/10.png"
-            "FL1" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/9.png"
-            "IDN" -> "https://fc.dirzaaulia.com/logos/competitions/idn-2026.png"
-            "SPL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2488.png"
-            "MLS" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/19.png"
-            "DED" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/11.png"
-            "PPL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/14.png"
-            "FAC" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/40.png"
-            "EFL" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/41.png"
-            "CDR" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/80.png"
-            "DFB" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2061.png"
-            "CIT" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/83.png"
-            "LIB" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/58.png"
-            "SUD" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/1208.png"
-            "REC" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2335.png"
-            "BRA" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/85.png"
-            "ARG" -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/1.png"
-            else -> "https://a.espncdn.com/i/leaguelogos/soccer/500-dark/23.png"
-        }
 
     private val localDateTime by lazy {
         try {
@@ -208,7 +181,7 @@ fun com.dirzaaulia.footballclips.data.model.remote.MatchEventDto.toDomain() = Ma
     targetYCoord = targetYCoord,
 )
 
-fun MatchDto.toMatch(): Match {
+fun MatchDto.toMatch(leagueEmblemUrl: String = ""): Match {
     return Match(
         id = id,
         competitionId = competitionId,
@@ -243,6 +216,7 @@ fun MatchDto.toMatch(): Match {
         backupYoutubeRegionInfo = backupYoutubeRegionInfo?.let { RegionRestriction(it.allowed, it.blocked) },
         viewerAvailability = viewerAvailability,
         externalVideoId = externalVideoId,
+        leagueEmblemUrl = leagueEmblemUrl,
     )
 }
 

@@ -27,44 +27,43 @@ export default function MatchRecapSection({ recapAnalysis, status }: MatchRecapS
   const isLive = status === 'IN_PLAY' || status === 'PAUSED' || status === 'LIVE';
   const isUpcoming = !isFinished && !isLive;
 
-  // Only spoiler-guard finished matches when spoiler-free is on; live and upcoming are never guarded
   const isGuarded = isFinished && isSpoilerFree && !isRevealed;
   const sectionTitle = isUpcoming
     ? 'Accredited Match Preview & Tactical Setup'
     : 'Accredited Match Report & Tactical Breakdown';
 
   return (
-    <section className="rounded-3xl bg-[#181C20] border border-[#334155] p-6 sm:p-8 space-y-4 shadow-xl">
-      <div className="flex items-center justify-between pb-3 border-b border-[#334155]/60">
+    <section className="rounded-2xl bg-[#121316] border border-white/10 p-5 sm:p-7 space-y-4 shadow-xl select-none">
+      <div className="flex items-center justify-between pb-3 border-b border-white/10">
         <div className="flex items-center gap-2">
-          <Newspaper className="w-4 h-4 text-[#7098F8]" />
-          <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white">
+          <Newspaper className="w-4 h-4 text-[#DFFF00]" />
+          <h2 className="font-scoreboard text-sm sm:text-base uppercase tracking-wider text-white">
             {sectionTitle}
           </h2>
         </div>
         {isGuarded && (
-          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+          <span className="text-[10px] font-tech font-bold px-2.5 py-0.5 rounded-full bg-[#DFFF00]/15 text-[#DFFF00] border border-[#DFFF00]/30">
             Spoiler Guarded
           </span>
         )}
       </div>
 
       {isGuarded ? (
-        <div className="py-6 px-4 rounded-2xl bg-[#101418] border border-[#334155] text-center space-y-3">
-          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-[#94A3B8]">
-            <EyeOff className="w-4 h-4 text-[#7098F8]" />
+        <div className="py-6 px-4 rounded-xl bg-[#0A0A0C] border border-white/10 text-center space-y-3 font-tech">
+          <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-white/60">
+            <EyeOff className="w-4 h-4 text-[#DFFF00]" />
             <span>Report contains match outcome, key tactical moments, and goal details.</span>
           </div>
           <button
             onClick={() => setIsRevealed(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1E3A8A] hover:bg-[#2563EB] text-white text-xs font-bold transition-all shadow-md cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#DFFF00] hover:bg-[#cbe800] text-[#0A0A0C] text-xs font-tech font-black uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(223,255,0,0.3)] cursor-pointer"
           >
             <span>Reveal Match Report</span>
             <ChevronDown className="w-3.5 h-3.5" />
           </button>
         </div>
       ) : (
-        <div className="prose prose-invert prose-headings:text-white prose-headings:font-black prose-h3:text-sm prose-h3:uppercase prose-h3:tracking-wider prose-h3:mt-4 prose-h3:mb-1 prose-strong:text-white prose-em:text-[#94A3B8] prose-li:text-[#F1F5F9] prose-ul:my-2 max-w-none text-[#F1F5F9] text-xs sm:text-sm leading-relaxed">
+        <div className="prose prose-invert prose-headings:text-white prose-headings:font-scoreboard prose-h3:text-sm prose-h3:uppercase prose-h3:tracking-wider prose-h3:mt-4 prose-h3:mb-1 prose-strong:text-[#DFFF00] prose-em:text-white/60 prose-li:text-white/80 prose-ul:my-2 max-w-none text-white/80 text-xs sm:text-sm leading-relaxed font-tech">
           <ReactMarkdown>{cleanedAnalysis}</ReactMarkdown>
         </div>
       )}

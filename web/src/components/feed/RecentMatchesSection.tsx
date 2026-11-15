@@ -1,142 +1,117 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { MatchRecord } from '@/lib/database';
-import { Clock, ChevronRight } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
+import HighlightGridCard from '@/components/feed/HighlightGridCard';
+import NativeInFeedAdCard from '@/components/ads/NativeInFeedAdCard';
 
 interface RecentMatchesSectionProps {
   matches: MatchRecord[];
+  onPlay?: (match: MatchRecord) => void;
   className?: string;
 }
 
-function formatMatchTime(dateStr?: string): string {
-  if (!dateStr) return '';
-  const dt = new Date(dateStr);
-  const now = new Date();
-  const isToday = dt.toDateString() === now.toDateString();
-  const yesterday = new Date();
-  yesterday.setDate(now.getDate() - 1);
-  const isYesterday = dt.toDateString() === yesterday.toDateString();
+export default function RecentMatchesSection({
+  matches,
+  onPlay,
+  className = '',
+}: RecentMatchesSectionProps) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
 
-  if (isToday) {
-    return 'Today';
-  }
-  if (isYesterday) {
-    return 'Yesterday';
-  }
-  return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-}
+  const recentHighlights = matches
+    .filter((m) => {
+      const vid = m.highlight_video_id || m.external_video_id;
+      return !!vid && vid.trim() !== '';
+    })
+    .slice(0, 16);
 
-export default function RecentMatchesSection({ matches, className = '' }: RecentMatchesSectionProps) {
-  const recent20 = matches.slice(0, 20);
-
-  if (recent20.length === 0) {
+  if (recentHighlights.length === 0) {
     return null;
   }
 
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 20);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 20);
+  };
+
+  const handleScroll = (direction: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const amount = el.clientWidth * 0.75;
+    el.scrollBy({
+      left: direction === 'left' ? -amount : amount,
+      behavior: 'smooth',
+    });
+  };
+
   return (
-    <section className={`space-y-3 ${className}`}>
-      <div className="flex items-center justify-between pb-1 border-b border-[#334155]/40">
-        <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[#7098F8]" />
-          <h2 className="text-base font-extrabold text-white tracking-tight">Recent Matches</h2>
-          <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#1E293B] text-[#7098F8] border border-[#7098F8]/30 font-bold">
-            Latest 20
+    <section className={`space-y-3.5 select-none group/recent ${className}`}>
+      {/* Section Header */}
+      <div className="flex items-center justify-between pb-1.5 border-b border-white/10">
+        <div className="flex items-center gap-2.5">
+          <span className="w-1 h-5 rounded-full bg-[#DFFF00] shadow-[0_0_8px_rgba(223,255,0,0.4)]" />
+          <h2 className="font-scoreboard text-xl sm:text-2xl text-white tracking-wider uppercase">
+            Recent Highlights
+          </h2>
+          <span className="font-tech text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DFFF00]/15 text-[#DFFF00] border border-[#DFFF00]/30 hidden sm:inline-block">
+            LATEST RECAPS
           </span>
         </div>
         <Link
           href="/fixtures"
-          className="text-xs font-bold text-[#7098F8] hover:text-white transition flex items-center gap-0.5"
+          className="font-tech text-xs font-bold text-[#DFFF00] hover:text-[#cbe800] transition flex items-center gap-1"
         >
           <span>All Fixtures</span>
           <ChevronRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {recent20.map((m) => {
-          const homeCrest = m.home_team_crest || '/favicon.png';
-          const awayCrest = m.away_team_crest || '/favicon.png';
-          const homeName = m.home_team_name || m.home_team || 'Home';
-          const awayName = m.away_team_name || m.away_team || 'Away';
-          const hasScore = m.home_score !== null && m.home_score !== undefined;
+      {/* Horizontal Rail with Chevrons and Interleaved Ads */}
+      <div className="relative">
+        {canScrollLeft && (
+          <button
+            onClick={() => handleScroll('left')}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/80 hover:bg-[#1A1C22] text-white border border-white/20 shadow-xl flex items-center justify-center opacity-0 group-hover/recent:opacity-100 transition-opacity backdrop-blur-md cursor-pointer -ml-3"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        )}
 
-          return (
-            <Link
-              key={m.id}
-              href={`/match/${m.id}`}
-              className="group p-3 rounded-2xl bg-[#181C20] border border-[#334155]/60 hover:border-[#7098F8]/50 hover:bg-[#1E2227] transition-all flex flex-col justify-between gap-2.5 shadow-sm"
-            >
-              <div className="flex items-center justify-between text-[11px] text-[#94A3B8]">
-                <span className="font-semibold truncate max-w-[150px]">
-                  {m.competition_name || m.competition_id}
-                </span>
-                <span className="font-mono text-[10px] shrink-0">
-                  {formatMatchTime(m.utc_date)}
-                </span>
+        {canScrollRight && (
+          <button
+            onClick={() => handleScroll('right')}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/80 hover:bg-[#1A1C22] text-white border border-white/20 shadow-xl flex items-center justify-center opacity-0 group-hover/recent:opacity-100 transition-opacity backdrop-blur-md cursor-pointer -mr-3"
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        )}
+
+        <div
+          ref={scrollRef}
+          onScroll={checkScroll}
+          className="flex gap-4 sm:gap-5 overflow-x-auto no-scrollbar scroll-smooth py-2 px-0.5"
+        >
+          {recentHighlights.map((m, idx) => (
+            <React.Fragment key={m.id}>
+              <div className="w-[280px] sm:w-[320px] shrink-0">
+                <HighlightGridCard match={m} onPlay={onPlay} />
               </div>
-
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-5 h-5 relative shrink-0">
-                      <Image
-                        src={homeCrest}
-                        alt={homeName}
-                        width={20}
-                        height={20}
-                        className="object-contain"
-                        unoptimized
-                      />
-                    </div>
-                    <span className="text-xs font-bold text-white truncate group-hover:text-[#7098F8] transition-colors">
-                      {homeName}
-                    </span>
-                  </div>
-                  {hasScore && (
-                    <span className="font-mono text-xs font-black text-white shrink-0">
-                      {m.home_score}
-                    </span>
-                  )}
+              {idx > 0 && idx % 3 === 0 && (
+                <div className="w-[280px] sm:w-[320px] shrink-0 flex items-stretch">
+                  <NativeInFeedAdCard slotId="5616816386" variant="carousel" />
                 </div>
-
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-5 h-5 relative shrink-0">
-                      <Image
-                        src={awayCrest}
-                        alt={awayName}
-                        width={20}
-                        height={20}
-                        className="object-contain"
-                        unoptimized
-                      />
-                    </div>
-                    <span className="text-xs font-bold text-white truncate group-hover:text-[#7098F8] transition-colors">
-                      {awayName}
-                    </span>
-                  </div>
-                  {hasScore && (
-                    <span className="font-mono text-xs font-black text-white shrink-0">
-                      {m.away_score ?? 0}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="pt-1.5 border-t border-[#334155]/30 flex items-center justify-between text-[10px] text-[#94A3B8]">
-                <span className="px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 font-bold">
-                  {m.status === 'FINISHED' ? 'FT' : m.status}
-                </span>
-                <span className="text-[#7098F8] group-hover:underline">
-                  Match Centre &rarr;
-                </span>
-              </div>
-            </Link>
-          );
-        })}
+              )}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
     </section>
   );

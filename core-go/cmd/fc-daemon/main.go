@@ -95,6 +95,7 @@ func main() {
 	targetComps := []string{
 		"PL", "PD", "SA", "BL1", "FL1", "CL", "EL", "ECL",
 		"FAC", "EFL", "CDR", "DFB", "CIT", "SPL", "MLS", "DED", "PPL",
+		"UNL", "WCQ_CONMEBOL", "WCQ_AFC", "WCQ_UEFA", "CNL", "WCQ_CONCACAF", "WCQ_CAF", "FRI",
 	}
 	standingsComps := []string{"PL", "PD", "SA", "BL1", "FL1", "CL", "SPL", "MLS", "DED", "PPL", "IDN", "BRA", "ARG"}
 
@@ -108,7 +109,7 @@ func main() {
 	defer standingsTicker.Stop()
 
 	// Initial bootstrap sweep
-	runSyncCycle(ctx, syncUseCase, targetComps, purgeClient, logger)
+	runSyncCycle(ctx, syncUseCase, repo, targetComps, purgeClient, logger)
 	runHighlightCycle(ctx, repo, highlightUseCase, purgeClient, logger)
 	runShortsCycle(ctx, shortsUseCase, logger)
 	runStandingsCycle(ctx, standingsUseCase, standingsComps, logger)
@@ -119,7 +120,7 @@ func main() {
 			logger.Info("[FC_DAEMON] Shutting down gracefully...")
 			return
 		case <-scoreTicker.C:
-			runSyncCycle(ctx, syncUseCase, targetComps, purgeClient, logger)
+			runSyncCycle(ctx, syncUseCase, repo, targetComps, purgeClient, logger)
 		case <-hlTicker.C:
 			runHighlightCycle(ctx, repo, highlightUseCase, purgeClient, logger)
 		case <-shortsTicker.C:

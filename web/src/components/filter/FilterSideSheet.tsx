@@ -14,7 +14,7 @@ interface FilterSideSheetProps {
   selectedLeagues: string[];
   onToggleLeague: (league: string) => void;
   onReset: () => void;
-  matchesFound: number;
+  matchesFound?: number;
 }
 
 export default function FilterSideSheet({
@@ -26,7 +26,6 @@ export default function FilterSideSheet({
   selectedLeagues,
   onToggleLeague,
   onReset,
-  matchesFound,
 }: FilterSideSheetProps) {
   useEffect(() => {
     if (isOpen) {
@@ -42,31 +41,33 @@ export default function FilterSideSheet({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
+    <div className="fixed inset-0 z-50 flex justify-end select-none">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300"
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300"
         onClick={onClose}
       />
 
       {/* Side Sheet Content */}
-      <div className="relative w-full max-w-md h-full bg-[#181C20] border-l border-[#334155] shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-300">
+      <div className="relative w-full max-w-md h-full bg-[#121316] border-l border-white/10 shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-300">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#334155]/60 bg-[#101418]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#0A0A0C]">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-[#7098F8]" />
-            <h2 className="text-base font-black text-white">Search & Filter</h2>
+            <Filter className="w-4 h-4 text-[#DFFF00]" />
+            <h2 className="font-scoreboard text-base uppercase tracking-wider text-white">
+              Filter Competitions
+            </h2>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={onReset}
-              className="text-xs font-bold text-red-400 hover:text-red-300 transition-colors px-2 py-1 rounded hover:bg-red-500/10 cursor-pointer"
+              className="text-xs font-tech font-bold text-red-400 hover:text-red-300 transition-colors px-2 py-1 rounded hover:bg-red-500/10 cursor-pointer"
             >
               Clear All
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 text-[#94A3B8] hover:text-white rounded-lg hover:bg-[#1E2227] transition-colors cursor-pointer"
+              className="p-1.5 text-white/50 hover:text-white rounded-lg hover:bg-[#1A1C22] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -74,20 +75,20 @@ export default function FilterSideSheet({
         </div>
 
         {/* Search Input Bar */}
-        <div className="p-4 border-b border-[#334155]/40 bg-[#14181D]">
+        <div className="p-4 border-b border-white/10 bg-[#0E1013]">
           <div className="relative flex items-center">
-            <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-white/40 absolute left-3.5 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Filter by team name..."
-              className="w-full pl-9 pr-9 py-2 bg-[#101418] border border-[#334155] focus:border-[#7098F8] rounded-xl text-xs text-white placeholder-[#94A3B8] outline-none transition-colors"
+              placeholder="Search clubs or matches"
+              className="w-full pl-9 pr-9 py-2 bg-[#121316] border border-white/10 focus:border-[#DFFF00] rounded-xl text-xs text-white placeholder-white/40 outline-none transition-colors font-tech"
             />
             {searchQuery && (
               <button
                 onClick={() => onSearchChange('')}
-                className="absolute right-3 p-0.5 text-[#94A3B8] hover:text-white cursor-pointer"
+                className="absolute right-3 p-0.5 text-white/40 hover:text-white cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -97,11 +98,10 @@ export default function FilterSideSheet({
 
         {/* Scrollable Filters */}
         <div className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-thin">
-          {/* Competitions / Leagues Filter */}
           {availableLeagues.length > 0 && (
-            <div className="space-y-2.5">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#7098F8]">
-                Select Competition
+            <div className="space-y-3">
+              <span className="text-xs font-tech font-black uppercase tracking-wider text-[#DFFF00]">
+                Supported Competitions
               </span>
               <div className="flex flex-wrap gap-2">
                 {availableLeagues.map((l) => {
@@ -110,22 +110,19 @@ export default function FilterSideSheet({
                     <button
                       key={l.name}
                       onClick={() => onToggleLeague(l.name)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                      className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-tech font-bold uppercase tracking-wider border transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-[#1E3A8A]/50 text-white border-[#7098F8] shadow-[0_0_10px_rgba(112,152,248,0.25)]'
-                          : 'bg-[#1E2227] text-[#94A3B8] hover:text-white border-[#334155]'
+                          ? 'bg-[#DFFF00] text-[#0A0A0C] border-[#DFFF00] shadow-[0_0_12px_rgba(223,255,0,0.3)]'
+                          : 'bg-[#1A1C22] text-white/80 hover:text-white border-white/10 hover:border-white/20'
                       }`}
                     >
                       {l.logo && (
-                        <div className="relative w-4 h-4 rounded-lg bg-white/[0.08] backdrop-blur-md p-0.5 flex items-center justify-center shrink-0 shadow-sm border border-white/10">
-                          <div className="relative w-full h-full">
-                            <CompetitionLogo src={l.logo} name={l.name} />
-                          </div>
+                        <div className="relative w-4 h-4 rounded bg-white/[0.08] p-0.5 flex items-center justify-center shrink-0">
+                          <CompetitionLogo src={l.logo} name={l.name} />
                         </div>
                       )}
                       <span>{l.name}</span>
-                      <span className="text-[10px] text-[#94A3B8] font-normal">({l.count})</span>
-                      {isSelected && <Check className="w-3 h-3 text-[#4FC3F7] ml-0.5" />}
+                      {isSelected && <Check className="w-3.5 h-3.5 text-[#0A0A0C] ml-0.5 stroke-[3]" />}
                     </button>
                   );
                 })}
@@ -135,12 +132,12 @@ export default function FilterSideSheet({
         </div>
 
         {/* Footer Apply Button */}
-        <div className="p-4 border-t border-[#334155]/60 bg-[#101418]">
+        <div className="p-4 border-t border-white/10 bg-[#0A0A0C]">
           <button
             onClick={onClose}
-            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] text-white font-bold text-xs hover:brightness-110 transition-all shadow-[0_0_15px_rgba(112,152,248,0.3)] cursor-pointer"
+            className="w-full py-3 rounded-xl bg-[#DFFF00] hover:bg-[#cbe800] text-[#0A0A0C] font-tech font-black text-xs uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(223,255,0,0.3)] cursor-pointer"
           >
-            Show Results ({matchesFound})
+            Show Results
           </button>
         </div>
       </div>

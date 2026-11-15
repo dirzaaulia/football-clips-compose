@@ -16,10 +16,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.ui.components.filter.SeasonDropdownSelector
+import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
+import com.dirzaaulia.footballclips.ui.theme.VoltLime
 import com.dirzaaulia.footballclips.util.isDeveloperModeAllowed
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,7 +71,7 @@ internal fun HomeScreenTopBar(
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+            containerColor = ObsidianSurfaceTier1,
         ),
     )
 }
@@ -84,11 +87,7 @@ private fun HomeScreenTitle(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            text = "Highlights",
-            style = if (isWeb) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Black,
-            letterSpacing = if (isWeb) 1.sp else (-0.5).sp,
+        Row(
             modifier = Modifier
                 .clickable {
                     if (!isWeb && isDeveloperModeAllowed) {
@@ -96,7 +95,23 @@ private fun HomeScreenTitle(
                     }
                 }
                 .padding(horizontal = 4.dp, vertical = 6.dp),
-        )
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "FOOTBALL",
+                style = if (isWeb) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Black,
+                color = Color.White,
+                letterSpacing = 1.sp,
+            )
+            Text(
+                text = "CLIPS",
+                style = if (isWeb) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Black,
+                color = VoltLime,
+                letterSpacing = 1.sp,
+            )
+        }
         SeasonDropdownSelector(
             selectedSeason = selectedSeason,
             onSeasonSelected = onSeasonSelected,

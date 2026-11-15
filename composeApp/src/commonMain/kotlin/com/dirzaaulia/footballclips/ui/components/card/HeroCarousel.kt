@@ -33,6 +33,8 @@ import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdView
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
+import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
+import com.dirzaaulia.footballclips.ui.theme.VoltLime
 import com.dirzaaulia.footballclips.util.isWasmTarget
 import kotlinx.coroutines.delay
 
@@ -193,7 +195,7 @@ private fun HeroCarouselIndicators(
     ) {
         repeat(pageCount) { index ->
             val isSelected = pagerState.currentPage == index
-            val activeColor = Color(0xFFD4AF37)
+            val activeColor = VoltLime
             val inactiveColor = Color.White.copy(alpha = 0.2f)
             val dotHeight = if (isLandscape) 4.dp else 6.dp
             val dotWidth = if (isSelected) (if (isLandscape) 14.dp else 20.dp) else (if (isLandscape) 4.dp else 6.dp)
@@ -231,8 +233,8 @@ fun HeroAdCard(
         Card(
             modifier = cardMod,
             shape = shape,
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF161618)),
-            border = BorderStroke(1.dp, Color(0xFFD4AF37).copy(alpha = 0.35f)),
+            colors = CardDefaults.cardColors(containerColor = ObsidianSurfaceTier1),
+            border = BorderStroke(1.dp, VoltLime.copy(alpha = 0.35f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         ) {
             Box(modifier = Modifier.fillMaxSize()) {

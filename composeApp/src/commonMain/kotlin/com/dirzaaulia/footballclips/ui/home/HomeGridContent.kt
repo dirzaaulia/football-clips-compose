@@ -11,13 +11,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items as rowItems
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -38,7 +36,7 @@ import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
-import com.dirzaaulia.footballclips.ui.score.components.getLeagueEmblemUrl
+import com.dirzaaulia.footballclips.ui.score.components.RecentMatchesSection
 
 @Composable
 internal fun HomeGridContent(
@@ -130,10 +128,25 @@ internal fun HomeGridContent(
                 )
             }
         } else if (selectedLeagueId == null && viewModel.selectedLeagues.isEmpty()) {
+            item(
+                key = "recent-matches-section",
+                span = { GridItemSpan(maxLineSpan) },
+            ) {
+                RecentMatchesSection(
+                    matches = items,
+                    onMatchClick = { selectedItem ->
+                        onVideoClick(selectedItem) { isJumping ->
+                            viewModel.setPendingInterstitial(true)
+                            if (!isJumping) viewModel.consumePendingInterstitial()
+                        }
+                    },
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+            }
             val nonAds = gridItems.filter { it !is HighlightUiItem.BannerAd }
             competitions.forEachIndexed { index, league ->
                 val compName = league.name
-                val emblem = league.logo.ifBlank { league.emblemUrl ?: getLeagueEmblemUrl(compName) }
+                val emblem = league.logo
                 val displayMatches = nonAds.filter { it.matchesLeague(league) }.take(20)
 
                 val isExpanded = !collapsedCompIds.contains(league.id)
@@ -166,58 +179,24 @@ internal fun HomeGridContent(
                         key = "row-${league.id}",
                         span = { GridItemSpan(maxLineSpan) },
                     ) {
-                        LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(14.dp),
-                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
-                        ) {
-                            if (displayMatches.isNotEmpty()) {
-                                rowItems(
-                                    items = displayMatches,
-                                    key = { it.uniqueId },
-                                ) { item ->
-                                    Box(modifier = Modifier.width(320.dp)) {
-                                        HighlightGridItem(
-                                            item = item,
-                                            revealedItemIds = revealedItemIds,
-                                            isSpoilerFreeMode = isSpoilerFreeMode,
-                                            showExternalHighlights = showExternalHighlights,
-                                            viewModel = viewModel,
-                                            onVideoClick = onVideoClick,
-                                        )
-                                    }
-                                }
-                                item(key = "see-all-${league.id}") {
-                                    Box(modifier = Modifier.width(220.dp)) {
-                                        HomeSeeAllCompetitionCard(
-                                            competitionName = compName,
-                                            competitionEmblemUrl = emblem,
-                                            onSeeAll = {
-                                                if (league.leagueId != null) {
-                                                    viewModel.selectLeague(league.leagueId, league.competitionId)
-                                                } else {
-                                                    viewModel.selectCompetitionByName(compName)
-                                                }
-                                            },
-                                        )
-                                    }
-                                }
-                            } else {
-                                item(key = "empty-${league.id}") {
-                                    UpcomingCompetitionCard(
-                                        league = league,
-                                        selectedSeason = selectedSeason,
-                                        onSeeAll = {
-                                            if (league.leagueId != null) {
-                                                viewModel.selectLeague(league.leagueId, league.competitionId)
-                                            } else {
-                                                viewModel.selectCompetitionByName(compName)
-                                            }
-                                        },
-                                        onSwitchSeason = { viewModel.setSeason(it) },
-                                    )
-                                }
-                            }
+                        CompetitionHighlightsRow(
+                            displayMatches = displayMatches,
+                            league = league,
+                            compName = compName,
+                            emblem = emblem,
+                            isAdsRemoved = isAdsRemoved,
+                            selectedSeason = selectedSeason,
+                            viewModel = viewModel,
+                            cardWidth = 320.dp,
+                        ) { item ->
+                            HighlightGridItem(
+                                item = item,
+                                revealedItemIds = revealedItemIds,
+                                isSpoilerFreeMode = isSpoilerFreeMode,
+                                showExternalHighlights = showExternalHighlights,
+                                viewModel = viewModel,
+                                onVideoClick = onVideoClick,
+                            )
                         }
                     }
                 }

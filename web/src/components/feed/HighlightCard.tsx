@@ -48,14 +48,14 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
   return (
     <div
       onClick={() => router.push(`/match/${match.id}`)}
-      className="group relative bg-[#1E2227] border border-[#334155] hover:border-[#7098F8]/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_4px_24px_rgba(112,152,248,0.18)] hover:-translate-y-1 flex flex-col justify-between cursor-pointer"
+      className="group relative bg-[#121316] border border-white/10 hover:border-[#DFFF00]/50 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_12px_32px_rgba(223,255,0,0.2)] hover:-translate-y-1 flex flex-col justify-between cursor-pointer"
     >
       {/* Thumbnail Header Area with Glass-Blur Spoiler Box */}
       <SpoilerThumbnailBox
         isSpoilerFree={isSpoilerFree}
         isRevealed={isRevealed}
         onRevealClick={() => router.push(`/match/${match.id}`)}
-        className="w-full aspect-video bg-[#101418]"
+        className="w-full aspect-video bg-[#0A0A0C]"
       >
         <div
           className="relative w-full h-full"
@@ -75,51 +75,51 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
           />
 
           {/* Gradient Vignette Overlays matching Android */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/70 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/75 pointer-events-none" />
 
           {/* Top Header Pill Badges */}
           <div className="absolute top-2.5 inset-x-2.5 z-10 flex items-center justify-between pointer-events-none">
-            <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#101418]/85 text-[#94A3B8] border border-[#334155] backdrop-blur-md">
-              <Trophy className="w-2.5 h-2.5 text-[#7098F8]" />
+            <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-tech font-bold bg-black/75 text-slate-300 border border-white/10 backdrop-blur-md">
+              <Trophy className="w-2.5 h-2.5 text-[#DFFF00]" />
               <span>{match.competition_name}</span>
             </span>
 
             {isLive ? (
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-500/90 text-white animate-pulse">
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-tech font-black bg-[#FF2E4D] text-white animate-pulse shadow-[0_0_12px_rgba(255,46,77,0.4)]">
                 LIVE
               </span>
             ) : match.viewer_availability === 'country_blocked' ? (
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 backdrop-blur-md">
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-tech font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 backdrop-blur-md">
                 Unavailable in your country
               </span>
             ) : match.viewer_availability === 'not_found' ? (
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-800/80 text-slate-300 border border-slate-700 backdrop-blur-md">
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-tech font-bold bg-slate-800/80 text-slate-300 border border-slate-700 backdrop-blur-md">
                 Highlight not found
               </span>
             ) : match.viewer_availability === 'unavailable' ? (
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 backdrop-blur-md">
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-tech font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 backdrop-blur-md">
                 Video unavailable
               </span>
             ) : match.viewer_availability === 'unknown' ? (
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 backdrop-blur-md">
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-tech font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 backdrop-blur-md">
                 Availability not verified
               </span>
             ) : match.viewer_availability === 'available' ? (
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 backdrop-blur-md">
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-tech font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 backdrop-blur-md">
                 Available
               </span>
             ) : (
-              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#101418]/85 text-[#4FC3F7] border border-[#334155] backdrop-blur-md">
+              <span className="px-2 py-0.5 rounded-full text-[9px] font-tech font-bold bg-black/75 text-[#DFFF00] border border-[#DFFF00]/30 backdrop-blur-md">
                 HD
               </span>
             )}
           </div>
 
-          {/* Center Glowing Play Action (hidden after reveal for clean view) */}
+          {/* High-Voltage Volt Play Action */}
           {!isRevealed && (match.highlight_video_id || (match.viewer_availability === 'unknown' && match.external_video_id)) && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#7098F8] to-[#4FC3F7] text-[#101418] flex items-center justify-center shadow-[0_0_20px_rgba(112,152,248,0.4)] group-hover:scale-110 transition-transform">
-                <Play className="w-5 h-5 fill-current ml-0.5" />
+              <div className="w-12 h-12 rounded-full bg-[#DFFF00] text-[#0A0A0C] flex items-center justify-center shadow-[0_0_24px_rgba(223,255,0,0.5)] border border-[#DFFF00] group-hover:scale-110 transition-transform">
+                <Play className="w-5 h-5 fill-[#0A0A0C] ml-0.5" />
               </div>
             </div>
           )}
@@ -138,31 +138,31 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
               size={26}
               imageClassName="object-contain p-0.5"
             />
-            <span className="font-extrabold text-xs text-[#F1F5F9] leading-tight break-words group-hover:text-[#7098F8] transition-colors">
+            <span className="font-extrabold text-xs text-[#E3E2E6] leading-tight break-words group-hover:text-[#DFFF00] transition-colors">
               {homeName}
             </span>
           </div>
 
           {/* Center Score Pill */}
-          <div className="px-2.5 py-1 rounded-xl bg-[#181C20] border border-[#334155] text-center shrink-0 min-w-[55px]">
+          <div className="px-2.5 py-1 rounded-xl bg-[#1A1C22] border border-white/10 text-center shrink-0 min-w-[55px] font-tech">
             {shouldHideScore ? (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   router.push(`/match/${match.id}`);
                 }}
-                className="font-black text-xs text-[#94A3B8] hover:text-[#4FC3F7] transition-colors cursor-pointer"
+                className="font-black text-xs text-[#A1A1AA] hover:text-[#DFFF00] transition-colors cursor-pointer"
                 title="Click to view match centre"
               >
                 VS
               </button>
             ) : (
               <div className="flex flex-col items-center">
-                <span className="font-black text-xs sm:text-sm text-white tracking-wide">
+                <span className="font-black text-xs sm:text-sm text-white tracking-wider">
                   {isFinished || isLive ? `${match.home_score ?? 0} - ${match.away_score ?? 0}` : 'VS'}
                 </span>
                 {match.home_penalties != null && match.away_penalties != null && (
-                  <span className="text-[10px] font-bold text-[#94A3B8] leading-tight">
+                  <span className="text-[10px] font-bold text-[#A1A1AA] leading-tight">
                     ({match.home_penalties} - {match.away_penalties} pen)
                   </span>
                 )}
@@ -172,7 +172,7 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
 
           {/* Away Team (No ellipsis, soft-wrapped naturally) */}
           <div className="flex items-center justify-end gap-2 flex-1 min-w-0 text-right">
-            <span className="font-extrabold text-xs text-[#F1F5F9] leading-tight break-words group-hover:text-[#7098F8] transition-colors">
+            <span className="font-extrabold text-xs text-[#E3E2E6] leading-tight break-words group-hover:text-[#DFFF00] transition-colors">
               {awayName}
             </span>
             <GlassLogoBadge
@@ -185,11 +185,11 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
         </div>
 
         {/* Footer Meta Action Row */}
-        <div className="pt-3 mt-2 border-t border-[#334155]/50 flex items-center justify-between text-xs gap-2">
-          <div className="flex items-center gap-1.5 text-[11px] text-[#94A3B8] min-w-0 flex-1 mr-2">
+        <div className="pt-3 mt-2 border-t border-white/10 flex items-center justify-between text-xs gap-2">
+          <div className="flex items-center gap-1.5 text-[11px] text-[#A1A1AA] min-w-0 flex-1 mr-2 font-tech">
             {match.competition_name && (
               <>
-                <span className="text-[#7098F8] font-semibold break-words whitespace-normal">{match.competition_name}</span>
+                <span className="text-[#38BDF8] font-semibold break-words whitespace-normal">{match.competition_name}</span>
                 <span className="shrink-0">•</span>
               </>
             )}
@@ -216,7 +216,7 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
                   e.stopPropagation();
                   onPlay(match);
                 }}
-                className="text-[#7098F8] font-bold hover:underline cursor-pointer text-xs"
+                className="text-[#DFFF00] font-bold hover:underline cursor-pointer text-xs"
               >
                 Watch
               </button>
@@ -235,9 +235,9 @@ export default function HighlightCard({ match, onPlay }: HighlightCardProps) {
                   e.stopPropagation();
                   router.push(`/match/${match.id}`);
                 }}
-                className="text-[#94A3B8] hover:text-white flex items-center gap-1 transition-colors text-[11px] font-medium cursor-pointer"
+                className="text-[#A1A1AA] hover:text-white flex items-center gap-1 transition-colors text-[11px] font-medium cursor-pointer"
               >
-                <Sparkles className="w-3 h-3 text-[#4FC3F7]" />
+                <Sparkles className="w-3 h-3 text-[#38BDF8]" />
                 <span>Match Centre</span>
               </button>
             ) : null}

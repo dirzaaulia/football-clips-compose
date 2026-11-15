@@ -165,9 +165,11 @@ class FakeOracleVmRepository : OracleVmRepository {
         )
     }
 
+    override fun getCompetitionEmblem(competitionId: String?): String = ""
     override suspend fun refreshCompetitions() {}
     override suspend fun refreshClubs() {}
     override fun findClubById(id: String): SupportedClub? = null
+    override fun invalidateMatchesCache() {}
 }
 
 class FakeShortsRepository : ShortsRepository {

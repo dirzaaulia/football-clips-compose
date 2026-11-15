@@ -29,8 +29,9 @@ export async function getShorts(options: GetShortsOptions = {}): Promise<Footbal
     let query = database
       .from('football_shorts')
       .select('*')
-      .order('published_at', { ascending: false })
+      .order('is_featured', { ascending: false })
       .order('hype_score', { ascending: false })
+      .order('published_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
     if (category && category !== 'ALL') {

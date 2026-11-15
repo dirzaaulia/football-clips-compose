@@ -108,3 +108,73 @@ internal fun HomeGridFilterBar(
         }
     }
 }
+
+@Composable
+internal fun CompetitionHighlightsRow(
+    displayMatches: List<HighlightUiItem>,
+    league: BigLeague,
+    compName: String,
+    emblem: String,
+    isAdsRemoved: Boolean,
+    selectedSeason: Int,
+    viewModel: HomeViewModel,
+    cardWidth: androidx.compose.ui.unit.Dp = 280.dp,
+    modifier: Modifier = Modifier,
+    renderItem: @Composable (HighlightUiItem) -> Unit,
+) {
+    androidx.compose.foundation.lazy.LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 6.dp),
+    ) {
+        if (displayMatches.isNotEmpty()) {
+            displayMatches.forEachIndexed { mIdx, item ->
+                item(key = item.uniqueId) {
+                    Box(modifier = Modifier.width(cardWidth)) {
+                        renderItem(item)
+                    }
+                }
+                if (!isAdsRemoved && (mIdx + 1) % 4 == 0) {
+                    item(key = "ad-${league.id}-$mIdx") {
+                        Box(modifier = Modifier.width(cardWidth)) {
+                            BannerAdItem(
+                                modifier = Modifier.fillMaxWidth(),
+                                style = NativeAdStyle.HIGHLIGHT,
+                            )
+                        }
+                    }
+                }
+            }
+            item(key = "see-all-${league.id}") {
+                Box(modifier = Modifier.width(200.dp)) {
+                    HomeSeeAllCompetitionCard(
+                        competitionName = compName,
+                        competitionEmblemUrl = emblem,
+                        onSeeAll = {
+                            if (league.leagueId != null) {
+                                viewModel.selectLeague(league.leagueId, league.competitionId)
+                            } else {
+                                viewModel.selectCompetitionByName(compName)
+                            }
+                        },
+                    )
+                }
+            }
+        } else {
+            item(key = "empty-${league.id}") {
+                UpcomingCompetitionCard(
+                    league = league,
+                    selectedSeason = selectedSeason,
+                    onSeeAll = {
+                        if (league.leagueId != null) {
+                            viewModel.selectLeague(league.leagueId, league.competitionId)
+                        } else {
+                            viewModel.selectCompetitionByName(compName)
+                        }
+                    },
+                    onSwitchSeason = { viewModel.setSeason(it) },
+                )
+            }
+        }
+    }
+}

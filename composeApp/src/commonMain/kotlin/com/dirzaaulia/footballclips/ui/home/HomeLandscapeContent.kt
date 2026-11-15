@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -34,7 +33,7 @@ import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.card.HeroCarousel
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
-import com.dirzaaulia.footballclips.ui.score.components.getLeagueEmblemUrl
+import com.dirzaaulia.footballclips.ui.score.components.RecentMatchesSection
 import kotlinx.coroutines.launch
 
 @Composable
@@ -141,6 +140,18 @@ internal fun HomeLandscapeContent(
                     )
                 }
             } else if (isAllLeagues) {
+                item(key = "recent-matches-section") {
+                    RecentMatchesSection(
+                        matches = items,
+                        onMatchClick = { selectedItem ->
+                            onVideoClick(selectedItem) { isJumping ->
+                                viewModel.setPendingInterstitial(true)
+                                if (!isJumping) viewModel.consumePendingInterstitial()
+                            }
+                        },
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                }
                 val nonAds = items.filter { it !is HighlightUiItem.BannerAd }
                 competitions.forEach { league ->
                     renderLandscapeCompetitionSection(
@@ -149,6 +160,7 @@ internal fun HomeLandscapeContent(
                         revealedItemIds = revealedItemIds,
                         isSpoilerFreeMode = isSpoilerFreeMode,
                         showExternalHighlights = showExternalHighlights,
+                        isAdsRemoved = isAdsRemoved,
                         selectedSeason = selectedSeason,
                         viewModel = viewModel,
                         onVideoClick = onVideoClick,
@@ -179,12 +191,13 @@ private fun androidx.compose.foundation.lazy.LazyListScope.renderLandscapeCompet
     revealedItemIds: Set<String>,
     isSpoilerFreeMode: Boolean,
     showExternalHighlights: Boolean,
+    isAdsRemoved: Boolean,
     selectedSeason: Int,
     viewModel: HomeViewModel,
     onVideoClick: (HighlightUiItem, (Boolean) -> Unit) -> Unit,
 ) {
     val compName = league.name
-    val emblem = league.logo.ifBlank { league.emblemUrl ?: getLeagueEmblemUrl(compName) }
+    val emblem = league.logo
     val displayMatches = nonAds.filter { it.matchesLeague(league) }.take(20)
 
     item(key = "section-${league.id}") {
@@ -202,58 +215,24 @@ private fun androidx.compose.foundation.lazy.LazyListScope.renderLandscapeCompet
     }
 
     item(key = "row-${league.id}") {
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
-        ) {
-            if (displayMatches.isNotEmpty()) {
-                items(
-                    items = displayMatches,
-                    key = { it.uniqueId },
-                ) { item ->
-                    Box(modifier = Modifier.width(280.dp)) {
-                        HighlightItemRow(
-                            item = item,
-                            revealedItemIds = revealedItemIds,
-                            isSpoilerFreeMode = isSpoilerFreeMode,
-                            showExternalHighlights = showExternalHighlights,
-                            viewModel = viewModel,
-                            onVideoClick = onVideoClick,
-                        )
-                    }
-                }
-                item(key = "see-all-${league.id}") {
-                    Box(modifier = Modifier.width(200.dp)) {
-                        HomeSeeAllCompetitionCard(
-                            competitionName = compName,
-                            competitionEmblemUrl = emblem,
-                            onSeeAll = {
-                                if (league.leagueId != null) {
-                                    viewModel.selectLeague(league.leagueId, league.competitionId)
-                                } else {
-                                    viewModel.selectCompetitionByName(compName)
-                                }
-                            },
-                        )
-                    }
-                }
-            } else {
-                item(key = "empty-${league.id}") {
-                    UpcomingCompetitionCard(
-                        league = league,
-                        selectedSeason = selectedSeason,
-                        onSeeAll = {
-                            if (league.leagueId != null) {
-                                viewModel.selectLeague(league.leagueId, league.competitionId)
-                            } else {
-                                viewModel.selectCompetitionByName(compName)
-                            }
-                        },
-                        onSwitchSeason = { viewModel.setSeason(it) },
-                    )
-                }
-            }
+        CompetitionHighlightsRow(
+            displayMatches = displayMatches,
+            league = league,
+            compName = compName,
+            emblem = emblem,
+            isAdsRemoved = isAdsRemoved,
+            selectedSeason = selectedSeason,
+            viewModel = viewModel,
+            cardWidth = 280.dp,
+        ) { item ->
+            HighlightItemRow(
+                item = item,
+                revealedItemIds = revealedItemIds,
+                isSpoilerFreeMode = isSpoilerFreeMode,
+                showExternalHighlights = showExternalHighlights,
+                viewModel = viewModel,
+                onVideoClick = onVideoClick,
+            )
         }
     }
 }

@@ -37,16 +37,16 @@ export default function MatchDayGearSection({
   }
 
   return (
-    <section className={`bg-[#14181D] border border-[#334155]/70 rounded-2xl p-4 sm:p-5 space-y-4 shadow-lg ${className}`}>
+    <section className={`bg-[#121316] border border-white/10 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[#334155]/60 pb-3">
+      <div className="flex items-center justify-between border-b border-white/10 pb-3">
         <div className="flex items-center gap-2">
-          <ShoppingBag className="w-4 h-4 text-[#7098F8]" />
-          <h3 className="text-xs sm:text-sm font-extrabold text-white tracking-wide uppercase">
+          <ShoppingBag className="w-4 h-4 text-[#DFFF00]" />
+          <h3 className="text-xs sm:text-sm font-scoreboard text-white tracking-wider uppercase">
             Match-Day Fan Gear &amp; Official Kits
           </h3>
         </div>
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#1E3A8A]/50 text-[#7098F8] border border-[#7098F8]/30">
+        <span className="text-[10px] font-tech font-bold px-2.5 py-0.5 rounded-full bg-[#1A1C22] text-[#DFFF00] border border-[#DFFF00]/30 uppercase">
           {marketplace}
         </span>
       </div>
@@ -66,7 +66,7 @@ export default function MatchDayGearSection({
       </div>
 
       {/* Compliance Disclosure */}
-      <p className="text-[10px] text-[#94A3B8]/70 leading-relaxed pt-1">
+      <p className="text-[10px] font-tech text-white/40 leading-relaxed pt-1">
         {AMAZON_AFFILIATE_DISCLOSURE}
       </p>
     </section>
@@ -91,11 +91,11 @@ function TeamMerchandiseCard({
       href={affiliateUrl}
       target="_blank"
       rel="noopener noreferrer sponsored"
-      className="group block bg-[#181C20] hover:bg-[#1E2227] border border-[#334155]/60 hover:border-[#7098F8]/60 rounded-xl p-3 transition-all shadow-sm hover:shadow-[0_0_16px_rgba(112,152,248,0.15)] flex flex-col justify-between"
+      className="group block bg-[#0A0A0C] hover:bg-[#1A1C22] border border-white/10 hover:border-[#DFFF00]/50 rounded-xl p-3.5 transition-all shadow-sm hover:shadow-[0_0_20px_rgba(223,255,0,0.15)] flex flex-col justify-between cursor-pointer"
     >
       <div>
         {/* Product Image Frame */}
-        <div className="relative w-full h-32 sm:h-36 rounded-lg bg-gradient-to-b from-[#101418] to-[#1E2227] border border-[#334155]/40 flex items-center justify-center overflow-hidden mb-3">
+        <div className="relative w-full h-32 sm:h-36 rounded-lg bg-[#121316] border border-white/5 flex items-center justify-center overflow-hidden mb-3">
           {isCustomPhoto ? (
             <Image
               src={jerseyPhoto}
@@ -113,7 +113,7 @@ function TeamMerchandiseCard({
               />
             </div>
           ) : (
-            <ShoppingBag className="w-10 h-10 text-[#7098F8]/40" />
+            <ShoppingBag className="w-10 h-10 text-white/20" />
           )}
 
           {/* Crest Overlay */}
@@ -130,23 +130,23 @@ function TeamMerchandiseCard({
 
         {/* Title & Ratings */}
         <div className="space-y-1">
-          <h4 className="text-xs font-bold text-white group-hover:text-[#7098F8] transition-colors line-clamp-2 leading-tight">
+          <h4 className="text-xs font-tech font-bold text-white group-hover:text-[#DFFF00] transition-colors line-clamp-2 leading-tight">
             {teamName} Official Jersey &amp; Fan Gear
           </h4>
-          <div className="flex items-center gap-1.5 text-[11px] text-[#94A3B8]">
+          <div className="flex items-center gap-1.5 text-[11px] font-tech text-white/50">
             <div className="flex items-center text-amber-400">
               <Star className="w-3 h-3 fill-current" />
               <span className="font-bold ml-1 text-white">4.8</span>
             </div>
             <span>•</span>
-            <span className="text-[#4FC3F7] font-semibold">Official Gear</span>
+            <span className="text-[#38BDF8] font-semibold">Official Gear</span>
           </div>
         </div>
       </div>
 
       {/* CTA Button */}
-      <div className="mt-3 w-full py-1.5 px-3 rounded-lg bg-[#1E3A8A]/50 group-hover:bg-[#1E3A8A] text-[#7098F8] group-hover:text-white border border-[#7098F8]/30 flex items-center justify-center gap-1.5 text-xs font-bold transition-all">
-        <ShoppingBag className="w-3.5 h-3.5" />
+      <div className="mt-3.5 w-full py-2 px-3 rounded-lg bg-[#DFFF00] group-hover:bg-[#cbe800] text-[#0A0A0C] font-tech text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[0_0_12px_rgba(223,255,0,0.3)] transition-all">
+        <ShoppingBag className="w-3.5 h-3.5 fill-[#0A0A0C]" />
         <span>Shop on Amazon</span>
         <ExternalLink className="w-3 h-3" />
       </div>

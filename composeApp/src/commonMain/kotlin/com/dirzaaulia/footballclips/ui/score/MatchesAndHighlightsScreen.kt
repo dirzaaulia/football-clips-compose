@@ -27,11 +27,11 @@ import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.notification.rememberNotificationPermissionState
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
-import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 import com.dirzaaulia.footballclips.ui.components.common.MyClubsBottomSheet
 import com.dirzaaulia.footballclips.ui.components.notification.NotificationPermissionBottomSheet
 import com.dirzaaulia.footballclips.ui.score.components.FixturesContentList
 import com.dirzaaulia.footballclips.ui.score.components.FixturesLandscapeContent
+import com.dirzaaulia.footballclips.ui.score.components.FixturesListSkeleton
 import com.dirzaaulia.footballclips.ui.score.components.MatchesTopBar
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -138,9 +138,8 @@ fun MatchesAndHighlightsScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     when (val state = uiState) {
-                        is ScoreState.Loading -> ExpressiveLoadingIndicator(
-                            modifier = Modifier.size(48.dp),
-                            strokeWidth = 5.dp,
+                        is ScoreState.Loading -> FixturesListSkeleton(
+                            modifier = Modifier.fillMaxSize(),
                         )
 
                         is ScoreState.Error -> {

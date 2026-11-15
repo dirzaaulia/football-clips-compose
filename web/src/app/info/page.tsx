@@ -18,10 +18,10 @@ export default function SettingsPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6">
       {/* Page Header */}
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-          Settings
+        <h1 className="font-scoreboard text-3xl sm:text-4xl text-white uppercase tracking-wide leading-none">
+          Settings &amp; Preferences
         </h1>
-        <p className="text-xs sm:text-sm text-[#94A3B8]">
+        <p className="text-xs sm:text-sm text-white/50 font-tech">
           Manage your account profile, theme preferences, favorite clubs, and application resources.
         </p>
       </div>
@@ -37,7 +37,7 @@ export default function SettingsPage() {
 
       {/* Section Divider */}
       <div className="pt-2">
-        <h2 className="text-sm font-bold text-[#94A3B8] uppercase tracking-wider px-1 mb-3">
+        <h2 className="text-xs font-tech font-bold text-white/50 uppercase tracking-wider px-1 mb-3">
           Resources &amp; Documentation
         </h2>
       </div>

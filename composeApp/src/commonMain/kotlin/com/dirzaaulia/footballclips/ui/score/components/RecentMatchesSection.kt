@@ -38,18 +38,26 @@ fun RecentMatchesSection(
     matches: List<HighlightUiItem>,
     onMatchClick: (HighlightUiItem) -> Unit,
     modifier: Modifier = Modifier,
+    title: String = "Recent Highlights",
+    onlyWithHighlights: Boolean = true,
 ) {
-    val finishedMatches = matches
+    val highlightMatches = matches
         .filterIsInstance<HighlightUiItem.OracleMatch>()
-        .filter { it.match.isFinished }
+        .filter {
+            if (onlyWithHighlights) {
+                it.match.hasHighlight || !it.match.externalVideoId.isNullOrBlank()
+            } else {
+                it.match.isFinished
+            }
+        }
         .take(20)
 
-    if (finishedMatches.isEmpty()) return
+    if (highlightMatches.isEmpty()) return
 
     Column(
         modifier = modifier.fillMaxWidth(),
     ) {
-        RecentMatchesHeader()
+        RecentMatchesHeader(title = title)
         Spacer(modifier = Modifier.height(10.dp))
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
@@ -57,7 +65,7 @@ fun RecentMatchesSection(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(
-                items = finishedMatches,
+                items = highlightMatches,
                 key = { "recent-${it.match.id}" },
             ) { item ->
                 RecentMatchPillCard(
@@ -70,7 +78,7 @@ fun RecentMatchesSection(
 }
 
 @Composable
-private fun RecentMatchesHeader() {
+private fun RecentMatchesHeader(title: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -89,23 +97,10 @@ private fun RecentMatchesHeader() {
                 modifier = Modifier.size(16.dp),
             )
             Text(
-                text = "Recent Matches",
+                text = title,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = Color(0xFF7098F8).copy(alpha = 0.15f),
-            border = BorderStroke(1.dp, Color(0xFF7098F8).copy(alpha = 0.3f)),
-        ) {
-            Text(
-                text = "Latest 20",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF7098F8),
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
             )
         }
     }

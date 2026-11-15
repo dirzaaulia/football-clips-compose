@@ -16,17 +16,16 @@ import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -221,9 +220,10 @@ internal fun NonPremiumContent(
                     )
                 }
             } else {
-                CircularProgressIndicator(
-                    color = Color(0xFFD4AF37),
-                    strokeCap = StrokeCap.Round
+                ExpressiveLoadingIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
                 )
             }
         }

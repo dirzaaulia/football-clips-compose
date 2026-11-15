@@ -232,6 +232,11 @@ class OracleVmRepositoryImpl(
         }
     }
 
+    override fun getCompetitionEmblem(competitionId: String?): String {
+        if (competitionId.isNullOrBlank()) return ""
+        return _competitions.value.firstOrNull { it.id.equals(competitionId, ignoreCase = true) }?.emblemUrl.orEmpty()
+    }
+
     override suspend fun getLiveMatches(): NetworkResult<List<MatchDto>> {
         return try {
             val response = client.get("$databaseUrl/rest/v1/matches") {

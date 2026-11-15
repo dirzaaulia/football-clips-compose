@@ -81,10 +81,17 @@ fun FixturesContentList(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            item(key = "fixtures-partner-banner", span = { GridItemSpan(maxLineSpan) }) {
+                AndroidFixturesPartnerBanner(
+                    modifier = Modifier.padding(bottom = 4.dp),
+                )
+            }
             item(key = "recent-20-matches", span = { GridItemSpan(maxLineSpan) }) {
                 RecentMatchesSection(
                     matches = matches,
                     onMatchClick = { onVideoClick(it) {} },
+                    title = "Recent Matches",
+                    onlyWithHighlights = false,
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
             }
@@ -160,10 +167,17 @@ fun FixturesContentList(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            item(key = "fixtures-partner-banner") {
+                AndroidFixturesPartnerBanner(
+                    modifier = Modifier.padding(bottom = 4.dp),
+                )
+            }
             item(key = "recent-20-matches") {
                 RecentMatchesSection(
                     matches = matches,
                     onMatchClick = { onVideoClick(it) {} },
+                    title = "Recent Matches",
+                    onlyWithHighlights = false,
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
             }

@@ -58,7 +58,7 @@ fun MatchesTopBar(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        color = MaterialTheme.colorScheme.surface,
+        color = com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1,
         tonalElevation = 4.dp,
         shadowElevation = 2.dp,
         modifier = modifier,
@@ -103,7 +103,7 @@ fun MatchesTopBar(
                         )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                        containerColor = com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1,
                     ),
                 )
             } else {

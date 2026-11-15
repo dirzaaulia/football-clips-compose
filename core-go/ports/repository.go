@@ -17,6 +17,7 @@ type MatchRepository interface {
 	MarkMatchUnavailable(ctx context.Context, matchID int64, reason string, reg *domain.RegionInfo) error
 	SaveWaterfallTrace(ctx context.Context, trace domain.MatchWaterfallTrace) error
 	GetMatchChannels(ctx context.Context, match domain.Match) ([]string, error)
+	GetActiveCompetitionIDs(ctx context.Context) ([]string, error)
 }
 
 // TelemetryRepository defines the data access contract for telemetry states.

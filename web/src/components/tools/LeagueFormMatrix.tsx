@@ -10,16 +10,34 @@ import {
   ClubTacticalProfile,
 } from '@/lib/tools-data';
 import { StandingRecord } from '@/lib/database';
-import { Activity, ShieldCheck, Loader2 } from 'lucide-react';
+import { Activity, ShieldCheck } from 'lucide-react';
 
 export default function LeagueFormMatrix() {
   const [selectedCompCode, setSelectedCompCode] = useState<string>('PL');
   const [standings, setStandings] = useState<StandingRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [emblems, setEmblems] = useState<Record<string, string>>({});
 
   const selectedComp =
     ALL_SUPPORTED_COMPETITIONS.find((c) => c.code === selectedCompCode) ||
     ALL_SUPPORTED_COMPETITIONS[3]; // Default: Premier League
+
+  useEffect(() => {
+    fetch('/api/competitions')
+      .then((r) => r.json())
+      .then((data: Array<{ id: string; code?: string; emblem_url?: string }>) => {
+        if (!Array.isArray(data)) return;
+        const m: Record<string, string> = {};
+        data.forEach((c) => {
+          if (c.emblem_url) {
+            m[c.id.toUpperCase()] = c.emblem_url;
+            if (c.code) m[c.code.toUpperCase()] = c.emblem_url;
+          }
+        });
+        setEmblems(m);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     let isCancelled = false;
@@ -65,23 +83,38 @@ export default function LeagueFormMatrix() {
       <div className="rounded-2xl bg-[#181C20] border border-[#334155]/60 overflow-hidden">
         <div className="p-4 border-b border-[#334155]/60 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="relative w-7 h-7 shrink-0">
-              <Image src={selectedComp.emblemUrl} alt={selectedComp.name} fill sizes="28px" className="object-contain" />
-            </div>
+            {emblems[selectedCompCode.toUpperCase()] ? (
+              <div className="relative w-7 h-7 shrink-0">
+                <Image src={emblems[selectedCompCode.toUpperCase()]} alt={selectedComp.name} fill sizes="28px" className="object-contain" />
+              </div>
+            ) : (
+              <Activity className="w-5 h-5 text-[#7098F8] shrink-0" />
+            )}
             <div>
               <h3 className="text-sm font-extrabold text-white">{selectedComp.name}</h3>
               <p className="text-[11px] text-[#94A3B8]">Live 2026/2027 Season Standings &amp; Form Guide</p>
             </div>
           </div>
-          <span className="text-[11px] text-[#7098F8] font-bold px-2.5 py-1 rounded-full bg-[#7098F8]/10 border border-[#7098F8]/30">
+          <span className="text-[11px] font-tech text-[#DFFF00] font-bold px-2.5 py-1 rounded-full bg-[#DFFF00]/10 border border-[#DFFF00]/30">
             {standings.length} Clubs
           </span>
         </div>
 
         {isLoading ? (
-          <div className="py-16 text-center text-[#94A3B8] space-y-2">
-            <Loader2 className="w-6 h-6 animate-spin text-[#7098F8] mx-auto" />
-            <p className="text-xs">Loading live standings from PostgreSQL 16 datastore...</p>
+          <div className="p-4 space-y-3 animate-pulse select-none">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between py-2.5 px-3 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-4 rounded bg-white/10" />
+                  <div className="w-6 h-6 rounded-full bg-white/10" />
+                  <div className="w-32 h-4 rounded bg-white/20" />
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-3 rounded bg-white/10 hidden sm:block" />
+                  <div className="w-8 h-4 rounded bg-[#DFFF00]/20" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : standings.length === 0 ? (
           <div className="py-14 text-center text-[#94A3B8] space-y-2 px-4">

@@ -36,54 +36,59 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dirzaaulia.footballclips.ui.theme.GhostBorder
+import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
+import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier2
+import com.dirzaaulia.footballclips.ui.theme.VoltLime
+import com.dirzaaulia.footballclips.ui.theme.VoltLimeDarkText
 
 @Composable
 fun OfficialJerseyCard(modifier: Modifier = Modifier) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1B18)),
-        border = BorderStroke(1.dp, Color(0xFFD4AF37).copy(alpha = 0.4f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(containerColor = ObsidianSurfaceTier1),
+        border = BorderStroke(1.dp, GhostBorder),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Surface(
-                color = Color(0xFFD4AF37).copy(alpha = 0.15f),
+                color = VoltLime.copy(alpha = 0.15f),
                 shape = CircleShape,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(48.dp),
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.ShoppingBag,
                         contentDescription = "Official Jersey",
-                        tint = Color(0xFFD4AF37),
-                        modifier = Modifier.size(24.dp)
+                        tint = VoltLime,
+                        modifier = Modifier.size(24.dp),
                     )
                 }
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Official Club Jerseys 2024/25",
+                    text = "Official Club Jerseys 2025/26",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
                 )
                 Text(
                     text = "Get authentic kits & official merchandise with exclusive discounts.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.7f)
+                    color = Color.White.copy(alpha = 0.7f),
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = { },
                 shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD4AF37), contentColor = Color.Black),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                colors = ButtonDefaults.buttonColors(containerColor = VoltLime, contentColor = VoltLimeDarkText),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
             ) {
                 Text("Shop", fontWeight = FontWeight.Bold, fontSize = 12.sp)
             }
@@ -99,7 +104,8 @@ fun StandingsTableHeader(
     onSortClick: (String) -> Unit = {},
 ) {
     Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        color = ObsidianSurfaceTier2,
+        border = BorderStroke(1.dp, GhostBorder),
         shape = RoundedCornerShape(12.dp),
         modifier = modifier.fillMaxWidth(),
     ) {

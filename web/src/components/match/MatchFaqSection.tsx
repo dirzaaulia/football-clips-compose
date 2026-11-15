@@ -41,26 +41,26 @@ export default function MatchFaqSection({ match }: MatchFaqSectionProps) {
   ];
 
   return (
-    <section className="rounded-3xl bg-[#181C20] border border-[#334155] p-6 sm:p-8 space-y-5 shadow-xl">
-      <div className="flex items-center gap-2 pb-3 border-b border-[#334155]/60 text-[#7098F8]">
-        <HelpCircle className="w-5 h-5 text-[#4FC3F7]" />
-        <h2 className="text-sm font-extrabold uppercase tracking-wider text-white">
+    <section className="rounded-2xl bg-[#121316] border border-white/10 p-5 sm:p-7 space-y-4 shadow-xl select-none">
+      <div className="flex items-center gap-2 pb-3 border-b border-white/10 text-[#DFFF00]">
+        <HelpCircle className="w-5 h-5 text-[#DFFF00]" />
+        <h2 className="text-sm font-tech font-black uppercase tracking-wider text-white">
           Frequently Asked Questions &amp; Match Facts
         </h2>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 font-tech">
         {faqs.map((faq, index) => (
           <details
             key={index}
-            className="group rounded-2xl bg-[#101418] border border-[#334155]/70 p-4 transition-all open:border-[#7098F8]/50"
+            className="group rounded-xl bg-[#0A0A0C] border border-white/10 p-4 transition-all open:border-[#DFFF00]/40"
             open={index === 0}
           >
-            <summary className="flex items-center justify-between cursor-pointer list-none text-xs sm:text-sm font-bold text-white group-hover:text-[#4FC3F7] transition-colors">
+            <summary className="flex items-center justify-between cursor-pointer list-none text-xs sm:text-sm font-bold text-white group-hover:text-[#DFFF00] transition-colors">
               <span>{faq.question}</span>
-              <ChevronDown className="w-4 h-4 text-[#94A3B8] transition-transform duration-200 group-open:rotate-180" />
+              <ChevronDown className="w-4 h-4 text-white/40 transition-transform duration-200 group-open:rotate-180" />
             </summary>
-            <p className="mt-3 text-xs sm:text-sm text-[#94A3B8] leading-relaxed border-t border-[#334155]/40 pt-3">
+            <p className="mt-3 text-xs sm:text-sm text-white/70 leading-relaxed border-t border-white/5 pt-3">
               {faq.answer}
             </p>
           </details>

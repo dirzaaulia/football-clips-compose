@@ -69,26 +69,27 @@ class DropletThemeState {
 
 val LocalDropletThemeState = staticCompositionLocalOf { DropletThemeState() }
 
-// Kinetic Editorial Dark Color Scheme
+// Stitch Obsidian Volt Athletic OTT Dark Color Scheme
 private val DarkColorScheme = darkColorScheme(
-    primary = DarkCobaltPrimary,
-    onPrimary = Color.White,
-    primaryContainer = DarkCobaltContainer,
-    onPrimaryContainer = DarkOnCobaltContainer,
-    secondary = DarkSlateSecondary,
-    onSecondary = DarkBaseBackground,
-    secondaryContainer = DarkSurfaceCard,
+    primary = VoltLime,
+    onPrimary = VoltLimeDarkText,
+    primaryContainer = ObsidianSurfaceTier2,
+    onPrimaryContainer = VoltLime,
+    secondary = TacticalCyan,
+    onSecondary = ObsidianCanvas,
+    secondaryContainer = ObsidianSurfaceTier1,
     onSecondaryContainer = DarkTextHigh,
-    tertiary = DarkIcyCyan,
+    tertiary = TacticalCyan,
     onTertiary = Color.Black,
-    background = DarkBaseBackground,
+    error = MatchPulseRed,
+    background = ObsidianCanvas,
     onBackground = DarkTextHigh,
-    surface = DarkSurfaceLow,
+    surface = ObsidianSurfaceTier1,
     onSurface = DarkTextHigh,
-    surfaceVariant = DarkSurfaceCard,
+    surfaceVariant = ObsidianSurfaceTier2,
     onSurfaceVariant = DarkTextMuted,
-    outline = DarkBorder,
-    outlineVariant = DarkBorder
+    outline = GhostBorder,
+    outlineVariant = GhostBorder,
 )
 
 // Kinetic Editorial Light Color Scheme

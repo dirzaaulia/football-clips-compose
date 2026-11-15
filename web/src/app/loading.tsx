@@ -1,6 +1,6 @@
 import React from 'react';
 import HeroCarouselSkeleton from '@/components/hero/HeroCarouselSkeleton';
-import HighlightCardSkeleton from '@/components/feed/HighlightCardSkeleton';
+import FeedLoadingSkeleton from '@/components/feed/FeedLoadingSkeleton';
 import { Trophy } from 'lucide-react';
 
 export default function Loading() {
@@ -30,12 +30,8 @@ export default function Loading() {
         </div>
       </section>
 
-      {/* Highlights Grid Skeleton */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 my-6">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <HighlightCardSkeleton key={`page-skeleton-${i}`} />
-        ))}
-      </div>
+      {/* Feed Skeleton with Recent Highlights & Grouped Sections */}
+      <FeedLoadingSkeleton isGrouped={true} />
     </div>
   );
 }

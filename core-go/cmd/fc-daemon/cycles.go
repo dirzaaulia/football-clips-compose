@@ -11,16 +11,29 @@ import (
 	"github.com/dirzaaulia/footballclips/core-go/usecases"
 )
 
+func resolveSyncCompetitions(ctx context.Context, repo *postgres.Repository, fallback []string) []string {
+	if repo == nil {
+		return fallback
+	}
+	dbComps, err := repo.GetActiveCompetitionIDs(ctx)
+	if err == nil && len(dbComps) > 0 {
+		return dbComps
+	}
+	return fallback
+}
+
 func runSyncCycle(
 	ctx context.Context,
 	uc *usecases.SyncScoresUseCase,
-	comps []string,
+	repo *postgres.Repository,
+	fallbackComps []string,
 	purge *edge.PurgeClient,
 	logger *slog.Logger,
 ) {
 	cycleCtx, cancel := context.WithTimeout(ctx, 45*time.Second)
 	defer cancel()
 
+	comps := resolveSyncCompetitions(cycleCtx, repo, fallbackComps)
 	today := time.Now().UTC().Format("2006-01-02")
 	report, err := uc.Execute(cycleCtx, comps, today, today)
 	if err != nil {

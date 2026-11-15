@@ -1,0 +1,426 @@
+<!DOCTYPE html><html class="dark" lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"><meta content="mobile_tab" name="shell-type"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "inverse-surface": "#e3e2e6", "tertiary-fixed": "#c4e7ff", "secondary-fixed": "#ffdad9", "on-tertiary-fixed": "#001e2c", "primary": "#ffffff", "surface-bright": "#38393c", "on-background": "#e3e2e6", "on-primary-fixed-variant": "#414c00", "primary-container": "#d2f000", "on-secondary": "#680015", "on-secondary-fixed-variant": "#920022", "outline": "#909378", "on-tertiary-container": "#006c93", "surface-tint": "#b8d300", "outline-variant": "#454932", "surface-dim": "#121316", "on-error-container": "#ffdad6", "surface-container": "#1f1f23", "primary-fixed-dim": "#b8d300", "tertiary-container": "#c4e7ff", "on-surface": "#e3e2e6", "background": "#121316", "surface-container-highest": "#343538", "error-container": "#93000a", "secondary-container": "#da0137", "tertiary": "#ffffff", "on-primary-container": "#5d6b00", "surface-container-lowest": "#0d0e11", "surface-container-low": "#1b1b1f", "on-primary-fixed": "#191e00", "on-secondary-container": "#ffeceb", "on-tertiary-fixed-variant": "#004c69", "primary-fixed": "#d2f000", "surface": "#121316", "on-secondary-fixed": "#400009", "on-tertiary": "#00354a", "error": "#ffb4ab", "inverse-primary": "#576500", "on-surface-variant": "#c6c9ab", "on-primary": "#2c3400", "inverse-on-surface": "#2f3034", "secondary-fixed-dim": "#ffb3b3", "surface-container-high": "#292a2d", "tertiary-fixed-dim": "#7bd0ff", "on-error": "#690005", "surface-variant": "#343538", "secondary": "#ffb3b3" }, borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, spacing: { "gutter-lg": "2rem", "margin-lg": "4rem", "gutter-md": "1.5rem", "space-xl": "2.5rem", "margin-md": "2.5rem", "space-sm": "0.5rem", "margin": "1rem", "space-md": "1rem", "space-xs": "0.25rem", "gutter": "1rem", "space-lg": "1.5rem" }, fontFamily: { "body-md": ["Inter"], "body-sm": ["Inter"], "title-md": ["Space Grotesk"], "headline-lg-mobile": ["Bebas Neue"], "headline-md": ["Bebas Neue"], "label-md": ["Space Grotesk"], "display-xl": ["Bebas Neue"], "title-lg": ["Space Grotesk"], "display-lg": ["Bebas Neue"], "headline-lg": ["Bebas Neue"], "body-lg": ["Inter"], "label-sm": ["Space Grotesk"] }, fontSize: { "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "title-md": ["16px", { "lineHeight": "22px", "letterSpacing": "0.00em", "fontWeight": "600" }], "headline-lg-mobile": ["32px", { "lineHeight": "36px", "letterSpacing": "0.02em", "fontWeight": "400" }], "headline-md": ["28px", { "lineHeight": "32px", "letterSpacing": "0.02em", "fontWeight": "400" }], "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.06em", "fontWeight": "700" }], "display-xl": ["72px", { "lineHeight": "72px", "letterSpacing": "0.04em", "fontWeight": "400" }], "title-lg": ["20px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "700" }], "display-lg": ["56px", { "lineHeight": "56px", "letterSpacing": "0.03em", "fontWeight": "400" }], "headline-lg": ["40px", { "lineHeight": "44px", "letterSpacing": "0.02em", "fontWeight": "400" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.08em", "fontWeight": "700" }] } } } };</script><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#121316;color:#e3e2e6;-webkit-tap-highlight-color:transparent;}body{overscroll-behavior-y:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style></head><body class="bg-surface font-body-md text-on-surface min-h-screen flex flex-col antialiased selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.35)]"><!-- Modern Android System Status Bar (Edge-to-Edge) --><div class="w-full px-margin pt-1.5 pb-0.5 flex items-center justify-between text-on-surface text-[12px] font-medium tracking-wide select-none"><span class="font-bold text-[14px] text-primary tracking-normal">09:41</span><div class="flex items-center gap-1.5 text-on-surface-variant"><span class="text-[12px] font-bold text-primary tracking-tight">5G</span><span class="material-symbols-outlined text-[16px] text-primary">wifi</span><span class="material-symbols-outlined text-[18px] text-primary">battery_charging_full</span></div></div><!-- App Navigation Header Bar --><div class="h-14 px-margin flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs"><img alt="FootballClips Brand Icon" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrAvwdkCzOfU8AQ8U51NHN8ujiF86XzfUmdNnZApDetchRsh7QvgCTSvzNAkILmGPRWFyVh0WxIQPNLvl_g1N8ivvNbv9kPPc2ZZZuV51_BRaJPMnSF5IfUXrDFkmi3asE8oUVJXbO3bbYVgBmtL0KEywATUr7dIm52wCAVJ5CR_adiyyMweO6BPfeQyiArmVCnnk3-6IdnG3McsDd2u8dEkt86bn3dmLyV8kFpxhbickQ"><div class="flex flex-col ml-1"><div class="flex items-center gap-1.5"><span class="font-headline-md text-headline-md tracking-wider text-primary leading-none">FOOTBALLCLIPS</span><span class="font-label-sm text-label-sm uppercase bg-surface-container-high text-primary-container px-1.5 py-0.5 rounded tracking-widest font-bold">26/27</span></div><span class="font-label-sm text-label-sm uppercase text-on-surface-variant tracking-wider leading-none mt-0.5">Highlights</span></div></div><div class="flex items-center gap-space-xs"><button aria-label="Toggle Spoiler Free Mode" class="h-9 px-2.5 flex items-center gap-1.5 rounded-full bg-surface-container-high text-on-surface-variant hover:text-primary-container active:scale-95 transition-all"><span class="material-symbols-outlined text-[18px]">visibility_off</span><span class="font-label-sm text-label-sm font-bold uppercase hidden">Spoiler Guard</span></button><button aria-label="Search fixtures and clips" class="w-9 h-9 flex items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant hover:text-primary-container active:scale-95 transition-transform"><span class="material-symbols-outlined text-[18px]">search</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-0.5 shadow-sm ring-1 ring-outline-variant"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pb-20 bg-surface min-h-screen pt-20"><div class="flex flex-col w-full pb-6 space-y-6">
+<!-- Top Match of the Week Highlight Feature (Hero Adapt) -->
+<section class="relative w-full px-margin pt-2">
+<div class="relative w-full aspect-video rounded-xl overflow-hidden bg-surface-container-lowest shadow-2xl flex flex-col justify-between p-3.5 group">
+<!-- Background Preview Image Placeholder -->
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Cinematic high contrast broadcast still of Real Madrid facing Manchester City under dramatic Champions League stadium night floodlights. High velocity action shot with vibrant lime volt energy streaks, obsidian black tone grading, pristine grass texture, intense player emotions and illuminated atmospheric stadium mist." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA_NgM7s2bI4JkxvcDwsgMEHODyYxiv1clERuv9SLWqUCP-oZuvUnFBgPijepUvstxgajAegrV9qI8vJA8cd1gx5nauG1MOhWCTYEl1hOzXZQ1004Mv3dop4fsHX_uBXx2LWdauA_A_gURm9f7wJN-PVkwWizQn4p4A-gnaakivIReEfdTkwGx445exLRa7xGGqXcLFpsibXNxu_CYj4xHuDd-fuv88-jwcpirMlfDP')"></div>
+<!-- Gradient Scrim Overlays -->
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/60 to-transparent"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-surface-container-lowest/80 via-transparent to-transparent"></div>
+<!-- Top Meta Tags -->
+<div class="relative z-10 flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="bg-primary-container text-on-primary-container font-label-sm text-label-sm px-2 py-0.5 rounded uppercase font-bold tracking-wider shadow-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-on-primary-container animate-pulse"></span>
+            Match Of The Week
+          </span>
+<span class="bg-surface-container-high/90 backdrop-blur-md text-primary font-label-sm text-label-sm px-1.5 py-0.5 rounded tracking-widest">
+            4K 60FPS
+          </span>
+</div>
+<button aria-label="Quick Toggle Score Blur" class="w-7 h-7 rounded-full bg-surface-container-high/80 backdrop-blur-md text-on-surface-variant flex items-center justify-center active:scale-90 transition-transform" id="hero-spoiler-toggle">
+<span class="material-symbols-outlined text-[16px]">visibility_off</span>
+</button>
+</div>
+<!-- Centered Kinetic Play Glyph -->
+<div class="relative z-10 self-center my-auto">
+<div class="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shadow-[0_0_24px_rgba(210,240,0,0.45)] active:scale-95 transition-transform cursor-pointer">
+<span class="material-symbols-outlined text-[28px] translate-x-0.5" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+<!-- Bottom Card Metadata & Quick Action -->
+<div class="relative z-10 flex items-end justify-between gap-2">
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5 text-on-surface-variant mb-0.5">
+<span class="font-label-sm text-label-sm text-primary-container uppercase tracking-wider">UCL Quarter-Final</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-label-sm text-label-sm">12m Extended Recap</span>
+</div>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-wide leading-none truncate">
+            REAL MADRID <span class="text-primary-container">vs</span> MAN CITY
+          </h2>
+<!-- Scoreline Pill with spoiler blur ability -->
+<div class="flex items-center gap-2 mt-1">
+<div class="px-2 py-0.5 rounded bg-surface-container-high/90 backdrop-blur-md flex items-center gap-1.5 cursor-pointer" id="hero-score-badge">
+<span class="font-title-md text-title-md text-primary font-bold">3 - 3</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(Agg 4-4)</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Bernabéu Spectacle</span>
+</div>
+</div>
+<button aria-label="Add to Watchlist" class="w-9 h-9 rounded-full bg-surface-container-high/90 backdrop-blur-md text-on-surface hover:text-primary-container flex items-center justify-center shrink-0 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-[18px]">bookmark_add</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Mobile Quick Filter Bar & Season Selector -->
+<section class="w-full flex flex-col gap-2">
+<div class="px-margin flex items-center justify-between">
+<div class="flex items-center gap-1.5 bg-surface-container-low px-2.5 py-1 rounded">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Season</span>
+<span class="font-label-sm text-label-sm text-primary font-bold">2026/27</span>
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant">expand_more</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px] text-primary-container">bolt</span>
+<span>Instant Recaps</span>
+</div>
+</div>
+<!-- Scrollable Pills Carousel -->
+<div class="w-full overflow-x-auto no-scrollbar flex items-center gap-2 px-margin active:cursor-grabbing">
+<button class="shrink-0 px-3.5 py-1.5 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md font-bold flex items-center gap-1 shadow-[0_0_12px_rgba(210,240,0,0.25)]">
+        All Competitions
+      </button>
+<button class="shrink-0 px-3.5 py-1.5 rounded-full bg-surface-container text-on-surface hover:text-primary-container font-label-md text-label-md transition-colors flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
+        UCL
+      </button>
+<button class="shrink-0 px-3.5 py-1.5 rounded-full bg-surface-container text-on-surface hover:text-primary-container font-label-md text-label-md transition-colors flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+        Premier League
+      </button>
+<button class="shrink-0 px-3.5 py-1.5 rounded-full bg-surface-container text-on-surface hover:text-primary-container font-label-md text-label-md transition-colors">
+        LaLiga
+      </button>
+<button class="shrink-0 px-3.5 py-1.5 rounded-full bg-surface-container text-on-surface hover:text-primary-container font-label-md text-label-md transition-colors">
+        Serie A
+      </button>
+<button class="shrink-0 px-3 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant hover:text-primary-container font-label-md text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary-container">star</span>
+        My Clubs
+      </button>
+</div>
+</section>
+<!-- Competition Rail 1: UEFA Champions League -->
+<section class="w-full flex flex-col gap-2.5">
+<div class="px-margin flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2 h-4 rounded-full bg-tertiary-fixed-dim"></div>
+<h3 class="font-headline-md text-headline-md tracking-wider text-primary leading-none">UEFA CHAMPIONS LEAGUE</h3>
+</div>
+<a class="font-label-md text-label-md text-primary-container flex items-center gap-0.5 group" href="#">
+<span>See All (24)</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+</a>
+</div>
+<!-- 16:9 Thumbnail Reel -->
+<div class="w-full overflow-x-auto no-scrollbar flex items-stretch gap-3 px-margin">
+<!-- Card 1 -->
+<div class="shrink-0 w-64 flex flex-col bg-surface-container-low rounded-lg overflow-hidden group">
+<div class="relative w-full aspect-video bg-surface-container-lowest overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105" data-alt="Arsenal versus Bayern Munich thrilling UEFA Champions League match moment in Emirates Stadium London. Night rain atmosphere, dramatic ball deflection, intense stadium floodlights and electric pitch reflections in dark cinema style." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCPOvVG8XG1UIaw4RboHpb_7sWbMukOIMYFZ_5Ux8u0_Ub7qQrwCvC4QUKdBV4GfRWEIDA3R1dRLw9wh8nfsjOlTvPzJbknH4JGA9wsHbmWziZvEn9RkovIs_LR2QEZkz-on5NjkLmVthOkviS10kNYO3YTOjh0AnQQ8aKWUrEgaC4rsafyjtDgJO8TPjlN7o07BiLueK6hj-irly5o9DxdKamC9ojvVAGkAlLivngA')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent"></div>
+<span class="absolute bottom-2 right-2 bg-surface-container-lowest/90 text-primary font-label-sm text-label-sm px-1.5 py-0.5 rounded tracking-wider backdrop-blur-sm">
+            09:42
+          </span>
+<span class="absolute top-2 left-2 bg-surface-container-high/90 text-tertiary-fixed-dim font-label-sm text-label-sm px-1.5 py-0.5 rounded uppercase font-bold">
+            HIGHLIGHTS
+          </span>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-surface-container-lowest/40">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-[22px] translate-x-0.5" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="p-2.5 flex flex-col flex-1 justify-between gap-1.5">
+<div>
+<h4 class="font-title-md text-title-md text-primary font-bold line-clamp-1 leading-snug">Arsenal vs Bayern Munich</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Saka screamer &amp; Kane penalty thriller</p>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="score-blur cursor-pointer font-title-md text-title-md text-primary font-bold px-1.5 py-0.5 rounded bg-surface-container transition-all blur-sm select-none" data-revealed="false" title="Tap to reveal score">
+              2 - 2
+            </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2h ago</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="shrink-0 w-64 flex flex-col bg-surface-container-low rounded-lg overflow-hidden group">
+<div class="relative w-full aspect-video bg-surface-container-lowest overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105" data-alt="Inter Milan playing Barcelona in San Siro stadium Italy under glowing night broadcast lights. High tension duel, cinematic dark sports photography with saturated teal and lime volt contrast accents." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDNi9BBkuLzHtOzW6asCRX9mVl7uZwcQLc6rUbdOH-kSn02GdZRPLj0TjQkDsfL01J5wfUlLFJGNZs0Gvdmq_FftybehZNYtT97L8x3_T4lNyIOAuBT4AYoZl9EqWDNBJstMdhC1N3aQNP9yU3IAJBksUr4TALSS7KEw6_oE_icerf1FLHV51woKjus4KIQATxd5CmCbLkuXfNt-fLkFawwITLeKvW-tKwdPdnXNXON')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent"></div>
+<span class="absolute bottom-2 right-2 bg-surface-container-lowest/90 text-primary font-label-sm text-label-sm px-1.5 py-0.5 rounded tracking-wider backdrop-blur-sm">
+            14:10
+          </span>
+<span class="absolute top-2 left-2 bg-surface-container-high/90 text-tertiary-fixed-dim font-label-sm text-label-sm px-1.5 py-0.5 rounded uppercase font-bold">
+            EXTENDED
+          </span>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-surface-container-lowest/40">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-[22px] translate-x-0.5" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="p-2.5 flex flex-col flex-1 justify-between gap-1.5">
+<div>
+<h4 class="font-title-md text-title-md text-primary font-bold line-clamp-1 leading-snug">Inter Milan vs Barcelona</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Lautaro brace shocks Camp Nou stars</p>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="score-blur cursor-pointer font-title-md text-title-md text-primary font-bold px-1.5 py-0.5 rounded bg-surface-container transition-all blur-sm select-none" data-revealed="false" title="Tap to reveal score">
+              1 - 0
+            </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">5h ago</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 9:16 Shorts & Fast Clips Snap Reel -->
+<section class="w-full flex flex-col gap-2.5 bg-surface-container-lowest/80 py-4">
+<div class="px-margin flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary-container text-[20px]">bolt</span>
+<h3 class="font-headline-md text-headline-md tracking-wider text-primary leading-none">FAST SHORTS &amp; MOMENTS</h3>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">9:16 Vertical</span>
+</div>
+<!-- Vertical Snap Reel Carousel -->
+<div class="w-full overflow-x-auto no-scrollbar flex items-stretch gap-2.5 px-margin snap-x snap-mandatory">
+<!-- Short 1: Wondergoal -->
+<div class="shrink-0 w-32 aspect-[9/16] rounded-xl bg-surface-container overflow-hidden relative group snap-start cursor-pointer shadow-md">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-110" data-alt="Vertical portrait soccer shot of an incredible overhead bicycle kick goal freezing mid-air in front of crowded goalposts. High speed sports capture, dynamic dust and lighting, dark arena background with lime and scarlet team colors." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCZootAVHpbXXOB_QPWnPDMqt51H9Vv7xlSSeXgZ_aNUxna9dkPXNuIAJv-kKOLsObuKhbOT7OBQYkYAbD4j-ROBrvWf_KZPp3_aPQLcNhpyYQOZMYw_OrRzs8FF1Xz9Ep8VoM5Fd9DsJbbaEOLKEJ6_If3y_Q8TKA6MzDu-1BN_4Dzea7zDkpMhOY1B0jUVy_KroR-pOREezXLNIh6hsNCF4FW64wthecebNeHnZXt')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/20 to-transparent"></div>
+<div class="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold uppercase">
+          GOLAZO
+        </div>
+<div class="absolute bottom-2 left-2 right-2 flex flex-col gap-0.5">
+<p class="font-title-md text-title-md text-primary font-bold leading-tight line-clamp-2">Bellingham 93' Overhead</p>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-primary-container">visibility</span> 4.2M
+          </span>
+</div>
+</div>
+<!-- Short 2: Tactical Cam -->
+<div class="shrink-0 w-32 aspect-[9/16] rounded-xl bg-surface-container overflow-hidden relative group snap-start cursor-pointer shadow-md">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-110" data-alt="Tactical top-down vertical perspective of high pressing football squad formation under stadium lighting. Fluid movement vectors implied, modern tactical analysis presentation with dark slate tones and luminous volt highlights." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBqARcppQJLWSqHd9QML4L9p9XdRPbKNUch5ONsOJW-QREqeGDI_IfBuqgeLFD7MJR2HvhDaog3fOfWmc3zfZrPnBss98TgCxX4dDvFROyb22L8lFt7waRmB6uXGLvRMguIHNGfkz2JmTKjtonzCfpxR06DUPMKTTaQzJB5EMQV9Jq7JFUmqPmWDpRpLIc65T9sFzFWThSACVKxKTtaH8FGD46IE5BkFmpSBmslKfnr')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/20 to-transparent"></div>
+<div class="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-surface-container-high/90 text-primary-container font-label-sm text-label-sm font-bold uppercase">
+          TACTICS
+        </div>
+<div class="absolute bottom-2 left-2 right-2 flex flex-col gap-0.5">
+<p class="font-title-md text-title-md text-primary font-bold leading-tight line-clamp-2">Pep's 3-2-4-1 Inverted Trap</p>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-primary-container">visibility</span> 1.8M
+          </span>
+</div>
+</div>
+<!-- Short 3: Press Room -->
+<div class="shrink-0 w-32 aspect-[9/16] rounded-xl bg-surface-container overflow-hidden relative group snap-start cursor-pointer shadow-md">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-110" data-alt="Vertical mobile frame of passionate football manager speaking at a press conference microphone, flashbulbs gleaming, high contrast press room atmosphere with sharp professional broadcast grading." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDnCi3NELw-LF8CYRChd5D6FHCD4Nqj-OVWGz6ZavJi2xdpesaJ1fRK8Ilhh0MdFDrEZp-8mVc6T8kKWatUoL0MbH80jOQUo7VBPwfjf1jFRDP4t3QvkoELoaA0mKMGJlnMvbZ4h6v_dvmE95rMZ4NNt01jf6I0AZLie-ONK5uXb9IwkbsyeynZvgzvlz1G_CamDL8GYw74FTvJGc-qw6AGzKzMpq5rF6QHSkrOo0LW')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/20 to-transparent"></div>
+<div class="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-surface-container-high/90 text-tertiary-fixed font-label-sm text-label-sm font-bold uppercase">
+          PRESS ROOM
+        </div>
+<div class="absolute bottom-2 left-2 right-2 flex flex-col gap-0.5">
+<p class="font-title-md text-title-md text-primary font-bold leading-tight line-clamp-2">"We Never Feared Them"</p>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-primary-container">visibility</span> 950K
+          </span>
+</div>
+</div>
+<!-- Short 4: Skill Cam -->
+<div class="shrink-0 w-32 aspect-[9/16] rounded-xl bg-surface-container overflow-hidden relative group snap-start cursor-pointer shadow-md">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-110" data-alt="Vertical low angle focus on Brazilian winger doing elastico dribble over opposing defender's sliding challenge. Turf beads scattering, vivid motion blur on football, dramatic stadium spotlights." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCVHyBOQ91_TVccgO_FXbwWB7R2Urbk5RWQ5GSjfJtorGJbSl_tWWmFgEVNoEzoQ3B7kpWJ5YTpd4_X4OipU6l3JLCDvxYuCOAJWPjXXWTIwgIitN0Aicp4wwPmQrkShiqLUlFphdsksIabMPcRtcCN7zBEWCrY3JJMVZYPJHhev97iFe7hdzQ7bhe9w78W8e-70E4k6Mdlh9jRudFJMo500APPnLLjeng9gIYEeClV')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/20 to-transparent"></div>
+<div class="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-surface-container-high/90 text-primary-container font-label-sm text-label-sm font-bold uppercase">
+          SKILL
+        </div>
+<div class="absolute bottom-2 left-2 right-2 flex flex-col gap-0.5">
+<p class="font-title-md text-title-md text-primary font-bold leading-tight line-clamp-2">Double Nutmeg in the Box</p>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-primary-container">visibility</span> 3.1M
+          </span>
+</div>
+</div>
+</div>
+</section>
+<!-- Native In-feed Mobile Sponsor Card (PS5 Pro & EA FC 26) -->
+<section class="px-margin w-full">
+<div class="w-full rounded-xl bg-gradient-to-br from-surface-container via-surface-container-low to-surface-container-lowest p-3.5 flex items-center justify-between gap-3 shadow-lg relative overflow-hidden">
+<!-- Glow Accent -->
+<div class="absolute -right-8 -bottom-8 w-28 h-28 bg-primary-container/10 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[28px] text-tertiary-fixed">sports_esports</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Featured Partner</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="font-label-sm text-label-sm text-primary-container font-bold">EA SPORTS FC™ 26</span>
+</div>
+<h4 class="font-title-md text-title-md text-primary font-bold truncate">Play Like Your Heroes on PS5 Pro</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Experience 120 FPS Match Engine with Ray Tracing</p>
+</div>
+</div>
+<button class="shrink-0 px-3 py-1.5 rounded bg-primary text-on-primary font-label-md text-label-md font-bold uppercase active:scale-95 transition-transform">
+        Explore
+      </button>
+</div>
+</section>
+<!-- Competition Rail 2: Premier League -->
+<section class="w-full flex flex-col gap-2.5">
+<div class="px-margin flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2 h-4 rounded-full bg-secondary-container"></div>
+<h3 class="font-headline-md text-headline-md tracking-wider text-primary leading-none">PREMIER LEAGUE</h3>
+</div>
+<a class="font-label-md text-label-md text-primary-container flex items-center gap-0.5 group" href="#">
+<span>See All (38)</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+</a>
+</div>
+<!-- 16:9 Thumbnail Reel -->
+<div class="w-full overflow-x-auto no-scrollbar flex items-stretch gap-3 px-margin">
+<!-- Card 1: Liverpool vs Man City -->
+<div class="shrink-0 w-64 flex flex-col bg-surface-container-low rounded-lg overflow-hidden group">
+<div class="relative w-full aspect-video bg-surface-container-lowest overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105" data-alt="Liverpool hosting Manchester City at Anfield under glowing stadium lights. Fast paced counter attack moment, red smoke atmosphere in stands, high adrenaline action in dark sports cinema palette." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDBpdJUEy9keXUGP0vEM-578W1c80Uc87HV99WGoBXzhWzUT9hHjluXtGzC2NSmuueeblyQO7TyQzpRLTKSyLBXTH1K-me1heHWQoMoTlM9tIybUHxRjZbgB_Gb5nvz7N55K7VcNWD4x8I7YAMRCJMDzxkpsHfGbFxGIPx4NSeB_lSaJYFm7APja76X2xHppXjqXXgLXWQShTd_SjQQzEmBCaQfSOlZbendFAt8HkJA')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent"></div>
+<span class="absolute bottom-2 right-2 bg-surface-container-lowest/90 text-primary font-label-sm text-label-sm px-1.5 py-0.5 rounded tracking-wider backdrop-blur-sm">
+            11:15
+          </span>
+<span class="absolute top-2 left-2 bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-1.5 py-0.5 rounded uppercase font-bold">
+            HIGHLIGHTS
+          </span>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-surface-container-lowest/40">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-[22px] translate-x-0.5" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="p-2.5 flex flex-col flex-1 justify-between gap-1.5">
+<div>
+<h4 class="font-title-md text-title-md text-primary font-bold line-clamp-1 leading-snug">Liverpool vs Manchester City</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Anfield classic decided in 89th minute</p>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="score-blur cursor-pointer font-title-md text-title-md text-primary font-bold px-1.5 py-0.5 rounded bg-surface-container transition-all blur-sm select-none" data-revealed="false" title="Tap to reveal score">
+              2 - 1
+            </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Yesterday</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Chelsea vs Spurs -->
+<div class="shrink-0 w-64 flex flex-col bg-surface-container-low rounded-lg overflow-hidden group">
+<div class="relative w-full aspect-video bg-surface-container-lowest overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-105" data-alt="London Derby Chelsea facing Tottenham Hotspur in Stamford Bridge under electric blue floodlights. Fiery tackle contest with wet pitch spray, dramatic referee confrontation in cinematic high clarity." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCcsyX3XVM5kPCgW4IC8mzQeIyYzvjOXxJ2Nsav78dsZHoMnVKWOKEjc7rRlNf6RyoKEUrR3PN6wGRZp0lXRCxeWx0lNb03S8n3opskAvLZbR9uM4QhyA9bEodehH1pUPwwzJZ6Obe8UoeNSWMnvlPynPTx0YYOciJcshROmOH1NAssJ4NRF1Fnh_Dmtxh1mBLPzWQRXFKWV9S-bgOJN3Cio-c5XbKQXth3SqoI9srn')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent"></div>
+<span class="absolute bottom-2 right-2 bg-surface-container-lowest/90 text-primary font-label-sm text-label-sm px-1.5 py-0.5 rounded tracking-wider backdrop-blur-sm">
+            08:50
+          </span>
+<span class="absolute top-2 left-2 bg-surface-container-high/90 text-primary font-label-sm text-label-sm px-1.5 py-0.5 rounded uppercase font-bold">
+            DERBY
+          </span>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-surface-container-lowest/40">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-[22px] translate-x-0.5" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="p-2.5 flex flex-col flex-1 justify-between gap-1.5">
+<div>
+<h4 class="font-title-md text-title-md text-primary font-bold line-clamp-1 leading-snug">Chelsea vs Tottenham Hotspur</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Red card drama and late penalty save</p>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="score-blur cursor-pointer font-title-md text-title-md text-primary font-bold px-1.5 py-0.5 rounded bg-surface-container transition-all blur-sm select-none" data-revealed="false" title="Tap to reveal score">
+              1 - 1
+            </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2 days ago</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom App Promo Card & Spoiler-free notification banner -->
+<section class="px-margin w-full flex flex-col gap-3">
+<!-- Spoiler Free Mode Banner Info -->
+<div class="w-full rounded-lg bg-surface-container-high/60 backdrop-blur-sm p-3 flex items-start gap-2.5">
+<div class="w-7 h-7 rounded bg-primary-container/20 text-primary-container flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<span class="font-title-md text-title-md text-primary leading-tight font-bold">Spoiler-Free Mode Enabled</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">All scorelines are frosted until tapped. Relive matches completely blind with pure adrenaline.</p>
+</div>
+</div>
+<!-- Mobile App Download Badge Card -->
+<div class="w-full rounded-xl bg-surface-container p-4 flex flex-col gap-3 shadow-lg relative overflow-hidden">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-primary-container text-on-primary-container flex items-center justify-center font-bold">
+<span class="material-symbols-outlined text-[20px]">download</span>
+</div>
+<div>
+<h4 class="font-title-md text-title-md text-primary font-bold leading-none">FootballClips Mobile App</h4>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Offline caching &amp; Instant 4K match pings</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-2.5 pt-1">
+<button class="flex-1 py-2 px-3 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface flex items-center justify-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px] text-tertiary-fixed">android</span>
+<div class="flex flex-col text-left">
+<span class="font-label-sm text-label-sm uppercase leading-none text-on-surface-variant">GET IT ON</span>
+<span class="font-title-md text-title-md text-primary font-bold leading-tight">Google Play</span>
+</div>
+</button>
+<button class="flex-1 py-2 px-3 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface flex items-center justify-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px] text-primary">phone_iphone</span>
+<div class="flex flex-col text-left">
+<span class="font-label-sm text-label-sm uppercase leading-none text-on-surface-variant">Download on</span>
+<span class="font-title-md text-title-md text-primary font-bold leading-tight">App Store</span>
+</div>
+</button>
+</div>
+</div>
+</section>
+</div>
+<script>
+  // Micro-interaction: Interactive Spoiler Blur Toggle on scores
+  document.addEventListener('DOMContentLoaded', () => {
+    const scoreBadges = document.querySelectorAll('.score-blur');
+    scoreBadges.forEach(badge => {
+      // Start slightly blurred for delight
+      badge.classList.add('blur-sm', 'select-none');
+      badge.setAttribute('title', 'Tap to reveal score');
+
+      badge.addEventListener('click', () => {
+        const isRevealed = badge.getAttribute('data-revealed') === 'true';
+        if (isRevealed) {
+          badge.classList.add('blur-sm', 'select-none');
+          badge.setAttribute('data-revealed', 'false');
+        } else {
+          badge.classList.remove('blur-sm', 'select-none');
+          badge.classList.add('bg-primary-container', 'text-on-primary-container');
+          badge.setAttribute('data-revealed', 'true');
+        }
+      });
+    });
+
+    // Hero score toggle
+    const heroScore = document.getElementById('hero-score-badge');
+    const heroSpoilerBtn = document.getElementById('hero-spoiler-toggle');
+    if (heroScore && heroSpoilerBtn) {
+      let heroHidden = false;
+      heroSpoilerBtn.addEventListener('click', () => {
+        heroHidden = !heroHidden;
+        if (heroHidden) {
+          heroScore.classList.add('blur-md');
+          heroSpoilerBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">visibility</span>';
+        } else {
+          heroScore.classList.remove('blur-md');
+          heroSpoilerBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">visibility_off</span>';
+        }
+      });
+    }
+  });
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-4px_16px_rgba(0,0,0,0.45)]" data-active-classes="text-primary-container font-bold"><div class="flex items-center justify-around h-16 px-space-xs"><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] h-12 transition-colors text-primary-container font-bold" data-path="highlights" href="#"><span class="material-symbols-outlined text-[22px]">smart_display</span><span class="font-label-sm text-label-sm tracking-wide mt-1">Highlights</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-on-surface-variant hover:text-on-surface transition-colors" data-path="shorts" href="#"><span class="material-symbols-outlined text-[22px]">play_circle</span><span class="font-label-sm text-label-sm tracking-wide mt-1">Shorts</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-on-surface-variant hover:text-on-surface transition-colors" data-path="fixtures" href="#"><span class="material-symbols-outlined text-[22px]">sports_soccer</span><span class="font-label-sm text-label-sm tracking-wide mt-1">Fixtures</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-on-surface-variant hover:text-on-surface transition-colors" data-path="standings" href="#"><span class="material-symbols-outlined text-[22px]">leaderboard</span><span class="font-label-sm text-label-sm tracking-wide mt-1">Standings</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-on-surface-variant hover:text-on-surface transition-colors" data-path="more-profile" href="#"><span class="material-symbols-outlined text-[22px]">tune</span><span class="font-label-sm text-label-sm tracking-wide mt-1">More</span></a></div></nav>
+
+</body></html>

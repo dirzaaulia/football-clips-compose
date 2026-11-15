@@ -30,21 +30,17 @@ fun ScoreViewModel.getStandings(
             season = season
         )
         
-        val matches = if (matchRes is NetworkResult.Success) matchRes.data.map { it.toMatch() } else emptyList()
+        val matches = if (matchRes is NetworkResult.Success) {
+            matchRes.data.map { it.toMatch(oracleVmRepository.getCompetitionEmblem(it.competitionId)) }
+        } else {
+            emptyList()
+        }
         val hasKnockouts = matches.any { it.roundName != null && !it.roundName.contains("Regular", ignoreCase = true) }
         val hasLeaguePhase = matches.any { it.matchday != null }
 
         val compDef = oracleVmRepository.competitions.value.firstOrNull { it.id.equals(compId, ignoreCase = true) }
-        val isCup = if (compDef != null) {
-            compDef.isCup
-        } else {
-            compId in setOf("FAC", "EFL", "CDR", "DFB", "CIT") || (hasKnockouts && !hasLeaguePhase)
-        }
-        val isHybrid = if (compDef != null) {
-            compDef.isHybrid
-        } else {
-            compId in setOf("CL", "EL", "ECL") || (hasKnockouts && hasLeaguePhase)
-        }
+        val isCup = compDef?.isCup ?: (hasKnockouts && !hasLeaguePhase)
+        val isHybrid = compDef?.isHybrid ?: (hasKnockouts && hasLeaguePhase)
 
         if (isCup) {
             if (matchRes is NetworkResult.Success) {
@@ -137,10 +133,16 @@ fun ScoreViewModel.getMatches() {
                     val isMyClubsOnly = isMyClubsFilterActive.value
                     val clubs = supportedClubs.value
 
-                    val baseMatches = result.data.map { it.toMatch() }
+                    val baseMatches = result.data.map {
+                        it.toMatch(oracleVmRepository.getCompetitionEmblem(it.competitionId))
+                    }
                     val liveMatchesList = if (!isArchiveSeason && !isLiveOnly && (isToday || selDate == null)) {
                         val liveRes = oracleVmRepository.getLiveMatches()
-                        if (liveRes is NetworkResult.Success) liveRes.data.map { it.toMatch() } else emptyList()
+                        if (liveRes is NetworkResult.Success) {
+                            liveRes.data.map { it.toMatch(oracleVmRepository.getCompetitionEmblem(it.competitionId)) }
+                        } else {
+                            emptyList()
+                        }
                     } else {
                         emptyList()
                     }

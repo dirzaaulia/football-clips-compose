@@ -64,6 +64,10 @@ func (m *mockMatchRepo) GetMatchChannels(ctx context.Context, match domain.Match
 	return []string{"UC_arsenal", "UC_chelsea"}, nil
 }
 
+func (m *mockMatchRepo) GetActiveCompetitionIDs(ctx context.Context) ([]string, error) {
+	return []string{"PL", "CL", "UNL"}, nil
+}
+
 func TestSyncScoresShadowMode(t *testing.T) {
 	ctx := context.Background()
 	now := time.Now().UTC()

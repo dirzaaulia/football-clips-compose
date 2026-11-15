@@ -7,54 +7,48 @@ import { useCompetitions, isLeagueMatch } from '@/hooks/useCompetitions';
 import { isMatchForFavoriteClubs, useSupportedClubs } from '@/hooks/useSupportedClubs';
 import { useInfiniteHighlights } from '@/hooks/useCatalogHighlights';
 import { useMyClubs } from '@/hooks/useMyClubs';
-import { useDragScroll } from '@/hooks/useDragScroll';
-import ExcitementCarousel from '@/components/hero/ExcitementCarousel';
-import LiveMatchSection from '@/components/live/LiveMatchSection';
-import HighlightCard from '@/components/feed/HighlightCard';
-import HighlightCardSkeleton from '@/components/feed/HighlightCardSkeleton';
-import NativeInFeedAdCard from '@/components/ads/NativeInFeedAdCard';
-import AdSenseBanner from '@/components/ads/AdSenseBanner';
-import CompetitionSectionHeader from '@/components/feed/CompetitionSectionHeader';
+import { useSpoilerFree } from '@/hooks/useSpoilerFree';
+import HeroBillboard from '@/components/hero/HeroBillboard';
+import LeagueFilterSubBar from '@/components/layout/LeagueFilterSubBar';
+import LiveMatchTickerStrip from '@/components/layout/LiveMatchTickerStrip';
+import FeedLoadingSkeleton from '@/components/feed/FeedLoadingSkeleton';
+import HomeHighlightsFeed from '@/components/feed/HomeHighlightsFeed';
 import HomeModalsAndOverlays from '@/components/feed/HomeModalsAndOverlays';
-import SeasonSelector from '@/components/filter/SeasonSelector';
-import CompetitionFilterBar from '@/components/feed/CompetitionFilterBar';
 import InfiniteScrollSentinel from '@/components/feed/InfiniteScrollSentinel';
 import MyClubsStoreShelf from '@/components/affiliate/MyClubsStoreShelf';
 import { groupFeedMatchesByCompetition } from '@/components/feed/feedGroupHelpers';
 import { useSeason } from '@/hooks/useSeason';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { useMerchandisePreference } from '@/hooks/useMerchandisePreference';
-import { Trophy } from 'lucide-react';
 import { trackScreenView, trackSessionStart } from '@/lib/analytics';
 
 interface HomeInteractiveFeedProps {
   initialMatches?: MatchRecord[];
   initialLiveMatches?: MatchRecord[];
+  recentMatches?: MatchRecord[];
 }
 
 export default function HomeInteractiveFeed({
   initialMatches = [],
   initialLiveMatches = [],
+  recentMatches,
 }: HomeInteractiveFeedProps) {
   const { selectedSeason } = useSeason();
   const { playVideo, closePlayer, isSideSheetOpen, activeMatch } = useVideoPlayer();
-  const [liveMatches, setLiveMatches] = useState<MatchRecord[]>(initialLiveMatches);
+  const { isSpoilerFree } = useSpoilerFree();
   const [selectedComp, setSelectedComp] = useState('ALL');
   const [isMyClubsActive, setIsMyClubsActive] = useState(false);
   const [isMyClubsModalOpen, setIsMyClubsModalOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showEducation, setShowEducation] = useState(false);
   const [activeVideoMatch, setActiveVideoMatch] = useState<MatchRecord | null>(null);
-  const [mounted, setMounted] = useState(false);
   const [isMountEntrance, setIsMountEntrance] = useState(true);
 
-  // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [selectedLeagues, setSelectedLeagues] = useState<string[]>([]);
   const { favoriteClubs, favoriteCount } = useMyClubs();
   const { isMerchandiseEnabled } = useMerchandisePreference();
-  const scrollRef = useDragScroll<HTMLDivElement>();
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [collapsedCompIds, setCollapsedCompIds] = useState<Set<string>>(new Set());
 
@@ -70,30 +64,22 @@ export default function HomeInteractiveFeed({
   useEffect(() => {
     trackSessionStart();
     trackScreenView('Home');
-    setMounted(true);
     if (typeof window !== 'undefined' && !localStorage.getItem('is_spoiler_free_configured')) {
       setShowEducation(true);
     }
-    const timer = setTimeout(() => setIsMountEntrance(false), 600);
+    const timer = setTimeout(() => setIsMountEntrance(false), 300);
     return () => clearTimeout(timer);
   }, []);
 
-  const filterKey = `${selectedComp}-${selectedSeason}-${searchQuery.trim()}`;
-  const prevFilterKeyRef = useRef(filterKey);
-  const catalog = useInfiniteHighlights(selectedComp, selectedSeason, 20, searchQuery);
   const isDefaultFeed = selectedComp === 'ALL' && selectedSeason === 2026 && !searchQuery.trim();
-  const isTransitioning = filterKey !== prevFilterKeyRef.current;
-  const isFilterLoading = (isTransitioning || catalog.isFetching || catalog.isLoading || catalog.isPending) && (!isDefaultFeed || isTransitioning);
+  const catalog = useInfiniteHighlights(selectedComp, selectedSeason, 20, searchQuery);
 
-  useEffect(() => {
-    if (!catalog.isFetching && !catalog.isLoading) {
-      prevFilterKeyRef.current = filterKey;
-    }
-  }, [catalog.isFetching, catalog.isLoading, filterKey]);
+  const matches = catalog.highlights.length > 0
+    ? catalog.highlights
+    : (isDefaultFeed ? initialMatches : []);
 
-  const matches = (isFilterLoading && isTransitioning) ? [] : catalog.highlights.length > 0 ? catalog.highlights : (isDefaultFeed ? initialMatches : []);
-  const isInitialLoading = isMountEntrance || (catalog.isLoading && initialMatches.length === 0) || isFilterLoading;
-  const loading = { initial: isInitialLoading, more: catalog.isLoadingMore, hasMore: catalog.hasMore };
+  const isFeedLoading = (catalog.isLoading || catalog.isFetching) && matches.length === 0;
+  const loading = { initial: isFeedLoading, more: catalog.isLoadingMore, hasMore: catalog.hasMore };
   const handleLoadMore = catalog.loadMore;
 
   useEffect(() => {
@@ -127,7 +113,7 @@ export default function HomeInteractiveFeed({
   }, [matches, isMyClubsActive, favoriteClubs, searchQuery, selectedCountries, selectedLeagues, supportedClubs]);
 
   const displayedLiveMatches = useMemo(() => {
-    return liveMatches.filter((m) => {
+    return initialLiveMatches.filter((m) => {
       if (isMyClubsActive && favoriteClubs.size > 0) {
         if (!isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs, supportedClubs)) return false;
       } else if (selectedComp !== 'ALL' && competition) {
@@ -136,7 +122,7 @@ export default function HomeInteractiveFeed({
       }
       return true;
     });
-  }, [liveMatches, isMyClubsActive, favoriteClubs, selectedComp, competition, supportedClubs]);
+  }, [initialLiveMatches, isMyClubsActive, favoriteClubs, selectedComp, competition, supportedClubs]);
 
   const groupedFeedMatches = useMemo(() => {
     if (selectedComp !== 'ALL' || searchQuery.trim() || selectedCountries.length > 0 || selectedLeagues.length > 0 || isMyClubsActive) {
@@ -147,117 +133,62 @@ export default function HomeInteractiveFeed({
 
   const activeFilterCount = (searchQuery ? 1 : 0) + selectedCountries.length + selectedLeagues.length;
 
+  const heroCandidateMatches = useMemo(() => {
+    if (initialMatches.length > 0) return initialMatches;
+    return recentMatches || [];
+  }, [initialMatches, recentMatches]);
+
   return (
-    <div className="space-y-6">
-      <ExcitementCarousel
-        matches={matches}
+    <div className="w-full">
+      {/* Full-Bleed Edge-to-Edge DAZN Hero Billboard */}
+      <HeroBillboard
+        matches={heroCandidateMatches}
+        match={heroCandidateMatches[0]}
         onPlay={(m) => { setActiveVideoMatch(m); playVideo(m); }}
-        isLoading={loading.initial}
+        isLoading={isMountEntrance && heroCandidateMatches.length === 0}
       />
 
-      <LiveMatchSection liveMatches={displayedLiveMatches} className="mt-6" />
+      {/* Boxed Content Container below Hero */}
+      <div className="max-w-[1600px] w-full mx-auto px-3.5 sm:px-6 lg:px-8 2xl:px-10 py-4 space-y-6">
+        {/* Top Live Ticker Strip */}
+        <LiveMatchTickerStrip
+          liveMatches={displayedLiveMatches}
+          onPlayMatch={(m) => { setActiveVideoMatch(m); playVideo(m); }}
+        />
 
-      {/* Filter & Competition Bar (Sticky) */}
-      <section className="sticky top-0 z-30 bg-[#101418]/95 backdrop-blur-xl py-2 my-4 border-b border-white/5 shadow-md">
-        <div className="flex items-center justify-between pb-2 border-b border-[#334155]/40 mb-3">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-4 h-4 text-[#7098F8]" />
-            <h2 className="text-base font-extrabold text-white tracking-tight">Recent Highlights</h2>
-          </div>
-          <div className="flex items-center gap-3">
-            <SeasonSelector variant="compact" />
-            <span className="hidden sm:inline text-xs text-[#94A3B8] font-medium">Verified Publisher Feeds</span>
-          </div>
-        </div>
-
-        <CompetitionFilterBar
+        {/* League Filter Sub-Bar with Integrated Search */}
+        <LeagueFilterSubBar
           selectedComp={selectedComp}
           onSelectComp={(comp) => { setIsMyClubsActive(false); setSelectedComp(comp); }}
-          isMyClubsActive={isMyClubsActive}
-          onToggleMyClubs={() => favoriteCount === 0 ? setIsMyClubsModalOpen(true) : setIsMyClubsActive(!isMyClubsActive)}
-          favoriteCount={favoriteCount}
-          mounted={mounted}
-          onOpenFilter={() => setIsFilterOpen(true)}
-          activeFilterCount={activeFilterCount}
-          scrollRef={scrollRef}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-        />
-      </section>
+        favoriteCount={favoriteCount}
+        isMyClubsActive={isMyClubsActive}
+        onToggleMyClubs={() => setIsMyClubsActive((prev) => !prev)}
+        onOpenFilter={() => setIsFilterOpen(true)}
+        activeFilterCount={activeFilterCount}
+      />
 
       {isMerchandiseEnabled && isMyClubsActive && (
-        <MyClubsStoreShelf onOpenMyClubs={() => setIsMyClubsModalOpen(true)} className="mb-6" />
+        <MyClubsStoreShelf onOpenMyClubs={() => setIsMyClubsModalOpen(true)} className="mb-4" />
       )}
 
-      {/* Highlights Feed: Grouped by Competition when ALL, else Flat Grid */}
-      {loading.initial || isFilterLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 my-6">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <HighlightCardSkeleton key={`skeleton-${i}`} />
-          ))}
-        </div>
-      ) : displayedMatches.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 text-center rounded-2xl bg-[#181C20] border border-[#334155]/60 my-6">
-          <Trophy className="w-10 h-10 text-[#94A3B8] mb-3 opacity-40" />
-          <h3 className="text-base font-bold text-white">No Highlights Found</h3>
-          <p className="text-xs text-[#94A3B8] mt-1 max-w-sm">
-            No highlights match your selected competition or filters. Try clearing your filters or selecting another league.
-          </p>
-        </div>
-      ) : groupedFeedMatches ? (
-        <div className="space-y-6 my-6">
-          {groupedFeedMatches.map((group, groupIdx) => {
-            const displayItems = group.matches.slice(0, 20);
-            const isExpanded = !collapsedCompIds.has(group.compId);
-            return (
-              <React.Fragment key={group.compId}>
-                <div className="space-y-4">
-                  <CompetitionSectionHeader
-                    name={group.name}
-                    emblemUrl={group.emblem}
-                    isExpanded={isExpanded}
-                    onToggleExpand={() => toggleCollapse(group.compId)}
-                    onSeeAll={() => setSelectedComp(group.compId)}
-                  />
-                  {isExpanded && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 animate-in fade-in duration-200">
-                      {displayItems.map((m) => (
-                        <HighlightCard
-                          key={m.id}
-                          match={m}
-                          onPlay={(sel) => {
-                            setActiveVideoMatch(sel);
-                            playVideo(sel);
-                          }}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Ad between competition sections every 2-3 sections */}
-                {(groupIdx + 1) % 3 === 0 && groupIdx < groupedFeedMatches.length - 1 && (
-                  <AdSenseBanner slotId="5616816386" format="auto" className="my-6" />
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
+      {/* Highlights Feed: Grouped Rails or Full Multi-Column Grid */}
+      {loading.initial ? (
+        <FeedLoadingSkeleton isGrouped={selectedComp === 'ALL' && !searchQuery.trim()} />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 my-6 animate-in fade-in duration-300">
-          {displayedMatches.map((m, idx) => (
-            <React.Fragment key={m.id}>
-              <HighlightCard
-                match={m}
-                onPlay={(sel) => {
-                  setActiveVideoMatch(sel);
-                  playVideo(sel);
-                }}
-              />
-              {idx > 0 && idx % 6 === 0 && <NativeInFeedAdCard slotId="5616816386" />}
-            </React.Fragment>
-          ))}
-        </div>
+        <HomeHighlightsFeed
+          displayedMatches={displayedMatches}
+          groupedFeedMatches={groupedFeedMatches}
+          recentMatches={recentMatches || initialMatches}
+          collapsedCompIds={collapsedCompIds}
+          toggleCollapse={toggleCollapse}
+          setSelectedComp={setSelectedComp}
+          onPlay={(sel) => {
+            setActiveVideoMatch(sel);
+            playVideo(sel);
+          }}
+        />
       )}
 
       <InfiniteScrollSentinel
@@ -267,6 +198,7 @@ export default function HomeInteractiveFeed({
         hasMatches={displayedMatches.length > 0}
         initialLoading={loading.initial}
       />
+      </div>
 
       <HomeModalsAndOverlays
         currentMatch={activeVideoMatch || activeMatch}

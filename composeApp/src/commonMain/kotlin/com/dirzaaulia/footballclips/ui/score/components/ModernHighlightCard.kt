@@ -53,10 +53,10 @@ fun ModernHighlightCard(
                 },
             ),
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
+        color = com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1,
         border = BorderStroke(
             width = if (isFavorite) 1.5.dp else 1.dp,
-            color = if (isFavorite) Color(0xFFFFB300).copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+            color = if (isFavorite) com.dirzaaulia.footballclips.ui.theme.VoltLime.copy(alpha = 0.6f) else com.dirzaaulia.footballclips.ui.theme.GhostBorder,
         ),
         shadowElevation = 2.dp,
     ) {

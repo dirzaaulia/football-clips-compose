@@ -13,32 +13,6 @@ interface LiveMatchSectionProps {
   className?: string;
 }
 
-const ESPN_COMPETITION_LOGOS: Record<string, string> = {
-  CL: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2.png',
-  EL: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2310.png',
-  ECL: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/20296.png',
-  PL: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/23.png',
-  PD: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/15.png',
-  SA: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/12.png',
-  BL1: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/10.png',
-  FL1: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/9.png',
-  FAC: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/40.png',
-  EFL: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/41.png',
-  CDR: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/80.png',
-  DFB: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2061.png',
-  CIT: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/83.png',
-  PPL: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/14.png',
-  DED: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/11.png',
-  MLS: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/19.png',
-  SPL: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2488.png',
-  IDN: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2336.png',
-  LIB: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/58.png',
-  SUD: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/1208.png',
-  REC: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/2335.png',
-  BRA: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/85.png',
-  ARG: 'https://a.espncdn.com/i/leaguelogos/soccer/500-dark/1.png',
-};
-
 function TeamLiveCrest({ crestUrl, teamName }: { crestUrl?: string | null; teamName: string }) {
   return (
     <GlassLogoBadge
@@ -52,6 +26,24 @@ function TeamLiveCrest({ crestUrl, teamName }: { crestUrl?: string | null; teamN
 
 export default function LiveMatchSection({ liveMatches, className = '' }: LiveMatchSectionProps) {
   const { playVideo } = useVideoPlayer();
+  const [emblems, setEmblems] = React.useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    fetch('/api/competitions')
+      .then((res) => res.json())
+      .then((data: Array<{ id: string; code?: string; emblem_url?: string }>) => {
+        if (!Array.isArray(data)) return;
+        const map: Record<string, string> = {};
+        data.forEach((c) => {
+          if (c.emblem_url) {
+            map[c.id.toUpperCase()] = c.emblem_url;
+            if (c.code) map[c.code.toUpperCase()] = c.emblem_url;
+          }
+        });
+        setEmblems(map);
+      })
+      .catch(() => {});
+  }, []);
 
   const groupedLive = React.useMemo(() => {
     if (!liveMatches || liveMatches.length === 0) return [];
@@ -91,7 +83,7 @@ export default function LiveMatchSection({ liveMatches, className = '' }: LiveMa
       <div className="space-y-6">
         {groupedLive.map(([competitionName, matches]) => {
           const compCode = matches[0]?.competition_id;
-          const compLogo = compCode ? ESPN_COMPETITION_LOGOS[compCode] : null;
+          const compLogo = compCode ? (emblems[compCode.toUpperCase()] || matches[0]?.country_logo || null) : null;
 
           return (
             <div key={competitionName} className="space-y-3">

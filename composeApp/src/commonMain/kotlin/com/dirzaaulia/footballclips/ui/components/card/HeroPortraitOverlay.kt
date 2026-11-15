@@ -1,7 +1,9 @@
 package com.dirzaaulia.footballclips.ui.components.card
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,20 +11,30 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
+import com.dirzaaulia.footballclips.ui.components.common.PulsingRadarDot
+import com.dirzaaulia.footballclips.ui.theme.MatchPulseRed
+import com.dirzaaulia.footballclips.ui.theme.VoltLime
+import com.dirzaaulia.footballclips.ui.theme.VoltLimeDarkText
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 @Composable
@@ -36,25 +48,51 @@ internal fun BoxScope.HeroPortraitOverlay(
     homeLogo: String,
     awayLogo: String,
 ) {
+    // Top-Right Hype / Featured Tag
     Surface(
-        color = MaterialTheme.colorScheme.primary,
-        shape = RoundedCornerShape(bottomStart = 16.dp),
+        color = Color.Black.copy(alpha = 0.75f),
+        shape = RoundedCornerShape(bottomStart = 16.dp, topEnd = 14.dp),
+        border = BorderStroke(1.dp, VoltLime.copy(alpha = 0.3f)),
         modifier = Modifier.align(Alignment.TopEnd),
     ) {
-        Text(
-            text = excitementTag?.uppercase() ?: "FEATURED",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onPrimary,
-            fontWeight = FontWeight.Black,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            letterSpacing = 1.sp,
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            PulsingRadarDot(color = MatchPulseRed, size = 6.dp)
+            Text(
+                text = excitementTag?.uppercase() ?: "MATCH OF THE WEEK",
+                color = VoltLime,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.sp,
+            )
+        }
+    }
+
+    // Center Kinetic Volt Lime Play Glyph
+    Box(
+        modifier = Modifier
+            .size(if (isCinematic) 56.dp else 44.dp)
+            .align(Alignment.Center)
+            .clip(CircleShape)
+            .background(VoltLime),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Default.PlayArrow,
+            contentDescription = "Play",
+            tint = VoltLimeDarkText,
+            modifier = Modifier.size(if (isCinematic) 32.dp else 26.dp),
         )
     }
 
+    // Bottom Match Details
     Column(
         modifier = Modifier
             .align(Alignment.BottomStart)
-            .padding(if (isCinematic) 40.dp else 20.dp),
+            .padding(if (isCinematic) 32.dp else 16.dp),
     ) {
         HeroPortraitLeagueBadge(
             isCinematic = isCinematic,
@@ -62,19 +100,19 @@ internal fun BoxScope.HeroPortraitOverlay(
             leagueName = leagueName,
         )
 
-        Spacer(modifier = Modifier.height(if (isCinematic) 16.dp else 8.dp))
+        Spacer(modifier = Modifier.height(if (isCinematic) 12.dp else 6.dp))
 
         Text(
             text = title,
-            style = if (isCinematic) MaterialTheme.typography.displaySmall else MaterialTheme.typography.headlineSmall,
+            style = if (isCinematic) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.titleLarge,
             color = Color.White,
             fontWeight = FontWeight.ExtraBold,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            lineHeight = if (isCinematic) 42.sp else 28.sp,
+            lineHeight = if (isCinematic) 32.sp else 24.sp,
         )
 
-        Spacer(modifier = Modifier.height(if (isCinematic) 32.dp else 16.dp))
+        Spacer(modifier = Modifier.height(if (isCinematic) 20.dp else 10.dp))
 
         HeroPortraitFooter(
             isCinematic = isCinematic,
@@ -96,25 +134,18 @@ private fun HeroPortraitLeagueBadge(
             GlassLogoBadge(
                 model = leagueLogo.toProxyUrl(),
                 contentDescription = leagueName,
-                size = if (isCinematic) 36.dp else 28.dp,
-                padding = if (isCinematic) 4.dp else 3.dp,
+                size = if (isCinematic) 32.dp else 24.dp,
+                padding = if (isCinematic) 3.dp else 2.dp,
             )
-            Spacer(modifier = Modifier.width(if (isCinematic) 12.dp else 8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
         }
-        Surface(
-            color = MaterialTheme.colorScheme.primary,
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
-        ) {
-            Text(
-                text = leagueName.uppercase(),
-                color = MaterialTheme.colorScheme.onPrimary,
-                style = if (isCinematic) MaterialTheme.typography.labelLarge else MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Black,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                letterSpacing = 1.sp,
-            )
-        }
+        Text(
+            text = leagueName.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.8f),
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp,
+        )
     }
 }
 
@@ -127,27 +158,21 @@ private fun HeroPortraitFooter(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column {
-            Text(
-                text = "Watch Highlight",
-                color = Color.White,
-                style = if (isCinematic) MaterialTheme.typography.titleLarge else MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Black,
-            )
-            Text(
-                text = date,
-                color = Color.White.copy(alpha = 0.6f),
-                style = if (isCinematic) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodySmall,
-            )
-        }
+        Text(
+            text = date,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.6f),
+            fontWeight = FontWeight.Medium,
+        )
 
-        Row {
-            TeamLogoFeatured(homeLogo, isCinematic)
-            Spacer(modifier = Modifier.width(if (isCinematic) 12.dp else 8.dp))
-            TeamLogoFeatured(awayLogo, isCinematic)
+        if (homeLogo.isNotEmpty()) {
+            TeamLogoFeatured(
+                logo = homeLogo,
+                isCinematic = isCinematic,
+            )
         }
     }
 }

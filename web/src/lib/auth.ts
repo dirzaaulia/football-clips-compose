@@ -102,7 +102,18 @@ export async function signInWithGoogle() {
   // @ts-expect-error Google Identity Services global
   if (window.google?.accounts?.id?.prompt) {
     // @ts-expect-error Google Identity Services global
-    window.google.accounts.id.prompt();
+    window.google.accounts.id.prompt((notification: {
+      isNotDisplayed?: () => boolean;
+      getNotDisplayedReason?: () => string;
+      isSkippedMoment?: () => boolean;
+      getSkippedReason?: () => string;
+    }) => {
+      if (notification?.isNotDisplayed?.()) {
+        console.warn('Google One Tap not displayed:', notification.getNotDisplayedReason?.());
+      } else if (notification?.isSkippedMoment?.()) {
+        console.warn('Google One Tap skipped:', notification.getSkippedReason?.());
+      }
+    });
   }
 }
 

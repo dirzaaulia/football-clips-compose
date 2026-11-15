@@ -91,7 +91,7 @@ export default function WebPitchRadarCanvas({
   };
 
   return (
-    <div className="relative aspect-[1.54/1] w-full rounded-2xl overflow-hidden bg-[#0A1A0E] border border-emerald-900/60 shadow-[inset_0_2px_14px_rgba(0,0,0,0.85)]">
+    <div className="relative aspect-[1.54/1] w-full rounded-2xl overflow-hidden bg-[#0A0A0C] border border-white/10 shadow-[inset_0_2px_24px_rgba(0,0,0,0.95)]">
       <svg
         ref={svgRef}
         onClick={handlePitchClick}
@@ -103,8 +103,8 @@ export default function WebPitchRadarCanvas({
             <feDropShadow dx="0" dy="0.3" stdDeviation="0.4" floodColor="#000000" floodOpacity="0.8" />
           </filter>
           <linearGradient id="dangerConeGrad" x1={sx ? `${(sx / 105) * 100}%` : '50%'} y1="50%" x2={tx && tx > 50 ? '100%' : '0%'} y2="50%">
-            <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="#FBBF24" stopOpacity="0.08" />
+            <stop offset="0%" stopColor="#DFFF00" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#38BDF8" stopOpacity="0.05" />
           </linearGradient>
           <radialGradient id="ballShade" cx="35%" cy="35%" r="65%">
             <stop offset="0%" stopColor="#FFFFFF" />
@@ -113,23 +113,29 @@ export default function WebPitchRadarCanvas({
           </radialGradient>
         </defs>
 
-        {/* FM Alternating Turf Stripes */}
+        {/* Obsidian Tactical Alternating Bands */}
         {Array.from({ length: 9 }).map((_, i) => (
-          <rect key={i} x={i * 11.66} y={0} width={11.66} height={68} fill={i % 2 === 0 ? '#0B2213' : '#0F2C18'} />
+          <rect key={i} x={i * 11.66} y={0} width={11.66} height={68} fill={i % 2 === 0 ? '#0B0C10' : '#111318'} />
         ))}
 
-        {/* Standard Pitch Lines */}
-        <g stroke="rgba(255,255,255,0.35)" strokeWidth="0.7" fill="none">
+        {/* Tactical Zone 14 Key Corridor Highlight */}
+        <g>
+          <rect x="68" y="20.5" width="18.5" height="27" fill="#DFFF00" fillOpacity="0.04" stroke="#DFFF00" strokeWidth="0.5" strokeDasharray="1.5,1.5" strokeOpacity="0.3" rx="1" />
+          <text x="77.25" y="34.5" fill="#DFFF00" fillOpacity="0.35" fontSize="2.2" fontStyle="italic" fontWeight="bold" textAnchor="middle" letterSpacing="0.3">ZONE 14</text>
+        </g>
+
+        {/* High-Precision Pitch Lines */}
+        <g stroke="rgba(255,255,255,0.22)" strokeWidth="0.6" fill="none">
           <rect x="2" y="2" width="101" height="64" rx="1.5" />
           <line x1="52.5" y1="2" x2="52.5" y2="66" />
           <circle cx="52.5" cy="34" r="9.15" />
-          <circle cx="52.5" cy="34" r="0.6" fill="white" className="opacity-70" />
+          <circle cx="52.5" cy="34" r="0.6" fill="white" className="opacity-50" />
           <rect x="2" y="14" width="16.5" height="40" />
           <rect x="2" y="23" width="5.5" height="22" />
-          <circle cx="11" cy="34" r="0.7" fill="white" className="opacity-50" />
+          <circle cx="11" cy="34" r="0.7" fill="white" className="opacity-40" />
           <rect x="86.5" y="14" width="16.5" height="40" />
           <rect x="97.5" y="23" width="5.5" height="22" />
-          <circle cx="94" cy="34" r="0.7" fill="white" className="opacity-50" />
+          <circle cx="94" cy="34" r="0.7" fill="white" className="opacity-40" />
         </g>
 
         {/* View Mode 1: Shot & Goal Map */}

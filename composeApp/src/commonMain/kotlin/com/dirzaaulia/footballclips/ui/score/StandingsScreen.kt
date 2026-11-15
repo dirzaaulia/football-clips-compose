@@ -40,13 +40,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.data.model.remote.BigLeague
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
-import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 import com.dirzaaulia.footballclips.ui.components.filter.LeagueDropdownSelector
 import com.dirzaaulia.footballclips.ui.components.filter.SeasonDropdownSelector
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
+import com.dirzaaulia.footballclips.ui.score.components.AndroidStandingsPartnerBanner
 import com.dirzaaulia.footballclips.ui.score.components.KnockoutBracketView
 import com.dirzaaulia.footballclips.ui.score.components.LeagueStandingsTable
+import com.dirzaaulia.footballclips.ui.score.components.StandingsTableSkeleton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -148,9 +149,8 @@ fun StandingsScreen(
             ) {
                 when (state) {
                     is StandingsState.Loading -> {
-                        ExpressiveLoadingIndicator(
-                            modifier = Modifier.size(48.dp),
-                            strokeWidth = 5.dp,
+                        StandingsTableSkeleton(
+                            modifier = Modifier.fillMaxSize(),
                         )
                     }
                     is StandingsState.Error -> {
@@ -174,6 +174,9 @@ fun StandingsScreen(
                                         .fillMaxSize()
                                         .padding(horizontal = horizontalPadding),
                                 ) {
+                                    AndroidStandingsPartnerBanner(
+                                        modifier = Modifier.padding(bottom = 6.dp),
+                                    )
                                     KnockoutBracketView(
                                         matches = state.knockoutMatches,
                                         modifier = Modifier
@@ -217,6 +220,9 @@ fun StandingsScreen(
                                 }
 
                                 if (hybridStage == "knockout") {
+                                    AndroidStandingsPartnerBanner(
+                                        modifier = Modifier.padding(bottom = 6.dp),
+                                    )
                                     KnockoutBracketView(
                                         matches = state.knockoutMatches,
                                         modifier = Modifier

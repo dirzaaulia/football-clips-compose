@@ -26,18 +26,17 @@ export default function HorizontalMatchTimeline({
   const [isRevealed, setIsRevealed] = useState(!isSpoilerFree || isLive);
   const [hoveredEvent, setHoveredEvent] = useState<MatchEvent | null>(null);
 
-  const effectiveHomeColor = homeColor || '#7098F8';
-  const effectiveAwayColor = awayColor || '#4FC3F7';
+  const effectiveHomeColor = homeColor || '#DFFF00';
+  const effectiveAwayColor = awayColor || '#38BDF8';
 
   if (!events || events.length === 0) {
     return (
-      <div className="py-6 text-center text-xs text-[#94A3B8] bg-[#101418] rounded-2xl border border-[#334155]/50">
+      <div className="py-6 text-center text-xs font-tech text-white/50 bg-[#121316] rounded-2xl border border-white/10">
         No match events recorded yet for this fixture.
       </div>
     );
   }
 
-  // Filter out non-event items like general whistles
   const filteredEvents = events.filter((e) => {
     const t = (e.type || '').toLowerCase();
     const text = (e.text || '').toLowerCase();
@@ -53,34 +52,32 @@ export default function HorizontalMatchTimeline({
 
   if (filteredEvents.length === 0) {
     return (
-      <div className="py-6 text-center text-xs text-[#94A3B8] bg-[#101418] rounded-2xl border border-[#334155]/50">
+      <div className="py-6 text-center text-xs font-tech text-white/50 bg-[#121316] rounded-2xl border border-white/10">
         No goals, cards, or key events recorded.
       </div>
     );
   }
 
-  // Spoiler Guard: strictly for finished matches when spoiler mode is ON
   if (isSpoilerFree && !isLive && !isRevealed) {
     return (
       <div
         onClick={() => setIsRevealed(true)}
-        className="p-5 bg-[#101418] border border-[#7098F8]/40 hover:border-[#7098F8] rounded-2xl cursor-pointer transition-all flex items-center justify-between group shadow-lg"
+        className="p-5 bg-[#121316] border border-[#DFFF00]/30 hover:border-[#DFFF00] rounded-2xl cursor-pointer transition-all flex items-center justify-between group shadow-lg select-none"
       >
         <div className="flex items-center gap-3">
-          <ShieldAlert className="w-5 h-5 text-[#4FC3F7] group-hover:scale-110 transition-transform" />
+          <ShieldAlert className="w-5 h-5 text-[#DFFF00] group-hover:scale-110 transition-transform" />
           <div>
-            <div className="text-xs font-bold text-white">Interactive Match Timeline Protected</div>
-            <div className="text-[11px] text-[#94A3B8]">Tap to reveal chronological goals, cards and events</div>
+            <div className="text-xs font-tech font-bold text-white uppercase tracking-wider">Interactive Match Timeline Protected</div>
+            <div className="text-[11px] font-tech text-white/50">Tap to reveal chronological goals, cards and events</div>
           </div>
         </div>
-        <span className="px-3.5 py-1.5 bg-[#1E3A8A] text-white text-xs font-bold rounded-xl shadow-md">
+        <span className="px-4 py-2 bg-[#DFFF00] hover:bg-[#cbe800] text-[#0A0A0C] font-tech text-xs font-black uppercase tracking-wider rounded-xl shadow-md">
           Reveal Timeline ▾
         </span>
       </div>
     );
   }
 
-  // Parse clock string into a numeric minute (e.g. "45'+2" -> 47, "78'" -> 78)
   const parseMinute = (clock?: string): number => {
     if (!clock) return 45;
     const clean = clock.replace(/'/g, '').trim();
@@ -107,41 +104,36 @@ export default function HorizontalMatchTimeline({
   };
 
   return (
-    <div className="p-4 sm:p-5 bg-[#101418] rounded-3xl border border-[#334155]/70 space-y-4 sm:space-y-6 shadow-xl overflow-hidden">
+    <div className="p-4 sm:p-5 bg-[#121316] rounded-2xl border border-white/10 space-y-4 sm:space-y-6 shadow-xl overflow-hidden select-none">
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs pb-3 border-b border-[#334155]/60 gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs pb-3 border-b border-white/10 gap-2">
         <div className="flex items-center gap-2">
-          <span className="font-extrabold text-[#7098F8] uppercase tracking-wider text-[11px] sm:text-xs">
+          <span className="font-scoreboard text-sm uppercase tracking-wider text-white">
             Match Timeline
           </span>
-          <span className="text-[10px] text-[#94A3B8] sm:hidden font-medium">
+          <span className="text-[10px] text-white/40 sm:hidden font-tech">
             (Swipe horizontally ↔)
           </span>
         </div>
-        <div className="flex items-center gap-3 sm:gap-4 text-[11px] text-[#94A3B8]">
+        <div className="flex items-center gap-3 sm:gap-4 text-[11px] text-white/60 font-tech">
           <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: effectiveHomeColor }} /> {homeName} (Top)</span>
           <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: effectiveAwayColor }} /> {awayName} (Bottom)</span>
         </div>
       </div>
 
-      {/* Horizontal Pitch Axis with Smooth Mobile Horizontal Scrolling */}
+      {/* Horizontal Pitch Axis */}
       <div className="overflow-x-auto scrollbar-none py-1 -mx-2 px-2 sm:mx-0 sm:px-0">
         <div className="relative min-w-[540px] sm:min-w-full pt-12 pb-14 px-6 sm:px-8">
-          {/* Central Time Bar */}
-          <div className="relative h-2 w-full bg-[#1E293B] rounded-full overflow-visible border border-[#334155]">
-            {/* Half-time marker 45' */}
-            <div className="absolute left-[50%] -top-2 bottom-0 w-0.5 h-6 bg-[#64748B] -translate-x-1/2">
-              <span className="absolute -bottom-5 -translate-x-1/2 text-[10px] font-black text-[#94A3B8]">HT</span>
+          <div className="relative h-2 w-full bg-[#1A1C22] rounded-full overflow-visible border border-white/10">
+            <div className="absolute left-[50%] -top-2 bottom-0 w-0.5 h-6 bg-white/20 -translate-x-1/2">
+              <span className="absolute -bottom-5 -translate-x-1/2 text-[10px] font-mono font-bold text-white/60">HT</span>
             </div>
 
-            {/* Start and Full-Time labels */}
-            <span className="absolute -left-2 -bottom-5 text-[10px] font-black text-[#64748B]">0&apos;</span>
-            <span className="absolute -right-2 -bottom-5 text-[10px] font-black text-[#64748B]">90&apos;+</span>
+            <span className="absolute -left-2 -bottom-5 text-[10px] font-mono font-bold text-white/40">0&apos;</span>
+            <span className="absolute -right-2 -bottom-5 text-[10px] font-mono font-bold text-white/40">90&apos;+</span>
 
-            {/* Render Event Pins along horizontal axis */}
             {filteredEvents.map((e, idx) => {
               const minute = parseMinute(e.clock);
-              // Distribute 0' to 95' across 0% to 100%
               const pct = Math.min(Math.max((minute / 95) * 100, 3), 97);
               const isHome = e.side === 'home';
               const badge = getEventBadge(e);
@@ -157,7 +149,6 @@ export default function HorizontalMatchTimeline({
                     isHome ? '-top-10' : 'top-4'
                   }`}
                 >
-                  {/* Connecting Pin line */}
                   <div
                     className="absolute left-1/2 -translate-x-1/2 w-0.5"
                     style={{
@@ -167,9 +158,8 @@ export default function HorizontalMatchTimeline({
                     }}
                   />
 
-                  {/* Event Marker Bubble */}
                   <div
-                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-black shadow-md border ${badge.color}`}
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-tech font-bold shadow-md border ${badge.color}`}
                     title={`${e.clock} • ${e.player || e.text}`}
                   >
                     <span>{badge.icon}</span>
@@ -182,30 +172,26 @@ export default function HorizontalMatchTimeline({
         </div>
       </div>
 
-      {/* Active Hover / Inspection Drawer */}
-      <div className="min-h-[44px] px-3.5 sm:px-4 py-2.5 rounded-2xl bg-[#181C20] border border-[#334155]/60 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
+      {/* Active Inspection Drawer */}
+      <div className="min-h-[44px] px-4 py-2.5 rounded-xl bg-[#0A0A0C] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
         {hoveredEvent ? (
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-base shrink-0">{getEventBadge(hoveredEvent).icon}</span>
-            <div className="min-w-0">
+            <div className="min-w-0 font-tech">
               <span className="font-extrabold text-white mr-2 truncate">{hoveredEvent.player || hoveredEvent.text}</span>
-              <span className="text-[#94A3B8] text-[11px] block sm:inline">
-                {hoveredEvent.assist
-                  ? (hoveredEvent.type_text?.toLowerCase().includes('sub') || hoveredEvent.type?.toLowerCase().includes('sub'))
-                    ? ` (Out: ${hoveredEvent.assist})`
-                    : ` (Assist: ${hoveredEvent.assist})`
-                  : ''}
+              <span className="text-white/60 text-[11px] block sm:inline">
+                {hoveredEvent.assist ? ` (Assist: ${hoveredEvent.assist})` : ''}
               </span>
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-2 text-[#94A3B8] text-[11px]">
-            <Users className="w-3.5 h-3.5 text-[#7098F8] shrink-0" />
+          <div className="flex items-center gap-2 text-white/50 text-[11px] font-tech">
+            <Users className="w-3.5 h-3.5 text-[#DFFF00] shrink-0" />
             <span>Tap or hover any event badge on the timeline to inspect player and assist details</span>
           </div>
         )}
         {hoveredEvent && (
-          <span className="text-[10px] font-bold text-[#7098F8] uppercase tracking-wider self-start sm:self-auto shrink-0">
+          <span className="text-[10px] font-tech font-black text-[#DFFF00] uppercase tracking-wider self-start sm:self-auto shrink-0">
             {getEventBadge(hoveredEvent).label}
           </span>
         )}

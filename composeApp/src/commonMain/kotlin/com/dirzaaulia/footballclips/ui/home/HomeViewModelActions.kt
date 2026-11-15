@@ -57,7 +57,8 @@ fun HomeViewModel.selectVideoById(itemId: String) {
         viewModelScope.launch {
             when (val res = oracleVmRepository.getMatch(matchId)) {
                 is com.dirzaaulia.footballclips.data.model.NetworkResult.Success -> {
-                    selectVideo(com.dirzaaulia.footballclips.data.model.HighlightUiItem.OracleMatch(res.data.toMatch()))
+                    val emblem = oracleVmRepository.getCompetitionEmblem(res.data.competitionId)
+                    selectVideo(com.dirzaaulia.footballclips.data.model.HighlightUiItem.OracleMatch(res.data.toMatch(emblem)))
                 }
                 else -> {}
             }
@@ -242,7 +243,9 @@ fun HomeViewModel.fetchLiveMatches() {
     viewModelScope.launch {
         when (val res = oracleVmRepository.getLiveMatches()) {
             is com.dirzaaulia.footballclips.data.model.NetworkResult.Success -> {
-                val newMatches = res.data.map { it.toMatch() }
+                val newMatches = res.data.map {
+                    it.toMatch(oracleVmRepository.getCompetitionEmblem(it.competitionId))
+                }
                 val prevIds = _liveMatches.value.map { it.id }.toSet()
                 val newIds = newMatches.map { it.id }.toSet()
                 if (prevIds.any { it !in newIds }) {

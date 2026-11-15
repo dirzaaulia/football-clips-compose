@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Play, Calendar, Trophy } from 'lucide-react';
+import { Play, Calendar, Trophy, Zap } from 'lucide-react';
 import { MatchRecord } from '@/lib/database';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 
@@ -22,33 +22,33 @@ export default function MatchSidebar({
   const [activeTab, setActiveTab] = useState<'highlights' | 'fixtures'>('highlights');
 
   return (
-    <aside className="bg-[#181C20] border border-[#334155] rounded-3xl p-4 sm:p-5 flex flex-col space-y-4">
+    <aside className="bg-[#121316] border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col space-y-4 select-none">
       {/* Competition Header */}
-      <div className="flex items-center gap-2 pb-3 border-b border-[#334155]/60 text-xs">
-        <Trophy className="w-4 h-4 text-[#7098F8]" />
-        <span className="font-extrabold uppercase tracking-wider text-white line-clamp-2 leading-tight">
+      <div className="flex items-center gap-2 pb-3 border-b border-white/10 text-xs">
+        <Trophy className="w-4 h-4 text-[#DFFF00]" />
+        <span className="font-scoreboard uppercase tracking-wider text-white line-clamp-2 leading-tight">
           {competitionName}
         </span>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1.5 p-1 bg-[#101418] rounded-xl border border-[#334155]/60 text-xs font-bold">
+      <div className="flex items-center gap-1.5 p-1 bg-[#0A0A0C] rounded-xl border border-white/10 text-xs font-tech font-bold">
         <button
           onClick={() => setActiveTab('highlights')}
-          className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
+          className={`flex-1 py-1.5 rounded-lg text-center uppercase tracking-wider transition-all cursor-pointer ${
             activeTab === 'highlights'
-              ? 'bg-[#1E3A8A] text-white shadow-sm'
-              : 'text-[#94A3B8] hover:text-white'
+              ? 'bg-[#DFFF00] text-[#0A0A0C] font-black shadow-sm'
+              : 'text-white/60 hover:text-white'
           }`}
         >
           Highlights ({highlights.length})
         </button>
         <button
           onClick={() => setActiveTab('fixtures')}
-          className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
+          className={`flex-1 py-1.5 rounded-lg text-center uppercase tracking-wider transition-all cursor-pointer ${
             activeTab === 'fixtures'
-              ? 'bg-[#1E3A8A] text-white shadow-sm'
-              : 'text-[#94A3B8] hover:text-white'
+              ? 'bg-[#DFFF00] text-[#0A0A0C] font-black shadow-sm'
+              : 'text-white/60 hover:text-white'
           }`}
         >
           Fixtures ({fixtures.length})
@@ -56,42 +56,48 @@ export default function MatchSidebar({
       </div>
 
       {/* Tab Content */}
-      <div className="space-y-2.5 max-h-[600px] overflow-y-auto pr-1">
+      <div className="space-y-2.5 max-h-[600px] overflow-y-auto pr-1 scrollbar-thin">
         {activeTab === 'highlights' ? (
           highlights.length === 0 ? (
-            <p className="text-xs text-[#94A3B8] text-center py-6">No other highlights found.</p>
+            <p className="text-xs font-tech text-white/40 text-center py-6">No other highlights found.</p>
           ) : (
             highlights.map((m) => {
               const home = m.home_team_name || m.home_team;
               const away = m.away_team_name || m.away_team;
               const thumb = m.highlight_video_id
                 ? `https://i.ytimg.com/vi/${m.highlight_video_id}/mqdefault.jpg`
-                : '/app_icon.png';
+                : null;
 
               return (
                 <Link
                   key={m.id}
                   href={`/match/${m.id}`}
-                  className="group flex items-center gap-3 p-2 rounded-2xl bg-[#1E2227] hover:bg-[#252B32] border border-[#334155]/60 hover:border-[#7098F8]/50 transition-all"
+                  className="group flex items-center gap-3 p-2.5 rounded-xl bg-[#1A1C22] hover:bg-[#252830] border border-white/10 hover:border-[#DFFF00]/40 transition-all"
                 >
-                  <div className="relative w-20 h-12 rounded-xl overflow-hidden bg-black shrink-0">
-                    <Image
-                      src={thumb}
-                      alt={`${home} vs ${away}`}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform"
-                      unoptimized
-                    />
+                  <div className="relative w-20 h-12 rounded-lg overflow-hidden bg-black shrink-0">
+                    {thumb ? (
+                      <Image
+                        src={thumb}
+                        alt={`${home} vs ${away}`}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-tr from-[#121316] to-[#1A1C22] flex items-center justify-center">
+                        <Play className="w-3.5 h-3.5 text-[#DFFF00]" />
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                       <Play className="w-3.5 h-3.5 text-white fill-current opacity-80 group-hover:opacity-100" />
                     </div>
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-xs font-bold text-white group-hover:text-[#7098F8] transition-colors line-clamp-2 leading-tight">
+                    <h4 className="text-xs font-bold text-white group-hover:text-[#DFFF00] transition-colors line-clamp-2 leading-tight">
                       {home} vs {away}
                     </h4>
-                    <span className="text-[10px] text-[#94A3B8]">
+                    <span className="text-[10px] font-tech text-white/50">
                       {isSpoilerFree
                         ? 'Highlight Available'
                         : m.home_score !== null
@@ -105,7 +111,7 @@ export default function MatchSidebar({
           )
         ) : (
           fixtures.length === 0 ? (
-            <p className="text-xs text-[#94A3B8] text-center py-6">No scheduled fixtures found.</p>
+            <p className="text-xs font-tech text-white/40 text-center py-6">No scheduled fixtures found.</p>
           ) : (
             fixtures.map((m) => {
               const home = m.home_team_name || m.home_team;
@@ -117,29 +123,29 @@ export default function MatchSidebar({
                 <Link
                   key={m.id}
                   href={`/match/${m.id}`}
-                  className="block p-2.5 rounded-xl bg-[#1E2227] hover:bg-[#252B32] border border-[#334155]/60 hover:border-[#7098F8]/40 transition-all text-xs"
+                  className="block p-3 rounded-xl bg-[#1A1C22] hover:bg-[#252830] border border-white/10 hover:border-[#DFFF00]/40 transition-all text-xs"
                 >
-                  <div className="flex items-center justify-between text-[10px] text-[#94A3B8] mb-1">
+                  <div className="flex items-center justify-between text-[10px] text-white/50 font-tech mb-1.5">
                     <span className="flex items-center gap-1">
-                      <Calendar className="w-2.5 h-2.5" />
-                      {new Date(m.utc_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      <Calendar className="w-2.5 h-2.5 text-[#DFFF00]" />
+                      {new Date(m.utc_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                     </span>
                     <span
                       className={
                         isLive
                           ? 'text-red-400 font-black animate-pulse flex items-center gap-1'
                           : isFinished
-                          ? 'text-emerald-400 font-bold'
-                          : 'text-[#4FC3F7]'
+                          ? 'text-white/60 font-bold'
+                          : 'text-[#38BDF8]'
                       }
                     >
                       {isLive && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />}
-                      {isLive ? (m.status === 'PAUSED' ? 'HT' : m.display_clock ? `LIVE ${m.display_clock}` : 'LIVE') : isFinished ? 'Finished' : 'Upcoming'}
+                      {isLive ? (m.status === 'PAUSED' ? 'HT' : m.display_clock ? `LIVE ${m.display_clock}` : 'LIVE') : isFinished ? 'FT' : 'Upcoming'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between font-bold text-white gap-2">
                     <span className="line-clamp-2 leading-tight flex-1">{home}</span>
-                    <span className="px-2 text-center text-[#7098F8] shrink-0">
+                    <span className="px-2 text-center text-[#DFFF00] font-scoreboard shrink-0">
                       {isLive || (isFinished && !isSpoilerFree)
                         ? `${m.home_score ?? 0} - ${m.away_score ?? 0}`
                         : 'vs'}
@@ -151,6 +157,29 @@ export default function MatchSidebar({
             })
           )
         )}
+      </div>
+
+      {/* Vertical Shorts Vault Card */}
+      <div className="pt-2 border-t border-white/10">
+        <Link
+          href="/shorts"
+          className="relative rounded-xl overflow-hidden p-3 bg-[#1A1C22] hover:bg-[#252830] border border-white/10 hover:border-[#DFFF00]/40 flex items-center justify-between group cursor-pointer transition-all"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#DFFF00] text-[#0A0A0C] flex items-center justify-center font-bold shrink-0">
+              <Zap className="w-4 h-4 fill-[#0A0A0C]" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-tech text-xs font-bold text-white group-hover:text-[#DFFF00] transition-colors truncate">
+                SHORTS VAULT
+              </span>
+              <span className="font-tech text-[10px] text-white/50 truncate">
+                60-Second Wondergoals &amp; Fast Snips
+              </span>
+            </div>
+          </div>
+          <Play className="w-4 h-4 text-[#DFFF00] shrink-0" />
+        </Link>
       </div>
     </aside>
   );

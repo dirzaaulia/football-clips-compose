@@ -15,6 +15,24 @@
           ]
         },
         {
+          "source": "/shorts{,/**}",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "**/*.@(html|htm)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
+        },
+        {
           "source": "/ads.txt",
           "headers": [
             {

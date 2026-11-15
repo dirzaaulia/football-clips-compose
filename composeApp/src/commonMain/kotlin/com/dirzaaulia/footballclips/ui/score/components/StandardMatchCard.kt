@@ -33,6 +33,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.domain.model.Match
+import com.dirzaaulia.footballclips.ui.theme.GhostBorder
+import com.dirzaaulia.footballclips.ui.theme.MatchPulseRed
+import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
+import com.dirzaaulia.footballclips.ui.theme.VoltLime
+import com.dirzaaulia.footballclips.ui.theme.VoltLimeDarkText
 
 @Composable
 fun StandardMatchCard(
@@ -62,10 +67,10 @@ fun StandardMatchCard(
                     },
                 ),
             shape = RoundedCornerShape(14.dp),
-            color = MaterialTheme.colorScheme.surface,
+            color = ObsidianSurfaceTier1,
             border = BorderStroke(
                 width = if (isFavorite) 1.5.dp else 1.dp,
-                color = if (isFavorite) Color(0xFFFFB300).copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                color = if (isFavorite) VoltLime.copy(alpha = 0.6f) else GhostBorder,
             ),
             tonalElevation = 0.dp,
             shadowElevation = 2.dp,
@@ -150,7 +155,7 @@ fun StandardMatchCard(
                                 text = "${match.homeScore ?: 0} - ${match.awayScore ?: 0}",
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = if (match.isLive) Color.Red else MaterialTheme.colorScheme.onSurface,
+                                color = if (match.isLive) MatchPulseRed else MaterialTheme.colorScheme.onSurface,
                                 letterSpacing = 2.sp,
                             )
                             if (match.hasPenalties) {
@@ -227,8 +232,8 @@ private fun StandardMatchBottomAction(
             modifier = Modifier.fillMaxWidth().height(38.dp),
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.filledTonalButtonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                containerColor = VoltLime,
+                contentColor = VoltLimeDarkText,
             ),
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
         ) {
@@ -237,7 +242,7 @@ private fun StandardMatchBottomAction(
             Text(
                 text = "Watch Highlight",
                 style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Black,
                 letterSpacing = 0.3.sp,
             )
         }

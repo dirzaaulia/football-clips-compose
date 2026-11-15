@@ -131,7 +131,8 @@ private fun VideoPlayerSheetContent(
                 isRefreshing = true
                 when (val res = oracleVmRepository.getMatch(currentMatch.id)) {
                     is NetworkResult.Success -> {
-                        currentItem = HighlightUiItem.OracleMatch(match = res.data.toMatch())
+                        val emblem = oracleVmRepository.getCompetitionEmblem(res.data.competitionId)
+                        currentItem = HighlightUiItem.OracleMatch(match = res.data.toMatch(emblem))
                     }
                     else -> {}
                 }

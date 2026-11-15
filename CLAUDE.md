@@ -234,5 +234,29 @@ Applies strictly to `core-go/` and cross-platform verification:
 - **L3 Domain & Parity Replay**: Accelerated parity test verifying Go domain entities and highlight reranking against golden replay datasets.
 - **L4 UI E2E**: Single-command orchestrator `core-go/bin/e2e-runner --all` verifying Android Compose UI and Next.js Web under 8-minute remote device execution budget.
 
+---
+
+## 9. Industry-Grade UI/UX, Zero-Emoji Invariant & Tactical Canvas Standards
+Applies strictly to both Web (Next.js OTT) and Android Native (CMP):
+
+### Strict Zero-Emoji Invariant
+- **Zero Raw Emojis**: Never render raw Unicode emojis (such as ⚽, 🟥, 🟨, 🔄) in production user interfaces, scoreboard feeds, match events, timeline scrubbers, or editorial stories.
+- **Vector Icons Only**: All match events and statuses must be rendered using dedicated, sharp vector SVG / Compose vector icons with explicit design token colors:
+  - Goals: Vector soccer ball icon with Volt Lime (`#DFFF00`) tint and subtle glow.
+  - Cards: High-contrast rectangular card glyphs (Rose `#FF2E4D` / Amber `#F59E0B`).
+  - Substitutions: Modern dual-arrow exchange glyph (`ArrowLeftRight`, Sky Blue `#38BDF8`).
+
+### Zero Circular Spinner Invariant (100% Shimmer Skeletons)
+- **Zero Circular Progress Spinners**: Plain circular indicators (e.g. `CircularProgressIndicator`, `animate-spin` circular borders) are strictly forbidden for content loading.
+- **1:1 Structural Twin Skeletons**: Every screen and list item MUST use an exact 1:1 structural shimmer skeleton matching the dimensions, border radii, badge placements, and layout of the real content.
+- **Acoustic Buffering Shimmer**: Media player buffers must use a 16:9 shimmer skeleton with animated acoustic equalizer bars and Volt play glyph.
+
+### Industry-Grade 2D Tactical Pitch Canvas & Heat Map Standards
+- **Obsidian Dark Turf**: Never use casual green turf colors. The tactical pitch must adhere to the Obsidian theme with dark tactical alternating bands (`#0B0C10` and `#111318`), subtle white pitch lines (`rgba(255, 255, 255, 0.22)`), and deep inner vignette shadows.
+- **Zone 14 Danger Corridor**: Always highlight the pivotal central zone outside the penalty box (Zone 14) with a subtle dashed Volt Lime boundary (`#DFFF00` 4% opacity fill, 30% dashed stroke) to convey professional analytical depth.
+- **Gaussian Density Heatmap Field**: Action heatmaps must use multi-stop radial Gaussian density fields (`#DFFF00` Volt hotspot -> `#F59E0B` -> team color -> `#38BDF8` -> transparent) rather than basic blurry circles.
+- **Analytical HUD & Territorial Tilt**: Always provide an analytical HUD inset displaying activity density calibration (`Low / Med / High`) and computed field territorial tilt percentage (`Home % - Away % Tilt`).
+
+
 
 

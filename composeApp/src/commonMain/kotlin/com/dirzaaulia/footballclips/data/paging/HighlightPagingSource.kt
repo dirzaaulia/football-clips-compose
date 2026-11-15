@@ -37,7 +37,7 @@ class HighlightPagingSource(
             )
 
             if (res is NetworkResult.Success) {
-                val matches = res.data.map { it.toMatch() }
+                val matches = res.data.map { it.toMatch(oracleVmRepository.getCompetitionEmblem(it.competitionId)) }
                 val uiMatches = matches
                     .map { HighlightUiItem.OracleMatch(it) }
                     .filter { item ->

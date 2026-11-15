@@ -14,20 +14,22 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 
-private val PRIORITY_COMPETITION_IDS = listOf(
-    "CL", "EL", "ECL", "PL", "PD", "SA", "BL1", "FL1",
-    "SPL", "MLS", "DED", "PPL", "IDN", "BRA", "ARG",
-    "FAC", "EFL", "CDR", "DFB", "CIT", "LIB", "SUD", "REC",
-)
-
 internal suspend fun fetchGroupedOracleHighlights(
     oracleVmRepository: OracleVmRepository,
     season: Int? = null,
 ): List<Match> {
-    val dynamicIds = oracleVmRepository.competitions.value
+    var compIds = oracleVmRepository.competitions.value
         .map { it.id }
         .filter { it.isNotBlank() }
-    val compIds = if (dynamicIds.isNotEmpty()) dynamicIds else PRIORITY_COMPETITION_IDS
+
+    if (compIds.isEmpty()) {
+        oracleVmRepository.refreshCompetitions()
+        compIds = oracleVmRepository.competitions.value
+            .map { it.id }
+            .filter { it.isNotBlank() }
+    }
+
+    if (compIds.isEmpty()) return emptyList()
 
     return coroutineScope {
         compIds.map { compId ->
@@ -40,7 +42,7 @@ internal suspend fun fetchGroupedOracleHighlights(
                     season = season,
                 )
                 if (res is NetworkResult.Success) {
-                    res.data.map { it.toMatch() }
+                    res.data.map { it.toMatch(oracleVmRepository.getCompetitionEmblem(it.competitionId)) }
                 } else {
                     emptyList()
                 }
@@ -70,7 +72,7 @@ internal suspend fun fetchOracleMatches(
             query = query,
         )
         if (res is NetworkResult.Success) {
-            val newM = res.data.map { it.toMatch() }
+            val newM = res.data.map { it.toMatch(oracleVmRepository.getCompetitionEmblem(it.competitionId)) }
             val hasMore = newM.size >= limit
             return Pair(newM, hasMore)
         }
@@ -108,7 +110,9 @@ internal suspend fun HomeViewModel.fetchLeagueFixtures(compId: String) {
         season = selectedSeason.value,
     )
     if (f is NetworkResult.Success) {
-        _relatedFixturesFinished.value = f.data.map { HighlightUiItem.OracleMatch(it.toMatch()) }
+        _relatedFixturesFinished.value = f.data.map {
+            HighlightUiItem.OracleMatch(it.toMatch(oracleVmRepository.getCompetitionEmblem(it.competitionId)))
+        }
     }
     val u = oracleVmRepository.getMatches(
         competitionId = compId,
@@ -118,7 +122,9 @@ internal suspend fun HomeViewModel.fetchLeagueFixtures(compId: String) {
         season = selectedSeason.value,
     )
     if (u is NetworkResult.Success) {
-        _relatedFixturesUpcoming.value = u.data.map { it.toMatch() }.filter { it.isScheduled }.map { HighlightUiItem.OracleMatch(it) }
+        _relatedFixturesUpcoming.value = u.data.map {
+            it.toMatch(oracleVmRepository.getCompetitionEmblem(it.competitionId))
+        }.filter { it.isScheduled }.map { HighlightUiItem.OracleMatch(it) }
     }
 }
 
@@ -131,8 +137,9 @@ internal suspend fun HomeViewModel.fetchRelatedHighlights(compId: String?, curre
         season = selectedSeason.value,
     )
     if (h is NetworkResult.Success) {
-        val fetched = h.data.map { HighlightUiItem.OracleMatch(it.toMatch()) }
-            .filter { it.uniqueId != currentItemUniqueId }
+        val fetched = h.data.map {
+            HighlightUiItem.OracleMatch(it.toMatch(oracleVmRepository.getCompetitionEmblem(it.competitionId)))
+        }.filter { it.uniqueId != currentItemUniqueId }
         val merged = (_relatedHighlights.value + fetched).distinctBy { it.uniqueId }.take(20)
         _relatedHighlights.value = merged
     }

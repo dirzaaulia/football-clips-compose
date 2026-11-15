@@ -37,7 +37,6 @@ import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
-import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 import com.dirzaaulia.footballclips.ui.score.ScoreState
 import com.dirzaaulia.footballclips.ui.score.ScoreViewModel
 import com.dirzaaulia.footballclips.ui.score.getMatches
@@ -61,9 +60,8 @@ internal fun FixturesLandscapeGrid(
         contentAlignment = Alignment.Center,
     ) {
         when (uiState) {
-            is ScoreState.Loading -> ExpressiveLoadingIndicator(
-                modifier = Modifier.size(48.dp),
-                strokeWidth = 5.dp,
+            is ScoreState.Loading -> FixturesListSkeleton(
+                modifier = Modifier.fillMaxSize(),
             )
             is ScoreState.Error -> {
                 EmptyState(

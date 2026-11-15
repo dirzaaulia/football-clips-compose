@@ -1,27 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import {
   User,
   LogOut,
   LogIn,
-  Moon,
-  Sun,
   Shield,
   ChevronRight,
   ShoppingBag,
   Sparkles,
-  Bell,
   Download,
   CheckCircle2,
 } from 'lucide-react';
 import { useAuthUser } from '@/hooks/useAuthUser';
 import { signInWithGoogle, signOutUser } from '@/lib/auth';
-import { useTheme } from '@/hooks/useTheme';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import { useProStatus } from '@/hooks/useProStatus';
 import { useMerchandisePreference } from '@/hooks/useMerchandisePreference';
+import SettingsNotificationCard from './SettingsNotificationCard';
 import {
   trackSignIn,
   trackSignOut,
@@ -40,32 +37,9 @@ export default function SettingsHubCards({
 }: SettingsHubCardsProps) {
   const { user, isLoading: isAuthLoading } = useAuthUser();
   const isPro = useProStatus();
-  const { isDark, toggleTheme } = useTheme();
   const { favoriteCount } = useMyClubs();
   const { rawPreference: merchandiseEnabled, setMerchandiseEnabled } = useMerchandisePreference();
-
-  // Notification Preferences
-  const [notifHighlights, setNotifHighlights] = useState(true);
-  const [notifKickoff, setNotifKickoff] = useState(true);
-  const [notifGoals, setNotifGoals] = useState(true);
-  const [notifFullTime, setNotifFullTime] = useState(true);
   const [checkedUpdates, setCheckedUpdates] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setNotifHighlights(localStorage.getItem('notif_hl') !== 'false');
-      setNotifKickoff(localStorage.getItem('notif_ko') !== 'false');
-      setNotifGoals(localStorage.getItem('notif_goals') !== 'false');
-      setNotifFullTime(localStorage.getItem('notif_ft') !== 'false');
-    }
-  }, []);
-
-  const handleToggleNotif = (key: string, val: boolean, setter: (v: boolean) => void) => {
-    setter(val);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(key, String(val));
-    }
-  };
 
   const handleCheckUpdates = () => {
     trackCheckUpdates();
@@ -85,9 +59,9 @@ export default function SettingsHubCards({
   return (
     <div className="space-y-4">
       {/* 1. Account & Identity Card */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-[#181C20] border border-[#334155]/80 shadow-md flex items-center justify-between gap-4">
+      <div className="p-4 sm:p-5 rounded-2xl bg-[#1A1C22] border border-white/10 shadow-md flex items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 min-w-0">
-          <div className="w-11 h-11 rounded-xl bg-[#7098F8]/15 border border-[#7098F8]/30 flex items-center justify-center shrink-0 overflow-hidden">
+          <div className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
             {user?.avatar_url ? (
               <Image
                 src={user.avatar_url}
@@ -97,22 +71,22 @@ export default function SettingsHubCards({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <User className="w-5 h-5 text-[#7098F8]" />
+              <User className="w-5 h-5 text-[#DFFF00]" />
             )}
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-white truncate">
+              <h2 className="text-sm font-bold text-white truncate font-tech">
                 {user?.display_name || user?.email || (isAuthLoading ? 'Loading profile...' : 'Guest Account')}
               </h2>
               {isPro && (
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-300 border border-amber-500/40 uppercase tracking-wider">
-                  PRO
+                <span className="text-[10px] font-tech font-bold px-2 py-0.5 rounded-full bg-[#DFFF00]/15 text-[#DFFF00] border border-[#DFFF00]/40 uppercase tracking-wider">
+                  PRO PASS
                 </span>
               )}
             </div>
-            <p className="text-xs text-[#94A3B8] truncate">
-              {user ? (isPro ? 'PRO Subscriber • Ad-free' : user.email || 'Free tier account') : 'Sign in to sync your favorite clubs across devices'}
+            <p className="text-xs text-white/50 truncate font-tech">
+              {user ? (isPro ? 'PRO Subscriber • Ad-free OTT' : user.email || 'Free tier account') : 'Sign in to sync your favorite clubs across devices'}
             </p>
           </div>
         </div>
@@ -120,11 +94,8 @@ export default function SettingsHubCards({
         <div className="shrink-0">
           {user ? (
             <button
-              onClick={() => {
-                trackSignOut(user.id);
-                signOutUser();
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-500/30 hover:border-red-500/60 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold transition-all cursor-pointer"
+              onClick={() => { trackSignOut(user.id); signOutUser(); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-500/30 hover:border-red-500/60 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-tech font-semibold transition-all cursor-pointer"
               title="Sign Out"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -132,11 +103,8 @@ export default function SettingsHubCards({
             </button>
           ) : (
             <button
-              onClick={() => {
-                trackSignIn();
-                signInWithGoogle();
-              }}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#1E3A8A] to-[#7098F8] hover:from-[#2563EB] hover:to-[#60A5FA] text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
+              onClick={() => { trackSignIn(); signInWithGoogle(); }}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#DFFF00] hover:bg-[#c8e600] text-[#0A0A0C] text-xs font-tech font-bold shadow-sm transition-all cursor-pointer"
             >
               <LogIn className="w-3.5 h-3.5" />
               <span>Sign In</span>
@@ -147,50 +115,54 @@ export default function SettingsHubCards({
 
       {/* 2. Primary Settings Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-        {/* Theme Switcher Card */}
-        <div className="p-4 rounded-2xl bg-[#181C20] border border-[#334155]/80 shadow-md flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#7098F8]/15 border border-[#7098F8]/30 flex items-center justify-center shrink-0">
-              {isDark ? (
-                <Moon className="w-5 h-5 text-[#7098F8]" />
-              ) : (
-                <Sun className="w-5 h-5 text-amber-400" />
-              )}
+        {/* Official Android App Card */}
+        <a
+          href="https://play.google.com/store/apps/details?id=com.dirzaaulia.footballclips"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-4 rounded-2xl bg-[#1A1C22] border border-white/10 hover:border-[#DFFF00]/40 shadow-md flex items-center justify-between gap-3 cursor-pointer group transition-all"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <Download className="w-5 h-5 text-[#DFFF00]" />
             </div>
-            <div>
-              <div className="text-sm font-bold text-white">Appearance Theme</div>
-              <div className="text-xs text-[#94A3B8]">
-                {isDark ? 'Dark Mode active' : 'Light Mode active'}
+            <div className="min-w-0">
+              <div className="text-sm font-bold text-white flex items-center gap-1.5 font-tech">
+                <span>Android App</span>
+                <span className="text-[9px] font-tech font-bold uppercase px-1.5 py-0.5 rounded bg-[#DFFF00]/15 text-[#DFFF00] border border-[#DFFF00]/30">
+                  Official
+                </span>
+              </div>
+              <div className="text-xs text-white/50 truncate font-tech">
+                Get it on Google Play
               </div>
             </div>
           </div>
-          <button
-            onClick={toggleTheme}
-            className="px-3 py-1.5 rounded-xl border border-[#334155] hover:border-[#7098F8]/50 bg-[#101418] hover:bg-[#1E2227] text-xs font-semibold text-white transition-all cursor-pointer"
-          >
-            {isDark ? 'Switch to Light' : 'Switch to Dark'}
-          </button>
-        </div>
+          <div className="flex items-center gap-1 text-xs text-[#DFFF00] font-tech font-semibold shrink-0 group-hover:translate-x-0.5 transition-transform">
+            <span>Install</span>
+            <ChevronRight className="w-4 h-4" />
+          </div>
+        </a>
 
         {/* My Clubs Settings Card */}
         <div
           onClick={onOpenMyClubs}
-          className="p-4 rounded-2xl bg-[#181C20] border border-[#334155]/80 hover:border-[#7098F8]/40 shadow-md flex items-center justify-between gap-3 cursor-pointer group transition-all"
+          className="p-4 rounded-2xl bg-[#1A1C22] border border-white/10 hover:border-[#DFFF00]/40 shadow-md flex items-center justify-between gap-3 cursor-pointer group transition-all"
         >
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-[#7098F8]/15 border border-[#7098F8]/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-              <Shield className="w-5 h-5 text-[#7098F8]" />
+            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <Shield className="w-5 h-5 text-[#DFFF00]" />
             </div>
             <div className="min-w-0">
-              <div className="text-sm font-bold text-white">My Clubs</div>
-              <div className="text-xs text-[#94A3B8] truncate">
+              <div className="text-sm font-bold text-white font-tech">My Clubs</div>
+              <div className="text-xs text-white/50 truncate font-tech">
                 {favoriteCount > 0
                   ? `${favoriteCount} favorite club${favoriteCount > 1 ? 's' : ''} selected`
                   : 'Personalize tailored highlights'}
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1 text-xs text-[#7098F8] font-semibold shrink-0 group-hover:translate-x-0.5 transition-transform">
+          <div className="flex items-center gap-1 text-xs text-[#DFFF00] font-tech font-semibold shrink-0 group-hover:translate-x-0.5 transition-transform">
             <span>Manage</span>
             <ChevronRight className="w-4 h-4" />
           </div>
@@ -198,65 +170,17 @@ export default function SettingsHubCards({
       </div>
 
       {/* 3. Match Alerts & Notification Preferences */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-[#181C20] border border-[#334155]/80 shadow-md space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#7098F8]/15 border border-[#7098F8]/30 flex items-center justify-center shrink-0">
-            <Bell className="w-5 h-5 text-[#7098F8]" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-white">Match &amp; Highlight Notifications</h3>
-            <p className="text-xs text-[#94A3B8]">Alerts tailored for your selected favorite clubs</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-[#334155]/40 text-xs">
-          <label className="flex items-center justify-between p-2.5 rounded-xl bg-[#101418] border border-white/5 cursor-pointer">
-            <span className="text-gray-300 font-medium">Highlights Ready</span>
-            <input
-              type="checkbox"
-              checked={notifHighlights}
-              onChange={(e) => handleToggleNotif('notif_hl', e.target.checked, setNotifHighlights)}
-              className="accent-[#7098F8] w-4 h-4 rounded cursor-pointer"
-            />
-          </label>
-          <label className="flex items-center justify-between p-2.5 rounded-xl bg-[#101418] border border-white/5 cursor-pointer">
-            <span className="text-gray-300 font-medium">Kickoff Imminent (15m)</span>
-            <input
-              type="checkbox"
-              checked={notifKickoff}
-              onChange={(e) => handleToggleNotif('notif_ko', e.target.checked, setNotifKickoff)}
-              className="accent-[#7098F8] w-4 h-4 rounded cursor-pointer"
-            />
-          </label>
-          <label className="flex items-center justify-between p-2.5 rounded-xl bg-[#101418] border border-white/5 cursor-pointer">
-            <span className="text-gray-300 font-medium">Live Goal Alerts</span>
-            <input
-              type="checkbox"
-              checked={notifGoals}
-              onChange={(e) => handleToggleNotif('notif_goals', e.target.checked, setNotifGoals)}
-              className="accent-[#7098F8] w-4 h-4 rounded cursor-pointer"
-            />
-          </label>
-          <label className="flex items-center justify-between p-2.5 rounded-xl bg-[#101418] border border-white/5 cursor-pointer">
-            <span className="text-gray-300 font-medium">Full Time Result</span>
-            <input
-              type="checkbox"
-              checked={notifFullTime}
-              onChange={(e) => handleToggleNotif('notif_ft', e.target.checked, setNotifFullTime)}
-              className="accent-[#7098F8] w-4 h-4 rounded cursor-pointer"
-            />
-          </label>
-        </div>
-      </div>
+      <SettingsNotificationCard />
 
       {/* 4. Updates & Edge Tier Info */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-[#181C20] border border-[#334155]/80 shadow-md flex items-center justify-between gap-4">
+      <div className="p-4 sm:p-5 rounded-2xl bg-[#1A1C22] border border-white/10 shadow-md flex items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-[#7098F8]/15 border border-[#7098F8]/30 flex items-center justify-center shrink-0">
-            <Download className="w-5 h-5 text-[#7098F8]" />
+          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+            <Download className="w-5 h-5 text-[#DFFF00]" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-bold text-white">App Updates &amp; Platform</div>
-            <p className="text-xs text-[#94A3B8] truncate">
+            <div className="text-sm font-bold text-white font-tech">App Updates &amp; Platform</div>
+            <p className="text-xs text-white/50 truncate font-tech">
               FootballClips v3.0 (Oracle Edge Tier)
             </p>
           </div>
@@ -264,12 +188,12 @@ export default function SettingsHubCards({
 
         <button
           onClick={handleCheckUpdates}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#7098F8]/40 hover:bg-[#7098F8]/10 text-xs font-bold text-[#7098F8] transition-all cursor-pointer shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 hover:border-[#DFFF00]/40 text-xs font-tech font-bold text-white transition-all cursor-pointer shrink-0"
         >
           {checkedUpdates ? (
             <>
-              <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
-              <span className="text-green-400">Up to date</span>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-emerald-400">Up to date</span>
             </>
           ) : (
             <span>Check Updates</span>
@@ -278,14 +202,14 @@ export default function SettingsHubCards({
       </div>
 
       {/* 5. Merchandise Recommendations Card */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-[#181C20] border border-[#334155]/80 shadow-md flex items-center justify-between gap-4">
+      <div className="p-4 sm:p-5 rounded-2xl bg-[#1A1C22] border border-white/10 shadow-md flex items-center justify-between gap-4">
         <div className="flex items-center gap-3.5 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
-            <ShoppingBag className="w-5 h-5 text-amber-400" />
+          <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+            <ShoppingBag className="w-5 h-5 text-[#DFFF00]" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-bold text-white">Merchandise Recommendations</div>
-            <p className="text-xs text-[#94A3B8] truncate">
+            <div className="text-sm font-bold text-white font-tech">Merchandise Recommendations</div>
+            <p className="text-xs text-white/50 truncate font-tech">
               Show authentic licensed gear and Amazon club store links
             </p>
           </div>
@@ -296,14 +220,10 @@ export default function SettingsHubCards({
             <button
               onClick={() => handleToggleMerchandise(!merchandiseEnabled)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                merchandiseEnabled ? 'bg-[#7098F8]' : 'bg-[#334155]'
+                merchandiseEnabled ? 'bg-[#DFFF00]' : 'bg-white/10'
               }`}
             >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  merchandiseEnabled ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-[#0A0A0C] transition-transform ${merchandiseEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           ) : (
             <button
@@ -311,7 +231,7 @@ export default function SettingsHubCards({
                 trackPaywallView('merchandise_card');
                 onOpenPaywall && onOpenPaywall();
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/30 hover:bg-amber-500/25 text-amber-400 text-xs font-bold transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#DFFF00]/15 border border-[#DFFF00]/30 hover:bg-[#DFFF00]/25 text-[#DFFF00] text-xs font-tech font-bold transition-all cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>Unlock</span>

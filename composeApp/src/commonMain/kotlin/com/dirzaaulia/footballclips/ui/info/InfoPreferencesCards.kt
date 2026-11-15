@@ -30,6 +30,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.dirzaaulia.footballclips.ui.theme.GhostBorder
+import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
+import com.dirzaaulia.footballclips.ui.theme.VoltLime
+import com.dirzaaulia.footballclips.ui.theme.VoltLimeDarkText
 
 @Composable
 internal fun MerchandiseSettingsCard(
@@ -44,11 +48,11 @@ internal fun MerchandiseSettingsCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = ObsidianSurfaceTier1,
         ),
         border = BorderStroke(
             width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+            color = GhostBorder,
         ),
     ) {
         Row(
@@ -86,7 +90,7 @@ private fun MerchandiseSettingsInfo(
             color = if (isPremium) {
                 MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
             } else {
-                Color(0xFFD4AF37).copy(alpha = 0.15f)
+                VoltLime.copy(alpha = 0.15f)
             },
             shape = RoundedCornerShape(10.dp),
             modifier = Modifier.size(40.dp),
@@ -94,7 +98,7 @@ private fun MerchandiseSettingsInfo(
             Icon(
                 imageVector = if (isPremium) Icons.Default.ShoppingBag else Icons.Default.Diamond,
                 contentDescription = null,
-                tint = if (isPremium) MaterialTheme.colorScheme.primary else Color(0xFFD4AF37),
+                tint = if (isPremium) MaterialTheme.colorScheme.primary else VoltLime,
                 modifier = Modifier.padding(10.dp),
             )
         }
@@ -142,7 +146,7 @@ private fun MerchandiseSettingsControl(
         Surface(
             onClick = onShowPaywall,
             shape = RoundedCornerShape(20.dp),
-            color = Color(0xFFD4AF37).copy(alpha = 0.15f),
+            color = VoltLime.copy(alpha = 0.15f),
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
@@ -152,14 +156,14 @@ private fun MerchandiseSettingsControl(
                 Icon(
                     imageVector = Icons.Default.Diamond,
                     contentDescription = "Unlock Pro",
-                    tint = Color(0xFFD4AF37),
+                    tint = VoltLime,
                     modifier = Modifier.size(14.dp),
                 )
                 Text(
                     text = "Unlock",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFD4AF37),
+                    color = VoltLime,
                 )
             }
         }
@@ -176,11 +180,11 @@ internal fun SpoilerFreeSettingsCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = ObsidianSurfaceTier1,
         ),
         border = BorderStroke(
             width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+            color = GhostBorder,
         ),
     ) {
         Row(

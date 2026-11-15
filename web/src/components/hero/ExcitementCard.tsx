@@ -33,10 +33,10 @@ export default function ExcitementCard({
   return (
     <div
       onClick={() => onPlay(match)}
-      className="group relative w-[310px] sm:w-[360px] h-auto min-h-[310px] sm:min-h-[330px] shrink-0 rounded-3xl bg-[#1E2227] border border-[#334155] hover:border-[#7098F8]/60 transition-all duration-300 overflow-hidden shadow-xl hover:shadow-[0_10px_30px_rgba(112,152,248,0.2)] cursor-pointer flex flex-col justify-between select-none"
+      className="group relative w-[310px] sm:w-[360px] h-auto min-h-[310px] sm:min-h-[330px] shrink-0 rounded-3xl bg-[#121316] border border-white/10 hover:border-[#DFFF00]/50 transition-all duration-300 overflow-hidden shadow-2xl hover:shadow-[0_12px_36px_rgba(223,255,0,0.22)] cursor-pointer flex flex-col justify-between select-none"
     >
-      {/* 16:9 Thumbnail Area */}
-      <div className="relative w-full pt-[56.25%] bg-[#101418] overflow-hidden shrink-0">
+      {/* 16:9 Cinema Thumbnail Area */}
+      <div className="relative w-full pt-[56.25%] bg-[#0A0A0C] overflow-hidden shrink-0">
         <Image
           src={thumbUrl}
           alt={`${homeName} vs ${awayName}`}
@@ -48,23 +48,23 @@ export default function ExcitementCard({
         />
 
         {/* Gradient Scrim */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1E2227] via-transparent to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#121316] via-transparent to-black/60" />
 
         {/* Dynamic Excitement Badge */}
-        <div className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/75 backdrop-blur-md text-[#7098F8] border border-[#7098F8]/40 shadow-md">
-          <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+        <div className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-tech font-black uppercase tracking-wider bg-black/80 backdrop-blur-md text-[#DFFF00] border border-[#DFFF00]/40 shadow-lg">
+          <Flame className="w-3.5 h-3.5 text-[#DFFF00] fill-[#DFFF00]" />
           <span>{tag}</span>
         </div>
 
-        {/* Play Icon Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-85 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300">
-          <div className="w-12 h-12 rounded-full bg-[#1E3A8A]/90 backdrop-blur-sm border border-[#7098F8]/60 flex items-center justify-center text-white shadow-[0_0_20px_rgba(112,152,248,0.4)]">
-            <Play className="w-5 h-5 ml-0.5 fill-white" />
+        {/* High-Voltage Volt Play Icon Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300">
+          <div className="w-12 h-12 rounded-full bg-[#DFFF00] flex items-center justify-center text-[#0A0A0C] shadow-[0_0_24px_rgba(223,255,0,0.5)] border border-[#DFFF00]">
+            <Play className="w-5 h-5 ml-0.5 fill-[#0A0A0C] text-[#0A0A0C]" />
           </div>
         </div>
 
         {/* Top-Right Competition Pill */}
-        <div className="absolute top-3 right-3 text-[10px] font-extrabold text-white/90 bg-black/60 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-white/10">
+        <div className="absolute top-3 right-3 text-[10px] font-tech font-bold text-[#E3E2E6] bg-black/70 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10">
           {match.competition_name}
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function ExcitementCard({
           </div>
 
           {/* Scoreline Pill */}
-          <div className="shrink-0 px-2.5 py-1 rounded-xl bg-[#101418] border border-[#334155] text-center">
+          <div className="shrink-0 px-2.5 py-1 rounded-xl bg-[#1A1C22] border border-white/10 text-center font-tech">
             {hasScores ? (
               isHidden ? (
                 <button
@@ -95,7 +95,7 @@ export default function ExcitementCard({
                     e.stopPropagation();
                     onPlay(match);
                   }}
-                  className="flex items-center gap-1 text-[10px] font-black text-[#4FC3F7] hover:text-white"
+                  className="flex items-center gap-1 text-[10px] font-black text-[#DFFF00] hover:text-white"
                   title="Open Match Centre"
                 >
                   <Eye className="w-3 h-3" />
@@ -107,7 +107,7 @@ export default function ExcitementCard({
                 </span>
               )
             ) : (
-              <span className="font-bold text-[10px] text-[#94A3B8]">VS</span>
+              <span className="font-bold text-[10px] text-slate-400">VS</span>
             )}
           </div>
 
@@ -126,7 +126,7 @@ export default function ExcitementCard({
         </div>
 
         {/* Footer info: Kickoff date */}
-        <div className="flex items-center justify-between text-[11px] text-[#94A3B8] pt-2 border-t border-[#334155]/50">
+        <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/10">
           <span>
             {new Date(match.utc_date).toLocaleDateString('en-GB', {
               day: 'numeric',

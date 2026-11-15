@@ -128,3 +128,28 @@ func (r *Repository) UpsertMatches(ctx context.Context, matches []domain.Match) 
 	}
 	return nil
 }
+
+// GetActiveCompetitionIDs returns all active competition codes ordered by display_order.
+func (r *Repository) GetActiveCompetitionIDs(ctx context.Context) ([]string, error) {
+	query := `
+		SELECT id
+		FROM competitions
+		WHERE is_active = true
+		ORDER BY display_order ASC`
+
+	rows, err := r.pool.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("query active competitions: %w", err)
+	}
+	defer rows.Close()
+
+	var comps []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err == nil && id != "" {
+			comps = append(comps, id)
+		}
+	}
+	return comps, nil
+}
+

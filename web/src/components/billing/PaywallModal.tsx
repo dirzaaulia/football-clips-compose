@@ -101,10 +101,10 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
 
   const titleHeader = (
     <div className="flex items-center gap-2">
-      <div className="w-6 h-6 rounded-lg bg-[#D4AF37]/20 border border-[#D4AF37]/50 flex items-center justify-center">
-        <Gem className="w-3.5 h-3.5 text-[#D4AF37]" />
+      <div className="w-6 h-6 rounded-lg bg-[#DFFF00]/15 border border-[#DFFF00]/40 flex items-center justify-center">
+        <Gem className="w-3.5 h-3.5 text-[#DFFF00]" />
       </div>
-      <span className="text-xs font-black uppercase tracking-wider text-[#D4AF37]">
+      <span className="text-xs font-black uppercase tracking-wider text-[#DFFF00]">
         {hasPro ? 'Premium Active' : 'Go Premium • Remove Ads'}
       </span>
     </div>
@@ -120,13 +120,13 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
       <div className={`p-4 sm:p-6 ${isCheckoutActive ? 'flex-1 flex flex-col h-full' : 'space-y-5'}`}>
         {hasPro ? (
           <div className="text-center py-4 space-y-4">
-            <div className="w-16 h-16 mx-auto rounded-full bg-[#4CAF50]/20 border border-[#4CAF50]/50 flex items-center justify-center">
-              <CheckCircle2 className="w-9 h-9 text-[#4CAF50]" />
+            <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center">
+              <CheckCircle2 className="w-9 h-9 text-emerald-400" />
             </div>
-            <h2 className="text-2xl font-black text-[#4CAF50] tracking-tight">
+            <h2 className="font-scoreboard text-3xl font-black text-emerald-400 tracking-wide uppercase">
               Premium Active
             </h2>
-            <p className="text-xs sm:text-sm text-[#94A3B8] max-w-sm mx-auto">
+            <p className="text-xs sm:text-sm text-[#A1A1AA] max-w-sm mx-auto">
               Thank you for supporting Football Highlights & Clips! All advertisements have been removed.
             </p>
             <PaywallAccountCard user={user} isLoading={isAuthLoading} onAuthChanged={handleRestore} />
@@ -143,10 +143,10 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
         ) : (
           <div className="space-y-5">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
+              <h2 className="font-scoreboard text-3xl sm:text-4xl text-white tracking-wide uppercase leading-none">
                 Pure Football, Zero Interruptions
               </h2>
-              <p className="text-xs sm:text-sm text-[#94A3B8] mt-1.5">
+              <p className="text-xs sm:text-sm text-[#A1A1AA] mt-1.5">
                 Support development and unlock an uninterrupted ad-free experience across web & mobile.
               </p>
             </div>
@@ -155,20 +155,23 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
             <PaywallAccountCard user={user} isLoading={isAuthLoading} onAuthChanged={handleRestore} />
 
             {/* Feature List */}
-            <div className="space-y-2 bg-[#101418] p-4 rounded-2xl border border-[#334155]/60">
+            <div className="space-y-2.5 bg-[#0A0A0C] p-4 rounded-xl border border-white/10">
+              <span className="text-[10px] font-tech font-bold uppercase tracking-wider text-[#DFFF00]">
+                EXCLUSIVE PRO BENEFITS
+              </span>
               {benefits.map((feat, i) => (
-                <div key={i} className="flex items-center gap-2.5 text-xs text-[#F1F5F9]">
-                  <div className="w-4 h-4 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] flex items-center justify-center shrink-0">
-                    <Check className="w-2.5 h-2.5" />
+                <div key={i} className="flex items-start gap-2.5 text-xs text-[#E3E2E6]">
+                  <div className="w-4 h-4 rounded bg-[#DFFF00]/15 text-[#DFFF00] flex items-center justify-center shrink-0 mt-0.5">
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
                   </div>
-                  <span>{feat}</span>
+                  <span className="leading-tight">{feat}</span>
                 </div>
               ))}
             </div>
 
             {/* Restore Status Message */}
             {restoreMessage && (
-              <div className="p-3 rounded-xl bg-[#1E2227] border border-[#334155] text-xs text-[#4FC3F7] text-center font-medium">
+              <div className="p-3 rounded-xl bg-[#1A1C22] border border-white/10 text-xs text-[#DFFF00] text-center font-medium font-tech">
                 {restoreMessage}
               </div>
             )}
@@ -178,7 +181,7 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
               {user ? (
                 <button
                   onClick={handleSubscribe}
-                  className="w-full py-3.5 px-6 rounded-2xl bg-[#D4AF37] hover:bg-[#C29B27] text-black font-black text-sm shadow-[0_0_24px_rgba(212,175,55,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3.5 px-6 rounded-xl bg-[#DFFF00] hover:bg-[#c8e600] text-[#0A0A0C] font-black text-sm shadow-[0_0_24px_rgba(223,255,0,0.35)] transition-all flex items-center justify-center gap-2 cursor-pointer font-scoreboard tracking-wider text-base"
                 >
                   <Zap className="w-4 h-4 fill-current" />
                   <span>Continue to Secure Checkout</span>
@@ -189,10 +192,10 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
                   {!hasGsiRendered && (
                     <button
                       onClick={handleSubscribe}
-                      className="w-full py-3.5 px-6 rounded-2xl bg-white hover:bg-zinc-100 text-black font-black text-sm shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-3.5 px-6 rounded-xl bg-white hover:bg-zinc-100 text-black font-black text-sm shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all flex items-center justify-center gap-2 cursor-pointer font-scoreboard tracking-wider"
                     >
                       <LogIn className="w-4 h-4 text-black" />
-                      <span>Sign In to Buy or Restore</span>
+                      <span>Sign In with Google to Upgrade</span>
                     </button>
                   )}
                 </div>
@@ -201,15 +204,15 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
               <button
                 onClick={handleRestore}
                 disabled={isRestoring}
-                className="w-full py-2.5 px-4 rounded-xl bg-[#1E2227] hover:bg-[#334155]/50 text-[#94A3B8] hover:text-white font-semibold text-xs border border-[#334155] transition-colors cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#1A1C22] hover:bg-[#252830] text-white/70 hover:text-white font-tech text-xs border border-white/10 transition-colors cursor-pointer flex items-center justify-center gap-2"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRestoring ? 'animate-spin' : ''}`} />
-                <span>{isRestoring ? 'Verifying with Supabase & RevenueCat...' : 'Sync & Restore Previous Purchases'}</span>
+                <span>{isRestoring ? 'Verifying Active Subscriptions...' : 'Sync & Restore Previous Purchases'}</span>
               </button>
             </div>
 
             {/* Secure Checkout Note */}
-            <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#94A3B8]">
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-white/50 font-tech">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
               <span>Encrypted checkout securely managed by Paddle & RevenueCat</span>
             </div>

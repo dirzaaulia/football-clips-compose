@@ -1,26 +1,30 @@
 'use client';
 
 import React, { useState } from 'react';
+import TacticalZone14OverloadEngine from './TacticalZone14OverloadEngine';
+import TacticalDuelsMomentum from './TacticalDuelsMomentum';
 import H2HComparator from '@/components/tools/H2HComparator';
 import LeagueFormMatrix from '@/components/tools/LeagueFormMatrix';
 import BroadcastDirectory from '@/components/tools/BroadcastDirectory';
-import { Swords, Activity, Tv } from 'lucide-react';
+import { Network, Swords, Activity, Tv, Sparkles } from 'lucide-react';
 
-type ToolTab = 'h2h' | 'form' | 'broadcast';
+type ToolTab = 'spatial' | 'duels' | 'h2h' | 'form' | 'broadcast';
 
 export default function ToolsTabsClient() {
-  const [activeTab, setActiveTab] = useState<ToolTab>('h2h');
+  const [activeTab, setActiveTab] = useState<ToolTab>('spatial');
 
   const tabs = [
-    { id: 'h2h' as ToolTab, label: 'H2H Tactical Comparator', icon: Swords },
-    { id: 'form' as ToolTab, label: 'Form & Momentum Matrix', icon: Activity },
-    { id: 'broadcast' as ToolTab, label: 'Global Where-to-Watch', icon: Tv },
+    { id: 'spatial' as ToolTab, label: 'Zone 14 Overload Engine', icon: Network },
+    { id: 'duels' as ToolTab, label: 'Tactical Duels & Momentum', icon: Activity },
+    { id: 'h2h' as ToolTab, label: 'H2H Comparator', icon: Swords },
+    { id: 'form' as ToolTab, label: 'League Form Matrix', icon: Sparkles },
+    { id: 'broadcast' as ToolTab, label: 'Broadcast Directory', icon: Tv },
   ];
 
   return (
     <div className="space-y-6">
       {/* Tab Switcher */}
-      <div className="flex gap-2 p-1.5 rounded-2xl bg-[#181C20] border border-[#334155]/60 overflow-x-auto scrollbar-none">
+      <div className="flex gap-2 p-1.5 rounded-2xl bg-[#121316] border border-white/10 overflow-x-auto scrollbar-none">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -29,10 +33,10 @@ export default function ToolsTabsClient() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-tech text-xs uppercase tracking-wider font-bold transition-all cursor-pointer whitespace-nowrap ${
                 isActive
-                  ? 'bg-[#7098F8] text-[#101418] shadow-md shadow-[#7098F8]/20'
-                  : 'text-[#94A3B8] hover:text-white hover:bg-white/5'
+                  ? 'bg-[#1A1C22] text-[#DFFF00] border border-[#DFFF00]/40 shadow-sm'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -44,6 +48,8 @@ export default function ToolsTabsClient() {
 
       {/* Tab Content Panes */}
       <div className="animate-in fade-in duration-200">
+        {activeTab === 'spatial' && <TacticalZone14OverloadEngine />}
+        {activeTab === 'duels' && <TacticalDuelsMomentum />}
         {activeTab === 'h2h' && <H2HComparator />}
         {activeTab === 'form' && <LeagueFormMatrix />}
         {activeTab === 'broadcast' && <BroadcastDirectory />}
