@@ -32,7 +32,7 @@ export default function SubNavBar({
   activeFilterCount = 0,
 }: SubNavBarProps) {
   return (
-    <div className="sticky top-0 z-30 bg-[#0A0A0C]/90 backdrop-blur-xl py-3 border-b border-white/10 mb-6 space-y-3">
+    <div className="sticky top-0 z-30 bg-[#0A0A0C]/75 backdrop-blur-md py-3 border-b border-white/10 mb-6 space-y-3">
       {/* Top Bar: Spoiler-Free Segmented Pill & Season Filter */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Segmented Spoiler-Free Pill Switch */}

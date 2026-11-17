@@ -41,7 +41,7 @@ internal fun HeroLiveMatchCard(
     Card(
         onClick = onWatchClick,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2227)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.6f)),
         modifier = modifier.fillMaxWidth(),
     ) {
@@ -70,7 +70,7 @@ internal fun HeroLiveMatchCard(
                         text = match.competitionName,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
 
@@ -126,7 +126,7 @@ internal fun HeroLiveMatchCard(
                         text = match.homeTeamName,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
 
@@ -134,7 +134,7 @@ internal fun HeroLiveMatchCard(
                     text = "${match.homeScore ?: 0} - ${match.awayScore ?: 0}",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Black,
-                    color = Color(0xFFFF6B6B),
+                    color = Color(0xFFFF2E4D),
                     letterSpacing = 2.sp,
                 )
 
@@ -150,7 +150,7 @@ internal fun HeroLiveMatchCard(
                         text = match.awayTeamName,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }

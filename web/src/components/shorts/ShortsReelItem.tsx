@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
-import { Heart, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { FootballShortRecord } from '@/lib/shorts';
 import ShortsActionRail from './ShortsActionRail';
 import ShortsBottomInfo from './ShortsBottomInfo';
@@ -11,8 +11,6 @@ interface ShortsReelItemProps {
   short: FootballShortRecord;
   isActive: boolean;
   isMuted: boolean;
-  isLiked: boolean;
-  onToggleLike: () => void;
   onToggleMute: () => void;
   onShare: () => void;
 }
@@ -21,25 +19,21 @@ export default function ShortsReelItem({
   short,
   isActive,
   isMuted,
-  isLiked,
-  onToggleLike,
   onToggleMute,
   onShare,
 }: ShortsReelItemProps) {
-  const [showHeartBurst, setShowHeartBurst] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [pulseIndicator, setPulseIndicator] = useState<'play' | 'pause' | null>(null);
   const [isFrameLoaded, setIsFrameLoaded] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pulseTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Send command to YouTube iframe via postMessage
   const postCommand = useCallback((func: string, args: unknown[] = []) => {
     iframeRef.current?.contentWindow?.postMessage(
       JSON.stringify({ event: 'command', func, args }),
-      '*'
+      '*',
     );
   }, []);
 
@@ -88,21 +82,6 @@ export default function ShortsReelItem({
     pulseTimerRef.current = setTimeout(() => setPulseIndicator(null), 450);
   };
 
-  const handleCanvasClick = () => {
-    if (clickTimerRef.current) {
-      clearTimeout(clickTimerRef.current);
-      clickTimerRef.current = null;
-      if (!isLiked) onToggleLike();
-      setShowHeartBurst(true);
-      setTimeout(() => setShowHeartBurst(false), 850);
-    } else {
-      clickTimerRef.current = setTimeout(() => {
-        clickTimerRef.current = null;
-        togglePlayPause();
-      }, 220);
-    }
-  };
-
   return (
     <div className="h-full w-full flex items-center justify-center p-2 sm:p-4 snap-center">
       <div className="flex items-end justify-center gap-3 sm:gap-4 h-full max-h-[820px]">
@@ -146,9 +125,9 @@ export default function ShortsReelItem({
 
               {/* Tap Interceptor Layer to bypass default YouTube UI chrome */}
               <div
-                onClick={handleCanvasClick}
+                onClick={togglePlayPause}
                 className="absolute inset-0 z-20 cursor-pointer pointer-events-auto"
-                title="Tap to toggle play/pause, double-tap to like"
+                title="Tap to toggle play/pause"
               />
             </div>
           ) : (
@@ -165,13 +144,13 @@ export default function ShortsReelItem({
             </div>
           )}
 
-          {/* Top-Right Mute Pill Toggle (YouTube Shorts web style) */}
+          {/* Top-Right Mute Pill Toggle */}
           <button
             onClick={(e) => {
               e.stopPropagation();
               onToggleMute();
             }}
-            className="absolute top-4 right-4 z-40 p-2.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/15 hover:bg-black/80 transition-transform active:scale-90"
+            className="absolute top-4 right-4 z-40 p-2.5 rounded-full bg-black/60 backdrop-blur-md text-white border border-white/15 hover:bg-black/80 transition-transform active:scale-90 cursor-pointer"
             title={isMuted ? 'Unmute' : 'Mute'}
           >
             {isMuted ? <VolumeX className="w-5 h-5 text-amber-400" /> : <Volume2 className="w-5 h-5 text-white" />}
@@ -190,13 +169,6 @@ export default function ShortsReelItem({
             </div>
           )}
 
-          {/* Double Click Heart Burst Animation */}
-          {showHeartBurst && (
-            <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none animate-ping">
-              <Heart className="w-24 h-24 text-rose-500 fill-rose-500 drop-shadow-[0_0_25px_rgba(244,63,94,0.9)]" />
-            </div>
-          )}
-
           {/* Gradient Scrim & Overlays */}
           <div className="absolute inset-0 z-30 p-4 sm:p-5 flex flex-col justify-between pointer-events-none bg-gradient-to-b from-black/40 via-transparent to-black/90">
             <div className="h-6" />
@@ -212,29 +184,13 @@ export default function ShortsReelItem({
               <div className="md:hidden">
                 <ShortsActionRail
                   videoId={short.youtube_video_id}
-                  likeCount={short.like_count}
-                  isLiked={isLiked}
                   isMuted={isMuted}
-                  onToggleLike={onToggleLike}
                   onToggleMute={onToggleMute}
                   onShare={onShare}
                 />
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Desktop YouTube Shorts-style Action Rail (Outside Chassis) */}
-        <div className="hidden md:flex flex-col items-center pb-4">
-          <ShortsActionRail
-            videoId={short.youtube_video_id}
-            likeCount={short.like_count}
-            isLiked={isLiked}
-            isMuted={isMuted}
-            onToggleLike={onToggleLike}
-            onToggleMute={onToggleMute}
-            onShare={onShare}
-          />
         </div>
       </div>
     </div>

@@ -2,10 +2,10 @@ package com.dirzaaulia.footballclips.ui.components.paywall
 
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.billing.CustomerInfoModel
 import com.dirzaaulia.footballclips.data.model.remote.Profile
@@ -48,7 +48,7 @@ fun PaywallBottomSheet(
         ModalSideSheet(
             onDismissRequest = onDismiss,
             sheetWidth = 480.dp,
-            containerColor = Color(0xFF121212)
+            containerColor = MaterialTheme.colorScheme.surface,
         ) {
             PaywallSheetContent(
                 isSideSheet = true,
@@ -61,15 +61,15 @@ fun PaywallBottomSheet(
                 onSignInClick = onSignInClick,
                 onPurchaseClick = onPurchaseClick,
                 onSignOutClick = onSignOutClick,
-                onDismiss = onDismiss
+                onDismiss = onDismiss,
             )
         }
     } else {
         ModalBottomSheet(
             onDismissRequest = onDismiss,
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            containerColor = Color(0xFF121212),
-            dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFFD4AF37)) }
+            containerColor = MaterialTheme.colorScheme.surface,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = MaterialTheme.colorScheme.primary) },
         ) {
             PaywallSheetContent(
                 isSideSheet = false,

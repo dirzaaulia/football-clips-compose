@@ -39,9 +39,11 @@ export default function AppShell({ children }: AppShellProps) {
     );
   }
 
+  const isShorts = pathname?.startsWith('/shorts') ?? false;
+
   return (
     <QueryProvider>
-      <div className="min-h-screen w-full bg-[#0A0A0C] text-[#F1F5F9] flex flex-col">
+      <div className={`min-h-screen w-full bg-[#0A0A0C] text-[#F1F5F9] flex flex-col ${isShorts ? 'h-screen overflow-hidden' : ''}`}>
         <SplashScreen />
 
         {/* Stitch 1:1 Fixed Top OTT Header Nav */}
@@ -51,9 +53,9 @@ export default function AppShell({ children }: AppShellProps) {
         />
 
         {/* Main Content Area offset by top header */}
-        <div className="flex-1 flex flex-col min-w-0 pt-12 relative">
-          <main className="flex-1">{children}</main>
-          <Footer />
+        <div className={`flex-1 flex flex-col min-w-0 pt-12 relative ${isShorts ? 'h-[calc(100vh-3rem)] overflow-hidden' : ''}`}>
+          <main className={`flex-1 ${isShorts ? 'h-full overflow-hidden' : ''}`}>{children}</main>
+          {!isShorts && <Footer />}
           <QuickCommandPalette />
           <CookieConsentBanner />
           <PlayStoreInstallBanner />

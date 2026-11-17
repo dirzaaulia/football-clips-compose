@@ -93,10 +93,10 @@ export default function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
   };
 
   const benefits = [
-    '100% Ad-Free across all highlights, scores, and fixtures',
-    'Instant full AI tactical recap debriefs & match reports',
-    'High-definition uninterrupted video playback',
-    'Cross-platform sync with Football Highlights & Clips Android app',
+    '100% Ad-Free across all highlights, scores, fixtures, and standings',
+    'Customize or hide club merchandise recommendation shelves',
+    'Cross-platform Pro sync between Web and the Android app via Google Sign-In',
+    'Directly support ongoing FootballClips development and server operations',
   ];
 
   const titleHeader = (

@@ -1,5 +1,6 @@
 package com.dirzaaulia.footballclips.ui.components.paywall
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,18 +21,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.data.model.remote.Profile
+import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.theme.VoltLime
+import com.dirzaaulia.footballclips.ui.theme.VoltLimeDarkText
 
 @Composable
 internal fun NonPremiumContent(
@@ -39,119 +41,124 @@ internal fun NonPremiumContent(
     displayInfo: OfferingDisplayInfo?,
     onSignInClick: () -> Unit,
     onPurchaseClick: (Any) -> Unit,
-    onSignOutClick: () -> Unit
+    onSignOutClick: () -> Unit,
 ) {
     Icon(
         imageVector = Icons.Default.Diamond,
         contentDescription = null,
-        tint = Color(0xFFD4AF37),
-        modifier = Modifier.size(64.dp)
+        tint = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.size(56.dp),
     )
-    
-    Spacer(modifier = Modifier.height(16.dp))
-    
+
+    Spacer(modifier = Modifier.height(14.dp))
+
     Text(
-        text = "Remove Ads",
+        text = "FootballClips Pro",
         style = MaterialTheme.typography.headlineMedium,
-        color = Color(0xFFD4AF37),
-        fontWeight = FontWeight.ExtraBold
+        color = MaterialTheme.colorScheme.onSurface,
+        fontWeight = FontWeight.ExtraBold,
     )
-    
+
     Text(
-        text = "Remove all ads and support the app development.",
-        style = MaterialTheme.typography.bodyLarge,
-        color = Color.White.copy(alpha = 0.7f),
+        text = "Go 100% ad-free across Android & Web and support ongoing development.",
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
-        modifier = Modifier.padding(top = 8.dp)
+        modifier = Modifier.padding(top = 6.dp),
     )
-    
-    Spacer(modifier = Modifier.height(32.dp))
-    
+
+    Spacer(modifier = Modifier.height(24.dp))
+
     val benefits = listOf(
-        "No Video Interruptions",
-        "Remove In-Feed Banners",
-        "Support Quality Content",
-        "Faster App Loading"
+        "100% Ad-Free across all highlights, scores, and fixtures",
+        "Customize or hide club merchandise recommendation shelves",
+        "Cross-platform Pro sync across Android & Web via Google Sign-In",
+        "Directly support ongoing FootballClips server operations",
     )
-    
+
     benefits.forEach { benefit ->
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(vertical = 5.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = null,
-                tint = Color(0xFFD4AF37),
-                modifier = Modifier.size(20.dp)
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp),
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Text(text = benefit, color = Color.White, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = benefit,
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
     }
-    
-    Spacer(modifier = Modifier.height(32.dp))
-    
+
+    Spacer(modifier = Modifier.height(24.dp))
+
     Surface(
-        color = Color.White.copy(alpha = 0.05f),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.Info,
                     contentDescription = null,
-                    tint = Color(0xFFD4AF37),
-                    modifier = Modifier.size(20.dp)
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Why Sign In?",
-                    color = Color(0xFFD4AF37),
+                    color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Sign-in is ONLY used to link your purchase to your account so it works across all your devices. We do not collect or sell your personal data.",
-                color = Color.White.copy(alpha = 0.7f),
-                style = MaterialTheme.typography.bodySmall
+                text = "Sign-in is only used to link your purchase to your Google account so your Pro status syncs across Android and Web.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
             )
         }
     }
-    
-    Spacer(modifier = Modifier.height(32.dp))
-    
+
+    Spacer(modifier = Modifier.height(24.dp))
+
     if (profile == null) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             if (displayInfo != null) {
                 Text(
                     text = "Lifetime Access: ${displayInfo.price}",
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    modifier = Modifier.padding(bottom = 12.dp),
                 )
             }
             Button(
                 onClick = onSignInClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(52.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color.Black
+                    containerColor = VoltLime,
+                    contentColor = VoltLimeDarkText,
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
             ) {
                 Text(
                     text = "Sign In to Buy or Restore",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 15.sp,
                 )
             }
         }
@@ -161,7 +168,8 @@ internal fun NonPremiumContent(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Surface(
-                color = Color.White.copy(alpha = 0.05f),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -178,13 +186,13 @@ internal fun NonPremiumContent(
                         Text(
                             text = "Connected Account",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFFD4AF37),
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
                             text = profile.email ?: "Signed In",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -204,19 +212,19 @@ internal fun NonPremiumContent(
                     onClick = { onPurchaseClick(displayInfo.rcPackage) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(52.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFD4AF37),
-                        contentColor = Color.Black,
-                        disabledContainerColor = Color(0xFFD4AF37).copy(alpha = 0.3f),
-                        disabledContentColor = Color.Black.copy(alpha = 0.3f)
+                        containerColor = VoltLime,
+                        contentColor = VoltLimeDarkText,
+                        disabledContainerColor = VoltLime.copy(alpha = 0.3f),
+                        disabledContentColor = VoltLimeDarkText.copy(alpha = 0.3f),
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
                 ) {
                     Text(
-                        text = "Purchase for ${displayInfo.price}",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
+                        text = "Upgrade for ${displayInfo.price}",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp,
                     )
                 }
             } else {

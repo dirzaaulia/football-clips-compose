@@ -140,6 +140,12 @@ export default function HomeInteractiveFeed({
 
   return (
     <div className="w-full">
+      {/* Top Live Ticker Strip (Sticky under header) */}
+      <LiveMatchTickerStrip
+        liveMatches={displayedLiveMatches}
+        onPlayMatch={(m) => { setActiveVideoMatch(m); playVideo(m); }}
+      />
+
       {/* Full-Bleed Edge-to-Edge DAZN Hero Billboard */}
       <HeroBillboard
         matches={heroCandidateMatches}
@@ -148,20 +154,12 @@ export default function HomeInteractiveFeed({
         isLoading={isMountEntrance && heroCandidateMatches.length === 0}
       />
 
-      {/* Boxed Content Container below Hero */}
-      <div className="max-w-[1600px] w-full mx-auto px-3.5 sm:px-6 lg:px-8 2xl:px-10 py-4 space-y-6">
-        {/* Top Live Ticker Strip */}
-        <LiveMatchTickerStrip
-          liveMatches={displayedLiveMatches}
-          onPlayMatch={(m) => { setActiveVideoMatch(m); playVideo(m); }}
-        />
-
-        {/* League Filter Sub-Bar with Integrated Search */}
-        <LeagueFilterSubBar
-          selectedComp={selectedComp}
-          onSelectComp={(comp) => { setIsMyClubsActive(false); setSelectedComp(comp); }}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+      {/* League Filter Sub-Bar with Integrated Search (Positioned below Hero) */}
+      <LeagueFilterSubBar
+        selectedComp={selectedComp}
+        onSelectComp={(comp) => { setIsMyClubsActive(false); setSelectedComp(comp); }}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
         favoriteCount={favoriteCount}
         isMyClubsActive={isMyClubsActive}
         onToggleMyClubs={() => setIsMyClubsActive((prev) => !prev)}
@@ -169,9 +167,11 @@ export default function HomeInteractiveFeed({
         activeFilterCount={activeFilterCount}
       />
 
-      {isMerchandiseEnabled && isMyClubsActive && (
-        <MyClubsStoreShelf onOpenMyClubs={() => setIsMyClubsModalOpen(true)} className="mb-4" />
-      )}
+      {/* Boxed Content Container below Hero */}
+      <div className="max-w-[1600px] w-full mx-auto px-3.5 sm:px-6 lg:px-8 2xl:px-10 py-4 space-y-6">
+        {isMerchandiseEnabled && isMyClubsActive && (
+          <MyClubsStoreShelf onOpenMyClubs={() => setIsMyClubsModalOpen(true)} className="mb-4" />
+        )}
 
       {/* Highlights Feed: Grouped Rails or Full Multi-Column Grid */}
       {loading.initial ? (

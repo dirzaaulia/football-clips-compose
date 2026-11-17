@@ -16,21 +16,21 @@ export default function FixturesDateCarousel({
   onSelectDate,
   onPrevDay,
   onNextDay,
-  matchCountsByDate = {},
 }: FixturesDateCarouselProps) {
-  // Generate a window of 7 days centered or anchored around selectedDate
   const days = useMemo(() => {
     const list = [];
     const base = new Date(selectedDate);
-    // 3 days before, selected day, 3 days after
-    for (let i = -3; i <= 3; i++) {
+    const todayIso = new Date().toISOString().split('T')[0];
+    for (let i = -2; i <= 2; i++) {
       const d = new Date(base);
       d.setDate(d.getDate() + i);
       const iso = d.toISOString().split('T')[0];
-      const isToday = iso === new Date().toISOString().split('T')[0];
-      const dayName = d.toLocaleDateString('en-GB', { weekday: 'short' });
-      const dayNum = d.getDate();
-      list.push({ iso, isToday, dayName, dayNum });
+      const isToday = iso === todayIso;
+      const dayName = isToday
+        ? 'Today'
+        : d.toLocaleDateString('en-GB', { weekday: 'short' });
+      const dateLabel = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      list.push({ iso, isToday, dayName, dateLabel });
     }
     return list;
   }, [selectedDate]);
@@ -45,86 +45,58 @@ export default function FixturesDateCarousel({
   }, [selectedDate]);
 
   return (
-    <div className="w-full flex flex-col gap-3">
-      {/* Date Navigation Bar */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center justify-between gap-4 bg-[#1B1B1F] rounded-xl p-3 border border-white/5">
+      {/* Left: Date Selector with Prev / Next Chevrons */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onPrevDay}
+          className="p-2 rounded-lg bg-[#0D0E11] hover:bg-[#292A2E] text-white/70 hover:text-white border border-white/5 transition-colors cursor-pointer"
+          title="Previous Day"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+
+        <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-[#0D0E11] border border-white/10">
           <CalendarIcon className="w-4 h-4 text-[#DFFF00]" />
-          <span className="font-tech text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+          <span className="font-tech text-xs sm:text-sm font-bold text-white tracking-wide">
             {formattedHeader}
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={onPrevDay}
-            className="w-8 h-8 rounded-lg bg-[#1A1C22] hover:bg-[#252830] border border-white/10 text-white/70 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-            title="Previous Day"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onNextDay}
-            className="w-8 h-8 rounded-lg bg-[#1A1C22] hover:bg-[#252830] border border-white/10 text-white/70 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-            title="Next Day"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onNextDay}
+          className="p-2 rounded-lg bg-[#0D0E11] hover:bg-[#292A2E] text-white/70 hover:text-white border border-white/5 transition-colors cursor-pointer"
+          title="Next Day"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
 
-      {/* Date Carousel Pills */}
-      <div className="grid grid-cols-7 gap-2 overflow-x-auto pb-1 scrollbar-none">
+      {/* Right: 5-Day Horizontal Pill Strip */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
         {days.map((d) => {
           const isSelected = d.iso === selectedDate;
-          const info = matchCountsByDate[d.iso];
-          const badgeText = info
-            ? info.live > 0
-              ? `${info.live} LIVE`
-              : info.finished > 0
-              ? `${info.finished} FT`
-              : `${info.total} FIX`
-            : d.isToday
-            ? 'Today'
-            : '';
-
           return (
             <button
               key={d.iso}
+              type="button"
               onClick={() => onSelectDate(d.iso)}
-              className={`min-h-[56px] py-2 px-1.5 rounded-xl border flex flex-col items-center justify-center transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-lg text-center min-w-[82px] transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-[#1A1C22] border-[#DFFF00] shadow-[0_0_12px_rgba(223,255,0,0.2)]'
-                  : 'bg-[#121316] border-white/10 hover:border-white/20 hover:bg-[#1A1C22]/60'
+                  ? 'bg-[#DFFF00] text-[#0A0A0C] font-bold shadow-[0_0_12px_rgba(223,255,0,0.25)]'
+                  : 'bg-[#0D0E11] hover:bg-[#292A2E] text-white/60 hover:text-white border border-white/5'
               }`}
             >
               <span
-                className={`text-[10px] font-tech uppercase tracking-wider font-semibold ${
-                  isSelected ? 'text-[#DFFF00]' : 'text-white/50'
+                className={`block text-[10px] font-tech uppercase tracking-wider ${
+                  isSelected ? 'text-[#0A0A0C]/80 font-extrabold' : 'text-white/45'
                 }`}
               >
                 {d.dayName}
               </span>
-              <span
-                className={`font-scoreboard text-lg sm:text-xl leading-none my-0.5 ${
-                  isSelected ? 'text-white' : 'text-white/80'
-                }`}
-              >
-                {d.dayNum}
-              </span>
-              {badgeText && (
-                <span
-                  className={`text-[9px] font-tech font-bold uppercase tracking-wider px-1 rounded ${
-                    isSelected
-                      ? 'bg-[#DFFF00] text-[#0A0A0C]'
-                      : info?.live
-                      ? 'bg-[#FF2E4D] text-white'
-                      : 'text-white/40'
-                  }`}
-                >
-                  {badgeText}
-                </span>
-              )}
+              <span className="font-tech text-xs font-bold">{d.dateLabel}</span>
             </button>
           );
         })}

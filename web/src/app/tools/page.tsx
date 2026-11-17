@@ -5,9 +5,9 @@ import { Wrench, ArrowLeft, Cpu } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Football Analytics & Tactical Tools Suite - H2H Comparator, Form Matrix & Broadcasts',
+  title: 'Football Analytics & Tools Suite - H2H Comparator, Form Matrix & Broadcasts',
   description:
-    'Interactive European football tools: Zone 14 Overload Engine, Head-to-Head Tactical Comparator, Live League Form, and Global Broadcast Directory.',
+    'Interactive European football tools: Attacking Zones Breakdown, Head-to-Head Club Comparator, Live League Form, and Global Broadcast Directory.',
   alternates: {
     canonical: 'https://footballclips.web.app/tools',
   },
@@ -20,17 +20,17 @@ export default function ToolsPage() {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <span className="px-2.5 py-0.5 rounded bg-[#DFFF00]/15 text-[#DFFF00] font-tech text-[10px] font-bold uppercase tracking-wider border border-[#DFFF00]/30">
-            PRO COACH SUITE • TELEMETRY ENGINE
+            FOOTBALL ANALYTICS • MATCH TOOLS
           </span>
-          <span className="text-xs text-white/50 font-tech">UCL KO 2026/27</span>
+          <span className="text-xs text-white/50 font-tech">2026/27 Season</span>
         </div>
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="font-scoreboard text-3xl sm:text-4xl text-white uppercase tracking-wide leading-none">
-              Tactical Tools &amp; Match Telemetry
+              Match Tools &amp; Club Comparison
             </h1>
             <p className="text-xs sm:text-sm text-white/60 font-tech mt-1">
-              Head-to-head tactical matrix, zone 14 territorial dominance, expected goals progression, and player duels.
+              Head-to-head club comparisons, attacking zone breakdowns, season form guides, and official TV broadcast listings.
             </p>
           </div>
           <Link

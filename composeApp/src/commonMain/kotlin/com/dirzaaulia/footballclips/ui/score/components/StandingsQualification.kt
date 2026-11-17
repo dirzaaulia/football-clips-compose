@@ -30,8 +30,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.model.remote.StandingDto
 import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
-import com.dirzaaulia.footballclips.ui.theme.GhostBorder
-import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
 data class QualificationZone(
@@ -134,9 +132,9 @@ fun StandingRow(
     val posTextColor = zone?.color ?: MaterialTheme.colorScheme.onSurface
 
     Surface(
-        color = ObsidianSurfaceTier1,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, GhostBorder),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         modifier = modifier.fillMaxWidth(),
     ) {
         Row(

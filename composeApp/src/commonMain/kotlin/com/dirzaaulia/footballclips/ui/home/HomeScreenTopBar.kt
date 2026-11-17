@@ -16,13 +16,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.ui.components.filter.SeasonDropdownSelector
-import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
-import com.dirzaaulia.footballclips.ui.theme.VoltLime
 import com.dirzaaulia.footballclips.util.isDeveloperModeAllowed
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,7 +68,7 @@ internal fun HomeScreenTopBar(
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = ObsidianSurfaceTier1,
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
     )
 }
@@ -101,14 +98,14 @@ private fun HomeScreenTitle(
                 text = "FOOTBALL",
                 style = if (isWeb) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 letterSpacing = 1.sp,
             )
             Text(
                 text = "CLIPS",
                 style = if (isWeb) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
-                color = VoltLime,
+                color = MaterialTheme.colorScheme.primary,
                 letterSpacing = 1.sp,
             )
         }

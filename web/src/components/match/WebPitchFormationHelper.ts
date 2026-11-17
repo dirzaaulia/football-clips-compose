@@ -14,34 +14,42 @@ export function parseFormationCounts(formation?: string): number[] {
   return [1, ...parts]; // 1 GK prepended
 }
 
+export function getPositionRank(pos?: string): number {
+  if (!pos) return 2;
+  const p = pos.toUpperCase().trim();
+  if (p === 'GK' || p === 'G' || p.includes('GOAL')) return 0;
+  if (p === 'D' || p.includes('BACK') || p.includes('DEF') || ['CB', 'LB', 'RB', 'LWB', 'RWB'].includes(p)) return 1;
+  if (p === 'M' || p.includes('MID') || ['CM', 'DM', 'AM', 'LM', 'RM'].includes(p)) return 2;
+  return 3;
+}
+
 export function clampPitchCoordinate(
   x: number,
   y: number,
   isGK: boolean,
-  isHome: boolean
+  isHome: boolean,
 ): [number, number] {
   if (isGK) {
-    const minX = isHome ? 4.5 : 92.0;
-    const maxX = isHome ? 12.0 : 100.5;
-    const clampedX = Math.max(minX, Math.min(maxX, x));
-    const clampedY = Math.max(24.0, Math.min(44.0, y));
-    return [clampedX, clampedY];
+    const clampedX = isHome ? 5.2 : 99.8;
+    return [clampedX, 34.0];
   }
-  // Outfield players must strictly stay inside pitch boundary lines
-  const clampedX = Math.max(7.0, Math.min(95.0, x));
-  const clampedY = Math.max(6.0, Math.min(62.0, y));
+  const clampedX = Math.max(6.0, Math.min(99.0, x));
+  const clampedY = Math.max(7.0, Math.min(61.0, y));
   return [clampedX, clampedY];
 }
 
 export function calculateStarterPositions(
   teamFormation?: TeamFormation | null,
-  isHome: boolean = true
+  isHome: boolean = true,
 ): FormationNode[] {
   if (!teamFormation || !teamFormation.starters || teamFormation.starters.length === 0) {
     return [];
   }
 
-  const starters = teamFormation.starters;
+  // Sort starters strictly by tactical positional hierarchy
+  const starters = [...teamFormation.starters].sort(
+    (a, b) => getPositionRank(a.position) - getPositionRank(b.position),
+  );
   const lineCounts = parseFormationCounts(teamFormation.formation);
   const nodes: FormationNode[] = [];
   let playerIdx = 0;
@@ -52,12 +60,12 @@ export function calculateStarterPositions(
     const playersInLine = starters.slice(playerIdx, playerIdx + countInLine);
     playerIdx += countInLine;
 
-    const lineRatio = totalLines > 1 ? lineIdx / (totalLines - 1) : 0;
-    const rawX = isHome ? 5 + lineRatio * 40 : 100 - lineRatio * 40;
     const isGK = lineIdx === 0;
+    const lineRatio = totalLines > 1 ? lineIdx / (totalLines - 1) : 0;
+    const rawX = isHome ? 5.2 + lineRatio * 41 : 99.8 - lineRatio * 41;
 
     playersInLine.forEach((p, j) => {
-      const rawY = (68 * (j + 1)) / (countInLine + 1);
+      const rawY = isGK ? 34.0 : 8 + ((52 * (j + 1)) / (countInLine + 1));
       const [safeX, safeY] = clampPitchCoordinate(rawX, rawY, isGK, isHome);
       nodes.push({ player: p, x: safeX, y: safeY, isHome });
     });

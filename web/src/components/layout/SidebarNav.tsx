@@ -28,11 +28,11 @@ const NAV_LINKS = [
   { href: '/', label: 'Highlights', icon: Play },
   { href: '/shorts', label: 'Shorts', icon: Flame },
   { href: '/fixtures', label: 'Scores & Fixtures', icon: Calendar },
-  { href: '/standings', label: 'League Standings', icon: Trophy },
+  { href: '/standings', label: 'Standings & Stats', icon: Trophy },
   { href: '/tools', label: 'Tactical Tools', icon: Wrench },
   { href: '/store', label: 'Club Store', icon: ShoppingBag },
   { href: '/articles', label: 'Analysis Hub', icon: Newspaper },
-  { href: '/info', label: 'Settings', icon: Settings },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function SidebarNav({

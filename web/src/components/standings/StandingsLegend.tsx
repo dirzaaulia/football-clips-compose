@@ -12,7 +12,7 @@ export default function StandingsLegend({ competitionCode }: StandingsLegendProp
   if (!zones || zones.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 py-2 px-1 text-[11px] font-tech text-white/60">
+    <div className="flex flex-wrap items-center gap-4 text-xs text-white/60 bg-[#1B1B1F] px-4 py-2 rounded-lg border border-white/5 font-tech shrink-0">
       <span className="font-bold text-white/40 uppercase tracking-wider text-[10px]">Zones:</span>
       {zones.map((zone) => (
         <div key={zone.label} className="flex items-center gap-1.5">

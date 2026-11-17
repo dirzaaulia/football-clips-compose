@@ -32,7 +32,7 @@ export default function ShortsPage() {
   }, []);
 
   return (
-    <div className="relative w-full h-[calc(100vh-3rem)] md:h-screen bg-[#0A0A0C] overflow-hidden flex flex-col select-none">
+    <div className="relative w-full h-[calc(100dvh-3rem)] bg-[#0A0A0C] overflow-hidden overscroll-none flex flex-col select-none">
       {isLoading ? (
         <ShortsReelSkeleton />
       ) : shorts.length === 0 ? (

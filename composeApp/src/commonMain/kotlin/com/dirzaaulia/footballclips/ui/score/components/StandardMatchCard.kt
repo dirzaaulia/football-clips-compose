@@ -33,9 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.domain.model.Match
-import com.dirzaaulia.footballclips.ui.theme.GhostBorder
 import com.dirzaaulia.footballclips.ui.theme.MatchPulseRed
-import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
 import com.dirzaaulia.footballclips.ui.theme.VoltLime
 import com.dirzaaulia.footballclips.ui.theme.VoltLimeDarkText
 
@@ -67,10 +65,10 @@ fun StandardMatchCard(
                     },
                 ),
             shape = RoundedCornerShape(14.dp),
-            color = ObsidianSurfaceTier1,
+            color = MaterialTheme.colorScheme.surface,
             border = BorderStroke(
                 width = if (isFavorite) 1.5.dp else 1.dp,
-                color = if (isFavorite) VoltLime.copy(alpha = 0.6f) else GhostBorder,
+                color = if (isFavorite) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outline,
             ),
             tonalElevation = 0.dp,
             shadowElevation = 2.dp,

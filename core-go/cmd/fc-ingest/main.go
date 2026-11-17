@@ -20,6 +20,7 @@ func main() {
 	fromFlag := flag.String("from", "2026-11-11", "Start date (YYYY-MM-DD)")
 	toFlag := flag.String("to", "2026-11-20", "End date (YYYY-MM-DD)")
 	testHighlightsFlag := flag.Bool("highlights", true, "Execute highlight discovery on finished matches")
+	maxHighlightsFlag := flag.Int("max-highlights", 100, "Maximum pending matches to discover highlights for")
 	dryRunFlag := flag.Bool("dry-run", false, "Simulate scoreboard fetch without writing to DB")
 	flag.Parse()
 
@@ -122,11 +123,15 @@ func main() {
 	}
 
 	ytClient := youtube.NewClient(os.Getenv("YOUTUBE_API_KEY"), rssClient, taxonomyRegistry)
-	aiClient := aigw.NewClient(os.Getenv("AI_GATEWAY_URL"), os.Getenv("AI_GATEWAY_TOKEN"))
+	aiURL := os.Getenv("AI_GATEWAY_URL")
+	if aiURL == "" {
+		aiURL = "http://footballclips-oracle:8080"
+	}
+	aiClient := aigw.NewClient(aiURL, os.Getenv("AI_GATEWAY_TOKEN"))
 	hlUC := usecases.NewFindHighlightUseCase(ytClient, aiClient, repo, logger, false)
 
-	logger.Info("[HIGHLIGHT_PIPELINE_TEST] Discovering highlights for finished matches...")
-	pending, err := repo.GetPendingHighlights(ctx, 25)
+	logger.Info("[HIGHLIGHT_PIPELINE_START] Discovering highlights for finished matches...", slog.Int("limit", *maxHighlightsFlag))
+	pending, err := repo.GetPendingHighlights(ctx, *maxHighlightsFlag)
 	if err != nil {
 		logger.Error("[HIGHLIGHT_ERROR] Failed to query pending matches", slog.String("err", err.Error()))
 		return

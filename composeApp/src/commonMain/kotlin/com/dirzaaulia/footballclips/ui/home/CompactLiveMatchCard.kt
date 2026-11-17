@@ -45,7 +45,7 @@ internal fun CompactLiveMatchCard(
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        color = Color(0xFF1E2227),
+        color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, borderColor),
         tonalElevation = 2.dp,
     ) {
@@ -76,7 +76,7 @@ internal fun SeeAllLiveMatchesCard(remaining: Int, onClick: () -> Unit) {
             .height(86.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable { onClick() },
-        color = Color(0xFF1E2227),
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, Color(0xFFEF4444).copy(alpha = 0.4f)),
     ) {
@@ -181,7 +181,7 @@ private fun LiveTeamScoreRow(
             text = name,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),

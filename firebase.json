@@ -86,7 +86,7 @@
     },
     {
       "site": "footballclips-telemetry",
-      "public": "web/out/telemetry",
+      "public": "web/out",
       "cleanUrls": true,
       "headers": [
         {
@@ -99,10 +99,21 @@
           ]
         }
       ],
+      "redirects": [
+        {
+          "source": "/",
+          "destination": "/telemetry",
+          "type": 302
+        }
+      ],
       "rewrites": [
         {
+          "source": "/telemetry{,/**}",
+          "destination": "/telemetry.html"
+        },
+        {
           "source": "**",
-          "destination": "/index.html"
+          "destination": "/telemetry.html"
         }
       ],
       "trailingSlash": false

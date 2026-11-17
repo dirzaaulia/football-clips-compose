@@ -9,6 +9,8 @@ interface WebPitchShotMapOverlayProps {
   onSelectPlay: (play: WebPitchPlay) => void;
   homeColor: string;
   awayColor: string;
+  homeTeam?: string;
+  awayTeam?: string;
 }
 
 export function resolveShotOutcome(play: WebPitchPlay): {
@@ -20,7 +22,7 @@ export function resolveShotOutcome(play: WebPitchPlay): {
   const text = (play.text || '').toLowerCase();
 
   if (t.includes('goal') || text.includes('goal')) {
-    return { label: 'Goal', color: '#22C55E', radius: 3.2 };
+    return { label: 'Goal', color: '#DFFF00', radius: 3.2 };
   }
   if (text.includes('saved') || text.includes('save') || text.includes('parried')) {
     return { label: 'Saved', color: '#38BDF8', radius: 2.2 };
@@ -35,6 +37,7 @@ export default function WebPitchShotMapOverlay({
   plays,
   selectedPlay,
   onSelectPlay,
+  homeTeam = 'Home',
 }: WebPitchShotMapOverlayProps) {
   const shotPlays = plays.filter((p) => {
     const t = (p.type_text || p.type || '').toLowerCase();
@@ -59,11 +62,17 @@ export default function WebPitchShotMapOverlay({
 
       {shotPlays.map((p) => {
         if (p.x_percent == null || p.y_percent == null) return null;
-        const sx = p.x_percent * 1.05;
-        const sy = p.y_percent * 0.68;
-        const targetGoalX = sx > 52.5 ? 103 : 2;
-        const tx = p.target_x != null ? p.target_x * 1.05 : targetGoalX;
-        const ty = p.target_y != null ? p.target_y * 0.68 : 34;
+        // Pitch coordinates mapping: width 101 [2..103], height 64 [2..66]
+        const sx = 2 + (p.x_percent / 100) * 101;
+        const sy = 2 + (p.y_percent / 100) * 64;
+
+        // Accurate direction: Home attacks right (102.5), Away attacks left (2.5)
+        const isHome = p.team_name
+          ? p.team_name.toLowerCase().includes(homeTeam.toLowerCase())
+          : (p.period !== 2);
+        const targetGoalX = isHome ? 102.5 : 2.5;
+        const tx = p.target_x != null ? (2 + (p.target_x / 100) * 101) : targetGoalX;
+        const ty = p.target_y != null ? (2 + (p.target_y / 100) * 64) : 34.0;
 
         const outcome = resolveShotOutcome(p);
         const isSelected = selectedPlay?.id === p.id;
@@ -77,7 +86,7 @@ export default function WebPitchShotMapOverlay({
             }}
             className="cursor-pointer group"
           >
-            {/* Trajectory Vector to Target */}
+            {/* Trajectory Vector to Target Goal */}
             <line
               x1={sx}
               y1={sy}
@@ -86,7 +95,7 @@ export default function WebPitchShotMapOverlay({
               stroke={outcome.color}
               strokeWidth={isSelected ? '0.8' : '0.4'}
               strokeDasharray={outcome.label === 'Goal' ? 'none' : '1.5,1'}
-              opacity={isSelected ? 1 : 0.6}
+              opacity={isSelected ? 1 : 0.65}
               markerEnd="url(#shotArrow)"
             />
 
@@ -117,9 +126,9 @@ export default function WebPitchShotMapOverlay({
             {isSelected && (
               <g transform={`translate(${sx}, ${sy - 3.5})`}>
                 <rect
-                  x="-12"
+                  x="-13"
                   y="-2.5"
-                  width="24"
+                  width="26"
                   height="4.2"
                   rx="1.5"
                   fill="#0F172A"
@@ -135,7 +144,7 @@ export default function WebPitchShotMapOverlay({
                   fill="#FFFFFF"
                   fontWeight="800"
                 >
-                  {p.player ? p.player.split(' ').slice(-1)[0] : 'Shot'} • {outcome.label}
+                  {p.player ? p.player.split(' ').slice(-1)[0] : 'Shot'} • {p.clock} ({outcome.label})
                 </text>
               </g>
             )}

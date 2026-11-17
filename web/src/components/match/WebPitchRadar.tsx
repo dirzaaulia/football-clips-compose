@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Crosshair } from 'lucide-react';
 import { MatchFormations } from '@/lib/database';
 import WebPitchRadarCanvas from './WebPitchRadarCanvas';
-import WebPitchRadarControls, { PlayCategory } from './WebPitchRadarControls';
+import WebPitchRadarControls from './WebPitchRadarControls';
 
 export interface WebPitchPlay {
   id: string;
@@ -40,106 +40,70 @@ export default function WebPitchRadar({
   awayColor,
   formations,
 }: WebPitchRadarProps) {
-  const [selectedPlay, setSelectedPlay] = useState<WebPitchPlay | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<PlayCategory>('ALL');
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [viewMode, setViewMode] = useState<'REPLAY' | 'SHOTS' | 'HEATMAP'>('REPLAY');
+  const hasLineups = Boolean(
+    formations?.home?.starters?.length || formations?.away?.starters?.length,
+  );
+  const [viewMode, setViewMode] = useState<'FORMATIONS' | 'SHOTS' | 'ZONES'>(
+    hasLineups ? 'FORMATIONS' : 'SHOTS',
+  );
+  const [selectedPlay, setSelectedPlay] = useState<WebPitchPlay | null>(() => {
+    return plays.find((p) => p.type.toLowerCase().includes('goal')) || plays[0] || null;
+  });
   const [heatmapTeam, setHeatmapTeam] = useState<'ALL' | 'HOME' | 'AWAY'>('ALL');
-  const [playbackSpeed, setPlaybackSpeed] = useState<1 | 2 | 4>(1);
   const [selectedPlayerName, setSelectedPlayerName] = useState<string | null>(null);
 
-  const filteredPlays = useMemo(() => {
+  const shotPlays = useMemo(() => {
     return plays.filter((p) => {
       const t = (p.type_text || p.type || '').toLowerCase();
-      if (selectedCategory === 'GOALS') return t.includes('goal');
-      if (selectedCategory === 'SHOTS') return t.includes('shot') || t.includes('attempt');
-      if (selectedCategory === 'CARDS') return t.includes('card');
-      if (selectedCategory === 'SUBS') return t.includes('sub');
-      return true;
+      return t.includes('shot') || t.includes('goal') || t.includes('attempt');
     });
-  }, [plays, selectedCategory]);
-
-  const handleSelectPlay = (play: WebPitchPlay | null) => {
-    setSelectedPlay(play);
-    setIsPlaying(false);
-  };
-
-  useEffect(() => {
-    if (!isPlaying || filteredPlays.length === 0) return;
-    const intervalMs = Math.max(400, Math.floor(1800 / playbackSpeed));
-    const timer = setInterval(() => {
-      setSelectedPlay((current) => {
-        if (!current) return filteredPlays[0] || null;
-        const idx = filteredPlays.findIndex((p) => p.id === current.id);
-        if (idx === -1 || idx >= filteredPlays.length - 1) {
-          setIsPlaying(false);
-          return current;
-        }
-        return filteredPlays[idx + 1];
-      });
-    }, intervalMs);
-    return () => clearInterval(timer);
-  }, [isPlaying, filteredPlays, playbackSpeed]);
-
-  const getMarkerColor = (play: WebPitchPlay): string => {
-    const t = (play.type_text || play.type || '').toLowerCase();
-    if (t.includes('goal')) return '#DFFF00';
-    if (t.includes('shot') || t.includes('attempt')) return '#38BDF8';
-    if (t.includes('card')) return '#EAB308';
-    if (t.includes('corner')) return '#A855F7';
-    if (t.includes('sub')) return '#F97316';
-    return '#94A3B8';
-  };
+  }, [plays]);
 
   return (
     <div className="space-y-3.5 bg-[#121316] border border-white/10 rounded-2xl p-3.5 sm:p-4 shadow-xl select-none">
       <div className="flex items-center justify-between gap-2 text-xs text-white/50 font-tech">
         <div className="flex items-center gap-2">
           <Crosshair className="w-4 h-4 text-[#DFFF00]" />
-          <span className="font-extrabold text-white tracking-wide uppercase">Tactical Pitch Analytics</span>
+          <span className="font-extrabold text-white tracking-wide uppercase">Tactical Match Centre</span>
           <span className="hidden sm:inline text-[11px] text-white/40">
             ({homeTeam} vs {awayTeam})
           </span>
         </div>
+        <div className="text-[10px] font-mono text-white/40 font-bold uppercase tracking-wider">
+          Opta-Style 2D Radar
+        </div>
       </div>
 
       <WebPitchRadarCanvas
-        plays={filteredPlays}
+        plays={shotPlays}
         selectedPlay={selectedPlay}
-        onSelectPlay={handleSelectPlay}
-        getMarkerColor={getMarkerColor}
+        onSelectPlay={(p) => setSelectedPlay(p)}
         homeColor={homeColor}
         awayColor={awayColor}
         viewMode={viewMode}
         formations={formations}
         selectedPlayerName={selectedPlayerName}
-        onSelectPlayerName={(name) => {
-          setSelectedPlayerName(name);
-          if (name) setViewMode('HEATMAP');
-        }}
+        onSelectPlayerName={(name) => setSelectedPlayerName(name)}
         heatmapTeam={heatmapTeam}
         homeTeam={homeTeam}
         awayTeam={awayTeam}
       />
 
       <WebPitchRadarControls
-        plays={filteredPlays}
+        plays={shotPlays}
         selectedPlay={selectedPlay}
-        onSelectPlay={handleSelectPlay}
-        selectedCategory={selectedCategory}
-        onSelectCategory={setSelectedCategory}
-        isPlaying={isPlaying}
-        onTogglePlay={() => setIsPlaying((p) => !p)}
-        onReset={() => setSelectedPlay(filteredPlays[0] || null)}
-        getMarkerColor={getMarkerColor}
+        onSelectPlay={(p) => setSelectedPlay(p)}
         viewMode={viewMode}
-        onSelectViewMode={setViewMode}
+        onSelectViewMode={(mode) => {
+          setViewMode(mode);
+          if (mode === 'SHOTS' && !selectedPlay && shotPlays.length > 0) {
+            setSelectedPlay(shotPlays[0]);
+          }
+        }}
         heatmapTeam={heatmapTeam}
         onSelectHeatmapTeam={setHeatmapTeam}
         homeTeam={homeTeam}
         awayTeam={awayTeam}
-        playbackSpeed={playbackSpeed}
-        onToggleSpeed={() => setPlaybackSpeed((s) => (s === 1 ? 2 : s === 2 ? 4 : 1))}
         selectedPlayerName={selectedPlayerName}
         onClearPlayerFilter={() => setSelectedPlayerName(null)}
       />

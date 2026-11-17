@@ -92,7 +92,6 @@ fun ShortsTabPreviewContent(deviceLabel: String) {
                 isMuted = false,
                 onTogglePlayPause = {},
                 onToggleMute = {},
-                onLike = {},
                 onShare = {},
                 onOpenYouTube = {},
             )

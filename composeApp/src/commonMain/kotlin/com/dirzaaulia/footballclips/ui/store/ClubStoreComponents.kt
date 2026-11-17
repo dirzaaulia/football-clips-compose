@@ -44,8 +44,6 @@ import com.dirzaaulia.footballclips.data.affiliate.AffiliateConfiguration
 import com.dirzaaulia.footballclips.data.affiliate.AmazonUrlBuilder
 import com.dirzaaulia.footballclips.data.model.remote.SupportedClub
 import com.dirzaaulia.footballclips.ui.components.common.GlassLogoBadge
-import com.dirzaaulia.footballclips.ui.theme.GhostBorder
-import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
 import com.dirzaaulia.footballclips.ui.theme.VoltLime
 import com.dirzaaulia.footballclips.ui.theme.VoltLimeDarkText
 import com.dirzaaulia.footballclips.util.toProxyUrl
@@ -65,14 +63,14 @@ fun ClubStoreCard(
             .clickable { uriHandler.openUri(affiliateUrl) },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = ObsidianSurfaceTier1,
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
         border = BorderStroke(
             width = 1.dp,
             color = if (isFavorite) {
-                VoltLime.copy(alpha = 0.6f)
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
             } else {
-                GhostBorder
+                MaterialTheme.colorScheme.outline
             },
         ),
     ) {

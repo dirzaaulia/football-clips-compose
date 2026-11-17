@@ -85,11 +85,18 @@ export function resolveAmazonMarketplace(country?: string | null): string {
 export function buildClubGearUrl(
   clubName: string,
   gearType: 'jersey' | 'scarf' | 'hat' | 'gear' = 'jersey',
-  country?: string | null
+  country?: string | null,
 ): string {
   const marketplace = resolveAmazonMarketplace(country);
   const cleanClub = clubName.replace(/\b(FC|CF|AFC|SC|SV|FK|SSC)\b/gi, '').trim();
   const query = encodeURIComponent(`${cleanClub} official ${gearType}`);
   return `https://${marketplace}/s?k=${query}&tag=${AMAZON_ASSOCIATE_TAG}`;
 }
+
+export function buildAmazonSearchUrl(searchTerms: string, country?: string | null): string {
+  const marketplace = resolveAmazonMarketplace(country);
+  const query = encodeURIComponent(searchTerms.trim());
+  return `https://${marketplace}/s?k=${query}&tag=${AMAZON_ASSOCIATE_TAG}`;
+}
+
 

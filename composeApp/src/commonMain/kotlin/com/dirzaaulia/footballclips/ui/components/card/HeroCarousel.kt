@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -33,7 +34,6 @@ import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdView
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
-import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
 import com.dirzaaulia.footballclips.ui.theme.VoltLime
 import com.dirzaaulia.footballclips.util.isWasmTarget
 import kotlinx.coroutines.delay
@@ -233,8 +233,8 @@ fun HeroAdCard(
         Card(
             modifier = cardMod,
             shape = shape,
-            colors = CardDefaults.cardColors(containerColor = ObsidianSurfaceTier1),
-            border = BorderStroke(1.dp, VoltLime.copy(alpha = 0.35f)),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         ) {
             Box(modifier = Modifier.fillMaxSize()) {

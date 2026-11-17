@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,8 +37,6 @@ import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
-import com.dirzaaulia.footballclips.ui.theme.GhostBorder
-import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
 import com.dirzaaulia.footballclips.ui.theme.VoltLime
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
@@ -109,8 +108,8 @@ private fun ReelHighlightCard(
         onClick = onClick,
         modifier = modifier.width(256.dp),
         shape = RoundedCornerShape(12.dp),
-        color = ObsidianSurfaceTier1,
-        border = BorderStroke(1.dp, GhostBorder),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
         Column {
             Box(
@@ -167,7 +166,7 @@ private fun ReelHighlightCard(
             ) {
                 Text(
                     text = "${match.homeTeamName} vs ${match.awayTeamName}",
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -175,7 +174,7 @@ private fun ReelHighlightCard(
                 )
                 Text(
                     text = match.competitionName,
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
@@ -197,8 +196,8 @@ private fun ReelSeeAllCard(
             .width(140.dp)
             .aspectRatio(1.2f),
         shape = RoundedCornerShape(12.dp),
-        color = ObsidianSurfaceTier1,
-        border = BorderStroke(1.dp, VoltLime.copy(alpha = 0.3f)),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
     ) {
         Column(
             modifier = Modifier
@@ -209,14 +208,14 @@ private fun ReelSeeAllCard(
         ) {
             Text(
                 text = "SEE ALL",
-                color = VoltLime,
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 1.sp,
             )
             Text(
                 text = competitionName,
-                color = Color.White.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,

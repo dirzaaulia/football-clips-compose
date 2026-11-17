@@ -92,7 +92,7 @@ private val DarkColorScheme = darkColorScheme(
     outlineVariant = GhostBorder,
 )
 
-// Kinetic Editorial Light Color Scheme
+// Stitch Daylight Athletic OTT Light Color Scheme
 private val LightColorScheme = lightColorScheme(
     primary = LightCobaltPrimary,
     onPrimary = Color.White,
@@ -104,6 +104,7 @@ private val LightColorScheme = lightColorScheme(
     onSecondaryContainer = LightTextHigh,
     tertiary = LightIcyCyan,
     onTertiary = Color.White,
+    error = MatchPulseRed,
     background = LightBaseBackground,
     onBackground = LightTextHigh,
     surface = LightSurfaceCard,
@@ -111,7 +112,7 @@ private val LightColorScheme = lightColorScheme(
     surfaceVariant = LightSurfaceLow,
     onSurfaceVariant = LightTextMuted,
     outline = LightBorder,
-    outlineVariant = LightBorder
+    outlineVariant = LightBorder,
 )
 
 private val DropletEasing = FastOutSlowInEasing

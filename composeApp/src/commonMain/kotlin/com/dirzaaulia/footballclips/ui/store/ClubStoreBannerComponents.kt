@@ -28,9 +28,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dirzaaulia.footballclips.data.affiliate.AffiliateConfiguration
-import com.dirzaaulia.footballclips.ui.theme.GhostBorder
-import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
-import com.dirzaaulia.footballclips.ui.theme.VoltLime
 
 @Composable
 fun ClubStoreHeroBanner(
@@ -41,11 +38,11 @@ fun ClubStoreHeroBanner(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = ObsidianSurfaceTier1,
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
         border = BorderStroke(
             width = 1.dp,
-            color = GhostBorder,
+            color = MaterialTheme.colorScheme.outline,
         ),
     ) {
         Column(
@@ -54,10 +51,10 @@ fun ClubStoreHeroBanner(
         ) {
             Surface(
                 shape = RoundedCornerShape(50),
-                color = VoltLime.copy(alpha = 0.15f),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                 border = BorderStroke(
                     width = 1.dp,
-                    color = VoltLime.copy(alpha = 0.4f),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
                 ),
             ) {
                 Row(
@@ -69,13 +66,13 @@ fun ClubStoreHeroBanner(
                         imageVector = Icons.Default.ShoppingBag,
                         contentDescription = null,
                         modifier = Modifier.size(13.dp),
-                        tint = VoltLime,
+                        tint = MaterialTheme.colorScheme.primary,
                     )
                     Text(
                         text = "Official Amazon Fan Store • $marketplace",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = VoltLime,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }

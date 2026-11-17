@@ -373,3 +373,20 @@ export async function getKnockoutMatchesByCompetition(
   }
 }
 
+export async function getRecentAnalysisMatches(limit = 8): Promise<MatchRecord[]> {
+  try {
+    const { data, error } = await database
+      .from('matches')
+      .select('*')
+      .in('status', ['FINISHED', 'IN_PLAY', 'PAUSED', 'LIVE'])
+      .order('utc_date', { ascending: false })
+      .limit(limit);
+
+    if (error || !data) return [];
+    return data.map(normalizeMatch);
+  } catch (err) {
+    console.error('Error in getRecentAnalysisMatches:', err);
+    return [];
+  }
+}
+

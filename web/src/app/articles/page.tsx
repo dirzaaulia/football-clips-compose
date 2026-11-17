@@ -2,16 +2,15 @@ import React from 'react';
 import Link from 'next/link';
 import { Sparkles, ArrowRight, BookOpen, Clock, Newspaper, ExternalLink } from 'lucide-react';
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
-import { database, MatchRecord } from '@/lib/database';
+import { database, MatchRecord, getRecentAnalysisMatches } from '@/lib/database';
 import { getVerifiedFootballNews, FeedArticle } from '@/lib/articles';
 import { getAllArticles, EditorialArticle } from '@/lib/editorial-articles';
-import AnalysisMatchBar from '@/components/articles/AnalysisMatchBar';
-import AnalysisZone14Card from '@/components/articles/AnalysisZone14Card';
-import AnalysisScoutClips from '@/components/articles/AnalysisScoutClips';
+import AnalysisHubClient from '@/components/articles/AnalysisHubClient';
 
 export default async function ArticlesPage() {
   const editorialArticles: EditorialArticle[] = getAllArticles();
   const newsArticles: FeedArticle[] = await getVerifiedFootballNews(6);
+  const recentMatches: MatchRecord[] = await getRecentAnalysisMatches(8);
 
   return (
     <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 py-6 select-none space-y-8">
@@ -34,14 +33,8 @@ export default async function ArticlesPage() {
         </p>
       </header>
 
-      {/* Match Selector Bar */}
-      <AnalysisMatchBar />
-
-      {/* Tactical Lab Bento: Zone 14 & Algorithmic Scout Observations */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AnalysisZone14Card />
-        <AnalysisScoutClips />
-      </div>
+      {/* Dynamic Match-Driven Tactical Analysis Suite */}
+      <AnalysisHubClient matches={recentMatches} />
 
       <AdSenseBanner slotId="5616816386" format="horizontal" />
 

@@ -48,7 +48,7 @@ export default function MatchDetailClient({
     return expectedId || null;
   }, [params?.id, pathname, expectedId]);
 
-  const { match, recapAnalysis, related, isLoading } = useMatchDetailData(
+  const { match, espnSummary, recapAnalysis, related, isLoading } = useMatchDetailData(
     initialMatch,
     initialRecap,
     initialRelated,
@@ -128,12 +128,14 @@ export default function MatchDetailClient({
         videoId={match.highlight_video_id}
         title={`${homeName} vs ${awayName}`}
         competitionName={compName}
+        competitionId={match.competition_id}
         homeName={homeName}
         awayName={awayName}
         matchId={match.id}
         status={match.status}
         stage={match.round_name || match.stage || (match.matchday ? `Matchday ${match.matchday}` : null)}
         season={match.season}
+        gameInfo={espnSummary?.gameInfo}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -173,6 +175,7 @@ export default function MatchDetailClient({
             <>
               <MatchTacticalBoxscore
                 match={match}
+                espnSummary={espnSummary}
                 isScoreRevealed={isScoreRevealed}
                 onRevealScore={() => setIsScoreRevealed(true)}
               />

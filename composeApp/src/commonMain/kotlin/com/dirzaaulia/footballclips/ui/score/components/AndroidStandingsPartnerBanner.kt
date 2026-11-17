@@ -21,24 +21,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.dirzaaulia.footballclips.ui.theme.GhostBorder
-import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
-import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier2
-import com.dirzaaulia.footballclips.ui.theme.VoltLime
 
 @Composable
 fun AndroidStandingsPartnerBanner(
     modifier: Modifier = Modifier,
 ) {
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = ObsidianSurfaceTier1,
-        border = BorderStroke(1.dp, GhostBorder),
+        color = surfaceColor,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         shadowElevation = 4.dp,
     ) {
         Column(
@@ -47,9 +45,9 @@ fun AndroidStandingsPartnerBanner(
                 .background(
                     Brush.horizontalGradient(
                         colors = listOf(
-                            ObsidianSurfaceTier1,
-                            ObsidianSurfaceTier2,
-                            ObsidianSurfaceTier1,
+                            surfaceColor,
+                            surfaceVariantColor,
+                            surfaceColor,
                         ),
                     ),
                 )
@@ -62,13 +60,13 @@ fun AndroidStandingsPartnerBanner(
                 Icon(
                     imageVector = Icons.Default.Info,
                     contentDescription = null,
-                    tint = VoltLime,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(14.dp),
                 )
                 Text(
-                    text = "PARTNER • EA SPORTS FC 26 PRO",
+                    text = "OFFICIAL LEAGUE STANDINGS • LIVE QUALIFICATION ZONES",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.6f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp,
                 )
@@ -77,19 +75,19 @@ fun AndroidStandingsPartnerBanner(
             Spacer(Modifier.height(6.dp))
 
             Text(
-                text = "LIVETABLE ULTIMATE TEAM INTELLIGENCE",
+                text = "EUROPEAN & DOMESTIC TABLE TRACKER",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Black,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 letterSpacing = 0.5.sp,
             )
 
             Spacer(Modifier.height(4.dp))
 
             Text(
-                text = "Real-time dynamic qualification corridors and European coefficient projections.",
+                text = "Live points, goal difference, and Champions League / relegation qualification zones updated after every match.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.7f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

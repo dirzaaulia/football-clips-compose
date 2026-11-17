@@ -68,8 +68,38 @@ export default function HeroBillboard({
 
   if (activeSlide.type === 'ad') {
     return (
-      <section className="relative w-full overflow-hidden bg-[#0A0A0C] select-none shadow-2xl">
+      <section className="relative w-full overflow-hidden bg-[#0A0A0C] select-none shadow-2xl group">
         <HeroSponsoredSlide />
+        {slides.length > 1 && (
+          <>
+            <button
+              onClick={() => setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length)}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/60 hover:bg-[#1A1C22] text-white border border-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer shadow-xl"
+              title="Previous Slide"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => setCurrentIndex((prev) => (prev + 1) % slides.length)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-black/60 hover:bg-[#1A1C22] text-white border border-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer shadow-xl"
+              title="Next Slide"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+            <div className="absolute bottom-6 left-6 sm:left-10 lg:left-14 z-30 flex items-center gap-2">
+              {slides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentIndex(idx)}
+                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                    currentIndex === idx ? 'w-8 bg-[#DFFF00]' : 'w-2 bg-white/30 hover:bg-white/60'
+                  }`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </section>
     );
   }
@@ -149,7 +179,7 @@ export default function HeroBillboard({
               <span>{activeSlide.tag}</span>
             </span>
 
-            <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 font-tech text-xs text-white/90 uppercase tracking-wider font-mono">
+            <span className="px-3 py-1 rounded-full bg-[#121316]/75 backdrop-blur-sm border border-white/10 font-tech text-xs text-white/90 uppercase tracking-wider font-mono">
               {currentMatch.competition_name} • Matchday {currentMatch.matchday || 2026}
             </span>
 
@@ -157,10 +187,10 @@ export default function HeroBillboard({
             {hasScores && (
               <button
                 onClick={() => setIsRevealed((prev) => !prev)}
-                className={`px-3 py-1 rounded-full font-tech text-xs font-bold transition-all backdrop-blur-md flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1 rounded-full font-tech text-xs font-bold transition-all backdrop-blur-sm flex items-center gap-1.5 cursor-pointer ${
                   isHidden
-                    ? 'bg-black/90 text-[#DFFF00] filter blur-sm hover:blur-none border border-[#DFFF00]/40'
-                    : 'bg-black/80 text-[#DFFF00] border border-white/10'
+                    ? 'bg-[#121316]/80 text-[#DFFF00] filter blur-[3px] hover:blur-none border border-[#DFFF00]/40'
+                    : 'bg-[#121316]/75 text-[#DFFF00] border border-white/10'
                 }`}
                 title={isHidden ? 'Click to reveal score' : 'Click to hide score'}
               >
@@ -187,20 +217,20 @@ export default function HeroBillboard({
 
           {/* Action Trigger Row */}
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2">
-            <button
-              onClick={() => onPlay(currentMatch)}
+            <Link
+              href={`/match/${currentMatch.id}`}
               className="px-7 sm:px-9 py-3.5 rounded-xl bg-[#DFFF00] hover:bg-[#cbe800] text-[#0A0A0C] font-tech text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(223,255,0,0.5)] transition-all hover:scale-105 active:scale-95 cursor-pointer"
             >
               <Play className="w-4 h-4 fill-[#0A0A0C]" />
               <span>Play Highlights</span>
-            </button>
+            </Link>
 
             <Link
-              href={`/match/${currentMatch.id}`}
+              href={`/match/${currentMatch.id}#telemetry`}
               className="px-5 sm:px-6 py-3.5 rounded-xl bg-[#1A1C22]/90 hover:bg-[#252830] text-white border border-white/10 hover:border-[#DFFF00]/50 font-tech text-xs sm:text-sm font-bold uppercase tracking-wider flex items-center gap-2 backdrop-blur-md transition-all cursor-pointer"
             >
               <BarChart3 className="w-4 h-4 text-[#38BDF8]" />
-              <span>Tactical Debrief</span>
+              <span>Match Centre &amp; Stats</span>
             </Link>
 
             <button

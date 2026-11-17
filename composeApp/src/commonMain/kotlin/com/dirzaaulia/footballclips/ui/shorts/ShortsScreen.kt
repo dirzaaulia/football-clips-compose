@@ -144,7 +144,6 @@ private fun ShortVideoPage(
             isMuted = isMuted,
             onTogglePlayPause = { onAction(ShortsUiAction.TogglePlayPause) },
             onToggleMute = { onAction(ShortsUiAction.ToggleMute) },
-            onLike = { onAction(ShortsUiAction.LikeShort(short.youtubeVideoId)) },
             onShare = {},
             onOpenYouTube = onOpenYouTube,
         )

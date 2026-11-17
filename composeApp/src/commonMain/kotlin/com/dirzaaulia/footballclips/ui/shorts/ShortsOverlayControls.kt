@@ -22,7 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.VolumeMute
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
@@ -57,10 +56,10 @@ fun ShortsOverlayControls(
     isMuted: Boolean,
     onTogglePlayPause: () -> Unit,
     onToggleMute: () -> Unit,
-    onLike: () -> Unit,
     onShare: () -> Unit,
     onOpenYouTube: () -> Unit,
     modifier: Modifier = Modifier,
+    onLike: () -> Unit = {},
 ) {
     var showPulse by remember { mutableStateOf(false) }
 
@@ -80,14 +79,11 @@ fun ShortsOverlayControls(
                         showPulse = true
                         onTogglePlayPause()
                     },
-                    onDoubleTap = { onLike() },
                 )
             },
     ) {
         ShortsRightActionRail(
-            likeCount = short.likeCount,
             isMuted = isMuted,
-            onLike = onLike,
             onShare = onShare,
             onToggleMute = onToggleMute,
             onOpenYouTube = onOpenYouTube,
@@ -122,9 +118,7 @@ fun ShortsOverlayControls(
 
 @Composable
 private fun ShortsRightActionRail(
-    likeCount: Int,
     isMuted: Boolean,
-    onLike: () -> Unit,
     onShare: () -> Unit,
     onToggleMute: () -> Unit,
     onOpenYouTube: () -> Unit,
@@ -135,7 +129,6 @@ private fun ShortsRightActionRail(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        ShortsActionItem(icon = Icons.Default.Favorite, label = "$likeCount", tint = MatchPulseRed, onClick = onLike)
         ShortsActionItem(icon = Icons.Default.Share, label = "Share", onClick = onShare)
         ShortsActionItem(
             icon = if (isMuted) Icons.AutoMirrored.Filled.VolumeMute else Icons.AutoMirrored.Filled.VolumeUp,

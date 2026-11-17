@@ -7,6 +7,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,30 +21,42 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntSize
 
 fun Modifier.shimmerEffect(
-    shimmerColor: Color = Color(0xFF334155),
-    baseColor: Color = Color(0xFF1E2227),
+    shimmerColor: Color = Color.Unspecified,
+    baseColor: Color = Color.Unspecified,
 ): Modifier = composed {
+    val resolvedBase = if (baseColor != Color.Unspecified) {
+        baseColor
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
+    val resolvedShimmer = if (shimmerColor != Color.Unspecified) {
+        shimmerColor
+    } else {
+        MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)
+    }
+
     var size by remember { mutableStateOf(IntSize.Zero) }
-    val transition = rememberInfiniteTransition(label = "ShimmerTransition")
-    val startOffset by transition.animateFloat(
+    val transition = rememberInfiniteTransition()
+    val startOffsetX by transition.animateFloat(
         initialValue = -2 * size.width.toFloat(),
         targetValue = 2 * size.width.toFloat(),
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            animation = tween(1200, easing = LinearEasing),
             repeatMode = RepeatMode.Restart,
         ),
-        label = "ShimmerOffset",
     )
 
     background(
         brush = Brush.linearGradient(
             colors = listOf(
-                baseColor,
-                shimmerColor,
-                baseColor,
+                resolvedBase,
+                resolvedShimmer,
+                resolvedBase,
             ),
-            start = Offset(startOffset, 0f),
-            end = Offset(startOffset + size.width.toFloat(), size.height.toFloat()),
+            start = Offset(startOffsetX, 0f),
+            end = Offset(startOffsetX + size.width.toFloat(), size.height.toFloat()),
         ),
-    ).onGloballyPositioned { size = it.size }
+    ).onGloballyPositioned {
+        size = it.size
+    }
 }

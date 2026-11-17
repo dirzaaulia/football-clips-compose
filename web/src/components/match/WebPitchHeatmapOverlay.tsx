@@ -15,101 +15,127 @@ interface WebPitchHeatmapOverlayProps {
 
 export default function WebPitchHeatmapOverlay({
   plays,
-  selectedPlayerName,
   heatmapTeam,
   homeTeam,
   awayTeam,
   homeColor,
   awayColor,
 }: WebPitchHeatmapOverlayProps) {
-  const filtered = useMemo(() => {
-    return plays.filter((p) => {
-      if (p.x_percent == null || p.y_percent == null) return false;
-      if (selectedPlayerName && selectedPlayerName !== 'ALL') {
-        return p.player?.toLowerCase().includes(selectedPlayerName.toLowerCase());
-      }
-      if (heatmapTeam === 'HOME') return p.team_name?.includes(homeTeam);
-      if (heatmapTeam === 'AWAY') return p.team_name?.includes(awayTeam);
-      return true;
-    });
-  }, [plays, selectedPlayerName, heatmapTeam, homeTeam, awayTeam]);
+  const { homeThird, middleThird, awayThird, homeTilt, awayTilt } = useMemo(() => {
+    const validPlays = plays.filter((p) => p.x_percent != null);
+    if (validPlays.length === 0) {
+      return { homeThird: 33, middleThird: 34, awayThird: 33, homeTilt: 52, awayTilt: 48 };
+    }
+    const dCount = validPlays.filter((p) => (p.x_percent ?? 50) < 33).length;
+    const mCount = validPlays.filter((p) => (p.x_percent ?? 50) >= 33 && (p.x_percent ?? 50) <= 66).length;
+    const aCount = validPlays.filter((p) => (p.x_percent ?? 50) > 66).length;
+    const total = validPlays.length || 1;
 
-  const { homeTilt, awayTilt } = useMemo(() => {
-    if (filtered.length === 0) return { homeTilt: 50, awayTilt: 50 };
-    const homeHalfCount = filtered.filter((p) => (p.x_percent ?? 50) >= 50).length;
-    const h = Math.round((homeHalfCount / filtered.length) * 100);
-    return { homeTilt: h, awayTilt: 100 - h };
-  }, [filtered]);
+    const hThird = Math.round((dCount / total) * 100);
+    const midThird = Math.round((mCount / total) * 100);
+    const aThird = 100 - hThird - midThird;
+
+    const homePlays = validPlays.filter((p) => (p.team_name || '').toLowerCase().includes(homeTeam.toLowerCase()));
+    const homeFinalThird = homePlays.filter((p) => (p.x_percent ?? 50) > 66).length;
+    const awayPlays = validPlays.filter((p) => (p.team_name || '').toLowerCase().includes(awayTeam.toLowerCase()));
+    const awayFinalThird = awayPlays.filter((p) => (p.x_percent ?? 50) < 33).length;
+
+    const tiltTotal = homeFinalThird + awayFinalThird || 1;
+    const hTilt = Math.min(85, Math.max(15, Math.round((homeFinalThird / tiltTotal) * 100)));
+
+    return {
+      homeThird: hThird,
+      middleThird: midThird,
+      awayThird: aThird,
+      homeTilt: hTilt,
+      awayTilt: 100 - hTilt,
+    };
+  }, [plays, homeTeam, awayTeam]);
 
   return (
-    <g className="heatmap-overlay">
-      <defs>
-        <filter id="heatBlur" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="3.8" result="blur" />
-        </filter>
-        <radialGradient id="heatHotHome" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#DFFF00" stopOpacity="0.95" />
-          <stop offset="25%" stopColor="#F59E0B" stopOpacity="0.75" />
-          <stop offset="55%" stopColor={homeColor} stopOpacity="0.45" />
-          <stop offset="85%" stopColor="#38BDF8" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="#38BDF8" stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id="heatHotAway" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#DFFF00" stopOpacity="0.95" />
-          <stop offset="25%" stopColor="#F59E0B" stopOpacity="0.75" />
-          <stop offset="55%" stopColor={awayColor} stopOpacity="0.45" />
-          <stop offset="85%" stopColor="#38BDF8" stopOpacity="0.15" />
-          <stop offset="100%" stopColor="#38BDF8" stopOpacity="0" />
-        </radialGradient>
-      </defs>
+    <g className="tactical-zones-overlay select-none">
+      {/* 3 Pitch Thirds Separator Lines & Percentage Overlays */}
+      <line x1="35.6" y1="2" x2="35.6" y2="66" stroke="rgba(255,255,255,0.12)" strokeWidth="0.4" strokeDasharray="2,2" />
+      <line x1="69.3" y1="2" x2="69.3" y2="66" stroke="rgba(255,255,255,0.12)" strokeWidth="0.4" strokeDasharray="2,2" />
 
-      {/* Render Action Density Gaussian Heat Fields */}
-      <g filter="url(#heatBlur)">
-        {filtered.map((p, idx) => {
-          const x = (p.x_percent ?? 50) * 1.05;
-          const y = (p.y_percent ?? 50) * 0.68;
-          const isHome = p.team_name?.includes(homeTeam) ?? true;
-          const gradId = isHome ? 'url(#heatHotHome)' : 'url(#heatHotAway)';
-          const r = p.type?.includes('goal') || p.type?.includes('shot') ? 9.5 : 7.0;
+      {/* Thirds Territory Labels */}
+      <text x="18.8" y="6" fontSize="1.8" textAnchor="middle" fill="#94A3B8" fontWeight="bold" fontFamily="monospace">
+        DEF 1/3 ({homeThird}%)
+      </text>
+      <text x="52.5" y="6" fontSize="1.8" textAnchor="middle" fill="#94A3B8" fontWeight="bold" fontFamily="monospace">
+        MID 1/3 ({middleThird}%)
+      </text>
+      <text x="86.1" y="6" fontSize="1.8" textAnchor="middle" fill="#94A3B8" fontWeight="bold" fontFamily="monospace">
+        ATT 1/3 ({awayThird}%)
+      </text>
 
-          return (
-            <circle
-              key={`heat-${p.id || idx}`}
-              cx={x}
-              cy={y}
-              r={r}
-              fill={gradId}
-              opacity="0.85"
-            />
-          );
-        })}
-      </g>
+      {/* Zone 14 Danger Corridors (Outside Penalty Boxes) */}
+      {(heatmapTeam === 'ALL' || heatmapTeam === 'HOME') && (
+        <g className="zone14-home">
+          <rect
+            x="70.0"
+            y="23.0"
+            width="16.5"
+            height="22.0"
+            fill="#DFFF00"
+            fillOpacity="0.04"
+            stroke="#DFFF00"
+            strokeOpacity="0.30"
+            strokeWidth="0.5"
+            strokeDasharray="2,1.5"
+            rx="1.0"
+          />
+          <text x="78.2" y="34.5" fontSize="2.0" textAnchor="middle" fill="#DFFF00" fontWeight="900" opacity="0.6">
+            ZONE 14
+          </text>
+        </g>
+      )}
 
-      {/* Industry-Grade HUD Legend Inset */}
-      <g transform="translate(3, 61.5)">
+      {(heatmapTeam === 'ALL' || heatmapTeam === 'AWAY') && (
+        <g className="zone14-away">
+          <rect
+            x="18.5"
+            y="23.0"
+            width="16.5"
+            height="22.0"
+            fill="#38BDF8"
+            fillOpacity="0.04"
+            stroke="#38BDF8"
+            strokeOpacity="0.30"
+            strokeWidth="0.5"
+            strokeDasharray="2,1.5"
+            rx="1.0"
+          />
+          <text x="26.7" y="34.5" fontSize="2.0" textAnchor="middle" fill="#38BDF8" fontWeight="900" opacity="0.6">
+            ZONE 14
+          </text>
+        </g>
+      )}
+
+      {/* Industry-Grade Tactical Territorial Tilt HUD */}
+      <g transform="translate(3, 60.5)">
         <rect
           x="0"
           y="0"
-          width="54"
-          height="5"
-          rx="1.5"
+          width="58"
+          height="5.5"
+          rx="1.2"
           fill="#0A0A0C"
-          fillOpacity="0.9"
+          fillOpacity="0.95"
           stroke="rgba(255,255,255,0.18)"
           strokeWidth="0.3"
         />
-        <text x="2.5" y="3.3" fontSize="1.8" fill="#A1A1AA" fontWeight="bold" fontFamily="monospace">
-          DENSITY:
+        <text x="2.5" y="3.6" fontSize="1.7" fill="#A1A1AA" fontWeight="bold" fontFamily="monospace">
+          TERRITORIAL TILT:
         </text>
-        <circle cx="16" cy="2.5" r="1.1" fill="#38BDF8" />
-        <text x="18" y="3.3" fontSize="1.6" fill="#E4E4E7" fontFamily="monospace">Low</text>
-        <circle cx="24.5" cy="2.5" r="1.1" fill="#F59E0B" />
-        <text x="26.5" y="3.3" fontSize="1.6" fill="#E4E4E7" fontFamily="monospace">Med</text>
-        <circle cx="33" cy="2.5" r="1.1" fill="#DFFF00" />
-        <text x="35" y="3.3" fontSize="1.6" fill="#E4E4E7" fontFamily="monospace">High</text>
-        <line x1="41" y1="1" x2="41" y2="4" stroke="rgba(255,255,255,0.15)" strokeWidth="0.3" />
-        <text x="42.5" y="3.3" fontSize="1.5" fill="#DFFF00" fontWeight="bold" fontFamily="monospace">
-          {homeTilt}% TILT
+        <circle cx="27.5" cy="2.8" r="1.0" fill={homeColor} />
+        <text x="29.5" y="3.6" fontSize="1.6" fill="#FFFFFF" fontWeight="bold" fontFamily="monospace">
+          {homeTilt}%
+        </text>
+        <line x1="39" y1="1" x2="39" y2="4.5" stroke="rgba(255,255,255,0.15)" strokeWidth="0.3" />
+        <circle cx="43" cy="2.8" r="1.0" fill={awayColor} />
+        <text x="45" y="3.6" fontSize="1.6" fill="#FFFFFF" fontWeight="bold" fontFamily="monospace">
+          {awayTilt}%
         </text>
       </g>
     </g>

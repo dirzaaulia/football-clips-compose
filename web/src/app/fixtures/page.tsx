@@ -1,31 +1,67 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { getFixturesByDate, getLiveMatches, getMatchesBySeason, MatchRecord } from '@/lib/database';
+import {
+  getFixturesByDate,
+  getLiveMatches,
+  getMatchesBySeason,
+  MatchRecord,
+} from '@/lib/database';
 import { useCompetitions, isLeagueMatch } from '@/hooks/useCompetitions';
 import { isMatchForFavoriteClubs, useSupportedClubs } from '@/hooks/useSupportedClubs';
 import { useMyClubs } from '@/hooks/useMyClubs';
-import { Star, Trophy } from 'lucide-react';
-import Image from 'next/image';
-import FixtureItemCard from '@/components/fixtures/FixtureItemCard';
-import FixturesPartnerBanner from '@/components/fixtures/FixturesPartnerBanner';
+import TopAdSenseLeaderboard from '@/components/ads/TopAdSenseLeaderboard';
 import FixturesDateCarousel from '@/components/fixtures/FixturesDateCarousel';
-import FixturesSkeleton from '@/components/fixtures/FixturesSkeleton';
-import FixturesInFeedAd from '@/components/fixtures/FixturesInFeedAd';
+import FixturesFilterBar, { FixtureTab } from '@/components/fixtures/FixturesFilterBar';
+import FixturesGroupList, {
+  CompetitionFixtureGroup,
+} from '@/components/fixtures/FixturesGroupList';
 import LiveMatchSection from '@/components/live/LiveMatchSection';
 import MyClubsModal from '@/components/clubs/MyClubsModal';
-import SeasonSelector from '@/components/filter/SeasonSelector';
-import CustomDropdown from '@/components/common/CustomDropdown';
-import CompetitionLogo from '@/components/common/CompetitionLogo';
+import GooglePlayBadge from '@/components/common/GooglePlayBadge';
 import { useSeason } from '@/hooks/useSeason';
 
-type FixtureTab = 'ALL' | 'LIVE' | 'RESULTS' | 'UPCOMING';
+function groupMatchesByCompetition(
+  matches: MatchRecord[],
+  competitions: Array<{ competitionId?: string | null; name: string; logo?: string }>,
+): CompetitionFixtureGroup[] {
+  const map = new Map<string, CompetitionFixtureGroup>();
+  matches.forEach((m) => {
+    const matchedLeague = competitions.find(
+      (b) =>
+        b.competitionId !== 'ALL' &&
+        (b.competitionId === m.competition_id ||
+          b.name === m.competition_name ||
+          isLeagueMatch(b.name, m.competition_name)),
+    );
+    if (!matchedLeague && !m.competition_id) return;
+    const normName = matchedLeague?.name || m.competition_name || m.competition_id;
+    if (!map.has(normName)) {
+      map.set(normName, {
+        competitionId: matchedLeague?.competitionId || m.competition_id,
+        competitionName: normName,
+        logo: matchedLeague?.logo,
+        matches: [],
+      });
+    }
+    map.get(normName)!.matches.push(m);
+  });
+  return Array.from(map.values());
+}
+
+const STATUS_TABS: Array<{ id: FixtureTab; label: string }> = [
+  { id: 'ALL', label: 'All Matches' },
+  { id: 'LIVE', label: 'Live' },
+  { id: 'RESULTS', label: 'Finished' },
+  { id: 'UPCOMING', label: 'Upcoming' },
+];
 
 export default function FixturesPage() {
   const { selectedSeason } = useSeason();
   const [selectedDate, setSelectedDate] = useState('2026-10-08');
   const [activeTab, setActiveTab] = useState<FixtureTab>('ALL');
   const [selectedComp, setSelectedComp] = useState('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isMyClubsActive, setIsMyClubsActive] = useState(false);
   const [isMyClubsModalOpen, setIsMyClubsModalOpen] = useState(false);
   const [fixtures, setFixtures] = useState<MatchRecord[]>([]);
@@ -36,7 +72,10 @@ export default function FixturesPage() {
   const { favoriteClubs, favoriteCount } = useMyClubs();
   const competitions = useCompetitions();
   const supportedClubs = useSupportedClubs();
-  const competition = useMemo(() => competitions.find((b) => b.competitionId === selectedComp), [competitions, selectedComp]);
+  const competition = useMemo(
+    () => competitions.find((b) => b.competitionId === selectedComp),
+    [competitions, selectedComp],
+  );
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -52,14 +91,22 @@ export default function FixturesPage() {
     async function load(isSilent = false) {
       if (!isSilent) setIsLoading(true);
       if (selectedSeason === 2026) {
-        const [fixData, liveData] = await Promise.all([getFixturesByDate(selectedDate), getLiveMatches()]);
+        const [fixData, liveData] = await Promise.all([
+          getFixturesByDate(selectedDate),
+          getLiveMatches(),
+        ]);
         if (!isCancelled) {
           setFixtures(fixData);
           setLiveMatches(liveData);
           if (!isSilent) setIsLoading(false);
         }
       } else {
-        const archiveData = await getMatchesBySeason(selectedSeason, selectedComp !== 'ALL' ? selectedComp : undefined, undefined, 100);
+        const archiveData = await getMatchesBySeason(
+          selectedSeason,
+          selectedComp !== 'ALL' ? selectedComp : undefined,
+          undefined,
+          100,
+        );
         if (!isCancelled) {
           setFixtures(archiveData);
           setLiveMatches([]);
@@ -70,25 +117,36 @@ export default function FixturesPage() {
     load(false);
     if (selectedSeason === 2026) {
       const interval = setInterval(() => load(true), 10_000);
-      return () => { isCancelled = true; clearInterval(interval); };
+      return () => {
+        isCancelled = true;
+        clearInterval(interval);
+      };
     }
   }, [selectedDate, selectedSeason, selectedComp]);
 
-  const changeDay = (delta: number) => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + delta);
-    setSelectedDate(d.toISOString().split('T')[0]);
-  };
-
   const filteredFixtures = useMemo(() => {
-    const list: MatchRecord[] = [];
     const seen = new Set<string>();
+    const list: MatchRecord[] = [];
     if (activeTab === 'ALL') {
-      liveMatches.forEach((m) => { seen.add(m.id); list.push(m); });
+      liveMatches.forEach((m) => {
+        seen.add(m.id);
+        list.push(m);
+      });
     }
-    fixtures.forEach((m) => { if (!seen.has(m.id)) { seen.add(m.id); list.push(m); } });
-
+    fixtures.forEach((m) => {
+      if (!seen.has(m.id)) {
+        seen.add(m.id);
+        list.push(m);
+      }
+    });
+    const q = searchQuery.trim().toLowerCase();
     return list.filter((m) => {
+      if (q) {
+        const home = (m.home_team_name || m.home_team || '').toLowerCase();
+        const away = (m.away_team_name || m.away_team || '').toLowerCase();
+        const comp = (m.competition_name || '').toLowerCase();
+        if (!home.includes(q) && !away.includes(q) && !comp.includes(q)) return false;
+      }
       if (selectedSeason === 2026) {
         const isFinished = m.status === 'FINISHED';
         const isLive = m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'LIVE';
@@ -97,154 +155,161 @@ export default function FixturesPage() {
         if (activeTab === 'UPCOMING' && (isFinished || isLive)) return false;
       }
       if (isMyClubsActive && favoriteClubs.size > 0) {
-        if (!isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs, supportedClubs)) return false;
+        if (!isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs, supportedClubs))
+          return false;
       } else if (selectedComp !== 'ALL' && competition) {
-        if (m.competition_id !== selectedComp && !isLeagueMatch(competition.name, m.competition_name)) return false;
+        if (
+          m.competition_id !== selectedComp &&
+          !isLeagueMatch(competition.name, m.competition_name)
+        )
+          return false;
       }
       return true;
     });
-  }, [fixtures, liveMatches, activeTab, selectedSeason, isMyClubsActive, favoriteClubs, selectedComp, competition, supportedClubs]);
+  }, [
+    fixtures,
+    liveMatches,
+    activeTab,
+    selectedSeason,
+    isMyClubsActive,
+    favoriteClubs,
+    selectedComp,
+    competition,
+    supportedClubs,
+    searchQuery,
+  ]);
 
-  const groupedFixtures = useMemo(() => {
-    const map = new Map<string, { competitionId: string; competitionName: string; logo?: string; matches: MatchRecord[] }>();
-    filteredFixtures.forEach((m) => {
-      const matchedLeague = competitions.find((b) => b.competitionId !== 'ALL' && (b.competitionId === m.competition_id || b.name === m.competition_name || isLeagueMatch(b.name, m.competition_name)));
-      if (!matchedLeague && !m.competition_id) return;
-      const normName = matchedLeague?.name || m.competition_name || m.competition_id;
-      if (!map.has(normName)) {
-        map.set(normName, { competitionId: matchedLeague?.competitionId || m.competition_id, competitionName: normName, logo: matchedLeague?.logo, matches: [] });
-      }
-      map.get(normName)!.matches.push(m);
-    });
-    return Array.from(map.values());
-  }, [filteredFixtures, competitions]);
+  const groupedFixtures = useMemo(
+    () => groupMatchesByCompetition(filteredFixtures, competitions),
+    [filteredFixtures, competitions],
+  );
+
+  const tabCounts = useMemo(() => {
+    const all =
+      fixtures.length + liveMatches.filter((m) => !fixtures.some((f) => f.id === m.id)).length;
+    const live = liveMatches.length;
+    const results = fixtures.filter((m) => m.status === 'FINISHED').length;
+    const upcoming = fixtures.filter(
+      (m) => !['FINISHED', 'IN_PLAY', 'PAUSED', 'LIVE'].includes(m.status),
+    ).length;
+    return { ALL: all, LIVE: live, RESULTS: results, UPCOMING: upcoming };
+  }, [fixtures, liveMatches]);
 
   return (
     <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 select-none space-y-6">
-      {/* Top Sponsored Partner Spotlight */}
-      <FixturesPartnerBanner onExplore={() => window.open('https://www.playstation.com', '_blank')} />
+      <TopAdSenseLeaderboard />
 
-      {/* Header & Season Filter */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Stitch Header & Status Pills */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-5">
         <div>
-          <span className="text-[10px] font-tech uppercase tracking-widest text-[#DFFF00] font-bold">
-            DIRECT LIVE TELEMETRY ENGINE 2026/27
-          </span>
-          <h1 className="font-scoreboard text-3xl sm:text-4xl uppercase text-white tracking-wide leading-none mt-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#DFFF00] animate-pulse" />
+            <span className="font-tech text-xs uppercase tracking-widest text-[#DFFF00] font-bold">
+              Direct Live Telemetry Engine {selectedSeason - 1}/{String(selectedSeason).slice(-2)}
+            </span>
+          </div>
+          <h1 className="font-scoreboard text-3xl sm:text-5xl uppercase text-white tracking-wide leading-none">
             SCORES &amp; MATCH SCHEDULES
           </h1>
-          <p className="font-tech text-xs sm:text-sm text-white/50 mt-1">
-            Live real-time match telemetry, official fixtures, and verified European broadcast outcomes.
+          <p className="font-tech text-xs sm:text-sm text-white/60 mt-1">
+            Real-time pitch telemetry, official referee assignments, and instantaneous European broadcast VOD links.
           </p>
         </div>
-        <SeasonSelector variant="pill" className="self-start sm:self-auto" />
+
+        {/* Status Filter Pills */}
+        <div className="flex flex-wrap items-center gap-2">
+          {STATUS_TABS.map((t) => {
+            const isActive = activeTab === t.id;
+            const count = tabCounts[t.id];
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setActiveTab(t.id)}
+                className={`px-4 py-2 rounded-full font-tech text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+                  isActive
+                    ? 'bg-[#DFFF00] text-[#0A0A0C] shadow-[0_0_15px_rgba(223,255,0,0.25)]'
+                    : 'bg-[#1B1B1F] hover:bg-[#292A2E] text-white/80 border border-white/10'
+                }`}
+              >
+                {t.id === 'LIVE' && (
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      isActive ? 'bg-[#0A0A0C]' : 'bg-red-500 animate-ping'
+                    }`}
+                  />
+                )}
+                <span>{t.label}</span>
+                <span
+                  className={`px-1.5 py-0.5 rounded-full text-[10px] ${
+                    isActive ? 'bg-black/20 text-[#0A0A0C]' : 'bg-white/10 text-white/70'
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </header>
 
-      {/* Date Scroller Carousel */}
+      <FixturesFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        competitions={competitions}
+        selectedComp={selectedComp}
+        isMyClubsActive={isMyClubsActive}
+        favoriteCount={favoriteCount}
+        mounted={mounted}
+        onSelectCompetition={(val) => {
+          setIsMyClubsActive(false);
+          setSelectedComp(val);
+        }}
+        onToggleMyClubs={() => {
+          if (favoriteCount === 0) setIsMyClubsModalOpen(true);
+          else setIsMyClubsActive(!isMyClubsActive);
+        }}
+      />
+
       <FixturesDateCarousel
         selectedDate={selectedDate}
         onSelectDate={setSelectedDate}
-        onPrevDay={() => changeDay(-1)}
-        onNextDay={() => changeDay(1)}
+        onPrevDay={() => {
+          const d = new Date(selectedDate);
+          d.setDate(d.getDate() - 1);
+          setSelectedDate(d.toISOString().split('T')[0]);
+        }}
+        onNextDay={() => {
+          const d = new Date(selectedDate);
+          d.setDate(d.getDate() + 1);
+          setSelectedDate(d.toISOString().split('T')[0]);
+        }}
       />
 
-      {/* Filter Tabs & Competition Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/5">
-        <div className="flex items-center gap-1.5 bg-[#121316] p-1 rounded-xl border border-white/10">
-          {(['ALL', 'LIVE', 'RESULTS', 'UPCOMING'] as FixtureTab[]).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-3 py-1.5 rounded-lg font-tech text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                activeTab === tab
-                  ? 'bg-[#1A1C22] text-[#DFFF00] border border-[#DFFF00]/40 shadow-sm'
-                  : 'text-white/60 hover:text-white'
-              }`}
-            >
-              {tab === 'ALL' ? 'All Matches' : tab}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <CustomDropdown<string>
-            items={competitions.map((c) => ({
-              value: c.competitionId || 'ALL',
-              label: c.name,
-              shortLabel: c.shortName || c.name,
-              icon: c.logo ? (
-                <div className="relative w-4 h-4 rounded bg-white/10 p-0.5 flex items-center justify-center shrink-0 border border-white/10">
-                  <CompetitionLogo src={c.logo} name={c.name} />
-                </div>
-              ) : (
-                <Trophy className="w-3.5 h-3.5 text-[#DFFF00]" />
-              ),
-            }))}
-            value={isMyClubsActive ? '' : selectedComp}
-            onChange={(val) => { setIsMyClubsActive(false); setSelectedComp(val); }}
-            prefix="League"
-            variant="compact"
-          />
-
-          <button
-            onClick={() => { if (favoriteCount === 0) setIsMyClubsModalOpen(true); else setIsMyClubsActive(!isMyClubsActive); }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-tech text-xs font-bold transition-all cursor-pointer ${
-              isMyClubsActive && favoriteCount > 0
-                ? 'bg-[#DFFF00]/15 text-[#DFFF00] border border-[#DFFF00]/40 shadow-[0_0_10px_rgba(223,255,0,0.2)]'
-                : 'bg-[#121316] text-white/60 hover:text-white border border-white/10'
-            }`}
-          >
-            <Star className={`w-3.5 h-3.5 ${isMyClubsActive && mounted && favoriteCount > 0 ? 'text-[#DFFF00] fill-[#DFFF00]' : 'text-white/40'}`} />
-            <span>My Clubs {mounted && favoriteCount > 0 ? `(${favoriteCount})` : ''}</span>
-          </button>
-        </div>
-      </div>
-
-      {activeTab === 'ALL' && liveMatches.length > 0 && <LiveMatchSection liveMatches={liveMatches} className="mb-6" />}
-
-      {isLoading ? (
-        <FixturesSkeleton />
-      ) : filteredFixtures.length === 0 ? (
-        <div className="text-center py-16 bg-[#121316] rounded-2xl border border-white/10 space-y-2">
-          <p className="font-tech text-white/50 text-sm">No fixtures scheduled matching the selected filters.</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {groupedFixtures.map((group, groupIdx) => (
-            <React.Fragment key={group.competitionName}>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-2">
-                    {group.logo ? (
-                      <div className="relative w-6 h-6 rounded-lg bg-white/10 p-1 flex items-center justify-center shrink-0 border border-white/10">
-                        <Image src={group.logo} alt={group.competitionName} fill className="object-contain" unoptimized />
-                      </div>
-                    ) : (
-                      <Trophy className="w-5 h-5 text-[#DFFF00]" />
-                    )}
-                    <h3 className="font-scoreboard text-lg sm:text-xl font-bold text-white uppercase tracking-wider">
-                      {group.competitionName}
-                    </h3>
-                  </div>
-                  <span className="font-tech text-xs font-bold text-white/60 bg-[#121316] px-3 py-1 rounded-full border border-white/10">
-                    {group.matches.length} matches
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-2.5">
-                  {group.matches.map((m) => (
-                    <FixtureItemCard key={m.id} match={m} />
-                  ))}
-                </div>
-              </div>
-
-              {(groupIdx + 1) % 2 === 0 && groupIdx < groupedFixtures.length - 1 && (
-                <FixturesInFeedAd />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
+      {liveMatches.length > 0 && activeTab !== 'RESULTS' && activeTab !== 'UPCOMING' && (
+        <LiveMatchSection liveMatches={liveMatches} />
       )}
+
+      <FixturesGroupList
+        isLoading={isLoading}
+        totalCount={filteredFixtures.length}
+        groups={groupedFixtures}
+      />
+
+      <section className="rounded-2xl bg-gradient-to-r from-[#121316] via-[#1A1C22] to-[#121316] border border-white/10 p-5 sm:p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="space-y-1">
+          <span className="text-[10px] font-tech font-bold uppercase tracking-wider text-[#DFFF00]">
+            Native Android App • Target SDK 37
+          </span>
+          <h3 className="font-scoreboard text-xl sm:text-2xl text-white uppercase tracking-wider leading-none">
+            Get Real-Time Goal Alerts &amp; Spoiler Guard on Mobile
+          </h3>
+          <p className="text-xs text-white/60 font-tech">
+            Instant push notifications for kickoff, goals, and verified full-time match highlights.
+          </p>
+        </div>
+        <GooglePlayBadge height={40} />
+      </section>
 
       <MyClubsModal isOpen={isMyClubsModalOpen} onClose={() => setIsMyClubsModalOpen(false)} />
     </div>

@@ -58,7 +58,7 @@ fun FloatingPillNavigationBar(
         shadowElevation = 12.dp,
         border = BorderStroke(
             0.5.dp,
-            Color.White.copy(alpha = 0.1f),
+            MaterialTheme.colorScheme.outline,
         ),
     ) {
         Row(

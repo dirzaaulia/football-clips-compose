@@ -13,6 +13,16 @@
         "-y",
         "@figma/mcp"
       ]
+    },
+    "stitch": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\ASUS\\.stitch-mcp\\run-proxy.mjs",
+        "proxy"
+      ],
+      "env": {
+        "GOOGLE_CLOUD_PROJECT": "highlightdata"
+      }
     }
   }
 }

@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { MatchEvent } from '@/lib/database';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, ArrowLeftRight } from 'lucide-react';
+import { GoalBallIcon, extractScorerDisplayName } from './MatchScrubberStrip';
 
 interface MatchEventsTimelineProps {
   events?: MatchEvent[] | null;
@@ -33,12 +34,10 @@ export default function MatchEventsTimeline({
     const t = (e.type || '').toLowerCase();
     const text = (e.text || '').toLowerCase();
     return (
-      t.includes('goal') ||
+      e.scoring_play ||
+      ((t.includes('goal') || text.startsWith('goal!')) && !t.includes('kick')) ||
       t.includes('card') ||
-      t.includes('sub') ||
-      t.includes('penalty') ||
-      text.includes('goal') ||
-      text.includes('card')
+      t.includes('sub')
     );
   });
 
@@ -59,8 +58,12 @@ export default function MatchEventsTimeline({
         <div className="flex items-center gap-3">
           <ShieldAlert className="w-5 h-5 text-[#DFFF00] group-hover:scale-110 transition-transform" />
           <div>
-            <div className="text-xs font-tech font-bold text-white uppercase tracking-wider">Match Events &amp; Scorers</div>
-            <div className="text-[11px] font-tech text-white/50">Spoiler Protected • Tap to reveal timeline</div>
+            <div className="text-xs font-tech font-bold text-white uppercase tracking-wider">
+              Match Events &amp; Scorers
+            </div>
+            <div className="text-[11px] font-tech text-white/50">
+              Spoiler Protected • Tap to reveal timeline
+            </div>
           </div>
         </div>
         <span className="px-3.5 py-1.5 bg-[#DFFF00] text-[#0A0A0C] text-xs font-tech font-black uppercase tracking-wider rounded-xl shadow-md">
@@ -77,37 +80,49 @@ export default function MatchEventsTimeline({
       </div>
       <div className="relative pl-6 border-l border-white/10 space-y-4">
         {filteredEvents.map((e, idx) => {
-          const isGoal = e.scoring_play || e.type.includes('goal') || e.type_text.toLowerCase().includes('goal');
-          const isRed = e.type.includes('red-card');
-          const isYellow = e.type.includes('yellow-card') && !isRed;
-          const isSub = e.type.includes('sub');
-          const isHome = e.side === 'home';
+          const tLower = (e.type || e.type_text || '').toLowerCase();
+          const isGoal =
+            e.scoring_play ||
+            (tLower.includes('goal') && !tLower.includes('kick') && !tLower.includes('attempt'));
+          const isRed = tLower.includes('red');
+          const isYellow = tLower.includes('yellow') && !isRed;
+          const isSub = tLower.includes('sub');
+          const isHome = e.side !== 'away';
+          const playerName = extractScorerDisplayName(e);
 
           return (
             <div key={e.id || idx} className="relative flex items-start gap-3">
-              {/* Timeline Node Badge */}
               <div
-                className={`absolute -left-[31px] top-0.5 flex items-center justify-center w-5 h-5 rounded-full border text-[10px] font-black ${
+                className={`absolute -left-[31px] top-0.5 flex items-center justify-center w-5 h-5 rounded-full border ${
                   isGoal
-                    ? 'bg-emerald-500 border-emerald-400 text-white shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                    ? 'bg-[#1A1C22] border-[#DFFF00]/60 shadow-[0_0_8px_rgba(223,255,0,0.35)]'
                     : isRed
-                    ? 'bg-rose-500 border-rose-400 text-white'
+                    ? 'bg-rose-500/20 border-rose-500/60'
                     : isYellow
-                    ? 'bg-amber-400 border-amber-300 text-black'
-                    : 'bg-[#1A1C22] border-white/20 text-white/70'
+                    ? 'bg-amber-400/20 border-amber-400/60'
+                    : 'bg-[#1A1C22] border-white/20'
                 }`}
               >
-                {isGoal ? '⚽' : isRed ? '🟥' : isYellow ? '🟨' : '🔄'}
+                {isGoal ? (
+                  <GoalBallIcon className="w-3 h-3 text-[#DFFF00]" />
+                ) : isRed ? (
+                  <span className="w-2 h-2.5 rounded-[1px] bg-rose-500" />
+                ) : isYellow ? (
+                  <span className="w-2 h-2.5 rounded-[1px] bg-amber-400" />
+                ) : (
+                  <ArrowLeftRight className="w-2.5 h-2.5 text-[#38BDF8]" />
+                )}
               </div>
 
-              {/* Event Content */}
               <div className="flex-1 bg-[#121316] border border-white/10 hover:border-white/20 rounded-xl p-3 transition-colors shadow-sm">
                 {isSub ? (
                   <div className="space-y-1">
                     <div className="flex items-center justify-between gap-2 text-xs">
                       <div className="flex items-center gap-1.5 font-bold text-white">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono font-black">IN</span>
-                        <span className="font-tech">{e.player || 'Player'}</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono font-black">
+                          IN
+                        </span>
+                        <span className="font-tech">{playerName}</span>
                       </div>
                       <span className="font-mono text-xs font-black text-[#DFFF00] shrink-0">
                         {e.clock || `${idx + 1}'`}
@@ -115,7 +130,9 @@ export default function MatchEventsTimeline({
                     </div>
                     {e.assist && (
                       <div className="flex items-center gap-1.5 text-xs text-white/50 font-tech">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono font-black">OUT</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono font-black">
+                          OUT
+                        </span>
                         <span>{e.assist}</span>
                       </div>
                     )}
@@ -124,9 +141,9 @@ export default function MatchEventsTimeline({
                   <>
                     <div className="flex items-center justify-between gap-2 text-xs">
                       <div className="flex items-center gap-1.5 font-bold text-white">
-                        <span className="font-tech">{e.player || 'Player'}</span>
+                        <span className="font-tech">{playerName}</span>
                         {isGoal && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono font-black">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#DFFF00]/20 text-[#DFFF00] font-mono font-black">
                             GOAL
                           </span>
                         )}
@@ -148,7 +165,10 @@ export default function MatchEventsTimeline({
                   <span className="font-semibold text-white/70">
                     {isHome ? homeName : awayName}
                   </span>
-                  <span>{e.type_text || (isGoal ? 'Goal' : isYellow ? 'Yellow Card' : isRed ? 'Red Card' : 'Event')}</span>
+                  <span>
+                    {e.type_text ||
+                      (isGoal ? 'Goal' : isYellow ? 'Yellow Card' : isRed ? 'Red Card' : 'Event')}
+                  </span>
                 </div>
               </div>
             </div>

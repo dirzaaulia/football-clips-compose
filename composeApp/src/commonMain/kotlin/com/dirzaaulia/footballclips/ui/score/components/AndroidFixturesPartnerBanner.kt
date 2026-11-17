@@ -12,8 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -24,13 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.dirzaaulia.footballclips.ui.theme.GhostBorder
-import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier1
-import com.dirzaaulia.footballclips.ui.theme.ObsidianSurfaceTier2
 import com.dirzaaulia.footballclips.ui.theme.VoltLime
 import com.dirzaaulia.footballclips.ui.theme.VoltLimeDarkText
 
@@ -39,11 +34,14 @@ fun AndroidFixturesPartnerBanner(
     modifier: Modifier = Modifier,
     onExploreClick: (() -> Unit)? = null,
 ) {
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = ObsidianSurfaceTier1,
-        border = BorderStroke(1.dp, GhostBorder),
+        color = surfaceColor,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         shadowElevation = 4.dp,
     ) {
         Column(
@@ -52,9 +50,9 @@ fun AndroidFixturesPartnerBanner(
                 .background(
                     Brush.horizontalGradient(
                         colors = listOf(
-                            ObsidianSurfaceTier1,
-                            ObsidianSurfaceTier2,
-                            ObsidianSurfaceTier1,
+                            surfaceColor,
+                            surfaceVariantColor,
+                            surfaceColor,
                         ),
                     ),
                 )
@@ -65,15 +63,15 @@ fun AndroidFixturesPartnerBanner(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Default.Info,
+                    imageVector = Icons.Default.Diamond,
                     contentDescription = null,
-                    tint = VoltLime,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(14.dp),
                 )
                 Text(
-                    text = "SPONSORED • PLAYSTATION 5 PRO × UEFA",
+                    text = "FOOTBALLCLIPS PRO • AD-FREE MEMBERSHIP",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.6f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp,
                 )
@@ -82,19 +80,19 @@ fun AndroidFixturesPartnerBanner(
             Spacer(Modifier.height(6.dp))
 
             Text(
-                text = "HYPERMOTION V & 120FPS 4K STREAM",
+                text = "GO 100% AD-FREE ACROSS ANDROID & WEB",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Black,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 letterSpacing = 0.5.sp,
             )
 
             Spacer(Modifier.height(4.dp))
 
             Text(
-                text = "Tactical multi-angle stadium feeds and instantaneous pitch telemetry.",
+                text = "Remove all banner and feed ads, customize club merchandise shelves, and sync your Pro membership across devices.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.7f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             if (onExploreClick != null) {
@@ -109,7 +107,7 @@ fun AndroidFixturesPartnerBanner(
                     modifier = Modifier.align(Alignment.End),
                 ) {
                     Text(
-                        text = "EXPLORE BUNDLE",
+                        text = "UPGRADE TO PRO",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Black,
                     )

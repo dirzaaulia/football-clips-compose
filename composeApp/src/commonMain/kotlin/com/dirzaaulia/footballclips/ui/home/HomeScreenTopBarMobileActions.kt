@@ -117,13 +117,14 @@ private fun SettingsActionButton(onNavigateToSettings: () -> Unit) {
 
 @Composable
 private fun PremiumDiamondButton(isPremium: Boolean, onShowPaywall: () -> Unit) {
+    val accentColor = if (isPremium) Color(0xFF10B981) else MaterialTheme.colorScheme.primary
     Surface(
         onClick = onShowPaywall,
         shape = RoundedCornerShape(10.dp),
-        color = if (isPremium) Color(0xFF4CAF50).copy(alpha = 0.15f) else Color(0xFFD4AF37).copy(alpha = 0.15f),
+        color = accentColor.copy(alpha = 0.15f),
         border = BorderStroke(
             1.dp,
-            if (isPremium) Color(0xFF4CAF50).copy(alpha = 0.5f) else Color(0xFFD4AF37).copy(alpha = 0.6f),
+            accentColor.copy(alpha = 0.55f),
         ),
         modifier = Modifier.size(34.dp),
     ) {
@@ -131,7 +132,7 @@ private fun PremiumDiamondButton(isPremium: Boolean, onShowPaywall: () -> Unit) 
             Icon(
                 imageVector = if (isPremium) Icons.Default.VideoLibrary else Icons.Default.Diamond,
                 contentDescription = if (isPremium) "Premium Member" else "Upgrade to Premium",
-                tint = if (isPremium) Color(0xFF4CAF50) else Color(0xFFD4AF37),
+                tint = accentColor,
                 modifier = Modifier.size(18.dp),
             )
         }

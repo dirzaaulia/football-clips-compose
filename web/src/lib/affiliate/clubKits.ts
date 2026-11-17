@@ -23,10 +23,10 @@ const CLUB_KIT_REGISTRY: Record<string, string> = {
 };
 
 /**
- * Resolves verified kit photography for a club, or gracefully falls back to crestUrl.
+ * Resolves verified kit photography for a club, or null if only crest should be rendered.
  */
-export function resolveClubKitPhoto(clubName: string, crestUrl?: string | null): string {
-  if (!clubName) return crestUrl || '';
+export function resolveClubKitPhoto(clubName: string, crestUrl?: string | null): string | null {
+  if (!clubName) return crestUrl || null;
   const clean = clubName
     .toLowerCase()
     .replace(/\b(fc|cf|afc|sc|sv|fk|ssc|osc|rc|cd|ca)\b/gi, '')
@@ -38,5 +38,5 @@ export function resolveClubKitPhoto(clubName: string, crestUrl?: string | null):
     }
   }
 
-  return crestUrl || '';
+  return null;
 }

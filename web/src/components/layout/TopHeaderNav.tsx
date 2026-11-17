@@ -17,8 +17,11 @@ const NAV_LINKS = [
   { href: '/', label: 'Highlights' },
   { href: '/shorts', label: 'Shorts' },
   { href: '/fixtures', label: 'Fixtures' },
-  { href: '/standings', label: 'Standings' },
+  { href: '/standings', label: 'Standings & Stats' },
+  { href: '/articles', label: 'Analysis' },
+  { href: '/tools', label: 'Tools' },
   { href: '/store', label: 'Store' },
+  { href: '/settings', label: 'Settings' },
 ];
 
 export default function TopHeaderNav({
@@ -30,7 +33,7 @@ export default function TopHeaderNav({
   const { selectedSeason } = useSeason();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-12 bg-[#121316]/95 backdrop-blur-md border-b border-white/10 shadow-[0_1px_8px_rgba(0,0,0,0.4)] select-none">
+    <header className="fixed top-0 left-0 right-0 z-50 h-12 bg-[#121316]/75 backdrop-blur-md border-b border-white/10 shadow-[0_1px_8px_rgba(0,0,0,0.3)] select-none">
       <div className="h-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
         {/* Left: Brand Identity */}
         <div className="flex items-center gap-6 shrink-0">
@@ -110,12 +113,13 @@ export default function TopHeaderNav({
           </button>
 
           {/* User Avatar */}
-          <div
-            className="w-7 h-7 rounded-full bg-[#1A1C22] border border-[#DFFF00]/50 text-[#DFFF00] font-tech text-[10px] font-bold flex items-center justify-center shadow-sm select-none"
-            title="User Profile"
+          <Link
+            href="/settings"
+            className="w-7 h-7 rounded-full bg-[#1A1C22] border border-[#DFFF00]/50 text-[#DFFF00] font-tech text-[10px] font-bold flex items-center justify-center shadow-sm select-none hover:scale-105 transition-transform"
+            title="User Profile & Settings"
           >
             <User className="w-3.5 h-3.5" />
-          </div>
+          </Link>
         </div>
       </div>
     </header>

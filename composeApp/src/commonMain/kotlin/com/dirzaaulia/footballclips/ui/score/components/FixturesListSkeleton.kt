@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -29,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
@@ -51,11 +51,13 @@ fun FixturesListSkeleton(
         label = "FixturesShimmerTranslate",
     )
 
+    val baseColor = MaterialTheme.colorScheme.surfaceVariant
+    val highlightColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
     val shimmerBrush = Brush.linearGradient(
         colors = listOf(
-            Color(0xFF1A1C22),
-            Color(0xFF252830),
-            Color(0xFF1A1C22),
+            baseColor,
+            highlightColor,
+            baseColor,
         ),
         start = Offset(translateAnim - 300f, translateAnim - 300f),
         end = Offset(translateAnim, translateAnim),
@@ -81,8 +83,8 @@ private fun FixtureCardSkeletonItem(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF121316))
-            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
             .padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

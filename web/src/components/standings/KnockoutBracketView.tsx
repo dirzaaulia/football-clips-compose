@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { MatchRecord } from '@/lib/database';
 import { Play, Trophy, Calendar, Award } from 'lucide-react';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
@@ -12,7 +11,6 @@ interface KnockoutBracketViewProps {
   competitionName: string;
 }
 
-// Canonical round ordering for tournament trees
 const ROUND_ORDER = [
   'round of 32',
   'fourth round',
@@ -23,7 +21,7 @@ const ROUND_ORDER = [
   'quarter-finals',
   'semifinals',
   'semi-finals',
-  'final'
+  'final',
 ];
 
 function getRoundWeight(roundName?: string | null): number {
@@ -38,7 +36,8 @@ function getRoundWeight(roundName?: string | null): number {
 function formatRoundDisplay(roundName?: string | null): string {
   if (!roundName) return 'Knockout Round';
   const lower = roundName.toLowerCase();
-  if (lower.includes('final') && !lower.includes('semi') && !lower.includes('quarter')) return 'Final';
+  if (lower.includes('final') && !lower.includes('semi') && !lower.includes('quarter'))
+    return 'Final';
   if (lower.includes('semi')) return 'Semi-finals';
   if (lower.includes('quarter')) return 'Quarter-finals';
   if (lower.includes('round of 16') || lower.includes('cup round')) return 'Round of 16';
@@ -46,16 +45,167 @@ function formatRoundDisplay(roundName?: string | null): string {
   return roundName;
 }
 
-export default function KnockoutBracketView({ matches, competitionName }: KnockoutBracketViewProps) {
+function KnockoutTeamRow({
+  name,
+  crest,
+  score,
+  penalties,
+  isWinner,
+  isFinished,
+}: {
+  name: string;
+  crest?: string | null;
+  score?: number | null;
+  penalties?: number | null;
+  isWinner: boolean;
+  isFinished: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between py-1.5 px-2.5 rounded-xl transition-colors ${
+        isWinner ? 'bg-[#DFFF00]/10 font-bold border border-[#DFFF00]/25' : ''
+      }`}
+    >
+      <div className="flex items-center gap-2.5 min-w-0">
+        <GlassLogoBadge
+          src={crest}
+          alt={name}
+          size={22}
+          imageClassName="object-contain p-0.5"
+        />
+        <span
+          className={`text-xs truncate ${
+            isWinner ? 'text-white font-extrabold' : 'text-white/80'
+          }`}
+        >
+          {name}
+        </span>
+      </div>
+      <span
+        className={`text-xs font-tech font-bold ml-2 ${
+          isWinner ? 'text-[#DFFF00]' : isFinished ? 'text-white' : 'text-white/40'
+        }`}
+      >
+        {score !== null && score !== undefined
+          ? penalties != null
+            ? `${score} (${penalties})`
+            : score
+          : '-'}
+      </span>
+    </div>
+  );
+}
+
+function KnockoutMatchCard({
+  match,
+  isFinal,
+  onPlay,
+}: {
+  match: MatchRecord;
+  isFinal: boolean;
+  onPlay: (m: MatchRecord) => void;
+}) {
+  const hasHighlight = Boolean(
+    match.highlight_video_id || match.backup_highlight_video_id,
+  );
+  const isFinished = match.status === 'FINISHED';
+  const isLive = ['IN_PLAY', 'PAUSED', 'LIVE'].includes(match.status);
+  const hScore = match.home_score ?? 0;
+  const aScore = match.away_score ?? 0;
+  const hPen = match.home_penalties ?? 0;
+  const aPen = match.away_penalties ?? 0;
+  const homeWinner =
+    isFinished && (hScore > aScore || (hScore === aScore && hPen > aPen));
+  const awayWinner =
+    isFinished && (aScore > hScore || (hScore === aScore && aPen > hPen));
+
+  return (
+    <div
+      className={`relative flex flex-col p-3.5 rounded-2xl bg-[#1A1C22] border transition-all duration-200 ${
+        isFinal
+          ? 'border-[#DFFF00]/50 shadow-[0_0_20px_rgba(223,255,0,0.15)] bg-gradient-to-b from-[#1A1C22] to-[#121316]'
+          : isLive
+          ? 'border-[#FF2E4D]/50 shadow-[0_0_12px_rgba(255,46,77,0.15)]'
+          : 'border-white/10 hover:border-[#DFFF00]/40 shadow-sm'
+      }`}
+    >
+      <div className="flex items-center justify-between text-[10px] text-white/50 font-tech font-bold mb-2">
+        <span className="flex items-center gap-1">
+          <Calendar className="w-3 h-3 text-[#DFFF00]" />
+          {match.utc_date
+            ? new Date(match.utc_date).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })
+            : 'TBD'}
+        </span>
+        {isLive && (
+          <span className="px-1.5 py-0.5 rounded bg-[#FF2E4D]/20 text-[#FF2E4D] border border-[#FF2E4D]/40 font-bold animate-pulse">
+            LIVE {match.display_clock || ''}
+          </span>
+        )}
+        {isFinished && (
+          <span className="px-1.5 py-0.5 rounded bg-[#121316] text-white/60 border border-white/10">
+            FT
+          </span>
+        )}
+        {!isLive && !isFinished && (
+          <span className="text-white/40">
+            {match.utc_date
+              ? new Date(match.utc_date).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : 'Upcoming'}
+          </span>
+        )}
+      </div>
+
+      <div className="space-y-1">
+        <KnockoutTeamRow
+          name={match.home_team_name || match.home_team}
+          crest={match.home_team_crest}
+          score={match.home_score}
+          penalties={match.home_penalties}
+          isWinner={homeWinner}
+          isFinished={isFinished}
+        />
+        <KnockoutTeamRow
+          name={match.away_team_name || match.away_team}
+          crest={match.away_team_crest}
+          score={match.away_score}
+          penalties={match.away_penalties}
+          isWinner={awayWinner}
+          isFinished={isFinished}
+        />
+      </div>
+
+      {hasHighlight && (
+        <button
+          type="button"
+          onClick={() => onPlay(match)}
+          className="mt-2.5 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-[11px] font-tech font-bold uppercase tracking-wider bg-[#DFFF00]/15 hover:bg-[#DFFF00] border border-[#DFFF00]/40 text-[#DFFF00] hover:text-[#0A0A0C] transition-all cursor-pointer shadow-sm"
+        >
+          <Play className="w-3 h-3 fill-current" />
+          <span>Watch Highlights</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+export default function KnockoutBracketView({
+  matches,
+  competitionName,
+}: KnockoutBracketViewProps) {
   const { playVideo } = useVideoPlayer();
 
-  // Filter out any league phase matches
   const knockoutMatches = matches.filter((m) => {
     const r = (m.round_name || '').toLowerCase();
     return !r.includes('league phase');
   });
 
-  // Group matches by normalized round
   const roundsMap = new Map<string, MatchRecord[]>();
   for (const m of knockoutMatches) {
     const label = formatRoundDisplay(m.round_name);
@@ -65,18 +215,20 @@ export default function KnockoutBracketView({ matches, competitionName }: Knocko
     roundsMap.get(label)!.push(m);
   }
 
-  // Sort rounds chronologically towards the Final
   const sortedRounds = Array.from(roundsMap.entries()).sort(
-    (a, b) => getRoundWeight(a[0]) - getRoundWeight(b[0])
+    (a, b) => getRoundWeight(a[0]) - getRoundWeight(b[0]),
   );
 
   if (knockoutMatches.length === 0) {
     return (
-      <div className="py-16 text-center text-[#94A3B8] bg-[#181C20] border border-[#334155] rounded-3xl p-6">
-        <Trophy className="w-12 h-12 text-[#7098F8]/50 mx-auto mb-3" />
-        <h3 className="text-base font-bold text-white">Knockout Stage Pending</h3>
-        <p className="text-xs text-[#94A3B8] mt-1 max-w-md mx-auto">
-          Knockout fixtures will populate once qualified clubs are drawn for {competitionName}.
+      <div className="py-16 text-center text-white/60 bg-[#1A1C22] border border-white/10 rounded-2xl p-6">
+        <Trophy className="w-12 h-12 text-[#DFFF00]/50 mx-auto mb-3" />
+        <h3 className="font-scoreboard text-xl uppercase tracking-wider text-white">
+          Knockout Stage Pending
+        </h3>
+        <p className="text-xs text-white/50 font-tech mt-1 max-w-md mx-auto">
+          Knockout fixtures will populate once qualified clubs are drawn for{' '}
+          {competitionName}.
         </p>
       </div>
     );
@@ -84,127 +236,38 @@ export default function KnockoutBracketView({ matches, competitionName }: Knocko
 
   return (
     <div className="w-full overflow-x-auto pb-6 pt-2">
-      <div className="flex items-stretch gap-6 sm:gap-10 min-w-max px-2">
-        {sortedRounds.map(([roundTitle, roundMatches], roundIdx) => {
+      <div className="flex items-stretch gap-6 sm:gap-8 min-w-max px-1">
+        {sortedRounds.map(([roundTitle, roundMatches]) => {
           const isFinal = roundTitle.toLowerCase() === 'final';
           return (
             <div key={roundTitle} className="flex flex-col min-w-[260px] sm:min-w-[300px]">
-              {/* Round Header */}
-              <div className="flex items-center gap-2 pb-3 mb-4 border-b border-[#334155]/80">
+              <div className="flex items-center gap-2 pb-3 mb-4 border-b border-white/10">
                 {isFinal ? (
-                  <Award className="w-5 h-5 text-amber-400 shrink-0" />
+                  <Award className="w-4 h-4 text-[#DFFF00] shrink-0" />
                 ) : (
-                  <Trophy className="w-4 h-4 text-[#7098F8] shrink-0" />
+                  <Trophy className="w-4 h-4 text-[#DFFF00] shrink-0" />
                 )}
-                <span className={`text-sm font-black uppercase tracking-wider ${isFinal ? 'text-amber-400' : 'text-white'}`}>
+                <span
+                  className={`font-scoreboard text-lg uppercase tracking-wider ${
+                    isFinal ? 'text-[#DFFF00]' : 'text-white'
+                  }`}
+                >
                   {roundTitle}
                 </span>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#181C20] text-[#94A3B8] border border-[#334155] ml-auto">
+                <span className="text-[10px] font-tech font-bold px-2.5 py-0.5 rounded-full bg-[#121316] text-white/60 border border-white/10 ml-auto">
                   {roundMatches.length} {roundMatches.length === 1 ? 'Match' : 'Ties'}
                 </span>
               </div>
 
-              {/* Match Cards in Column with Vertical Centering Spacing */}
               <div className="flex-1 flex flex-col justify-around gap-4">
-                {roundMatches.map((m) => {
-                  const hasHighlight = Boolean(m.highlight_video_id || m.backup_highlight_video_id);
-                  const isFinished = m.status === 'FINISHED';
-                  const isLive = ['IN_PLAY', 'PAUSED', 'LIVE'].includes(m.status);
-                  const hScore = m.home_score ?? 0;
-                  const aScore = m.away_score ?? 0;
-                  const hPen = m.home_penalties ?? 0;
-                  const aPen = m.away_penalties ?? 0;
-                  const homeWinner = isFinished && (hScore > aScore || (hScore === aScore && hPen > aPen));
-                  const awayWinner = isFinished && (aScore > hScore || (hScore === aScore && aPen > hPen));
-
-                  return (
-                    <div
-                      key={m.id}
-                      className={`relative flex flex-col p-3 rounded-2xl bg-[#181C20] border transition-all duration-200 ${
-                        isFinal
-                          ? 'border-amber-500/40 shadow-[0_0_16px_rgba(245,158,11,0.15)] bg-gradient-to-b from-[#1E2228] to-[#181C20]'
-                          : isLive
-                          ? 'border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
-                          : 'border-[#334155] hover:border-[#7098F8]/50 shadow-sm'
-                      }`}
-                    >
-                      {/* Top Match Info Row */}
-                      <div className="flex items-center justify-between text-[10px] text-[#94A3B8] font-bold mb-2">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-[#7098F8]" />
-                          {m.utc_date ? new Date(m.utc_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'TBD'}
-                        </span>
-                        {isLive && (
-                          <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-black animate-pulse">
-                            LIVE {m.display_clock || ''}
-                          </span>
-                        )}
-                        {isFinished && (
-                          <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
-                            FT
-                          </span>
-                        )}
-                        {!isLive && !isFinished && (
-                          <span className="text-zinc-500 font-medium">
-                            {m.utc_date ? new Date(m.utc_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Upcoming'}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Home Team */}
-                      <div className={`flex items-center justify-between py-1.5 px-2 rounded-xl transition-colors ${homeWinner ? 'bg-emerald-500/10 font-bold' : ''}`}>
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <GlassLogoBadge
-                            src={m.home_team_crest}
-                            alt={m.home_team_name || m.home_team}
-                            size={22}
-                            imageClassName="object-contain p-0.5"
-                          />
-                          <span className={`text-xs truncate ${homeWinner ? 'text-white font-extrabold' : 'text-[#E2E8F0]'}`}>
-                            {m.home_team_name || m.home_team}
-                          </span>
-                        </div>
-                        <span className={`text-xs font-black ml-2 ${homeWinner ? 'text-emerald-400' : isFinished ? 'text-white' : 'text-zinc-500'}`}>
-                          {m.home_score !== null && m.home_score !== undefined
-                            ? (m.home_penalties != null ? `${m.home_score} (${m.home_penalties})` : m.home_score)
-                            : '-'}
-                        </span>
-                      </div>
-
-                      {/* Away Team */}
-                      <div className={`flex items-center justify-between py-1.5 px-2 rounded-xl transition-colors mt-0.5 ${awayWinner ? 'bg-emerald-500/10 font-bold' : ''}`}>
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <GlassLogoBadge
-                            src={m.away_team_crest}
-                            alt={m.away_team_name || m.away_team}
-                            size={22}
-                            imageClassName="object-contain p-0.5"
-                          />
-                          <span className={`text-xs truncate ${awayWinner ? 'text-white font-extrabold' : 'text-[#E2E8F0]'}`}>
-                            {m.away_team_name || m.away_team}
-                          </span>
-                        </div>
-                        <span className={`text-xs font-black ml-2 ${awayWinner ? 'text-emerald-400' : isFinished ? 'text-white' : 'text-zinc-500'}`}>
-                          {m.away_score !== null && m.away_score !== undefined
-                            ? (m.away_penalties != null ? `${m.away_score} (${m.away_penalties})` : m.away_score)
-                            : '-'}
-                        </span>
-                      </div>
-
-                      {/* Highlight Video Replay Button */}
-                      {hasHighlight && (
-                        <button
-                          type="button"
-                          onClick={() => playVideo(m)}
-                          className="mt-2.5 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-[11px] font-extrabold bg-[#1E3A8A]/40 hover:bg-[#1E3A8A] border border-[#7098F8]/40 text-[#4FC3F7] hover:text-white transition-all cursor-pointer shadow-sm group"
-                        >
-                          <Play className="w-3 h-3 fill-current text-[#4FC3F7] group-hover:text-white transition-colors" />
-                          <span>Watch Highlights</span>
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
+                {roundMatches.map((m) => (
+                  <KnockoutMatchCard
+                    key={m.id}
+                    match={m}
+                    isFinal={isFinal}
+                    onPlay={playVideo}
+                  />
+                ))}
               </div>
             </div>
           );

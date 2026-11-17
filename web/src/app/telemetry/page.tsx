@@ -22,6 +22,7 @@ import { ShortsPipelineView, DbFootballShort } from './components/ShortsPipeline
 import { TelemetryFilterBar } from './components/TelemetryFilterBar';
 import { ChannelLookupMap } from './mapperHelper';
 import { TaxonomyManagementModal } from './components/TaxonomyManagementModal';
+import TelemetrySkeleton from './components/TelemetrySkeleton';
 
 export default function TelemetryPage() {
   const [activeTab, setActiveTab] = useState<TelemetryTab>('highlights');
@@ -66,34 +67,20 @@ export default function TelemetryPage() {
       const now = new Date();
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const matchSelectCols = 'id, competition_id, competition_name, utc_date, status, home_team_name, away_team_name, home_score, away_score, highlight_video_id, last_youtube_check, youtube_region_info, highlight_videos';
-      const { data: mRows } = await database
-        .from('matches')
-        .select(matchSelectCols)
-        .eq('status', 'FINISHED')
-        .gte('utc_date', thirtyDaysAgo.toISOString())
-        .lte('utc_date', now.toISOString())
-        .order('utc_date', { ascending: false });
+      const matchCols = 'id, competition_id, competition_name, utc_date, status, home_team_name, away_team_name, home_score, away_score, highlight_video_id, last_youtube_check, youtube_region_info, highlight_videos';
+      const { data: mRows } = await database.from('matches').select(matchCols).eq('status', 'FINISHED').gte('utc_date', thirtyDaysAgo.toISOString()).lte('utc_date', now.toISOString()).order('utc_date', { ascending: false });
 
       let allMatches = mRows || [];
       const loadedIds = new Set(allMatches.map((m: any) => String(m.id)));
       const extraIds = new Set<string>();
-      if (telemetryPayload?.cycles) {
-        for (const ev of (telemetryPayload as any)?.events || []) {
-          if (ev.match_id && !loadedIds.has(String(ev.match_id))) extraIds.add(String(ev.match_id));
-        }
+      for (const ev of (telemetryPayload as any)?.events || []) {
+        if (ev.match_id && !loadedIds.has(String(ev.match_id))) extraIds.add(String(ev.match_id));
       }
       if (extraIds.size > 0) {
-        const { data: xRows } = await database
-          .from('matches')
-          .select(matchSelectCols)
-          .eq('status', 'FINISHED')
-          .lte('utc_date', now.toISOString())
-          .in('id', Array.from(extraIds).slice(0, 50));
+        const { data: xRows } = await database.from('matches').select(matchCols).eq('status', 'FINISHED').lte('utc_date', now.toISOString()).in('id', Array.from(extraIds).slice(0, 50));
         if (xRows) allMatches = [...allMatches, ...xRows];
       }
-      const finishedOnly = allMatches.filter((m: any) => m.status === 'FINISHED' && (!m.utc_date || new Date(m.utc_date).getTime() <= now.getTime()));
-      setDbFinishedMatches(finishedOnly as DbFinishedMatch[]);
+      setDbFinishedMatches(allMatches.filter((m: any) => m.status === 'FINISHED' && (!m.utc_date || new Date(m.utc_date).getTime() <= now.getTime())) as DbFinishedMatch[]);
 
       const [{ data: compRows }, { data: clubRows }, { data: shortRows }, { data: bcastRows }] = await Promise.all([
         database.from('competitions').select('id, youtube_handle, backup_channel_handles'),
@@ -110,71 +97,59 @@ export default function TelemetryPage() {
       for (const cl of (clubRows || []) as any[]) {
         if (cl.name && cl.youtube_handle) {
           clubHandles[String(cl.name).toLowerCase().trim()] = String(cl.youtube_handle);
-          for (const al of (Array.isArray(cl.aliases) ? cl.aliases : [])) {
-            clubHandles[String(al).toLowerCase().trim()] = String(cl.youtube_handle);
-          }
+          for (const al of (Array.isArray(cl.aliases) ? cl.aliases : [])) clubHandles[String(al).toLowerCase().trim()] = String(cl.youtube_handle);
         }
       }
       const broadcasters: Record<string, { name: string; handle: string; tier: number }> = {};
       for (const b of (bcastRows || []) as any[]) {
         if (b.channel_handle) {
           const isDom = Array.isArray(b.allowed_countries) && b.allowed_countries.length > 0 && b.allowed_countries.length <= 5;
-          broadcasters[String(b.channel_handle).toLowerCase().trim()] = {
-            name: b.name || b.channel_handle,
-            handle: b.channel_handle,
-            tier: isDom ? 3 : 2,
-          };
+          broadcasters[String(b.channel_handle).toLowerCase().trim()] = { name: b.name || b.channel_handle, handle: b.channel_handle, tier: isDom ? 3 : 2 };
         }
       }
       setChannelLookup({ compHandles, clubHandles, broadcasters });
       if (shortRows) setDbShorts(shortRows as DbFootballShort[]);
 
-      const { data: aRows, count: aCount } = await database
-        .from('user_analytics_events')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .limit(200);
+      const [{ data: aRows, count: aCount }, { data: sRows, count: sCount }] = await Promise.all([
+        database.from('user_analytics_events').select('*', { count: 'exact' }).order('created_at', { ascending: false }).limit(200),
+        database.from('app_sessions').select('*', { count: 'exact' }).order('started_at', { ascending: false }).limit(200),
+      ]);
       if (aRows) setAnalyticsEvents(aRows as UserAnalyticsEvent[]);
       if (typeof aCount === 'number') setTotalAnalyticsCount(aCount);
-
-      const { data: sRows, count: sCount } = await database
-        .from('app_sessions')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .limit(200);
       if (sRows) setAppSessions(sRows as AppSessionItem[]);
       if (typeof sCount === 'number') setTotalSessionsCount(sCount);
-    } catch (e) {
-      console.error('Failed to fetch telemetry data:', e);
+    } catch (err) {
+      console.error('Failed to load telemetry state:', err);
     } finally {
-      setIsLoading(false);
       setIsRefreshing(false);
+      setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
     fetchTelemetry();
-  }, [fetchTelemetry]);
+    if (autoRefreshInterval <= 0) return;
+    const interval = setInterval(fetchTelemetry, autoRefreshInterval * 1000);
+    return () => clearInterval(interval);
+  }, [fetchTelemetry, autoRefreshInterval]);
 
   const handleClearLogs = async () => {
-    if (!confirm('Are you sure you want to clear all telemetry cycle traces?')) return;
+    if (!window.confirm('Clear all telemetry events from the live log stream?')) return;
     setIsClearingLogs(true);
     try {
       if (data) {
-        const clearedPayload = { ...data, events: [], cycle_count: 0 };
+        const clearedPayload = { ...data, events: [] };
         await database.from('telemetry_state').upsert({ key: 'telemetry', payload: clearedPayload });
+        setData(clearedPayload);
       }
-      await fetchTelemetry();
-    } catch (e) {
-      console.error('Failed to clear telemetry logs:', e);
     } finally {
       setIsClearingLogs(false);
     }
   };
 
-  const waterfalls = useMemo(
+  const waterfalls: MatchWaterfall[] = useMemo(
     () => buildMatchWaterfalls(data?.events || [], dbFinishedMatches, channelLookup),
-    [data, dbFinishedMatches, channelLookup]
+    [data, dbFinishedMatches, channelLookup],
   );
 
   const filteredWaterfalls = useMemo(() => {
@@ -200,6 +175,10 @@ export default function TelemetryPage() {
     }
     return liveSet.size;
   }, [data]);
+
+  if (isLoading && !data) {
+    return <TelemetrySkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans p-4 sm:p-6 lg:p-8">
@@ -254,8 +233,10 @@ export default function TelemetryPage() {
                   </div>
 
                   {isLoading ? (
-                    <div className="p-12 text-center text-slate-500 font-mono text-sm bg-slate-900/40 rounded-xl border border-slate-800">
-                      Loading real-time telemetry stream...
+                    <div className="space-y-3 animate-pulse">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-28 bg-[#121316] rounded-xl border border-white/5" />
+                      ))}
                     </div>
                   ) : viewMode === 'grouped' ? (
                     <GroupedWaterfallsView
@@ -278,7 +259,6 @@ export default function TelemetryPage() {
             {activeTab === 'fixtures' && <LiveScoresPipelineView pipelineInfo={data?.pipelines?.fixtures} events={data?.events || []} />}
             {activeTab === 'shorts' && <ShortsPipelineView dbShorts={dbShorts} events={data?.events || []} />}
             {activeTab === 'websub' && <WebSubPipelineView pipelineInfo={data?.pipelines?.websub} events={data?.events || []} />}
-
             {activeTab === 'notifications' && <NotificationsPipelineView notificationsPayload={notifications} audiencePayload={audience} />}
             {activeTab === 'analytics' && (
               <AnalyticsPipelineView
