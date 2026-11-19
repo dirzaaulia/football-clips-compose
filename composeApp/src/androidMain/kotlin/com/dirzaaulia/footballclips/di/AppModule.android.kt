@@ -33,6 +33,7 @@ actual val platformModule: Module = module {
                     ignoreUnknownKeys = true
                     prettyPrint = false
                     isLenient = true
+                    coerceInputValues = true
                 })
             }
         }

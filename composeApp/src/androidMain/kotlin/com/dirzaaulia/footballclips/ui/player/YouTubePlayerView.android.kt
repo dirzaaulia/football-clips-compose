@@ -44,6 +44,8 @@ actual fun YouTubePlayerView(
     regionInfo: RegionRestriction?,
     backupRegionInfo: RegionRestriction?,
     modifier: Modifier,
+    isPlaying: Boolean,
+    isMuted: Boolean,
     onDismiss: (Boolean) -> Unit,
     onPlaybackStarted: () -> Unit,
 ) {
@@ -84,6 +86,20 @@ actual fun YouTubePlayerView(
                     isLoading = false
                 }
             }
+        }
+    }
+
+    LaunchedEffect(isPlaying, webViewInstance, isLoading) {
+        if (webViewInstance != null && !isLoading) {
+            val js = if (isPlaying) "player.playVideo();" else "player.pauseVideo();"
+            webViewInstance?.evaluateJavascript("if (typeof player !== 'undefined' && player) { $js }", null)
+        }
+    }
+
+    LaunchedEffect(isMuted, webViewInstance, isLoading) {
+        if (webViewInstance != null && !isLoading) {
+            val js = if (isMuted) "player.mute();" else "player.unMute();"
+            webViewInstance?.evaluateJavascript("if (typeof player !== 'undefined' && player) { $js }", null)
         }
     }
 
@@ -261,35 +277,5 @@ private fun createConfiguredWebView(
         }
         loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(currentVideoId), "text/html", "UTF-8", null)
         onInstanceCreated(this)
-    }
-}
-
-private fun cleanupWebView(wv: WebView) {
-    try {
-        wv.stopLoading()
-        wv.webViewClient = object : WebViewClient() {}
-        wv.webChromeClient = null
-        wv.loadUrl("about:blank")
-        wv.clearHistory()
-        wv.removeAllViews()
-        (wv.parent as? ViewGroup)?.removeView(wv)
-        wv.destroy()
-    } catch (_: Throwable) {}
-}
-
-private fun resolveUserCountry(context: android.content.Context): String {
-    return try {
-        val tm = context.getSystemService(android.content.Context.TELEPHONY_SERVICE) as? TelephonyManager
-        val sim = tm?.simCountryIso?.uppercase()
-        val network = tm?.networkCountryIso?.uppercase()
-        val locale = Locale.getDefault().country.uppercase()
-        when {
-            !sim.isNullOrBlank() -> sim
-            !network.isNullOrBlank() -> network
-            !locale.isNullOrBlank() -> locale
-            else -> "US"
-        }
-    } catch (_: Throwable) {
-        Locale.getDefault().country.uppercase().ifBlank { "US" }
     }
 }

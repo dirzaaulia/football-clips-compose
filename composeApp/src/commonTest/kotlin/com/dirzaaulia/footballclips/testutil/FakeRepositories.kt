@@ -165,7 +165,7 @@ class FakeOracleVmRepository : OracleVmRepository {
         )
     }
 
-    override fun getCompetitionEmblem(competitionId: String?): String = ""
+    override fun getCompetitionEmblem(competitionId: String?, isDarkTheme: Boolean): String = ""
     override suspend fun refreshCompetitions() {}
     override suspend fun refreshClubs() {}
     override fun findClubById(id: String): SupportedClub? = null

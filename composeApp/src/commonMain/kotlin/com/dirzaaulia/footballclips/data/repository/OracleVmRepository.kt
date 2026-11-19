@@ -44,7 +44,7 @@ interface OracleVmRepository {
     ): NetworkResult<List<StandingDto>>
 
     val competitions: StateFlow<List<BigLeague>>
-    fun getCompetitionEmblem(competitionId: String?): String
+    fun getCompetitionEmblem(competitionId: String?, isDarkTheme: Boolean = true): String
     suspend fun refreshCompetitions()
 
     val supportedClubs: StateFlow<List<SupportedClub>>

@@ -92,6 +92,8 @@ actual class PreferenceManager(
         context.dataStore.edit { preferences ->
             preferences[darkModeKey] = isDark
         }
+        val currentClubs = _inMemoryFavoriteClubs.value ?: context.dataStore.data.first()[favoriteClubsKey] ?: emptySet()
+        syncTelemetry(currentClubs, if (isDark) "dark" else "light")
     }
 
     actual val isDebugPremium: Flow<Boolean> = context.dataStore.data.map { preferences ->
@@ -238,7 +240,7 @@ actual class PreferenceManager(
         try { context.dataStore.edit { it[notifyHighlightsKey] = enabled } } catch (_: Exception) {}
     }
 
-    private suspend fun syncTelemetry(clubs: Set<String>) {
+    private suspend fun syncTelemetry(clubs: Set<String>, themeMode: String? = null) {
         if (deviceTelemetrySync == null) return
         try {
             val prefs = context.dataStore.data.first()
@@ -260,13 +262,15 @@ actual class PreferenceManager(
             val devName = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}"
             val appVer = getBuildConfigString("VERSION_NAME", "3.0.1")
             val verCode = getBuildConfigLong("VERSION_CODE", 89832569L)
+            val currentTheme = themeMode ?: if (_inMemoryDarkMode.value ?: prefs[darkModeKey] != false) "dark" else "light"
             deviceTelemetrySync.syncDevice(
                 deviceId = devId,
                 userId = userId,
                 clubs = clubIds,
                 deviceName = devName,
                 appVersion = appVer,
-                versionCode = verCode
+                versionCode = verCode,
+                themeMode = currentTheme,
             )
         } catch (_: Exception) {
         }

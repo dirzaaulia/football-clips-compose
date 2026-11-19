@@ -98,12 +98,15 @@ private fun NavGraphBuilder.addSecondaryNavRoutes(
         val selectedCompetitionId by scoreViewModel.selectedCompetitionId.collectAsState()
         val selectedSeason by scoreViewModel.selectedSeason.collectAsState()
         val isPremium by scoreViewModel.isPremium.collectAsState()
+        val favoriteClubs by scoreViewModel.favoriteClubs.collectAsState()
         StandingsScreen(
             state = standingsState,
             isPremium = isPremium,
             selectedCompetitionId = selectedCompetitionId,
             dynamicCompetitions = dynamicCompetitions,
             selectedSeason = selectedSeason,
+            favoriteClubsCount = favoriteClubs.size,
+            onShowMyClubs = { scoreViewModel.setMyClubsSheetVisible(true) },
             onLeagueSelected = { _, compId -> scoreViewModel.selectCompetition(compId ?: "PL") },
             onSeasonSelected = { season -> scoreViewModel.setSeason(season) },
             onRetry = { scoreViewModel.getStandings() },

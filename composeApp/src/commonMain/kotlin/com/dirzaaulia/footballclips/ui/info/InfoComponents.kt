@@ -8,7 +8,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,8 +53,7 @@ internal fun ExpressiveSupportCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isDark = isSystemInDarkTheme()
-    val accentTint = if (isDark) Color(0xFF64B5F6) else MaterialTheme.colorScheme.primary
+    val accentTint = MaterialTheme.colorScheme.secondary
 
     Surface(
         onClick = onClick,
@@ -123,8 +121,7 @@ fun CollapsibleInfoCard(
 ) {
     var expanded by remember { mutableStateOf(initialExpanded) }
     val rotation by animateFloatAsState(if (expanded) 180f else 0f)
-    val isDark = isSystemInDarkTheme()
-    val iconTint = if (isDark) Color(0xFF64B5F6) else MaterialTheme.colorScheme.primary
+    val iconTint = MaterialTheme.colorScheme.primary
 
     OutlinedCard(
         onClick = { expanded = !expanded },

@@ -11,6 +11,8 @@ expect fun YouTubePlayerView(
     regionInfo: RegionRestriction? = null,
     backupRegionInfo: RegionRestriction? = null,
     modifier: Modifier = Modifier,
+    isPlaying: Boolean = true,
+    isMuted: Boolean = false,
     onDismiss: (Boolean) -> Unit = {},
     onPlaybackStarted: () -> Unit = {},
 )

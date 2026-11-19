@@ -44,7 +44,7 @@ import com.dirzaaulia.footballclips.ui.components.filter.LeagueDropdownSelector
 import com.dirzaaulia.footballclips.ui.components.filter.SeasonDropdownSelector
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
-import com.dirzaaulia.footballclips.ui.score.components.AndroidStandingsPartnerBanner
+import com.dirzaaulia.footballclips.ui.home.MyClubsActionButton
 import com.dirzaaulia.footballclips.ui.score.components.KnockoutBracketView
 import com.dirzaaulia.footballclips.ui.score.components.LeagueStandingsTable
 import com.dirzaaulia.footballclips.ui.score.components.StandingsTableSkeleton
@@ -57,6 +57,8 @@ fun StandingsScreen(
     selectedCompetitionId: String? = null,
     dynamicCompetitions: List<BigLeague>? = null,
     selectedSeason: Int = 2026,
+    favoriteClubsCount: Int = 0,
+    onShowMyClubs: () -> Unit = {},
     onLeagueSelected: (Int?, String?) -> Unit = { _, _ -> },
     onSeasonSelected: (Int) -> Unit = {},
     onRetry: () -> Unit,
@@ -84,12 +86,22 @@ fun StandingsScreen(
                     TopAppBar(
                         modifier = if (isLarge) Modifier else Modifier.height(50.dp + statusBarInset),
                         title = {
-                            Text(
-                                text = "Standings",
-                                style = if (isLarge) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = if (isLarge) 1.sp else (-0.5).sp,
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Text(
+                                    text = "Standings",
+                                    style = if (isLarge) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = if (isLarge) 1.sp else (-0.5).sp,
+                                )
+                                SeasonDropdownSelector(
+                                    selectedSeason = selectedSeason,
+                                    onSeasonSelected = onSeasonSelected,
+                                    isCompact = true,
+                                )
+                            }
                         },
                         actions = {
                             if (isLarge || isLandscape) {
@@ -98,10 +110,9 @@ fun StandingsScreen(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.padding(end = horizontalPadding),
                                 ) {
-                                    SeasonDropdownSelector(
-                                        selectedSeason = selectedSeason,
-                                        onSeasonSelected = onSeasonSelected,
-                                        isCompact = false,
+                                    MyClubsActionButton(
+                                        favoriteClubsCount = favoriteClubsCount,
+                                        onShowMyClubs = onShowMyClubs,
                                     )
                                     LeagueDropdownSelector(
                                         selectedCompetitionId = selectedCompetitionId ?: "PL",
@@ -110,6 +121,11 @@ fun StandingsScreen(
                                         showAll = false,
                                     )
                                 }
+                            } else {
+                                MyClubsActionButton(
+                                    favoriteClubsCount = favoriteClubsCount,
+                                    onShowMyClubs = onShowMyClubs,
+                                )
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
@@ -122,19 +138,13 @@ fun StandingsScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = horizontalPadding, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            SeasonDropdownSelector(
-                                selectedSeason = selectedSeason,
-                                onSeasonSelected = onSeasonSelected,
-                                isCompact = true,
-                            )
                             LeagueDropdownSelector(
                                 selectedCompetitionId = selectedCompetitionId ?: "PL",
                                 dynamicCompetitions = dynamicCompetitions,
                                 onLeagueSelected = onLeagueSelected,
                                 showAll = false,
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier.fillMaxWidth(),
                             )
                         }
                     }
@@ -174,9 +184,6 @@ fun StandingsScreen(
                                         .fillMaxSize()
                                         .padding(horizontal = horizontalPadding),
                                 ) {
-                                    AndroidStandingsPartnerBanner(
-                                        modifier = Modifier.padding(bottom = 6.dp),
-                                    )
                                     KnockoutBracketView(
                                         matches = state.knockoutMatches,
                                         modifier = Modifier
@@ -220,9 +227,6 @@ fun StandingsScreen(
                                 }
 
                                 if (hybridStage == "knockout") {
-                                    AndroidStandingsPartnerBanner(
-                                        modifier = Modifier.padding(bottom = 6.dp),
-                                    )
                                     KnockoutBracketView(
                                         matches = state.knockoutMatches,
                                         modifier = Modifier

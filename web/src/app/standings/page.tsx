@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { Trophy } from 'lucide-react';
 import {
   getStandingsByCompetition,
   getKnockoutMatchesByCompetition,
@@ -16,6 +17,8 @@ import StandingsPlayerStatsTab from '@/components/standings/StandingsPlayerStats
 import StandingsClubAnalyticsTab from '@/components/standings/StandingsClubAnalyticsTab';
 import StandingsBottomWidgets from '@/components/standings/StandingsBottomWidgets';
 import StandingsLegend from '@/components/standings/StandingsLegend';
+import SeasonSelector from '@/components/filter/SeasonSelector';
+import CustomDropdown from '@/components/common/CustomDropdown';
 import { useSeason } from '@/hooks/useSeason';
 import { useCompetitions } from '@/hooks/useCompetitions';
 import CompetitionLogo from '@/components/common/CompetitionLogo';
@@ -42,6 +45,43 @@ export default function StandingsPage() {
     () => selectableLeagues.find((c) => c.competitionId === selectedCompCode) || selectableLeagues[0],
     [selectableLeagues, selectedCompCode],
   );
+
+  const isCup = useMemo(
+    () => selectedComp?.type === 'cup' || ['FAC', 'EFL', 'CDR', 'DFB', 'CIT'].includes(selectedCompCode),
+    [selectedComp, selectedCompCode],
+  );
+
+  const isHybrid = useMemo(
+    () => selectedComp?.type === 'hybrid' || ['CL', 'EL', 'ECL'].includes(selectedCompCode),
+    [selectedComp, selectedCompCode],
+  );
+
+  const hasBrackets = isCup || isHybrid;
+  const hasTable = !isCup;
+
+  useEffect(() => {
+    if (isCup && activeView === 'TABLE') {
+      setActiveView('BRACKETS');
+    } else if (!hasBrackets && activeView === 'BRACKETS') {
+      setActiveView('TABLE');
+    }
+  }, [isCup, hasBrackets, activeView]);
+
+  const availableTabs = useMemo(() => {
+    const tabs: { id: StandingsViewTab; label: string }[] = [];
+    if (hasTable) {
+      tabs.push({
+        id: 'TABLE',
+        label: isHybrid ? 'League Phase (36 Teams)' : 'League Table',
+      });
+    }
+    if (hasBrackets) {
+      tabs.push({ id: 'BRACKETS', label: 'Knockout Brackets' });
+    }
+    tabs.push({ id: 'PLAYER_STATS', label: 'Player Stats' });
+    tabs.push({ id: 'CLUB_STATS', label: 'Club Telemetry' });
+    return tabs;
+  }, [hasTable, hasBrackets, isHybrid]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -100,14 +140,9 @@ export default function StandingsPage() {
           </p>
         </div>
 
-        {/* Segmented View Switcher */}
+        {/* Dynamic Segmented View Switcher */}
         <div className="flex flex-wrap items-center gap-1.5 bg-[#1B1B1F] p-1 rounded-xl border border-white/10 self-start lg:self-auto">
-          {[
-            { id: 'TABLE' as StandingsViewTab, label: 'League Table' },
-            { id: 'PLAYER_STATS' as StandingsViewTab, label: 'Player Stats' },
-            { id: 'CLUB_STATS' as StandingsViewTab, label: 'Club Telemetry' },
-            { id: 'BRACKETS' as StandingsViewTab, label: 'Knockout Brackets' },
-          ].map((tab) => {
+          {availableTabs.map((tab) => {
             const active = activeView === tab.id;
             return (
               <button
@@ -127,36 +162,36 @@ export default function StandingsPage() {
         </div>
       </header>
 
-      {/* Stitch League Switcher Pills & Zone Legend Bar */}
-      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-          {selectableLeagues.slice(0, 9).map((c) => {
-            const code = c.competitionId || 'PL';
-            const isSelected = selectedCompCode === code;
-            return (
-              <button
-                key={code}
-                type="button"
-                onClick={() => setSelectedCompCode(code)}
-                className={`px-4 py-2 rounded-xl font-tech text-xs font-bold uppercase tracking-wider flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
-                  isSelected
-                    ? 'bg-[#DFFF00] text-[#0A0A0C] shadow-[0_0_15px_rgba(223,255,0,0.2)]'
-                    : 'bg-[#1B1B1F] hover:bg-[#292A2E] text-white/80 border border-white/10'
-                }`}
-              >
-                {c.logo && (
-                  <div className="relative w-4 h-4 rounded bg-black/20 p-0.5 flex items-center justify-center shrink-0">
+      {/* Filter Toolbar: Unified League Dropdown + Season Selector + Dynamic Legend */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="w-full sm:w-64">
+            <CustomDropdown<string>
+              items={selectableLeagues.map((c) => ({
+                value: c.competitionId || 'PL',
+                label: c.name,
+                shortLabel: c.shortName || c.name,
+                icon: c.logo ? (
+                  <div className="relative w-4 h-4 rounded bg-white/10 p-0.5 flex items-center justify-center shrink-0 border border-white/10">
                     <CompetitionLogo src={c.logo} name={c.name} />
                   </div>
-                )}
-                <span>{c.shortName || c.name}</span>
-              </button>
-            );
-          })}
+                ) : (
+                  <Trophy className="w-3.5 h-3.5 text-[#DFFF00]" />
+                ),
+              }))}
+              value={selectedCompCode}
+              onChange={setSelectedCompCode}
+              prefix="League"
+              variant="compact"
+            />
+          </div>
+          <SeasonSelector variant="compact" />
         </div>
 
-        {/* Dynamic Competition Zone Legend Strip */}
-        <StandingsLegend competitionCode={selectedCompCode} />
+        {/* Dynamic Competition Zone Legend Strip (Shown only for league table view) */}
+        {activeView === 'TABLE' && hasTable && (
+          <StandingsLegend competitionCode={selectedCompCode} />
+        )}
       </div>
 
       {/* Main Content Area by Active View */}

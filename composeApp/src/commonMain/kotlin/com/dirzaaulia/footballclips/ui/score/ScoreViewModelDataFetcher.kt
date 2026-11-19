@@ -107,8 +107,12 @@ fun ScoreViewModel.getMatches() {
             val statusFilter = selectedStatusFilter.value
             val isLiveOnly = isLiveOnlyFilterActive.value || statusFilter == MatchStatusFilter.LIVE
             val (startDate, endDate) = if (!isArchiveSeason && selectedDateStr != null && !isLiveOnly) {
-                val date = LocalDate.parse(selectedDateStr)
-                date.plus(-1, DateTimeUnit.DAY).toString() to date.plus(1, DateTimeUnit.DAY).toString()
+                try {
+                    val date = LocalDate.parse(selectedDateStr)
+                    date.plus(-1, DateTimeUnit.DAY).toString() to date.plus(1, DateTimeUnit.DAY).toString()
+                } catch (_: Throwable) {
+                    null to null
+                }
             } else null to null
 
             val isToday = selectedDateStr == availableDates.firstOrNull { it.isToday }?.date

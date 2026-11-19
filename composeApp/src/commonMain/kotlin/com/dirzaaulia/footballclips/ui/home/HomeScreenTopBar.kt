@@ -38,6 +38,7 @@ internal fun HomeScreenTopBar(
     isMerchandiseEnabled: Boolean = false,
     onNavigateToStore: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
+    onOpenHub: () -> Unit = {},
 ) {
     val statusBarInset = if (isLandscape) 0.dp else WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     TopAppBar(
@@ -59,11 +60,8 @@ internal fun HomeScreenTopBar(
                     isPremium = isPremium,
                     favoriteClubsCount = favoriteClubsCount,
                     onShowMyClubs = onShowMyClubs,
-                    onShowPaywall = onShowPaywall,
                     onShowFilter = onShowFilter,
-                    isMerchandiseEnabled = isMerchandiseEnabled,
-                    onNavigateToStore = onNavigateToStore,
-                    onNavigateToSettings = onNavigateToSettings,
+                    onOpenHub = onOpenHub,
                 )
             }
         },
@@ -95,18 +93,11 @@ private fun HomeScreenTitle(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "FOOTBALL",
+                text = "Highlights",
                 style = if (isWeb) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
                 color = MaterialTheme.colorScheme.onSurface,
-                letterSpacing = 1.sp,
-            )
-            Text(
-                text = "CLIPS",
-                style = if (isWeb) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.primary,
-                letterSpacing = 1.sp,
+                letterSpacing = (-0.5).sp,
             )
         }
         SeasonDropdownSelector(

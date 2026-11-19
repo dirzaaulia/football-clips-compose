@@ -218,7 +218,7 @@ class OracleVmRepositoryImpl(
                 header("Authorization", "Bearer $databaseApiKey")
 
                 url {
-                    parameters.append("select", "id,name,short_name,country_code,emblem_url,league_id,is_active,display_order,type,slug")
+                    parameters.append("select", "*")
                     parameters.append("order", "display_order.asc")
                 }
             }
@@ -232,9 +232,11 @@ class OracleVmRepositoryImpl(
         }
     }
 
-    override fun getCompetitionEmblem(competitionId: String?): String {
+    override fun getCompetitionEmblem(competitionId: String?, isDarkTheme: Boolean): String {
         if (competitionId.isNullOrBlank()) return ""
-        return _competitions.value.firstOrNull { it.id.equals(competitionId, ignoreCase = true) }?.emblemUrl.orEmpty()
+        return _competitions.value.firstOrNull { it.id.equals(competitionId, ignoreCase = true) }
+            ?.getEmblemUrl(isDarkTheme)
+            .orEmpty()
     }
 
     override suspend fun getLiveMatches(): NetworkResult<List<MatchDto>> {

@@ -2,7 +2,6 @@ package com.dirzaaulia.footballclips.ui.info
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,14 +40,13 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 internal fun WasmHeroBanner() {
-    val isDark = isSystemInDarkTheme()
-    val iconTint = if (isDark) Color(0xFF64B5F6) else MaterialTheme.colorScheme.primary
+    val iconTint = MaterialTheme.colorScheme.primary
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
     ) {
         Box(
             modifier = Modifier
@@ -58,29 +56,29 @@ internal fun WasmHeroBanner() {
                         colors = listOf(
                             MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
                             MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.25f),
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
+                            MaterialTheme.colorScheme.surface,
+                        ),
+                    ),
                 )
-                .padding(28.dp)
+                .padding(28.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Surface(
-                        color = iconTint,
-                        shape = CircleShape
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = CircleShape,
                     ) {
                         Text(
                             text = "KNOWLEDGE HUB",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
-                            letterSpacing = 1.5.sp
+                            letterSpacing = 1.5.sp,
                         )
                     }
 

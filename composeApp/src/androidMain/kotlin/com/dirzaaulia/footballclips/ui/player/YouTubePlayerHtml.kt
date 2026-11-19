@@ -59,3 +59,33 @@ internal fun buildYouTubeHtml(videoId: String): String {
         </html>
     """.trimIndent()
 }
+
+internal fun cleanupWebView(wv: android.webkit.WebView) {
+    try {
+        wv.stopLoading()
+        wv.webViewClient = object : android.webkit.WebViewClient() {}
+        wv.webChromeClient = null
+        wv.loadUrl("about:blank")
+        wv.clearHistory()
+        wv.removeAllViews()
+        (wv.parent as? android.view.ViewGroup)?.removeView(wv)
+        wv.destroy()
+    } catch (_: Throwable) {}
+}
+
+internal fun resolveUserCountry(context: android.content.Context): String {
+    return try {
+        val tm = context.getSystemService(android.content.Context.TELEPHONY_SERVICE) as? android.telephony.TelephonyManager
+        val sim = tm?.simCountryIso?.uppercase()
+        val network = tm?.networkCountryIso?.uppercase()
+        val locale = java.util.Locale.getDefault().country.uppercase()
+        when {
+            !sim.isNullOrBlank() -> sim
+            !network.isNullOrBlank() -> network
+            !locale.isNullOrBlank() -> locale
+            else -> "US"
+        }
+    } catch (_: Throwable) {
+        java.util.Locale.getDefault().country.uppercase().ifBlank { "US" }
+    }
+}

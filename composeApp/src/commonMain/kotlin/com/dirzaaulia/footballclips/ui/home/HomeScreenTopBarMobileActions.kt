@@ -2,19 +2,16 @@ package com.dirzaaulia.footballclips.ui.home
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -30,30 +27,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dirzaaulia.footballclips.ui.theme.VoltLime
 
 @Composable
 internal fun HomeScreenTopBarMobileActions(
     isPremium: Boolean,
     favoriteClubsCount: Int,
     onShowMyClubs: () -> Unit,
-    onShowPaywall: () -> Unit,
     onShowFilter: () -> Unit,
-    isMerchandiseEnabled: Boolean = false,
-    onNavigateToStore: () -> Unit = {},
-    onNavigateToSettings: () -> Unit = {},
+    onOpenHub: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-        modifier = Modifier.padding(end = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = modifier.padding(end = 4.dp),
     ) {
         FilterActionButton(onShowFilter = onShowFilter)
         MyClubsActionButton(favoriteClubsCount = favoriteClubsCount, onShowMyClubs = onShowMyClubs)
-        if (isMerchandiseEnabled) {
-            StoreActionButton(onNavigateToStore = onNavigateToStore)
-        }
-        SettingsActionButton(onNavigateToSettings = onNavigateToSettings)
-        PremiumDiamondButton(isPremium = isPremium, onShowPaywall = onShowPaywall)
+        HubProfileCapsuleButton(isPremium = isPremium, onClick = onOpenHub)
     }
 }
 
@@ -70,7 +62,7 @@ private fun FilterActionButton(onShowFilter: () -> Unit) {
 }
 
 @Composable
-private fun MyClubsActionButton(favoriteClubsCount: Int, onShowMyClubs: () -> Unit) {
+internal fun MyClubsActionButton(favoriteClubsCount: Int, onShowMyClubs: () -> Unit) {
     IconButton(onClick = onShowMyClubs, modifier = Modifier.size(34.dp)) {
         BadgedBox(
             badge = {
@@ -92,49 +84,52 @@ private fun MyClubsActionButton(favoriteClubsCount: Int, onShowMyClubs: () -> Un
 }
 
 @Composable
-private fun StoreActionButton(onNavigateToStore: () -> Unit) {
-    IconButton(onClick = onNavigateToStore, modifier = Modifier.size(34.dp)) {
-        Icon(
-            imageVector = Icons.Default.ShoppingBag,
-            contentDescription = "Club Store",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(19.dp),
-        )
-    }
-}
+private fun HubProfileCapsuleButton(
+    isPremium: Boolean,
+    onClick: () -> Unit,
+) {
+    val containerColor = if (isPremium) VoltLime.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+    val borderColor = if (isPremium) VoltLime.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
 
-@Composable
-private fun SettingsActionButton(onNavigateToSettings: () -> Unit) {
-    IconButton(onClick = onNavigateToSettings, modifier = Modifier.size(34.dp)) {
-        Icon(
-            imageVector = Icons.Default.Settings,
-            contentDescription = "Settings",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(19.dp),
-        )
-    }
-}
-
-@Composable
-private fun PremiumDiamondButton(isPremium: Boolean, onShowPaywall: () -> Unit) {
-    val accentColor = if (isPremium) Color(0xFF10B981) else MaterialTheme.colorScheme.primary
     Surface(
-        onClick = onShowPaywall,
-        shape = RoundedCornerShape(10.dp),
-        color = accentColor.copy(alpha = 0.15f),
-        border = BorderStroke(
-            1.dp,
-            accentColor.copy(alpha = 0.55f),
-        ),
-        modifier = Modifier.size(34.dp),
+        onClick = onClick,
+        shape = RoundedCornerShape(18.dp),
+        color = containerColor,
+        border = BorderStroke(1.dp, borderColor),
+        modifier = Modifier.height(34.dp),
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+        ) {
             Icon(
-                imageVector = if (isPremium) Icons.Default.VideoLibrary else Icons.Default.Diamond,
-                contentDescription = if (isPremium) "Premium Member" else "Upgrade to Premium",
-                tint = accentColor,
+                imageVector = Icons.Default.AccountCircle,
+                contentDescription = "User Hub",
+                tint = if (isPremium) VoltLime else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp),
             )
+            if (isPremium) {
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = VoltLime,
+                ) {
+                    Text(
+                        text = "PRO",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color.Black,
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                    )
+                }
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Diamond,
+                    contentDescription = "Upgrade to Pro",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(14.dp),
+                )
+            }
         }
     }
 }

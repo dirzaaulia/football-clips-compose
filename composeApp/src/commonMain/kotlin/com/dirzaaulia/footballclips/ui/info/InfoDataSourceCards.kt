@@ -1,6 +1,5 @@
 package com.dirzaaulia.footballclips.ui.info
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
@@ -10,7 +9,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -31,8 +29,7 @@ internal fun DataSourceCard(
         initialExpanded = initialExpanded,
         modifier = modifier
     ) {
-        val isDark = isSystemInDarkTheme()
-        val linkColor = if (isDark) Color(0xFF64B5F6) else MaterialTheme.colorScheme.primary
+        val linkColor = MaterialTheme.colorScheme.primary
 
         val annotatedString = buildAnnotatedString {
             append("All football match highlights are embedded strictly from verified official league and club channels on ")

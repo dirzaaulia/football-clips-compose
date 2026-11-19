@@ -23,6 +23,7 @@ data class DeviceSyncPayload(
     @SerialName("device_name") val deviceName: String = "Android Device",
     @SerialName("favorite_clubs") val favoriteClubs: List<Int> = emptyList(),
     @SerialName("app_version") val appVersion: String = "3.0.1",
+    @SerialName("theme_mode") val themeMode: String = "dark",
 )
 
 @Serializable
@@ -34,6 +35,7 @@ data class AppSessionPayload(
     @SerialName("device_name") val deviceName: String? = null,
     val country: String? = null,
     @SerialName("ip_address") val ipAddress: String? = null,
+    @SerialName("theme_mode") val themeMode: String = "dark",
 )
 
 @Serializable
@@ -56,6 +58,7 @@ class DeviceTelemetrySync(
         deviceName: String = "Android Device",
         appVersion: String = "3.0.1",
         versionCode: Long = 0L,
+        themeMode: String = "dark",
     ) {
         scope.launch {
             // 1. Fetch lightweight IP/Country location non-blocking
@@ -80,6 +83,7 @@ class DeviceTelemetrySync(
                             deviceName = deviceName,
                             favoriteClubs = clubs,
                             appVersion = appVersion,
+                            themeMode = themeMode,
                         ),
                     )
                 }
@@ -100,6 +104,7 @@ class DeviceTelemetrySync(
                             deviceName = deviceName,
                             country = detectedCountry,
                             ipAddress = detectedIp,
+                            themeMode = themeMode,
                         ),
                     )
                 }

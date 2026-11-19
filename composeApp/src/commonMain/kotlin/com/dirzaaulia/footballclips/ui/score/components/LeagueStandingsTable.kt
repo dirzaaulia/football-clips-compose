@@ -46,10 +46,6 @@ fun ColumnScope.LeagueStandingsTable(
             }
         }
 
-        AndroidStandingsPartnerBanner(
-            modifier = Modifier.padding(bottom = 6.dp),
-        )
-
         StandingsTableHeader(
             modifier = Modifier.padding(vertical = 6.dp),
             activeSort = sortCol,

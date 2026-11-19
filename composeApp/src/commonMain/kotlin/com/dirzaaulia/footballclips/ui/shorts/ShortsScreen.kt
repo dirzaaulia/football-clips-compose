@@ -127,6 +127,8 @@ private fun ShortVideoPage(
                 regionInfo = null,
                 backupRegionInfo = null,
                 modifier = Modifier.fillMaxSize(),
+                isPlaying = isPlaying,
+                isMuted = isMuted,
                 onDismiss = {},
                 onPlaybackStarted = { isPlaybackActive = true },
             )

@@ -196,11 +196,15 @@ fun AdaptiveMatchesScaffold(
             }
         }
 
-        if (showMyClubsSheet) {
+        val isScoreMyClubsSheetVisible by scoreViewModel.showMyClubsSheet.collectAsState()
+        if (showMyClubsSheet || isScoreMyClubsSheetVisible) {
             MyClubsBottomSheet(
                 selectedClubIds = favoriteClubs,
                 onToggleClub = { homeViewModel.toggleFavoriteClub(it) },
-                onDismissRequest = { showMyClubsSheet = false },
+                onDismissRequest = {
+                    showMyClubsSheet = false
+                    scoreViewModel.setMyClubsSheetVisible(false)
+                },
                 clubs = supportedClubs,
             )
         }

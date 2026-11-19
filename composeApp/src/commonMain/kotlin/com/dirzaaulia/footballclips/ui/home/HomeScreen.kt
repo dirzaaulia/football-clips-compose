@@ -31,6 +31,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.ui.components.common.MyClubsBottomSheet
+import com.dirzaaulia.footballclips.ui.components.hub.QuickActionHubSheet
 import io.github.jan.supabase.compose.auth.ComposeAuth
 import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
 import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle
@@ -86,6 +87,7 @@ fun HomeScreen(
     val supportedClubs by viewModel.supportedClubs.collectAsState()
     val liveMatches by viewModel.liveMatches.collectAsState()
     var showMyClubsSheet by remember { mutableStateOf(false) }
+    var showHubSheet by remember { mutableStateOf(false) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -178,6 +180,7 @@ fun HomeScreen(
                     isMerchandiseEnabled = isMerchandiseEnabled,
                     onNavigateToStore = onNavigateToStore,
                     onNavigateToSettings = onNavigateToSettings,
+                    onOpenHub = { showHubSheet = true },
                 )
             },
         ) { innerPadding ->
@@ -262,6 +265,24 @@ fun HomeScreen(
                 onToggleClub = { viewModel.toggleFavoriteClub(it) },
                 onDismissRequest = { showMyClubsSheet = false; viewModel.setMyClubsSheetVisible(false) },
                 clubs = supportedClubs,
+            )
+        }
+
+        if (showHubSheet) {
+            val isDark by viewModel.isDarkMode.collectAsState()
+            QuickActionHubSheet(
+                isPremium = isPremium,
+                profile = profile,
+                isDarkMode = isDark,
+                isMerchandiseEnabled = isMerchandiseEnabled,
+                onDismissRequest = { showHubSheet = false },
+                onNavigateToSettings = onNavigateToSettings,
+                onNavigateToStore = onNavigateToStore,
+                onShowPaywall = {
+                    showHubSheet = false
+                    showPaywall = true
+                },
+                onToggleDarkMode = { viewModel.setDarkMode(it) },
             )
         }
     }

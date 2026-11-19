@@ -1,7 +1,9 @@
 import type { NextConfig } from 'next';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 const nextConfig: NextConfig = {
-  output: 'export',
+  output: isDev ? undefined : 'export',
   images: {
     unoptimized: true,
     remotePatterns: [

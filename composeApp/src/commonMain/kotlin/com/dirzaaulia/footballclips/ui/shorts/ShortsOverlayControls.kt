@@ -96,7 +96,7 @@ fun ShortsOverlayControls(
         )
 
         AnimatedVisibility(
-            visible = showPulse,
+            visible = !isPlaying || showPulse,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.Center),
