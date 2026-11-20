@@ -33,6 +33,7 @@ import com.dirzaaulia.footballclips.ui.components.card.HeroCarousel
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
+import com.dirzaaulia.footballclips.ui.theme.LocalThemeIsDark
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
 import com.dirzaaulia.footballclips.ui.score.components.RecentMatchesSection
 
@@ -59,7 +60,12 @@ internal fun HomeListContent(
     val filterState by viewModel.filterState.collectAsState()
     val competitions by viewModel.competitions.collectAsState()
     val selectedSeason by viewModel.selectedSeason.collectAsState()
-    val isAllLeagues = filterState.selectedLeagues.isEmpty()
+    val selectedCompetitionId by viewModel.selectedCompetitionId.collectAsState()
+    val selectedLeagueId by viewModel.selectedLeagueId.collectAsState()
+    val isAllLeagues = filterState.selectedLeagues.isEmpty() &&
+        selectedLeagueId == null &&
+        selectedCompetitionId.isNullOrEmpty()
+    val isDark = LocalThemeIsDark.current
     var collapsedCompIds by remember { mutableStateOf(emptySet<String>()) }
 
     LazyColumn(
@@ -127,45 +133,21 @@ internal fun HomeListContent(
             val nonAds = items.filter { it !is HighlightUiItem.BannerAd }
             competitions.forEachIndexed { index, league ->
                 val compName = league.name
-                val emblem = league.logo
+                val emblem = league.getEmblemUrl(isDark)
                 val displayMatches = nonAds.filter { it.matchesLeague(league) }.take(20)
 
-                val isExpanded = !collapsedCompIds.contains(league.id)
-                item(key = "section-${league.id}") {
-                    HomeCompetitionSectionHeader(
-                        competitionName = compName,
-                        competitionEmblemUrl = emblem,
-                        isExpanded = isExpanded,
-                        onToggleExpand = {
-                            collapsedCompIds = if (isExpanded) {
-                                collapsedCompIds + league.id
-                            } else {
-                                collapsedCompIds - league.id
-                            }
-                        },
-                        onSeeAll = {
-                            if (league.leagueId != null) {
-                                viewModel.selectLeague(league.leagueId, league.competitionId)
-                            } else {
-                                viewModel.selectCompetitionByName(compName)
-                            }
-                        },
-                    )
-                }
-                if (isExpanded) {
-                    item(key = "row-${league.id}") {
-                        CompetitionHighlightReel(
-                            displayMatches = displayMatches,
-                            league = league,
-                            compName = compName,
-                            emblem = emblem,
-                            isAdsRemoved = isAdsRemoved,
-                            isSpoilerFreeMode = isSpoilerFreeMode,
-                            revealedItemIds = revealedItemIds,
-                            onMatchClick = { match ->
-                                onVideoClick(HighlightUiItem.OracleMatch(match)) { isJumping ->
-                                    viewModel.setPendingInterstitial(true)
-                                    if (!isJumping) viewModel.consumePendingInterstitial()
+                if (displayMatches.isNotEmpty()) {
+                    val isExpanded = !collapsedCompIds.contains(league.id)
+                    item(key = "section-${league.id}") {
+                        HomeCompetitionSectionHeader(
+                            competitionName = compName,
+                            competitionEmblemUrl = emblem,
+                            isExpanded = isExpanded,
+                            onToggleExpand = {
+                                collapsedCompIds = if (isExpanded) {
+                                    collapsedCompIds + league.id
+                                } else {
+                                    collapsedCompIds - league.id
                                 }
                             },
                             onSeeAll = {
@@ -176,6 +158,32 @@ internal fun HomeListContent(
                                 }
                             },
                         )
+                    }
+                    if (isExpanded) {
+                        item(key = "row-${league.id}") {
+                            CompetitionHighlightReel(
+                                displayMatches = displayMatches,
+                                league = league,
+                                compName = compName,
+                                emblem = emblem,
+                                isAdsRemoved = isAdsRemoved,
+                                isSpoilerFreeMode = isSpoilerFreeMode,
+                                revealedItemIds = revealedItemIds,
+                                onMatchClick = { match ->
+                                    onVideoClick(HighlightUiItem.OracleMatch(match)) { isJumping ->
+                                        viewModel.setPendingInterstitial(true)
+                                        if (!isJumping) viewModel.consumePendingInterstitial()
+                                    }
+                                },
+                                onSeeAll = {
+                                    if (league.leagueId != null) {
+                                        viewModel.selectLeague(league.leagueId, league.competitionId)
+                                    } else {
+                                        viewModel.selectCompetitionByName(compName)
+                                    }
+                                },
+                            )
+                        }
                     }
                 }
 
@@ -191,6 +199,18 @@ internal fun HomeListContent(
                 }
             }
         } else {
+            item(key = "filtered-recent-matches-section") {
+                RecentMatchesSection(
+                    matches = items,
+                    onMatchClick = { selectedItem ->
+                        onVideoClick(selectedItem) { isJumping ->
+                            viewModel.setPendingInterstitial(true)
+                            if (!isJumping) viewModel.consumePendingInterstitial()
+                        }
+                    },
+                    modifier = Modifier.padding(bottom = 8.dp),
+                )
+            }
             items(
                 items = items,
                 key = { item -> item.uniqueId },

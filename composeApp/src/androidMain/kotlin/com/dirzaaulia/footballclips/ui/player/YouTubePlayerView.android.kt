@@ -229,9 +229,12 @@ private fun createConfiguredWebView(
         webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val url = request?.url?.toString().orEmpty()
-                if (url.startsWith("fc-state://1") || url.startsWith("fc-state://2")) {
-                    onLoadingState(false)
-                    onPlaybackStarted()
+                if (url.startsWith("fc-state://")) {
+                    val state = url.removePrefix("fc-state://").toIntOrNull()
+                    if (state == 1 || state == 2) {
+                        onLoadingState(false)
+                        onPlaybackStarted()
+                    }
                     return true
                 }
                 if (url.startsWith("fc-ready://")) {
@@ -248,6 +251,9 @@ private fun createConfiguredWebView(
                     } else {
                         onErrorState(PlayerErrorState.USER_SIDE_ERROR)
                     }
+                    return true
+                }
+                if (url.startsWith("fc-") || !url.startsWith("http")) {
                     return true
                 }
                 return super.shouldOverrideUrlLoading(view, request)

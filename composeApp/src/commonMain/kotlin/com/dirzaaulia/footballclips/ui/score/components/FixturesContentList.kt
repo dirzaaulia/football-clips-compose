@@ -27,6 +27,8 @@ import com.dirzaaulia.footballclips.data.model.remote.isMatchForFavoriteClubs
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
+import com.dirzaaulia.footballclips.ui.components.common.EmptyState
+import com.dirzaaulia.footballclips.ui.theme.LocalThemeIsDark
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +51,7 @@ fun FixturesContentList(
     dynamicCompetitions: List<BigLeague> = emptyList(),
     selectedCompetitionId: String? = null,
 ) {
+    val isDark = LocalThemeIsDark.current
     var collapsedCompIds by remember { mutableStateOf(emptySet<String>()) }
 
     val groupedItems = remember(matches, dynamicCompetitions, selectedCompetitionId) {
@@ -81,19 +84,21 @@ fun FixturesContentList(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item(key = "fixtures-partner-banner", span = { GridItemSpan(maxLineSpan) }) {
-                AndroidFixturesPartnerBanner(
-                    modifier = Modifier.padding(bottom = 4.dp),
-                )
+            if (!isAdsRemoved) {
+                item(key = "fixtures-top-admob-banner", span = { GridItemSpan(maxLineSpan) }) {
+                    BannerAdItem(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                        style = NativeAdStyle.MATCH,
+                    )
+                }
             }
-            item(key = "recent-20-matches", span = { GridItemSpan(maxLineSpan) }) {
-                RecentMatchesSection(
-                    matches = matches,
-                    onMatchClick = { onVideoClick(it) {} },
-                    title = "Recent Matches",
-                    onlyWithHighlights = false,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
+            if (matches.isEmpty()) {
+                item(key = "empty-day-fixtures-grid", span = { GridItemSpan(maxLineSpan) }) {
+                    EmptyState(
+                        title = "No Matches Scheduled",
+                        description = "Try selecting a different date or competition.",
+                    )
+                }
             }
             groupedItems.forEachIndexed { groupIndex, (comp, compMatches) ->
                 val isExpanded = comp == null || !collapsedCompIds.contains(comp.id)
@@ -101,7 +106,7 @@ fun FixturesContentList(
                     item(key = "header-${comp.id}", span = { GridItemSpan(maxLineSpan) }) {
                         LeagueHeader(
                             competitionName = comp.name,
-                            competitionEmblemUrl = comp.logo,
+                            competitionEmblemUrl = comp.getEmblemUrl(isDark),
                             competitionId = comp.competitionId,
                             isExpanded = isExpanded,
                             onToggleExpand = {
@@ -167,19 +172,21 @@ fun FixturesContentList(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item(key = "fixtures-partner-banner") {
-                AndroidFixturesPartnerBanner(
-                    modifier = Modifier.padding(bottom = 4.dp),
-                )
+            if (!isAdsRemoved) {
+                item(key = "fixtures-top-admob-banner") {
+                    BannerAdItem(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                        style = NativeAdStyle.MATCH,
+                    )
+                }
             }
-            item(key = "recent-20-matches") {
-                RecentMatchesSection(
-                    matches = matches,
-                    onMatchClick = { onVideoClick(it) {} },
-                    title = "Recent Matches",
-                    onlyWithHighlights = false,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
+            if (matches.isEmpty()) {
+                item(key = "empty-day-fixtures-list") {
+                    EmptyState(
+                        title = "No Matches Scheduled",
+                        description = "Try selecting a different date or competition.",
+                    )
+                }
             }
             groupedItems.forEachIndexed { groupIndex, (comp, compMatches) ->
                 val isExpanded = comp == null || !collapsedCompIds.contains(comp.id)
@@ -187,7 +194,7 @@ fun FixturesContentList(
                     item(key = "header-${comp.id}") {
                         LeagueHeader(
                             competitionName = comp.name,
-                            competitionEmblemUrl = comp.logo,
+                            competitionEmblemUrl = comp.getEmblemUrl(isDark),
                             competitionId = comp.competitionId,
                             isExpanded = isExpanded,
                             onToggleExpand = {

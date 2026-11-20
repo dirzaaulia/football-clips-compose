@@ -6,6 +6,7 @@ import com.dirzaaulia.footballclips.data.model.remote.HighlightUiModel
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.util.extractVideoId
+import com.dirzaaulia.footballclips.util.normalizeLeagueName
 
 internal fun findVideoById(
     oracleMatches: List<Match>,
@@ -69,7 +70,10 @@ internal fun filterHighlights(
     val queryLower = searchQuery.trim().lowercase()
 
     val filteredOracle = oracleMatches.filter { match ->
-        val matchesLeague = selectedLeagues.isEmpty() || match.competitionName in selectedLeagues
+        val matchNorm = match.competitionName.normalizeLeagueName()
+        val matchesLeague = selectedLeagues.isEmpty() ||
+            match.competitionName in selectedLeagues ||
+            selectedLeagues.any { it.normalizeLeagueName().equals(matchNorm, ignoreCase = true) }
         val matchesQuery = queryLower.isEmpty() ||
             match.homeTeamName.lowercase().contains(queryLower) ||
             match.awayTeamName.lowercase().contains(queryLower) ||
@@ -78,7 +82,10 @@ internal fun filterHighlights(
     }
 
     val filteredExternal = allHighlights.filter { highlight ->
-        val matchesLeague = selectedLeagues.isEmpty() || highlight.leagueName in selectedLeagues
+        val hlNorm = highlight.leagueName.normalizeLeagueName()
+        val matchesLeague = selectedLeagues.isEmpty() ||
+            highlight.leagueName in selectedLeagues ||
+            selectedLeagues.any { it.normalizeLeagueName().equals(hlNorm, ignoreCase = true) }
         val matchesQuery = queryLower.isEmpty() ||
             highlight.title.lowercase().contains(queryLower) ||
             (highlight.leagueName.lowercase().contains(queryLower))

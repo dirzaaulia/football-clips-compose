@@ -47,7 +47,7 @@ internal suspend fun fetchGroupedOracleHighlights(
                     emptyList()
                 }
             }
-        }.awaitAll().flatten()
+        }.awaitAll().flatten().sortedByDescending { it.utcDate }
     }
 }
 

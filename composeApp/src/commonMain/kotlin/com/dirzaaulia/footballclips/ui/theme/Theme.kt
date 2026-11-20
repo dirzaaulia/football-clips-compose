@@ -68,6 +68,8 @@ class DropletThemeState {
 }
 
 val LocalDropletThemeState = staticCompositionLocalOf { DropletThemeState() }
+val LocalThemeIsDark = staticCompositionLocalOf { true }
+
 
 // Stitch Obsidian Volt Athletic OTT Dark Color Scheme
 private val DarkColorScheme = darkColorScheme(
@@ -133,7 +135,10 @@ fun FootballClipsTheme(
     val colorScheme = if (darkTheme) darkScheme else lightScheme
     val dropletState = remember { DropletThemeState() }
 
-    CompositionLocalProvider(LocalDropletThemeState provides dropletState) {
+    CompositionLocalProvider(
+        LocalDropletThemeState provides dropletState,
+        LocalThemeIsDark provides darkTheme,
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = Typography,

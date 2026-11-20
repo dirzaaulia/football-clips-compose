@@ -232,10 +232,11 @@ private fun CompetitionRowItem(
 
 @Composable
 private fun CompetitionLeadingIcon(league: BigLeague, isAll: Boolean) {
-    if (league.logo.isNotEmpty()) {
+    val logo = league.getEmblemUrl(com.dirzaaulia.footballclips.ui.theme.LocalThemeIsDark.current)
+    if (logo.isNotEmpty()) {
         GlassLogoBadge(modifier = Modifier.size(28.dp), shape = RoundedCornerShape(8.dp)) {
             AsyncImage(
-                model = league.logo.toProxyUrl(),
+                model = logo.toProxyUrl(),
                 contentDescription = league.name,
                 modifier = Modifier.fillMaxSize().padding(3.dp),
                 contentScale = ContentScale.Fit,
@@ -259,9 +260,26 @@ private fun CompetitionLeadingIcon(league: BigLeague, isAll: Boolean) {
 @Composable
 private fun CompetitionTypeBadge(league: BigLeague) {
     val (badgeText, badgeBg, badgeFg) = when {
-        league.isCup -> Triple("Cup", MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer)
-        league.isHybrid -> Triple("Hybrid", MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer)
-        else -> Triple("League", MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant)
+        league.isInternational -> Triple(
+            "Int'l",
+            MaterialTheme.colorScheme.secondaryContainer,
+            MaterialTheme.colorScheme.onSecondaryContainer,
+        )
+        league.isCup -> Triple(
+            "Cup",
+            MaterialTheme.colorScheme.tertiaryContainer,
+            MaterialTheme.colorScheme.onTertiaryContainer,
+        )
+        league.isHybrid -> Triple(
+            "Hybrid",
+            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+        else -> Triple(
+            "League",
+            MaterialTheme.colorScheme.surfaceVariant,
+            MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
     Surface(shape = RoundedCornerShape(6.dp), color = badgeBg) {
         Text(

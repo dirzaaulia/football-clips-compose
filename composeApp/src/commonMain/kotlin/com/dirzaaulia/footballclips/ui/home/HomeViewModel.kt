@@ -53,6 +53,7 @@ class HomeViewModel(
     internal val _selectedLeagueId = MutableStateFlow<Int?>(null)
     val selectedLeagueId: StateFlow<Int?> = _selectedLeagueId.asStateFlow()
     internal val _selectedCompetitionId = MutableStateFlow<String?>(null)
+    val selectedCompetitionId: StateFlow<String?> = _selectedCompetitionId.asStateFlow()
 
     val selectedSeason: StateFlow<Int> = preferenceManager.selectedSeason
         .stateIn(viewModelScope, SharingStarted.Eagerly, 2026)

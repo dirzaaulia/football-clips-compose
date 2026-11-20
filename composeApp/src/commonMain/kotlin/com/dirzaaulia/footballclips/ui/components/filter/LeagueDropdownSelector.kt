@@ -92,13 +92,15 @@ fun LeagueDropdownSelector(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    if (currentLeague != null && currentLeague.logo.isNotEmpty()) {
+                    val isDark = com.dirzaaulia.footballclips.ui.theme.LocalThemeIsDark.current
+                    val currentLogo = currentLeague?.getEmblemUrl(isDark).orEmpty()
+                    if (currentLeague != null && currentLogo.isNotEmpty()) {
                         GlassLogoBadge(
                             modifier = Modifier.size(22.dp),
                             shape = RoundedCornerShape(6.dp),
                         ) {
                             AsyncImage(
-                                model = currentLeague.logo.toProxyUrl(),
+                                model = currentLogo.toProxyUrl(),
                                 contentDescription = currentLeague.name,
                                 modifier = Modifier
                                     .fillMaxSize()

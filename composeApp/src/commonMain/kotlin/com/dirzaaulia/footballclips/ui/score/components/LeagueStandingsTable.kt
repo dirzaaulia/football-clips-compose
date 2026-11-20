@@ -84,7 +84,7 @@ fun ColumnScope.LeagueStandingsTable(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 6.dp),
-                style = NativeAdStyle.STANDINGS,
+                style = NativeAdStyle.MATCH,
             )
         }
 

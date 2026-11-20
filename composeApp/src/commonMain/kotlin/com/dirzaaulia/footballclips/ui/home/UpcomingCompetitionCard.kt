@@ -86,7 +86,7 @@ private fun UpcomingCompetitionHeader(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         GlassLogoBadge(
-            logoUrl = league.logo.ifBlank { league.emblemUrl },
+            logoUrl = league.getEmblemUrl(com.dirzaaulia.footballclips.ui.theme.LocalThemeIsDark.current).ifBlank { league.emblemUrl },
             contentDescription = league.name,
             size = 36.dp,
             padding = 4.dp,

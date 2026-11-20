@@ -151,13 +151,27 @@ fun StandingsScreen(
                 }
             },
         ) { innerPadding ->
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-                contentAlignment = Alignment.Center,
             ) {
-                when (state) {
+                if (!isPremium) {
+                    BannerAdItem(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = horizontalPadding, vertical = 6.dp),
+                        style = NativeAdStyle.MATCH,
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    when (state) {
                     is StandingsState.Loading -> {
                         StandingsTableSkeleton(
                             modifier = Modifier.fillMaxSize(),
@@ -195,7 +209,7 @@ fun StandingsScreen(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(vertical = 4.dp),
-                                            style = NativeAdStyle.STANDINGS,
+                                            style = NativeAdStyle.MATCH,
                                         )
                                     }
                                 }
@@ -238,7 +252,7 @@ fun StandingsScreen(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(vertical = 4.dp),
-                                            style = NativeAdStyle.STANDINGS,
+                                            style = NativeAdStyle.MATCH,
                                         )
                                     }
                                 } else {
@@ -270,3 +284,5 @@ fun StandingsScreen(
         }
     }
 }
+}
+

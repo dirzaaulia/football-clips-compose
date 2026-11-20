@@ -10,7 +10,7 @@ internal fun buildYouTubeHtml(videoId: String): String {
             <style>
                 html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
                 #player { width: 100%; height: 100%; transform: scale(1.18); transform-origin: center center; }
-                iframe { width: 100%; height: 100%; border: none; }
+                iframe { width: 100%; height: 100%; border: none; pointer-events: none; }
                 .ytp-chrome-top, .ytp-chrome-bottom, .ytp-watermark, .ytp-pause-overlay { display: none !important; opacity: 0 !important; }
             </style>
         </head>

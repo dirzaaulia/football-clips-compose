@@ -84,7 +84,7 @@ fun BigLeaguesQuickFilterBar(
 
                 LeagueModernFilterItem(
                     name = league.name,
-                    logo = league.logo,
+                    logo = league.getEmblemUrl(com.dirzaaulia.footballclips.ui.theme.LocalThemeIsDark.current),
                     isSelected = isSelected,
                     isWeb = isWeb,
                     isCompact = isCompact,

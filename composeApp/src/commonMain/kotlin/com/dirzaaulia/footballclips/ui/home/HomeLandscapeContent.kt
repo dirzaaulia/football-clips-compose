@@ -33,6 +33,7 @@ import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.card.HeroCarousel
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+import com.dirzaaulia.footballclips.ui.theme.LocalThemeIsDark
 import com.dirzaaulia.footballclips.ui.score.components.RecentMatchesSection
 import kotlinx.coroutines.launch
 
@@ -63,14 +64,18 @@ internal fun HomeLandscapeContent(
     val favoriteClubs by viewModel.favoriteClubs.collectAsState()
     val supportedClubs by viewModel.supportedClubs.collectAsState()
     val coroutineScope = rememberCoroutineScope()
-    val isAllLeagues = filterState.selectedLeagues.isEmpty() && selectedLeagueId == null
+    val selectedCompetitionId by viewModel.selectedCompetitionId.collectAsState()
+    val isAllLeagues = filterState.selectedLeagues.isEmpty() &&
+        selectedLeagueId == null &&
+        selectedCompetitionId.isNullOrEmpty()
+    val isDark = LocalThemeIsDark.current
 
     Row(
         modifier = modifier.fillMaxSize(),
     ) {
         CompetitionSideRail(
             competitions = competitions,
-            selectedCompetitionId = viewModel.selectedLeagueId.value?.toString(),
+            selectedCompetitionId = selectedCompetitionId ?: viewModel.selectedLeagueId.value?.toString(),
             onAllSelected = {
                 onResetFilters()
                 coroutineScope.launch { listState.animateScrollToItem(0) }
@@ -163,10 +168,23 @@ internal fun HomeLandscapeContent(
                         isAdsRemoved = isAdsRemoved,
                         selectedSeason = selectedSeason,
                         viewModel = viewModel,
+                        isDark = isDark,
                         onVideoClick = onVideoClick,
                     )
                 }
             } else {
+                item(key = "filtered-landscape-recent-matches") {
+                    RecentMatchesSection(
+                        matches = items,
+                        onMatchClick = { selectedItem ->
+                            onVideoClick(selectedItem) { isJumping ->
+                                viewModel.setPendingInterstitial(true)
+                                if (!isJumping) viewModel.consumePendingInterstitial()
+                            }
+                        },
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                }
                 items(
                     items = items,
                     key = { item -> item.uniqueId },
@@ -194,11 +212,14 @@ private fun androidx.compose.foundation.lazy.LazyListScope.renderLandscapeCompet
     isAdsRemoved: Boolean,
     selectedSeason: Int,
     viewModel: HomeViewModel,
+    isDark: Boolean,
     onVideoClick: (HighlightUiItem, (Boolean) -> Unit) -> Unit,
 ) {
     val compName = league.name
-    val emblem = league.logo
+    val emblem = league.getEmblemUrl(isDark)
     val displayMatches = nonAds.filter { it.matchesLeague(league) }.take(20)
+
+    if (displayMatches.isEmpty()) return
 
     item(key = "section-${league.id}") {
         HomeCompetitionSectionHeader(

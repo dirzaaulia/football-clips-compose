@@ -19,19 +19,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -105,19 +104,13 @@ private fun MyClubsSheetContent(
     var searchQuery by remember { mutableStateOf("") }
     var selectedLeagueCode by remember { mutableStateOf<String?>("ALL") }
 
-    val leagueTabs = remember {
-        listOf(
-            "ALL" to "All",
-            "PL" to "Premier League",
-            "PD" to "La Liga",
-            "SA" to "Serie A",
-            "BL1" to "Bundesliga",
-            "FL1" to "Ligue 1",
-            "SPL" to "Saudi Pro",
-            "MLS" to "MLS",
-            "DED" to "Eredivisie",
-            "PPL" to "Liga Portugal",
-        )
+    val allLeagueOptions = remember(clubs) {
+        val unique = clubs.mapNotNull { club ->
+            val code = club.leagueCode.takeIf { it.isNotBlank() } ?: return@mapNotNull null
+            val name = club.leagueName.takeIf { it.isNotBlank() } ?: code
+            code to name
+        }.distinctBy { it.first }
+        listOf("ALL" to "All Competitions") + unique
     }
 
     val filteredClubs = remember(clubs, searchQuery, selectedLeagueCode) {
@@ -151,7 +144,7 @@ private fun MyClubsSheetContent(
                     fontWeight = FontWeight.Black,
                 )
                 Text(
-                    text = "${selectedClubIds.size} clubs starred (Big 5 Leagues)",
+                    text = "${selectedClubIds.size} favorite clubs",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -179,18 +172,67 @@ private fun MyClubsSheetContent(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            items(leagueTabs) { (code, label) ->
-                val isSelected = selectedLeagueCode == code
-                FilterChip(
-                    selected = isSelected,
-                    onClick = { selectedLeagueCode = code },
-                    label = { Text(label, fontSize = 12.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
-                    shape = RoundedCornerShape(20.dp),
-                )
+        var leagueDropdownExpanded by remember { mutableStateOf(false) }
+        val currentLeagueName = allLeagueOptions.find { it.first == selectedLeagueCode }?.second ?: "All Competitions"
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Surface(
+                onClick = { leagueDropdownExpanded = true },
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+                modifier = Modifier.fillMaxWidth().height(44.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FilterList,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(
+                            text = currentLeagueName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "Select League",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            DropdownMenu(
+                expanded = leagueDropdownExpanded,
+                onDismissRequest = { leagueDropdownExpanded = false },
+                modifier = Modifier.heightIn(max = 320.dp),
+            ) {
+                allLeagueOptions.forEach { (code, name) ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = name,
+                                fontWeight = if (selectedLeagueCode == code) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selectedLeagueCode == code) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            )
+                        },
+                        onClick = {
+                            selectedLeagueCode = code
+                            leagueDropdownExpanded = false
+                        },
+                    )
+                }
             }
         }
 
@@ -211,59 +253,6 @@ private fun MyClubsSheetContent(
                     onToggle = { onToggleClub(club.id) },
                 )
             }
-        }
-    }
-}
-
-@Composable
-internal fun ClubSelectionCard(
-    club: SupportedClub,
-    isSelected: Boolean,
-    onToggle: () -> Unit,
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onToggle),
-        shape = RoundedCornerShape(12.dp),
-        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
-        border = BorderStroke(
-            width = if (isSelected) 1.5.dp else 1.dp,
-            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-        ),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            GlassLogoBadge(
-                logoUrl = club.crestUrl,
-                contentDescription = club.name,
-                size = 36.dp,
-                padding = 2.dp,
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = club.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                )
-                Text(
-                    text = club.leagueName,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    maxLines = 1,
-                )
-            }
-            Icon(
-                imageVector = if (isSelected) Icons.Default.Star else Icons.Outlined.StarBorder,
-                contentDescription = if (isSelected) "Starred" else "Not starred",
-                tint = if (isSelected) Color(0xFFFFB300) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.size(22.dp),
-            )
         }
     }
 }
