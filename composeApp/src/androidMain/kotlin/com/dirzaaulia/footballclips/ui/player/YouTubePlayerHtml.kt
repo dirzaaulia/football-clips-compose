@@ -1,5 +1,7 @@
 package com.dirzaaulia.footballclips.ui.player
 
+import androidx.compose.foundation.layout.fillMaxSize
+
 internal fun buildYouTubeHtml(videoId: String): String {
     return """
         <!DOCTYPE html>
@@ -71,6 +73,24 @@ internal fun cleanupWebView(wv: android.webkit.WebView) {
         (wv.parent as? android.view.ViewGroup)?.removeView(wv)
         wv.destroy()
     } catch (_: Throwable) {}
+}
+
+@androidx.compose.runtime.Composable
+internal fun FullscreenPlayerOverlay(customView: android.view.View) {
+    androidx.compose.ui.viewinterop.AndroidView(
+        factory = { ctx ->
+            android.widget.FrameLayout(ctx).apply {
+                layoutParams = android.view.ViewGroup.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                )
+                (customView.parent as? android.view.ViewGroup)?.removeView(customView)
+                addView(customView)
+                setBackgroundColor(android.graphics.Color.BLACK)
+            }
+        },
+        modifier = androidx.compose.ui.Modifier.fillMaxSize(),
+    )
 }
 
 internal fun resolveUserCountry(context: android.content.Context): String {

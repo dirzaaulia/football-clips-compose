@@ -7,11 +7,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -163,12 +166,15 @@ fun ClubStoreContent(
 private fun ClubStoreTopBar(
     onBack: () -> Unit,
 ) {
+    val statusBarInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     TopAppBar(
+        modifier = Modifier.height(50.dp + statusBarInset),
         title = {
             Text(
                 text = "Club Store",
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
-                fontSize = 20.sp,
+                letterSpacing = (-0.5).sp,
             )
         },
         navigationIcon = {
@@ -180,7 +186,7 @@ private fun ClubStoreTopBar(
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
     )
 }

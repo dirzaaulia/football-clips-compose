@@ -84,6 +84,7 @@ private fun NavGraphBuilder.addPrimaryNavRoutes(
         MatchesAndHighlightsScreen(
             viewModel = scoreViewModel,
             onVideoClick = onVideoClick,
+            onNavigateToSettings = { navController.navigate(NavDestination.Info.route) },
         )
     }
 }
@@ -109,6 +110,7 @@ private fun NavGraphBuilder.addSecondaryNavRoutes(
             onShowMyClubs = { scoreViewModel.setMyClubsSheetVisible(true) },
             onLeagueSelected = { _, compId -> scoreViewModel.selectCompetition(compId ?: "PL") },
             onSeasonSelected = { season -> scoreViewModel.setSeason(season) },
+            onNavigateToSettings = { navController.navigate(NavDestination.Info.route) },
             onRetry = { scoreViewModel.getStandings() },
         )
     }
@@ -116,6 +118,9 @@ private fun NavGraphBuilder.addSecondaryNavRoutes(
         ClubStoreScreen(onBack = { navController.popBackStack() })
     }
     composable(NavDestination.Info.route) {
-        InfoScreen(onNavigateToStore = { navController.navigate(NavDestination.Store.route) })
+        InfoScreen(
+            onNavigateToStore = { navController.navigate(NavDestination.Store.route) },
+            onBack = { navController.popBackStack() },
+        )
     }
 }

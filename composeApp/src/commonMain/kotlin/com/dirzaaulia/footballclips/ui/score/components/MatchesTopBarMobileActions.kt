@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FilterListOff
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -56,6 +57,7 @@ internal fun MatchesTopBarMobileActions(
     onToggleSpoilerFree: () -> Unit,
     isFiltersExpanded: Boolean,
     onToggleFilterExpanded: () -> Unit,
+    onNavigateToSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var showMoreMenu by remember { mutableStateOf(false) }
@@ -95,6 +97,18 @@ internal fun MatchesTopBarMobileActions(
                     )
                 }
             }
+        }
+
+        IconButton(
+            onClick = onToggleFilterExpanded,
+            modifier = Modifier.size(34.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Default.FilterList,
+                contentDescription = "Toggle Filters",
+                tint = if (isFiltersExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(19.dp),
+            )
         }
 
         IconButton(
@@ -202,6 +216,18 @@ internal fun MatchesTopBarMobileActions(
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
                 )
             }
+        }
+
+        IconButton(
+            onClick = onNavigateToSettings,
+            modifier = Modifier.size(36.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Settings",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
+            )
         }
     }
 }

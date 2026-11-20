@@ -1,6 +1,7 @@
 package com.dirzaaulia.footballclips.ui.home
 
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
+import com.dirzaaulia.footballclips.data.model.matchesLeague
 import com.dirzaaulia.footballclips.data.model.remote.BigLeague
 import com.dirzaaulia.footballclips.data.model.remote.HighlightUiModel
 import com.dirzaaulia.footballclips.data.model.uniqueId
@@ -106,3 +107,33 @@ internal fun filterHighlights(
 
     return items
 }
+
+internal fun partitionRecentHighlights(
+    items: List<HighlightUiItem>,
+    competitions: List<BigLeague>,
+): Pair<List<HighlightUiItem>, List<HighlightUiItem>> {
+    val nonAds = items.filter { it !is HighlightUiItem.BannerAd }
+    val intl = nonAds.filter { item ->
+        item is HighlightUiItem.OracleMatch &&
+            competitions.any { it.id == item.match.competitionId && it.isInternational }
+    }
+    val regular = nonAds.filter { item ->
+        item !is HighlightUiItem.OracleMatch ||
+            competitions.none { it.id == item.match.competitionId && it.isInternational }
+    }
+    return intl to regular
+}
+
+internal fun sortCompetitionsWithIntlPriority(
+    competitions: List<BigLeague>,
+    items: List<HighlightUiItem>,
+): List<BigLeague> {
+    val nonAds = items.filter { it !is HighlightUiItem.BannerAd }
+    return competitions.sortedWith(
+        compareBy<BigLeague> { league ->
+            val hasRecent = nonAds.any { it.matchesLeague(league) }
+            if (league.isInternational && hasRecent) -1 else 0
+        }.thenBy { it.displayOrder },
+    )
+}
+

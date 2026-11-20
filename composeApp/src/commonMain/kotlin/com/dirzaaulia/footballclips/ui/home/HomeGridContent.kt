@@ -132,12 +132,32 @@ internal fun HomeGridContent(
                 )
             }
         } else if (selectedLeagueId == null && selectedCompetitionId.isNullOrEmpty() && viewModel.selectedLeagues.isEmpty()) {
+            val (intlItems, regularItems) = partitionRecentHighlights(items, competitions)
+            if (intlItems.isNotEmpty()) {
+                item(
+                    key = "recent-intl-matches-grid",
+                    span = { GridItemSpan(maxLineSpan) },
+                ) {
+                    RecentMatchesSection(
+                        matches = intlItems,
+                        title = "Recent International Highlights",
+                        onMatchClick = { selectedItem ->
+                            onVideoClick(selectedItem) { isJumping ->
+                                viewModel.setPendingInterstitial(true)
+                                if (!isJumping) viewModel.consumePendingInterstitial()
+                            }
+                        },
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+                }
+            }
             item(
                 key = "recent-matches-section",
                 span = { GridItemSpan(maxLineSpan) },
             ) {
                 RecentMatchesSection(
-                    matches = items,
+                    matches = regularItems.ifEmpty { items },
+                    title = "Recent Highlights",
                     onMatchClick = { selectedItem ->
                         onVideoClick(selectedItem) { isJumping ->
                             viewModel.setPendingInterstitial(true)
@@ -148,7 +168,8 @@ internal fun HomeGridContent(
                 )
             }
             val nonAds = gridItems.filter { it !is HighlightUiItem.BannerAd }
-            competitions.forEachIndexed { index, league ->
+            val sortedCompetitions = sortCompetitionsWithIntlPriority(competitions, gridItems)
+            sortedCompetitions.forEachIndexed { index, league ->
                 val compName = league.name
                 val emblem = league.getEmblemUrl(isDark)
                 val displayMatches = nonAds.filter { it.matchesLeague(league) }.take(20)
@@ -255,38 +276,13 @@ internal fun HomeGridContent(
         val isLoadingMore = (viewModel.uiState.value as? HomeState.Success)?.isLoadingMore == true
         val loadMoreError = (viewModel.uiState.value as? HomeState.Success)?.loadMoreError
 
-        if (isLoadingMore && loadMoreError == null) {
+        if (isLoadingMore || loadMoreError != null) {
             item(span = { GridItemSpan(maxLineSpan) }) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    ExpressiveLoadingIndicator(
-                        modifier = Modifier.size(36.dp),
-                        strokeWidth = 4.dp,
-                    )
-                }
-            }
-        } else if (loadMoreError != null) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        text = loadMoreError,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedButton(onClick = { viewModel.retryLoadMore() }) {
-                        Text("Retry")
-                    }
-                }
+                HomeGridLoadMoreFooter(
+                    isLoadingMore = isLoadingMore,
+                    loadMoreError = loadMoreError,
+                    onRetry = { viewModel.retryLoadMore() },
+                )
             }
         }
 

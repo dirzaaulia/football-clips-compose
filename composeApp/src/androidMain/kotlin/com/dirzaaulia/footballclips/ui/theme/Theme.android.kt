@@ -1,6 +1,5 @@
 package com.dirzaaulia.footballclips.ui.theme
 
-import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.os.Build
@@ -14,6 +13,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.dirzaaulia.footballclips.ui.home.findActivity
 
 @Composable
 actual fun getDynamicColorScheme(darkTheme: Boolean): ColorScheme? {
@@ -30,7 +30,7 @@ actual fun SetSystemBarsStyle(darkTheme: Boolean) {
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as? Activity)?.window
+            val window = view.context.findActivity()?.window
             if (window != null) {
                 val insetsController = WindowCompat.getInsetsController(window, view)
                 insetsController.isAppearanceLightStatusBars = !darkTheme

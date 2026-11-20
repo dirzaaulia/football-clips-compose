@@ -55,6 +55,7 @@ fun MatchesTopBar(
     onStatusFilterSelected: (MatchStatusFilter) -> Unit = {},
     isFiltersExpanded: Boolean = true,
     onToggleFilterExpanded: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -100,6 +101,7 @@ fun MatchesTopBar(
                             onToggleSpoilerFree = onToggleSpoilerFree,
                             isFiltersExpanded = isFiltersExpanded,
                             onToggleFilterExpanded = onToggleFilterExpanded,
+                            onNavigateToSettings = onNavigateToSettings,
                         )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(

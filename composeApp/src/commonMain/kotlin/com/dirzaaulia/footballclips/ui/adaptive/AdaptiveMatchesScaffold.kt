@@ -68,12 +68,26 @@ fun AdaptiveMatchesScaffold(
 
     val navigateToTab: (String) -> Unit = remember(navController) {
         { route ->
-            navController.navigate(route) {
-                popUpTo(navController.graph.findStartDestination().route ?: NavDestination.Home.route) {
-                    saveState = true
+            val currRoute = navController.currentBackStackEntry?.destination?.route
+            if (currRoute == NavDestination.Store.route || currRoute == NavDestination.Info.route) {
+                navController.popBackStack(NavDestination.Home.route, inclusive = false)
+                if (route != NavDestination.Home.route) {
+                    navController.navigate(route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
-                launchSingleTop = true
-                restoreState = true
+            } else {
+                navController.navigate(route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
             }
         }
     }

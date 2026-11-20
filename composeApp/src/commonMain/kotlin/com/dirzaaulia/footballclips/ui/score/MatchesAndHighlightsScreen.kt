@@ -40,6 +40,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun MatchesAndHighlightsScreen(
     onVideoClick: (HighlightUiItem, onDismiss: (Boolean) -> Unit) -> Unit,
     modifier: Modifier = Modifier,
+    onNavigateToSettings: () -> Unit = {},
     viewModel: ScoreViewModel = koinViewModel(),
     listState: LazyListState = rememberLazyListState(),
     gridState: LazyGridState = rememberLazyGridState(),
@@ -128,6 +129,7 @@ fun MatchesAndHighlightsScreen(
                         onStatusFilterSelected = viewModel::selectStatusFilter,
                         isFiltersExpanded = isFiltersExpanded,
                         onToggleFilterExpanded = { viewModel.toggleFiltersExpanded() },
+                        onNavigateToSettings = onNavigateToSettings,
                     )
                 },
             ) { innerPadding ->

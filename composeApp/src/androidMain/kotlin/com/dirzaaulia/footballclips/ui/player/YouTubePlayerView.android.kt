@@ -89,17 +89,25 @@ actual fun YouTubePlayerView(
         }
     }
 
-    LaunchedEffect(isPlaying, webViewInstance, isLoading) {
-        if (webViewInstance != null && !isLoading) {
-            val js = if (isPlaying) "player.playVideo();" else "player.pauseVideo();"
-            webViewInstance?.evaluateJavascript("if (typeof player !== 'undefined' && player) { $js }", null)
+    LaunchedEffect(isPlaying, webViewInstance) {
+        if (webViewInstance != null) {
+            val js = if (isPlaying) {
+                "if (typeof player !== 'undefined' && player.playVideo) { player.playVideo(); }"
+            } else {
+                "if (typeof player !== 'undefined' && player.pauseVideo) { player.pauseVideo(); }"
+            }
+            webViewInstance?.evaluateJavascript(js, null)
         }
     }
 
-    LaunchedEffect(isMuted, webViewInstance, isLoading) {
-        if (webViewInstance != null && !isLoading) {
-            val js = if (isMuted) "player.mute();" else "player.unMute();"
-            webViewInstance?.evaluateJavascript("if (typeof player !== 'undefined' && player) { $js }", null)
+    LaunchedEffect(isMuted, webViewInstance) {
+        if (webViewInstance != null) {
+            val js = if (isMuted) {
+                "if (typeof player !== 'undefined' && player.mute) { player.mute(); }"
+            } else {
+                "if (typeof player !== 'undefined' && player.unMute) { player.unMute(); }"
+            }
+            webViewInstance?.evaluateJavascript(js, null)
         }
     }
 
@@ -196,20 +204,6 @@ private fun SetupLifecycleAndOrientation(
     }
 }
 
-@Composable
-private fun FullscreenPlayerOverlay(customView: View) {
-    AndroidView(
-        factory = { ctx ->
-            FrameLayout(ctx).apply {
-                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-                (customView.parent as? ViewGroup)?.removeView(customView)
-                addView(customView)
-                setBackgroundColor(android.graphics.Color.BLACK)
-            }
-        },
-        modifier = Modifier.fillMaxSize(),
-    )
-}
 
 private fun createConfiguredWebView(
     context: android.content.Context,
@@ -231,13 +225,15 @@ private fun createConfiguredWebView(
                 val url = request?.url?.toString().orEmpty()
                 if (url.startsWith("fc-state://")) {
                     val state = url.removePrefix("fc-state://").toIntOrNull()
-                    if (state == 1 || state == 2) {
+                    if (state == 1 || state == 2 || state == 3) {
                         onLoadingState(false)
                         onPlaybackStarted()
                     }
                     return true
                 }
                 if (url.startsWith("fc-ready://")) {
+                    onLoadingState(false)
+                    onPlaybackStarted()
                     return true
                 }
                 if (url.startsWith("fc-error://")) {

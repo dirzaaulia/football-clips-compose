@@ -1,5 +1,6 @@
 package com.dirzaaulia.footballclips.ui.score.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,8 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -34,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FixturesContentList(
     isGrid: Boolean,
@@ -191,21 +195,28 @@ fun FixturesContentList(
             groupedItems.forEachIndexed { groupIndex, (comp, compMatches) ->
                 val isExpanded = comp == null || !collapsedCompIds.contains(comp.id)
                 if (comp != null) {
-                    item(key = "header-${comp.id}") {
-                        LeagueHeader(
-                            competitionName = comp.name,
-                            competitionEmblemUrl = comp.getEmblemUrl(isDark),
-                            competitionId = comp.competitionId,
-                            isExpanded = isExpanded,
-                            onToggleExpand = {
-                                collapsedCompIds = if (isExpanded) {
-                                    collapsedCompIds + comp.id
-                                } else {
-                                    collapsedCompIds - comp.id
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp),
-                        )
+                    stickyHeader(key = "header-${comp.id}") {
+                        Surface(
+                            color = MaterialTheme.colorScheme.surface,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            LeagueHeader(
+                                competitionName = comp.name,
+                                competitionEmblemUrl = comp.getEmblemUrl(isDark),
+                                competitionId = comp.competitionId,
+                                isExpanded = isExpanded,
+                                onToggleExpand = {
+                                    collapsedCompIds = if (isExpanded) {
+                                        collapsedCompIds + comp.id
+                                    } else {
+                                        collapsedCompIds - comp.id
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                            )
+                        }
                     }
                 }
                 if (isExpanded) {

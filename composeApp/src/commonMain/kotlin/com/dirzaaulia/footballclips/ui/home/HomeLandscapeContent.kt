@@ -145,9 +145,26 @@ internal fun HomeLandscapeContent(
                     )
                 }
             } else if (isAllLeagues) {
+                val (intlItems, regularItems) = partitionRecentHighlights(items, competitions)
+                if (intlItems.isNotEmpty()) {
+                    item(key = "recent-intl-matches-landscape") {
+                        RecentMatchesSection(
+                            matches = intlItems,
+                            title = "Recent International Highlights",
+                            onMatchClick = { selectedItem ->
+                                onVideoClick(selectedItem) { isJumping ->
+                                    viewModel.setPendingInterstitial(true)
+                                    if (!isJumping) viewModel.consumePendingInterstitial()
+                                }
+                            },
+                            modifier = Modifier.padding(bottom = 8.dp),
+                        )
+                    }
+                }
                 item(key = "recent-matches-section") {
                     RecentMatchesSection(
-                        matches = items,
+                        matches = regularItems.ifEmpty { items },
+                        title = "Recent Highlights",
                         onMatchClick = { selectedItem ->
                             onVideoClick(selectedItem) { isJumping ->
                                 viewModel.setPendingInterstitial(true)
@@ -158,7 +175,8 @@ internal fun HomeLandscapeContent(
                     )
                 }
                 val nonAds = items.filter { it !is HighlightUiItem.BannerAd }
-                competitions.forEach { league ->
+                val sortedCompetitions = sortCompetitionsWithIntlPriority(competitions, items)
+                sortedCompetitions.forEach { league ->
                     renderLandscapeCompetitionSection(
                         league = league,
                         nonAds = nonAds,
