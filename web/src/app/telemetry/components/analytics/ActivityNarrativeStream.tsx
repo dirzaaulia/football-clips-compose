@@ -68,8 +68,31 @@ export function ActivityNarrativeStream({ events, isLoading }: ActivityNarrative
       {/* Stream List */}
       <div className="space-y-2.5">
         {isLoading ? (
-          <div className="p-12 text-center text-slate-500 font-mono text-sm bg-slate-900/40 rounded-xl border border-slate-800">
-            Streaming behavioral activities...
+          <div className="space-y-2.5 animate-pulse">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex flex-col gap-2"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-slate-800 mt-0.5 shrink-0" />
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-36 h-3.5 bg-slate-800 rounded" />
+                        <div className="w-14 h-3 bg-slate-800/80 rounded" />
+                        <div className="w-20 h-3 bg-slate-800/50 rounded" />
+                      </div>
+                      <div className="w-64 h-3 bg-slate-800/60 rounded" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="w-12 h-3 bg-slate-800/50 rounded" />
+                    <div className="w-3.5 h-3.5 bg-slate-800 rounded" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredEvents.length === 0 ? (
           <div className="p-12 text-center text-slate-500 font-mono text-sm bg-slate-900/40 rounded-xl border border-slate-800">

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -27,14 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
-import com.dirzaaulia.footballclips.data.model.matchesLeague
-import com.dirzaaulia.footballclips.data.model.remote.BigLeague
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.card.HeroCarousel
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
-import com.dirzaaulia.footballclips.ui.theme.LocalThemeIsDark
-import com.dirzaaulia.footballclips.ui.score.components.RecentMatchesSection
 import kotlinx.coroutines.launch
 
 @Composable
@@ -58,17 +53,11 @@ internal fun HomeLandscapeContent(
     modifier: Modifier = Modifier,
 ) {
     val competitions by viewModel.competitions.collectAsState()
-    val selectedSeason by viewModel.selectedSeason.collectAsState()
-    val filterState by viewModel.filterState.collectAsState()
     val liveMatches by viewModel.liveMatches.collectAsState()
     val favoriteClubs by viewModel.favoriteClubs.collectAsState()
     val supportedClubs by viewModel.supportedClubs.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val selectedCompetitionId by viewModel.selectedCompetitionId.collectAsState()
-    val isAllLeagues = filterState.selectedLeagues.isEmpty() &&
-        selectedLeagueId == null &&
-        selectedCompetitionId.isNullOrEmpty()
-    val isDark = LocalThemeIsDark.current
 
     Row(
         modifier = modifier.fillMaxSize(),
@@ -80,14 +69,9 @@ internal fun HomeLandscapeContent(
                 onResetFilters()
                 coroutineScope.launch { listState.animateScrollToItem(0) }
             },
-            onCompetitionClick = { league, index ->
-                if (isAllLeagues) {
-                    val targetIndex = (if (liveMatches.isNotEmpty()) 1 else 0) +
-                        (if (featuredHighlight != null) 1 else 0) + (index * 2)
-                    coroutineScope.launch { listState.animateScrollToItem(targetIndex) }
-                } else {
-                    onLeagueSelected(league.leagueId, league.competitionId)
-                }
+            onCompetitionClick = { league, _ ->
+                onLeagueSelected(league.leagueId, league.competitionId)
+                coroutineScope.launch { listState.animateScrollToItem(0) }
             },
         )
 
@@ -100,7 +84,7 @@ internal fun HomeLandscapeContent(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             if (liveMatches.isNotEmpty()) {
-                item {
+                item(key = "landscape-live-matches") {
                     HomeLiveMatchSection(
                         liveMatches = liveMatches,
                         favoriteClubs = favoriteClubs,
@@ -117,7 +101,7 @@ internal fun HomeLandscapeContent(
             }
 
             if (featuredHighlight != null) {
-                item {
+                item(key = "landscape-hero-carousel") {
                     HeroCarousel(
                         items = items,
                         isAdsRemoved = isAdsRemoved,
@@ -137,72 +121,14 @@ internal fun HomeLandscapeContent(
             }
 
             if (items.isEmpty()) {
-                item {
+                item(key = "landscape-empty-state") {
                     EmptyState(
                         title = "No Highlights Found",
                         description = "Try selecting another league or check back later.",
                         onActionClick = onResetFilters,
                     )
                 }
-            } else if (isAllLeagues) {
-                val (intlItems, regularItems) = partitionRecentHighlights(items, competitions)
-                if (intlItems.isNotEmpty()) {
-                    item(key = "recent-intl-matches-landscape") {
-                        RecentMatchesSection(
-                            matches = intlItems,
-                            title = "Recent International Highlights",
-                            onMatchClick = { selectedItem ->
-                                onVideoClick(selectedItem) { isJumping ->
-                                    viewModel.setPendingInterstitial(true)
-                                    if (!isJumping) viewModel.consumePendingInterstitial()
-                                }
-                            },
-                            modifier = Modifier.padding(bottom = 8.dp),
-                        )
-                    }
-                }
-                item(key = "recent-matches-section") {
-                    RecentMatchesSection(
-                        matches = regularItems.ifEmpty { items },
-                        title = "Recent Highlights",
-                        onMatchClick = { selectedItem ->
-                            onVideoClick(selectedItem) { isJumping ->
-                                viewModel.setPendingInterstitial(true)
-                                if (!isJumping) viewModel.consumePendingInterstitial()
-                            }
-                        },
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    )
-                }
-                val nonAds = items.filter { it !is HighlightUiItem.BannerAd }
-                val sortedCompetitions = sortCompetitionsWithIntlPriority(competitions, items)
-                sortedCompetitions.forEach { league ->
-                    renderLandscapeCompetitionSection(
-                        league = league,
-                        nonAds = nonAds,
-                        revealedItemIds = revealedItemIds,
-                        isSpoilerFreeMode = isSpoilerFreeMode,
-                        showExternalHighlights = showExternalHighlights,
-                        isAdsRemoved = isAdsRemoved,
-                        selectedSeason = selectedSeason,
-                        viewModel = viewModel,
-                        isDark = isDark,
-                        onVideoClick = onVideoClick,
-                    )
-                }
             } else {
-                item(key = "filtered-landscape-recent-matches") {
-                    RecentMatchesSection(
-                        matches = items,
-                        onMatchClick = { selectedItem ->
-                            onVideoClick(selectedItem) { isJumping ->
-                                viewModel.setPendingInterstitial(true)
-                                if (!isJumping) viewModel.consumePendingInterstitial()
-                            }
-                        },
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    )
-                }
                 items(
                     items = items,
                     key = { item -> item.uniqueId },
@@ -217,61 +143,43 @@ internal fun HomeLandscapeContent(
                     )
                 }
             }
-        }
-    }
-}
 
-private fun androidx.compose.foundation.lazy.LazyListScope.renderLandscapeCompetitionSection(
-    league: BigLeague,
-    nonAds: List<HighlightUiItem>,
-    revealedItemIds: Set<String>,
-    isSpoilerFreeMode: Boolean,
-    showExternalHighlights: Boolean,
-    isAdsRemoved: Boolean,
-    selectedSeason: Int,
-    viewModel: HomeViewModel,
-    isDark: Boolean,
-    onVideoClick: (HighlightUiItem, (Boolean) -> Unit) -> Unit,
-) {
-    val compName = league.name
-    val emblem = league.getEmblemUrl(isDark)
-    val displayMatches = nonAds.filter { it.matchesLeague(league) }.take(20)
+            val loadMoreError = (viewModel.uiState.value as? HomeState.Success)?.loadMoreError
 
-    if (displayMatches.isEmpty()) return
-
-    item(key = "section-${league.id}") {
-        HomeCompetitionSectionHeader(
-            competitionName = compName,
-            competitionEmblemUrl = emblem,
-            onSeeAll = {
-                if (league.leagueId != null) {
-                    viewModel.selectLeague(league.leagueId, league.competitionId)
-                } else {
-                    viewModel.selectCompetitionByName(compName)
+            if (isLoadingMore && loadMoreError == null) {
+                item(key = "landscape-loading-more") {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        ExpressiveLoadingIndicator(
+                            modifier = Modifier.size(36.dp),
+                            strokeWidth = 4.dp,
+                        )
+                    }
                 }
-            },
-        )
-    }
-
-    item(key = "row-${league.id}") {
-        CompetitionHighlightsRow(
-            displayMatches = displayMatches,
-            league = league,
-            compName = compName,
-            emblem = emblem,
-            isAdsRemoved = isAdsRemoved,
-            selectedSeason = selectedSeason,
-            viewModel = viewModel,
-            cardWidth = 280.dp,
-        ) { item ->
-            HighlightItemRow(
-                item = item,
-                revealedItemIds = revealedItemIds,
-                isSpoilerFreeMode = isSpoilerFreeMode,
-                showExternalHighlights = showExternalHighlights,
-                viewModel = viewModel,
-                onVideoClick = onVideoClick,
-            )
+            } else if (loadMoreError != null) {
+                item(key = "landscape-load-more-error") {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Text(
+                            text = loadMoreError,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(onClick = { viewModel.retryLoadMore() }) {
+                            Text("Retry")
+                        }
+                    }
+                }
+            }
         }
     }
 }

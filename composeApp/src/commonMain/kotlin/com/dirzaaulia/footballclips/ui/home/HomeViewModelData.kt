@@ -9,47 +9,7 @@ import com.dirzaaulia.footballclips.data.repository.MiddlewareRepository
 import com.dirzaaulia.footballclips.data.repository.OracleVmRepository
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.domain.model.toMatch
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-
-internal suspend fun fetchGroupedOracleHighlights(
-    oracleVmRepository: OracleVmRepository,
-    season: Int? = null,
-): List<Match> {
-    var compIds = oracleVmRepository.competitions.value
-        .map { it.id }
-        .filter { it.isNotBlank() }
-
-    if (compIds.isEmpty()) {
-        oracleVmRepository.refreshCompetitions()
-        compIds = oracleVmRepository.competitions.value
-            .map { it.id }
-            .filter { it.isNotBlank() }
-    }
-
-    if (compIds.isEmpty()) return emptyList()
-
-    return coroutineScope {
-        compIds.map { compId ->
-            async {
-                val res = oracleVmRepository.getMatches(
-                    competitionId = compId,
-                    hasHighlight = true,
-                    ascending = false,
-                    limit = 20,
-                    season = season,
-                )
-                if (res is NetworkResult.Success) {
-                    res.data.map { it.toMatch(oracleVmRepository.getCompetitionEmblem(it.competitionId)) }
-                } else {
-                    emptyList()
-                }
-            }
-        }.awaitAll().flatten().sortedByDescending { it.utcDate }
-    }
-}
 
 internal suspend fun fetchOracleMatches(
     oracleVmRepository: OracleVmRepository,
@@ -157,19 +117,14 @@ internal suspend fun HomeViewModel.getOracleHighlights(isRefresh: Boolean = true
         oracleVmRepository.refreshCompetitions()
     }
 
-    val (newM, hasMore) = if (_selectedCompetitionId.value == null && searchQuery.isBlank() && oracleOffset == 0) {
-        val grouped = fetchGroupedOracleHighlights(oracleVmRepository, selectedSeason.value)
-        Pair(grouped, false)
-    } else {
-        fetchOracleMatches(
-            oracleVmRepository = oracleVmRepository,
-            competitionId = _selectedCompetitionId.value,
-            limit = oracleLimit,
-            offset = oracleOffset,
-            season = selectedSeason.value,
-            query = searchQuery,
-        )
-    }
+    val (newM, hasMore) = fetchOracleMatches(
+        oracleVmRepository = oracleVmRepository,
+        competitionId = _selectedCompetitionId.value,
+        limit = oracleLimit,
+        offset = oracleOffset,
+        season = selectedSeason.value,
+        query = searchQuery,
+    )
 
     val exIds = oracleMatches.map { it.id }.toSet()
     val exVideos = oracleMatches.mapNotNull { it.highlightVideoId }.toSet()

@@ -85,6 +85,7 @@ internal fun HomeScreenBody(
                             isAdsRemoved = isAdsRemoved,
                             showExternalHighlights = showExternalHighlights,
                             selectedLeagueId = selectedLeagueId,
+                            isLoadingMore = state.isLoadingMore,
                             isSpoilerFreeMode = isSpoilerFreeMode,
                             revealedItemIds = revealedItemIds,
                             onRevealItem = onRevealItem,

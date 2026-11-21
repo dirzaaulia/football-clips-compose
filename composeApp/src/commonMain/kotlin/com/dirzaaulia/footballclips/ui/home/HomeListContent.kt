@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -20,22 +19,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
-import com.dirzaaulia.footballclips.data.model.matchesLeague
 import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.ui.components.card.HeroCarousel
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
-import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
-import com.dirzaaulia.footballclips.ui.theme.LocalThemeIsDark
-import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
-import com.dirzaaulia.footballclips.ui.score.components.RecentMatchesSection
+import com.dirzaaulia.footballclips.ui.components.filter.BigLeaguesQuickFilterBar
 
 @Composable
 internal fun HomeListContent(
@@ -57,16 +49,9 @@ internal fun HomeListContent(
     val liveMatches by viewModel.liveMatches.collectAsState()
     val favoriteClubs by viewModel.favoriteClubs.collectAsState()
     val supportedClubs by viewModel.supportedClubs.collectAsState()
-    val filterState by viewModel.filterState.collectAsState()
     val competitions by viewModel.competitions.collectAsState()
-    val selectedSeason by viewModel.selectedSeason.collectAsState()
     val selectedCompetitionId by viewModel.selectedCompetitionId.collectAsState()
     val selectedLeagueId by viewModel.selectedLeagueId.collectAsState()
-    val isAllLeagues = filterState.selectedLeagues.isEmpty() &&
-        selectedLeagueId == null &&
-        selectedCompetitionId.isNullOrEmpty()
-    val isDark = LocalThemeIsDark.current
-    var collapsedCompIds by remember { mutableStateOf(emptySet<String>()) }
 
     LazyColumn(
         state = listState,
@@ -75,7 +60,7 @@ internal fun HomeListContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         if (liveMatches.isNotEmpty()) {
-            item {
+            item(key = "home-live-matches-strip") {
                 HomeLiveMatchSection(
                     liveMatches = liveMatches,
                     favoriteClubs = favoriteClubs,
@@ -92,7 +77,7 @@ internal fun HomeListContent(
         }
 
         if (featuredHighlight != null) {
-            item {
+            item(key = "home-hero-carousel") {
                 HeroCarousel(
                     items = items,
                     isAdsRemoved = isAdsRemoved,
@@ -109,127 +94,29 @@ internal fun HomeListContent(
             }
         }
 
+        if (competitions.isNotEmpty()) {
+            item(key = "competition-horizontal-scroll") {
+                BigLeaguesQuickFilterBar(
+                    selectedLeagueId = selectedLeagueId,
+                    selectedCompetitionId = selectedCompetitionId,
+                    onLeagueSelected = { leagueId, compId ->
+                        viewModel.selectLeague(leagueId, compId)
+                    },
+                    dynamicCompetitions = competitions,
+                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 2.dp),
+                )
+            }
+        }
+
         if (items.isEmpty()) {
-            item {
+            item(key = "empty-highlights-state") {
                 EmptyState(
                     title = "No Highlights Found",
                     description = "Try selecting another league or check back later.",
                     onActionClick = onResetFilters,
                 )
             }
-        } else if (isAllLeagues) {
-            val (intlItems, regularItems) = partitionRecentHighlights(items, competitions)
-            if (intlItems.isNotEmpty()) {
-                item(key = "recent-intl-matches-section") {
-                    RecentMatchesSection(
-                        matches = intlItems,
-                        title = "Recent International Highlights",
-                        onMatchClick = { selectedItem ->
-                            onVideoClick(selectedItem) { isJumping ->
-                                viewModel.setPendingInterstitial(true)
-                                if (!isJumping) viewModel.consumePendingInterstitial()
-                            }
-                        },
-                        modifier = Modifier.padding(bottom = 8.dp),
-                    )
-                }
-            }
-            item(key = "recent-matches-section") {
-                RecentMatchesSection(
-                    matches = regularItems.ifEmpty { items },
-                    title = "Recent Highlights",
-                    onMatchClick = { selectedItem ->
-                        onVideoClick(selectedItem) { isJumping ->
-                            viewModel.setPendingInterstitial(true)
-                            if (!isJumping) viewModel.consumePendingInterstitial()
-                        }
-                    },
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
-            }
-            val nonAds = items.filter { it !is HighlightUiItem.BannerAd }
-            val sortedCompetitions = sortCompetitionsWithIntlPriority(competitions, items)
-            sortedCompetitions.forEachIndexed { index, league ->
-                val compName = league.name
-                val emblem = league.getEmblemUrl(isDark)
-                val displayMatches = nonAds.filter { it.matchesLeague(league) }.take(20)
-
-                if (displayMatches.isNotEmpty()) {
-                    val isExpanded = !collapsedCompIds.contains(league.id)
-                    item(key = "section-${league.id}") {
-                        HomeCompetitionSectionHeader(
-                            competitionName = compName,
-                            competitionEmblemUrl = emblem,
-                            isExpanded = isExpanded,
-                            onToggleExpand = {
-                                collapsedCompIds = if (isExpanded) {
-                                    collapsedCompIds + league.id
-                                } else {
-                                    collapsedCompIds - league.id
-                                }
-                            },
-                            onSeeAll = {
-                                if (league.leagueId != null) {
-                                    viewModel.selectLeague(league.leagueId, league.competitionId)
-                                } else {
-                                    viewModel.selectCompetitionByName(compName)
-                                }
-                            },
-                        )
-                    }
-                    if (isExpanded) {
-                        item(key = "row-${league.id}") {
-                            CompetitionHighlightReel(
-                                displayMatches = displayMatches,
-                                league = league,
-                                compName = compName,
-                                emblem = emblem,
-                                isAdsRemoved = isAdsRemoved,
-                                isSpoilerFreeMode = isSpoilerFreeMode,
-                                revealedItemIds = revealedItemIds,
-                                onMatchClick = { match ->
-                                    onVideoClick(HighlightUiItem.OracleMatch(match)) { isJumping ->
-                                        viewModel.setPendingInterstitial(true)
-                                        if (!isJumping) viewModel.consumePendingInterstitial()
-                                    }
-                                },
-                                onSeeAll = {
-                                    if (league.leagueId != null) {
-                                        viewModel.selectLeague(league.leagueId, league.competitionId)
-                                    } else {
-                                        viewModel.selectCompetitionByName(compName)
-                                    }
-                                },
-                                onRevealItem = onRevealItem,
-                            )
-                        }
-                    }
-                }
-
-                if (!isAdsRemoved && (index + 1) % 3 == 0 && index < competitions.size - 1) {
-                    item(key = "ad-between-${league.id}") {
-                        BannerAdItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            style = NativeAdStyle.MATCH,
-                        )
-                    }
-                }
-            }
         } else {
-            item(key = "filtered-recent-matches-section") {
-                RecentMatchesSection(
-                    matches = items,
-                    onMatchClick = { selectedItem ->
-                        onVideoClick(selectedItem) { isJumping ->
-                            viewModel.setPendingInterstitial(true)
-                            if (!isJumping) viewModel.consumePendingInterstitial()
-                        }
-                    },
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
-            }
             items(
                 items = items,
                 key = { item -> item.uniqueId },
@@ -248,7 +135,7 @@ internal fun HomeListContent(
         val loadMoreError = (viewModel.uiState.value as? HomeState.Success)?.loadMoreError
 
         if (isLoadingMore && loadMoreError == null) {
-            item {
+            item(key = "loading-more-indicator") {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -262,7 +149,7 @@ internal fun HomeListContent(
                 }
             }
         } else if (loadMoreError != null) {
-            item {
+            item(key = "load-more-error-retry") {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -283,4 +170,3 @@ internal fun HomeListContent(
         }
     }
 }
-

@@ -22,7 +22,10 @@ import { ShortsPipelineView, DbFootballShort } from './components/ShortsPipeline
 import { TelemetryFilterBar } from './components/TelemetryFilterBar';
 import { ChannelLookupMap } from './mapperHelper';
 import { TaxonomyManagementModal } from './components/TaxonomyManagementModal';
-import TelemetrySkeleton from './components/TelemetrySkeleton';
+import TelemetrySkeleton, {
+  WaterfallGroupedSkeleton,
+  WaterfallCardSkeleton,
+} from './components/TelemetrySkeleton';
 
 export default function TelemetryPage() {
   const [activeTab, setActiveTab] = useState<TelemetryTab>('highlights');
@@ -233,11 +236,15 @@ export default function TelemetryPage() {
                   </div>
 
                   {isLoading ? (
-                    <div className="space-y-3 animate-pulse">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-28 bg-[#121316] rounded-xl border border-white/5" />
-                      ))}
-                    </div>
+                    viewMode === 'grouped' ? (
+                      <WaterfallGroupedSkeleton />
+                    ) : (
+                      <div className="space-y-2.5 animate-pulse">
+                        {[1, 2, 3].map((i) => (
+                          <WaterfallCardSkeleton key={i} />
+                        ))}
+                      </div>
+                    )
                   ) : viewMode === 'grouped' ? (
                     <GroupedWaterfallsView
                       groups={groupedWaterfalls}
