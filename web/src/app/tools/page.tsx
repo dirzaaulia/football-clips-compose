@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description:
     'Interactive European football tools: Attacking Zones Breakdown, Head-to-Head Club Comparator, Live League Form, and Global Broadcast Directory.',
   alternates: {
-    canonical: 'https://footballclips.web.app/tools',
+    canonical: 'https://fc.dirzaaulia.com/tools',
   },
 };
 

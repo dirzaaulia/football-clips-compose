@@ -61,6 +61,16 @@ fun BigLeaguesQuickFilterBar(
                     ),
                 )
             }
+            if (comps.any { it.isInternational }) {
+                list.add(
+                    BigLeague(
+                        id = "INTL",
+                        name = "Int'l",
+                        type = "international",
+                        emblemUrl = null,
+                    ),
+                )
+            }
             list.addAll(comps.filter { if (showAll) true else (it.leagueId != null || it.competitionId.isNotEmpty()) })
             list
         }

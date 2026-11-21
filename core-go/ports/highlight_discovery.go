@@ -9,5 +9,6 @@ import (
 // HighlightDiscovery defines the contract for discovering video candidates from YouTube.
 type HighlightDiscovery interface {
 	DiscoverCandidates(ctx context.Context, match domain.Match, channelIDs []string) ([]domain.VideoCandidate, error)
+	EnrichCandidateDetails(ctx context.Context, candidates []domain.VideoCandidate) ([]domain.VideoCandidate, error)
 	GetRemainingQuota() int
 }

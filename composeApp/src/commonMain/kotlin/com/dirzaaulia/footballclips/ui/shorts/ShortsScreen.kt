@@ -131,6 +131,7 @@ private fun ShortVideoPage(
                 isMuted = isMuted,
                 onDismiss = {},
                 onPlaybackStarted = { isPlaybackActive = true },
+                isShort = true,
             )
         }
 

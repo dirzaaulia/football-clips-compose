@@ -21,6 +21,8 @@ import MyClubsModal from '@/components/clubs/MyClubsModal';
 import GooglePlayBadge from '@/components/common/GooglePlayBadge';
 import { useSeason } from '@/hooks/useSeason';
 
+const INTL_IDS = new Set(['UNL', 'CNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI']);
+
 function groupMatchesByCompetition(
   matches: MatchRecord[],
   competitions: Array<{ competitionId?: string | null; name: string; logo?: string }>,
@@ -157,12 +159,15 @@ export default function FixturesPage() {
       if (isMyClubsActive && favoriteClubs.size > 0) {
         if (!isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs, supportedClubs))
           return false;
-      } else if (selectedComp !== 'ALL' && competition) {
-        if (
+      } else if (selectedComp !== 'ALL') {
+        if (selectedComp === 'INTL') {
+          if (!m.competition_id || !INTL_IDS.has(m.competition_id.toUpperCase())) return false;
+        } else if (
           m.competition_id !== selectedComp &&
-          !isLeagueMatch(competition.name, m.competition_name)
-        )
+          (!competition || !isLeagueMatch(competition.name, m.competition_name))
+        ) {
           return false;
+        }
       }
       return true;
     });

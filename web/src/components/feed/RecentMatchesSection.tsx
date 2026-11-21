@@ -11,12 +11,16 @@ interface RecentMatchesSectionProps {
   matches: MatchRecord[];
   onPlay?: (match: MatchRecord) => void;
   className?: string;
+  title?: string;
+  badgeText?: string;
 }
 
 export default function RecentMatchesSection({
   matches,
   onPlay,
   className = '',
+  title = 'Recent Highlights',
+  badgeText = 'LATEST RECAPS',
 }: RecentMatchesSectionProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -27,7 +31,7 @@ export default function RecentMatchesSection({
       const vid = m.highlight_video_id || m.external_video_id;
       return !!vid && vid.trim() !== '';
     })
-    .slice(0, 16);
+    .slice(0, 20);
 
   if (recentHighlights.length === 0) {
     return null;
@@ -57,10 +61,10 @@ export default function RecentMatchesSection({
         <div className="flex items-center gap-2.5">
           <span className="w-1 h-5 rounded-full bg-[#DFFF00] shadow-[0_0_8px_rgba(223,255,0,0.4)]" />
           <h2 className="font-scoreboard text-xl sm:text-2xl text-white tracking-wider uppercase">
-            Recent Highlights
+            {title}
           </h2>
           <span className="font-tech text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#DFFF00]/15 text-[#DFFF00] border border-[#DFFF00]/30 hidden sm:inline-block">
-            LATEST RECAPS
+            {badgeText}
           </span>
         </div>
         <Link

@@ -17,6 +17,15 @@ func (m *mockDiscovery) DiscoverCandidates(ctx context.Context, match domain.Mat
 	return m.candidates, nil
 }
 
+func (m *mockDiscovery) EnrichCandidateDetails(ctx context.Context, candidates []domain.VideoCandidate) ([]domain.VideoCandidate, error) {
+	for i := range candidates {
+		if candidates[i].WatchabilityPct == 0 {
+			candidates[i].WatchabilityPct = 100.0
+		}
+	}
+	return candidates, nil
+}
+
 func (m *mockDiscovery) GetRemainingQuota() int {
 	return 50000
 }
@@ -105,5 +114,121 @@ func TestFindHighlightActiveMode(t *testing.T) {
 
 	if trace.Outcome != "LINKED" {
 		t.Errorf("expected outcome LINKED, got %s", trace.Outcome)
+	}
+}
+
+func TestFindHighlight_UpgradeWorldwide(t *testing.T) {
+	ctx := context.Background()
+	currentVid := "old_vid_uk_only"
+	match := domain.Match{
+		ID:               993,
+		Status:           "FINISHED",
+		HomeTeamName:     "Bayern Munich",
+		AwayTeamName:     "FC Cologne",
+		UTCDate:          time.Now().UTC(),
+		HighlightVideoID: &currentVid,
+		RegionInfo: &domain.RegionInfo{
+			SweepCount: 2,
+			Blocked:    []string{"US", "ID", "DE", "FR", "ES"}, // Has geo deficit (<99%)
+		},
+	}
+
+	betterCand := domain.VideoCandidate{
+		VideoID:         "new_vid_worldwide",
+		Title:           "Bayern Munich vs FC Cologne Highlights",
+		Tier:            1,
+		WatchabilityPct: 100.0,
+		DurationSeconds: 600,
+	}
+	eval := &domain.CandidateEvaluation{
+		VideoID:   "new_vid_worldwide",
+		Verdict:   "ACCEPTED",
+		Score:     99,
+		Evaluator: "ORACLE_GATEWAY",
+	}
+
+	disc := &mockDiscovery{candidates: []domain.VideoCandidate{betterCand}}
+	aigw := &mockAIGateway{evaluation: eval}
+	repo := &mockMatchRepo{}
+
+	uc := usecases.NewFindHighlightUseCase(disc, aigw, repo, nil, false)
+	trace, err := uc.Execute(ctx, match)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if trace.Outcome != "LINKED" {
+		t.Errorf("expected outcome LINKED, got %s", trace.Outcome)
+	}
+	if trace.LinkedVideoID == nil || *trace.LinkedVideoID != "new_vid_worldwide" {
+		t.Errorf("expected upgrade to new_vid_worldwide, got %v", trace.LinkedVideoID)
+	}
+}
+
+func TestIsBetterHighlight(t *testing.T) {
+	currentVid := "curr123"
+	baseMatch := domain.Match{
+		HighlightVideoID: &currentVid,
+		RegionInfo: &domain.RegionInfo{
+			Tier:            2,
+			WatchabilityPct: 75.0,
+			DurationSeconds: 120,
+		},
+	}
+
+	tests := []struct {
+		name       string
+		candidate  domain.VideoCandidate
+		wantBetter bool
+	}{
+		{
+			name: "Worldwide upgrade to >=99%",
+			candidate: domain.VideoCandidate{
+				VideoID:         "better1",
+				Tier:            2,
+				WatchabilityPct: 99.5,
+				DurationSeconds: 120,
+			},
+			wantBetter: true,
+		},
+		{
+			name: "Authority Tier upgrade (Tier 1 vs Tier 2)",
+			candidate: domain.VideoCandidate{
+				VideoID:         "better2",
+				Tier:            1,
+				WatchabilityPct: 75.0,
+				DurationSeconds: 120,
+			},
+			wantBetter: true,
+		},
+		{
+			name: "Extended duration upgrade (8m vs 2m)",
+			candidate: domain.VideoCandidate{
+				VideoID:         "better3",
+				Tier:            2,
+				WatchabilityPct: 75.0,
+				DurationSeconds: 600,
+			},
+			wantBetter: true,
+		},
+		{
+			name: "Inferior candidate rejected",
+			candidate: domain.VideoCandidate{
+				VideoID:         "worse1",
+				Tier:            3,
+				WatchabilityPct: 50.0,
+				DurationSeconds: 90,
+			},
+			wantBetter: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, _ := domain.IsBetterHighlight(tt.candidate, baseMatch)
+			if got != tt.wantBetter {
+				t.Errorf("IsBetterHighlight() = %v, want %v", got, tt.wantBetter)
+			}
+		})
 	}
 }

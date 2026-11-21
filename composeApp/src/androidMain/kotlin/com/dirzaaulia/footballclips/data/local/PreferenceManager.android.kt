@@ -39,6 +39,8 @@ actual class PreferenceManager(
                 for (cid in currentClubs) {
                     FirebaseMessaging.getInstance().subscribeToTopic("club_$cid")
                 }
+                val isDark = context.dataStore.data.first()[darkModeKey] ?: true
+                applySystemNightMode(context, isDark)
                 syncTelemetry(currentClubs)
             } catch (_: Exception) {
             }
@@ -92,6 +94,7 @@ actual class PreferenceManager(
         context.dataStore.edit { preferences ->
             preferences[darkModeKey] = isDark
         }
+        applySystemNightMode(context, isDark)
         val currentClubs = _inMemoryFavoriteClubs.value ?: context.dataStore.data.first()[favoriteClubsKey] ?: emptySet()
         syncTelemetry(currentClubs, if (isDark) "dark" else "light")
     }

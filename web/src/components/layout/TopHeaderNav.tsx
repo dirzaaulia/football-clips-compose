@@ -13,6 +13,8 @@ interface TopHeaderNavProps {
   isPro?: boolean;
 }
 
+// During Google AdSense site approval review, affiliate store links are suppressed
+// to adhere strictly to Google's "Thin affiliate site" policy guidelines.
 const NAV_LINKS = [
   { href: '/', label: 'Highlights' },
   { href: '/shorts', label: 'Shorts' },
@@ -20,7 +22,6 @@ const NAV_LINKS = [
   { href: '/standings', label: 'Standings & Stats' },
   { href: '/articles', label: 'Analysis' },
   { href: '/tools', label: 'Tools' },
-  { href: '/store', label: 'Store' },
   { href: '/settings', label: 'Settings' },
 ];
 

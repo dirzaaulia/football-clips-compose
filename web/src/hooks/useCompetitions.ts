@@ -9,7 +9,7 @@ export interface Competition {
   countryCode: string | null;
   competitionId: string | null;
   logo: string;
-  type?: 'league' | 'hybrid' | 'cup';
+  type?: 'league' | 'hybrid' | 'cup' | 'international';
 }
 
 interface DynamicCompetitionDto {
@@ -18,11 +18,12 @@ interface DynamicCompetitionDto {
   short_name: string;
   country_code: string | null;
   emblem_url: string | null;
+  emblem_dark_url?: string | null;
   league_id: number | null;
-  type?: 'league' | 'hybrid' | 'cup';
+  type?: 'league' | 'hybrid' | 'cup' | 'international';
 }
 
-const CACHE_KEY = 'fc_cached_dynamic_competitions_v4';
+const CACHE_KEY = 'fc_cached_dynamic_competitions_v6';
 
 export function useCompetitions() {
   const [competitions, setCompetitions] = useState<Competition[]>(() => {
@@ -47,7 +48,16 @@ export function useCompetitions() {
         countryCode: null,
         competitionId: 'ALL',
         logo: '',
-      }
+      },
+      {
+        name: 'All International Tournaments',
+        shortName: "Int'l",
+        leagueId: null,
+        countryCode: null,
+        competitionId: 'INTL',
+        logo: '',
+        type: 'international',
+      },
     ];
   });
 
@@ -70,15 +80,26 @@ export function useCompetitions() {
           logo: '',
         };
 
+        const intlOption: Competition = {
+          name: 'All International Tournaments',
+          shortName: "Int'l",
+          leagueId: null,
+          countryCode: null,
+          competitionId: 'INTL',
+          logo: '',
+          type: 'international',
+        };
+
         const mapped: Competition[] = [
           allLeaguesOption,
+          intlOption,
           ...data.map((c) => ({
             name: c.name,
             shortName: c.short_name || c.name,
             leagueId: c.league_id,
             countryCode: c.country_code,
             competitionId: c.id,
-            logo: c.emblem_url ? c.emblem_url.replace('/soccer/500/', '/soccer/500-dark/') : '',
+            logo: c.emblem_dark_url || c.emblem_url || '',
             type: c.type || 'league',
           })),
         ];

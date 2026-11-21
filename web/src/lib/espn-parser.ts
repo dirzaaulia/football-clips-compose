@@ -16,11 +16,21 @@ function stripHtml(html: string): string {
 function mapRoster(r: any) {
   if (!r) return undefined;
   const allRoster: any[] = r.roster || [];
-  const toPlayer = (p: any) => ({
-    name: p.athlete?.displayName || p.athlete?.shortName || 'Player',
-    jersey: p.jersey || p.athlete?.jersey || '',
-    position: p.position?.abbreviation || p.position?.displayName || '',
-  });
+  const toPlayer = (p: any) => {
+    const statsMap: Record<string, number> = {};
+    for (const s of p.stats || []) {
+      if (s.name && typeof s.value === 'number') statsMap[s.name] = s.value;
+    }
+    const jImg = p.athlete?.jerseyImages?.[1]?.href || p.athlete?.jerseyImages?.[0]?.href;
+    return {
+      name: p.athlete?.displayName || p.athlete?.shortName || 'Player',
+      jersey: p.jersey || p.athlete?.jersey || '',
+      position: p.position?.abbreviation || p.position?.displayName || '',
+      formationPlace: p.formationPlace != null ? String(p.formationPlace) : undefined,
+      jerseyImage: jImg,
+      stats: Object.keys(statsMap).length > 0 ? statsMap : undefined,
+    };
+  };
   return {
     formation: r.formation || '4-3-3',
     color: r.team?.color || 'DFFF00',
@@ -105,13 +115,27 @@ function derivePitchCoords(
   side: 'home' | 'away' | null,
   typeText: string,
   idx: number,
-): { x: number; y: number; tx: number | null; ty: number | null } {
-  const rawX = ev.fieldPositionX ?? ev.coordinate?.x;
-  const rawY = ev.fieldPositionY ?? ev.coordinate?.y;
+): { x: number; y: number; tx: number | null; ty: number | null; gy: number | null } {
+  const p = ev.play || ev;
+  const rawX = p.fieldPositionX ?? ev.coordinate?.x;
+  const rawY = p.fieldPositionY ?? ev.coordinate?.y;
+  const rawEndX = p.fieldPosition2X;
+  const rawEndY = p.fieldPosition2Y;
+  const rawGoalY = p.goalPositionY;
+
   if (typeof rawX === 'number' && typeof rawY === 'number' && rawX > 0 && rawY > 0) {
-    const normX = rawX > 1 ? rawX / 100 : rawX;
-    const normY = rawY > 1 ? rawY / 100 : rawY;
-    return { x: Math.max(0.04, Math.min(0.96, normX)), y: Math.max(0.06, Math.min(0.94, normY)), tx: null, ty: null };
+    const isAway = side === 'away';
+    const normX = isAway ? (100 - rawX) / 100 : rawX / 100;
+    const normY = isAway ? (100 - rawY) / 100 : rawY / 100;
+    const tx = typeof rawEndX === 'number' ? (isAway ? (100 - rawEndX) / 100 : rawEndX / 100) : null;
+    const ty = typeof rawEndY === 'number' ? (isAway ? (100 - rawEndY) / 100 : rawEndY / 100) : null;
+    return {
+      x: Math.max(0.02, Math.min(0.98, normX)),
+      y: Math.max(0.04, Math.min(0.96, normY)),
+      tx: tx != null ? Math.max(0.01, Math.min(0.99, tx)) : null,
+      ty: ty != null ? Math.max(0.02, Math.min(0.98, ty)) : null,
+      gy: typeof rawGoalY === 'number' ? rawGoalY : null,
+    };
   }
 
   const isHome = side !== 'away';
@@ -122,20 +146,20 @@ function derivePitchCoords(
   if (t.includes('goal') && !t.includes('kick')) {
     const x = isHome ? 0.86 + spread * 0.08 : 0.14 - spread * 0.08;
     const y = 0.34 + (spread - 0.5) * 0.24;
-    return { x, y, tx: isHome ? 0.98 : 0.02, ty: 0.5 };
+    return { x, y, tx: isHome ? 0.98 : 0.02, ty: 0.5, gy: 50 };
   }
   if (t.includes('shot') || t.includes('attempt') || t.includes('saved') || t.includes('miss')) {
     const x = isHome ? 0.76 + spread * 0.14 : 0.24 - spread * 0.14;
-    return { x, y: ySpread, tx: isHome ? 0.97 : 0.03, ty: 0.45 + (spread - 0.5) * 0.15 };
+    return { x, y: ySpread, tx: isHome ? 0.97 : 0.03, ty: 0.45 + (spread - 0.5) * 0.15, gy: 50 };
   }
   if (t.includes('corner')) {
-    return { x: isHome ? 0.96 : 0.04, y: idx % 2 === 0 ? 0.06 : 0.94, tx: isHome ? 0.88 : 0.12, ty: 0.5 };
+    return { x: isHome ? 0.96 : 0.04, y: idx % 2 === 0 ? 0.06 : 0.94, tx: isHome ? 0.88 : 0.12, ty: 0.5, gy: null };
   }
   if (t.includes('sub')) {
-    return { x: 0.5, y: 0.92, tx: null, ty: null };
+    return { x: 0.5, y: 0.92, tx: null, ty: null, gy: null };
   }
   const x = isHome ? 0.35 + spread * 0.45 : 0.65 - spread * 0.45;
-  return { x, y: ySpread, tx: null, ty: null };
+  return { x, y: ySpread, tx: null, ty: null, gy: null };
 }
 
 export function parseEspnSummaryPayload(data: any): EspnSummaryResult {
@@ -191,11 +215,15 @@ export function parseEspnSummaryPayload(data: any): EspnSummaryResult {
     competitionName: ev.leagueName || series?.title || 'Head-to-Head',
   }));
 
-  const rawEvents = data.keyEvents || comp?.details || data.commentary || [];
-  const events: MatchEvent[] = rawEvents.slice(0, 60).map((ev: any, idx: number) => {
-    const typeText = String(ev.type?.text || ev.play?.type?.text || 'Event');
+  const rawEvents =
+    data.commentary && data.commentary.length > 0
+      ? data.commentary
+      : data.keyEvents || comp?.details || [];
+  const events: MatchEvent[] = rawEvents.slice(0, 110).map((ev: any, idx: number) => {
+    const typeText = String(ev.play?.type?.text || ev.type?.text || 'Event');
     const isScoring = Boolean(
-      ev.scoringPlay ||
+      ev.play?.scoringPlay ||
+        ev.scoringPlay ||
         (typeText.toLowerCase().includes('goal') &&
           !typeText.toLowerCase().includes('kick') &&
           !typeText.toLowerCase().includes('attempt')),
@@ -203,23 +231,27 @@ export function parseEspnSummaryPayload(data: any): EspnSummaryResult {
     const side = resolveEventSide(ev, homeId, awayId, homeName, awayName);
     const coords = derivePitchCoords(ev, side, typeText, idx);
     const cleanPlayer = extractCleanPlayerName(ev);
-    const assistPlayer = ev.participants?.[1]?.athlete?.displayName || null;
+    const pList = ev.play?.participants || ev.participants || [];
+    const assistPlayer = pList[1]?.athlete?.displayName || null;
+    const sec = ev.play?.clock?.value ?? ev.time?.value ?? ev.clock?.value;
 
     return {
-      id: String(ev.id || idx),
+      id: String(ev.play?.id || ev.id || idx),
       type: typeText,
       type_text: typeText,
-      clock: ev.clock?.displayValue || '',
-      period: ev.period?.number,
+      clock: ev.play?.clock?.displayValue || ev.clock?.displayValue || ev.time?.displayValue || '',
+      period: ev.play?.period?.number || ev.period?.number,
       side,
       scoring_play: isScoring,
       player: cleanPlayer,
       assist: assistPlayer,
-      text: ev.text || ev.shortText || typeText,
+      text: ev.play?.text || ev.text || ev.shortText || typeText,
       x_coord: coords.x,
       y_coord: coords.y,
       target_x: coords.tx,
       target_y: coords.ty,
+      goal_position_y: coords.gy,
+      seconds: typeof sec === 'number' ? sec : null,
     };
   });
 

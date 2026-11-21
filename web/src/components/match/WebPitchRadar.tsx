@@ -1,10 +1,13 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { Crosshair } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Crosshair, Maximize2, Minimize2 } from 'lucide-react';
 import { MatchFormations } from '@/lib/database';
 import WebPitchRadarCanvas from './WebPitchRadarCanvas';
 import WebPitchRadarControls from './WebPitchRadarControls';
+import WebPitchTimelineScrubber from './WebPitchTimelineScrubber';
+import { computeAttackMomentum } from './WebPitchXgHelper';
+import { ensureLegibleHex } from '@/lib/colors';
 
 export interface WebPitchPlay {
   id: string;
@@ -19,7 +22,9 @@ export interface WebPitchPlay {
   y_percent: number;
   target_x?: number | null;
   target_y?: number | null;
+  goal_position_y?: number | null;
   period?: number | string;
+  seconds?: number | null;
 }
 
 interface WebPitchRadarProps {
@@ -40,24 +45,51 @@ export default function WebPitchRadar({
   awayColor,
   formations,
 }: WebPitchRadarProps) {
-  const hasLineups = Boolean(
-    formations?.home?.starters?.length || formations?.away?.starters?.length,
-  );
+  const hasLineups = Boolean(formations?.home?.starters?.length || formations?.away?.starters?.length);
   const [viewMode, setViewMode] = useState<'FORMATIONS' | 'SHOTS' | 'ZONES'>(
     hasLineups ? 'FORMATIONS' : 'SHOTS',
   );
+  const [isHalfPitch, setIsHalfPitch] = useState(false);
   const [selectedPlay, setSelectedPlay] = useState<WebPitchPlay | null>(() => {
     return plays.find((p) => p.type.toLowerCase().includes('goal')) || plays[0] || null;
   });
   const [heatmapTeam, setHeatmapTeam] = useState<'ALL' | 'HOME' | 'AWAY'>('ALL');
   const [selectedPlayerName, setSelectedPlayerName] = useState<string | null>(null);
 
+  // Timeline scrubbing & momentum state
+  const [timelineMinute, setTimelineMinute] = useState(90);
+  const [isPlayingTimeline, setIsPlayingTimeline] = useState(false);
+
+  const hColor = ensureLegibleHex(homeColor, '#DFFF00');
+  const aColor = ensureLegibleHex(awayColor, '#38BDF8');
+
+  const momentum = useMemo(() => computeAttackMomentum(plays), [plays]);
+
   const shotPlays = useMemo(() => {
     return plays.filter((p) => {
       const t = (p.type_text || p.type || '').toLowerCase();
-      return t.includes('shot') || t.includes('goal') || t.includes('attempt');
+      const isShot = t.includes('shot') || t.includes('goal') || t.includes('attempt');
+      if (!isShot) return false;
+      const m = p.clock.match(/(\d+)/);
+      const min = m ? parseInt(m[1], 10) : 0;
+      return min <= timelineMinute;
     });
-  }, [plays]);
+  }, [plays, timelineMinute]);
+
+  // Auto-play timeline ticker
+  useEffect(() => {
+    if (!isPlayingTimeline) return;
+    const interval = setInterval(() => {
+      setTimelineMinute((prev) => {
+        if (prev >= 95) {
+          setIsPlayingTimeline(false);
+          return 95;
+        }
+        return prev + 1;
+      });
+    }, 400);
+    return () => clearInterval(interval);
+  }, [isPlayingTimeline]);
 
   return (
     <div className="space-y-3.5 bg-[#121316] border border-white/10 rounded-2xl p-3.5 sm:p-4 shadow-xl select-none">
@@ -69,8 +101,20 @@ export default function WebPitchRadar({
             ({homeTeam} vs {awayTeam})
           </span>
         </div>
-        <div className="text-[10px] font-mono text-white/40 font-bold uppercase tracking-wider">
-          Opta-Style 2D Radar
+
+        <div className="flex items-center gap-2">
+          {viewMode === 'SHOTS' && (
+            <button
+              onClick={() => setIsHalfPitch((prev) => !prev)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 text-[10px] font-bold font-mono transition cursor-pointer"
+            >
+              {isHalfPitch ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+              <span>{isHalfPitch ? 'Full Pitch' : 'Half Pitch Focus'}</span>
+            </button>
+          )}
+          <div className="text-[10px] font-mono text-[#DFFF00] font-black uppercase tracking-wider">
+            Opta &amp; SofaScore Engine
+          </div>
         </div>
       </div>
 
@@ -87,6 +131,22 @@ export default function WebPitchRadar({
         heatmapTeam={heatmapTeam}
         homeTeam={homeTeam}
         awayTeam={awayTeam}
+        isHalfPitch={isHalfPitch}
+      />
+
+      <WebPitchTimelineScrubber
+        momentum={momentum}
+        currentMinute={timelineMinute}
+        onMinuteChange={(m) => setTimelineMinute(m)}
+        isPlaying={isPlayingTimeline}
+        onTogglePlay={() => setIsPlayingTimeline((prev) => !prev)}
+        onReset={() => {
+          setIsPlayingTimeline(false);
+          setTimelineMinute(90);
+        }}
+        plays={plays}
+        homeColor={hColor}
+        awayColor={aColor}
       />
 
       <WebPitchRadarControls

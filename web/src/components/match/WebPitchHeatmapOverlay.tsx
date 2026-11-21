@@ -52,8 +52,30 @@ export default function WebPitchHeatmapOverlay({
     };
   }, [plays, homeTeam, awayTeam]);
 
+  const clusterPlays = useMemo(() => {
+    return plays
+      .filter((p) => p.x_percent != null && p.y_percent != null)
+      .slice(0, 40);
+  }, [plays]);
+
   return (
     <g className="tactical-zones-overlay select-none">
+      <defs>
+        <radialGradient id="heatHotspot" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#DFFF00" stopOpacity="0.45" />
+          <stop offset="35%" stopColor="#F59E0B" stopOpacity="0.30" />
+          <stop offset="70%" stopColor="#38BDF8" stopOpacity="0.15" />
+          <stop offset="100%" stopColor="#38BDF8" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+
+      {/* Multi-Stop Radial Gaussian Density Hotspots */}
+      {clusterPlays.map((p) => {
+        const sx = 2 + (p.x_percent / 100) * 101;
+        const sy = 2 + (p.y_percent / 100) * 64;
+        return <circle key={p.id} cx={sx} cy={sy} r="9.5" fill="url(#heatHotspot)" pointerEvents="none" />;
+      })}
+
       {/* 3 Pitch Thirds Separator Lines & Percentage Overlays */}
       <line x1="35.6" y1="2" x2="35.6" y2="66" stroke="rgba(255,255,255,0.12)" strokeWidth="0.4" strokeDasharray="2,2" />
       <line x1="69.3" y1="2" x2="69.3" y2="66" stroke="rgba(255,255,255,0.12)" strokeWidth="0.4" strokeDasharray="2,2" />
@@ -69,7 +91,7 @@ export default function WebPitchHeatmapOverlay({
         ATT 1/3 ({awayThird}%)
       </text>
 
-      {/* Zone 14 Danger Corridors (Outside Penalty Boxes) */}
+      {/* Zone 14 Danger Corridors */}
       {(heatmapTeam === 'ALL' || heatmapTeam === 'HOME') && (
         <g className="zone14-home">
           <rect
@@ -112,7 +134,7 @@ export default function WebPitchHeatmapOverlay({
         </g>
       )}
 
-      {/* Industry-Grade Tactical Territorial Tilt HUD */}
+      {/* Territorial Tilt HUD */}
       <g transform="translate(3, 60.5)">
         <rect
           x="0"

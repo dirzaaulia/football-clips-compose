@@ -37,6 +37,7 @@ import com.dirzaaulia.footballclips.data.model.uniqueId
 import com.dirzaaulia.footballclips.domain.model.Match
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
+import com.dirzaaulia.footballclips.ui.components.player.SpoilerThumbnailBox
 import com.dirzaaulia.footballclips.ui.theme.VoltLime
 import com.dirzaaulia.footballclips.util.toProxyUrl
 
@@ -52,6 +53,7 @@ fun CompetitionHighlightReel(
     onMatchClick: (Match) -> Unit,
     onSeeAll: () -> Unit,
     modifier: Modifier = Modifier,
+    onRevealItem: ((String) -> Unit)? = null,
 ) {
     LazyRow(
         modifier = modifier.fillMaxWidth(),
@@ -68,6 +70,7 @@ fun CompetitionHighlightReel(
                         isSpoilerFree = isSpoilerFreeMode,
                         isRevealed = isRevealed,
                         onClick = { onMatchClick(match) },
+                        onRevealClick = { onRevealItem?.invoke(item.uniqueId) },
                     )
                 }
             }
@@ -100,6 +103,7 @@ private fun ReelHighlightCard(
     isRevealed: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onRevealClick: (() -> Unit)? = null,
 ) {
     val thumbUrl = "https://img.youtube.com/vi/${match.highlightVideoId}/hqdefault.jpg".toProxyUrl()
     val showScores = !isSpoilerFree || isRevealed
@@ -118,25 +122,33 @@ private fun ReelHighlightCard(
                     .aspectRatio(16f / 9f)
                     .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
             ) {
-                AsyncImage(
-                    model = thumbUrl,
-                    contentDescription = null,
+                SpoilerThumbnailBox(
+                    isSpoilerFree = isSpoilerFree,
+                    isRevealed = isRevealed,
+                    onRevealClick = onRevealClick ?: onClick,
+                    badgeAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                )
+                ) {
+                    AsyncImage(
+                        model = thumbUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.7f),
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.Black.copy(alpha = 0.7f),
+                                    ),
                                 ),
                             ),
-                        ),
-                )
+                    )
+                }
 
                 if (match.homeScore != null && match.awayScore != null) {
                     Surface(

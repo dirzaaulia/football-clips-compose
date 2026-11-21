@@ -39,6 +39,9 @@ type RegionInfo struct {
 	Allowed               []string `json:"allowed,omitempty"`
 	Blocked               []string `json:"blocked,omitempty"`
 	TargetMarketExhausted bool     `json:"target_market_exhausted,omitempty"`
+	WatchabilityPct       float64  `json:"watchability_pct,omitempty"`
+	Tier                  int      `json:"tier,omitempty"`
+	DurationSeconds       int      `json:"duration_seconds,omitempty"`
 }
 
 // IsLive returns true if the match is actively in progress.
@@ -51,28 +54,34 @@ func (m Match) IsFinished() bool {
 	return m.Status == "FINISHED"
 }
 
-// HasGeoDeficit returns true if the current highlight has restricted watchability (<95% WW).
+// HasGeoDeficit returns true if the current highlight has restricted watchability (<99.0% WW)
+// or is blocked in any of the tier 1 high-density football markets.
 func (m Match) HasGeoDeficit() bool {
 	if m.RegionInfo == nil {
 		return false
 	}
-	if len(m.RegionInfo.Allowed) > 0 && len(m.RegionInfo.Allowed) < 235 {
+	if !IsTargetMarketCatered(m.RegionInfo) {
 		return true
 	}
-	if len(m.RegionInfo.Blocked) > 15 {
+	if len(m.RegionInfo.Allowed) > 0 && len(m.RegionInfo.Allowed) < 247 {
+		return true
+	}
+	if len(m.RegionInfo.Blocked) > 2 {
 		return true
 	}
 	return false
 }
 
-// NeedsHighlight returns true if match is finished, not terminal, and either has no highlight
-// or has a severe geo deficit within the 14-day upgrade window with sweep_count < 3.
+// NeedsHighlight returns true if match is finished, not terminal or optimal, and either has no highlight
+// or has a geo deficit (<99% WW) within the 14-day upgrade window with sweep_count < 12.
 func (m Match) NeedsHighlight(now ...time.Time) bool {
 	if !m.IsFinished() {
 		return false
 	}
-	if m.RegionInfo != nil && (m.RegionInfo.Terminal || m.RegionInfo.TargetMarketExhausted) {
-		return false
+	if m.RegionInfo != nil {
+		if m.RegionInfo.Terminal || m.RegionInfo.TargetMarketExhausted || m.RegionInfo.Status == "OPTIMAL_LINKED" {
+			return false
+		}
 	}
 	if m.HighlightVideoID == nil || *m.HighlightVideoID == "" {
 		return true
@@ -86,7 +95,7 @@ func (m Match) NeedsHighlight(now ...time.Time) bool {
 		if m.RegionInfo != nil {
 			sweepCount = m.RegionInfo.SweepCount
 		}
-		if sweepCount < 3 && m.HasGeoDeficit() {
+		if sweepCount < 12 && m.HasGeoDeficit() {
 			return true
 		}
 	}

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Star
@@ -88,8 +87,16 @@ private fun HubProfileCapsuleButton(
     isPremium: Boolean,
     onClick: () -> Unit,
 ) {
-    val containerColor = if (isPremium) VoltLime.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-    val borderColor = if (isPremium) VoltLime.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+    val containerColor = if (isPremium) {
+        VoltLime.copy(alpha = 0.15f)
+    } else {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+    }
+    val borderColor = if (isPremium) {
+        VoltLime.copy(alpha = 0.5f)
+    } else {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+    }
 
     Surface(
         onClick = onClick,
@@ -100,36 +107,22 @@ private fun HubProfileCapsuleButton(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
         ) {
             Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = "User Hub",
-                tint = if (isPremium) VoltLime else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(18.dp),
+                imageVector = if (isPremium) Icons.Default.Star else Icons.Default.Diamond,
+                contentDescription = if (isPremium) "Pro Active" else "Upgrade to Pro",
+                tint = if (isPremium) VoltLime else MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(15.dp),
             )
-            if (isPremium) {
-                Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = VoltLime,
-                ) {
-                    Text(
-                        text = "PRO",
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Black,
-                        color = Color.Black,
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
-                    )
-                }
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Diamond,
-                    contentDescription = "Upgrade to Pro",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(14.dp),
-                )
-            }
+            Text(
+                text = if (isPremium) "PRO" else "UPGRADE",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black,
+                color = if (isPremium) VoltLime else MaterialTheme.colorScheme.primary,
+                letterSpacing = 0.5.sp,
+            )
         }
     }
 }

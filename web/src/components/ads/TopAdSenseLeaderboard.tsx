@@ -36,7 +36,9 @@ export default function TopAdSenseLeaderboard({
     }
   }, [hasPro]);
 
-  if (hasPro) return null;
+  // Temporarily suppressed during AdSense site review to prevent "Valuable inventory: No content" rejection
+  // Auto Ads via head script handles evaluation; manual slots re-enable post-approval.
+  return null;
 
   return (
     <div

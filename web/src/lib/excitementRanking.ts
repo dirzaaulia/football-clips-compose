@@ -85,17 +85,5 @@ export function arrangeExcitementSlides(
     .sort((a, b) => b.score - a.score)
     .slice(0, 6);
 
-  if (isPro) {
-    return ranked.map((r) => ({ type: 'match', match: r.match, tag: r.tag }));
-  }
-
-  const slides: ExcitementSlide[] = [];
-  ranked.forEach((r, idx) => {
-    slides.push({ type: 'match', match: r.match, tag: r.tag });
-    if ((idx + 1) % 2 === 0 && idx < ranked.length - 1) {
-      slides.push({ type: 'ad' });
-    }
-  });
-
-  return slides;
+  return ranked.map((r) => ({ type: 'match', match: r.match, tag: r.tag }));
 }

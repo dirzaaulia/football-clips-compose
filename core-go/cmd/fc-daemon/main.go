@@ -92,12 +92,16 @@ func main() {
 	server := startHTTPServer(isShadow, websubHandler, logger)
 	defer func() { _ = server.Shutdown(context.Background()) }()
 
-	targetComps := []string{
+	fallbackComps := []string{
 		"PL", "PD", "SA", "BL1", "FL1", "CL", "EL", "ECL",
 		"FAC", "EFL", "CDR", "DFB", "CIT", "SPL", "MLS", "DED", "PPL",
 		"UNL", "WCQ_CONMEBOL", "WCQ_AFC", "WCQ_UEFA", "CNL", "WCQ_CONCACAF", "WCQ_CAF", "FRI",
 	}
-	standingsComps := []string{"PL", "PD", "SA", "BL1", "FL1", "CL", "SPL", "MLS", "DED", "PPL", "IDN", "BRA", "ARG"}
+	targetComps := resolveTargetComps(ctx, repo, fallbackComps)
+	standingsComps := []string{
+		"PL", "PD", "SA", "BL1", "FL1", "CL", "SPL", "MLS", "DED", "PPL", "IDN", "BRA", "ARG",
+		"UNL", "CNL", "WCQ_CONMEBOL",
+	}
 
 	scoreTicker := time.NewTicker(60 * time.Second)
 	defer scoreTicker.Stop()
@@ -120,6 +124,7 @@ func main() {
 			logger.Info("[FC_DAEMON] Shutting down gracefully...")
 			return
 		case <-scoreTicker.C:
+			targetComps = resolveTargetComps(ctx, repo, fallbackComps)
 			runSyncCycle(ctx, syncUseCase, repo, targetComps, purgeClient, logger)
 		case <-hlTicker.C:
 			runHighlightCycle(ctx, repo, highlightUseCase, purgeClient, logger)
@@ -129,6 +134,14 @@ func main() {
 			runStandingsCycle(ctx, standingsUseCase, standingsComps, logger)
 		}
 	}
+}
+
+func resolveTargetComps(ctx context.Context, repo *postgres.Repository, fallback []string) []string {
+	comps, err := repo.GetActiveCompetitionIDs(ctx)
+	if err != nil || len(comps) == 0 {
+		return fallback
+	}
+	return comps
 }
 
 func startHTTPServer(isShadow bool, websubHandler http.Handler, logger *slog.Logger) *http.Server {

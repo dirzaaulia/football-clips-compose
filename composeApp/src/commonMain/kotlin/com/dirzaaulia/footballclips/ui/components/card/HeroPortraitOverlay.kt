@@ -168,11 +168,24 @@ private fun HeroPortraitFooter(
             fontWeight = FontWeight.Medium,
         )
 
-        if (homeLogo.isNotEmpty()) {
-            TeamLogoFeatured(
-                logo = homeLogo,
-                isCinematic = isCinematic,
-            )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (homeLogo.isNotEmpty()) {
+                GlassLogoBadge(
+                    model = homeLogo.toProxyUrl(),
+                    size = if (isCinematic) 40.dp else 28.dp,
+                    padding = if (isCinematic) 5.dp else 3.dp,
+                )
+            }
+            if (awayLogo.isNotEmpty()) {
+                GlassLogoBadge(
+                    model = awayLogo.toProxyUrl(),
+                    size = if (isCinematic) 40.dp else 28.dp,
+                    padding = if (isCinematic) 5.dp else 3.dp,
+                )
+            }
         }
     }
 }

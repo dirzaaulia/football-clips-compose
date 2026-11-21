@@ -48,6 +48,7 @@ actual fun YouTubePlayerView(
     isMuted: Boolean,
     onDismiss: (Boolean) -> Unit,
     onPlaybackStarted: () -> Unit,
+    isShort: Boolean,
 ) {
     val context = LocalContext.current
     val activity = remember(context) { context.findActivity() }
@@ -80,7 +81,7 @@ actual fun YouTubePlayerView(
                     hasSwitchedToBackup = true
                     currentVideoId = backupVideoId
                     isLoading = true
-                    webViewInstance?.loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(backupVideoId), "text/html", "UTF-8", null)
+                    webViewInstance?.loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(backupVideoId, isShort), "text/html", "UTF-8", null)
                 } else {
                     errorState = PlayerErrorState.NETWORK_TIMEOUT
                     isLoading = false
@@ -149,6 +150,7 @@ actual fun YouTubePlayerView(
                         onCustomViewChange = { v, cb -> customView = v; customViewCallback = cb },
                         onInstanceCreated = { webViewInstance = it },
                         onPlaybackStarted = onPlaybackStarted,
+                        isShort = isShort,
                     )
                 },
                 onRelease = { wv -> cleanupWebView(wv) },
@@ -168,7 +170,7 @@ actual fun YouTubePlayerView(
                 errorState = PlayerErrorState.NONE
                 isLoading = true
                 retryNonce++
-                webViewInstance?.loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(currentVideoId), "text/html", "UTF-8", null)
+                webViewInstance?.loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(currentVideoId, isShort), "text/html", "UTF-8", null)
             },
             onDismiss = onDismiss,
         )
@@ -217,6 +219,7 @@ private fun createConfiguredWebView(
     onCustomViewChange: (View?, WebChromeClient.CustomViewCallback?) -> Unit,
     onInstanceCreated: (WebView) -> Unit,
     onPlaybackStarted: () -> Unit,
+    isShort: Boolean,
 ): WebView {
     return WebView(context).apply {
         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
@@ -241,7 +244,7 @@ private fun createConfiguredWebView(
                     val code = url.removePrefix("fc-error://").toIntOrNull() ?: 150
                     if ((code == 101 || code == 150 || code == 100) && backupVideoId != null && !hasSwitchedToBackup && backupVideoId != currentVideoId && isBackupAllowed) {
                         onSwitchedToBackup(backupVideoId)
-                        loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(backupVideoId), "text/html", "UTF-8", null)
+                        loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(backupVideoId, isShort), "text/html", "UTF-8", null)
                     } else if (code == 101 || code == 150 || code == 100) {
                         onErrorState(PlayerErrorState.NOT_EMBEDDABLE)
                     } else {
@@ -277,7 +280,7 @@ private fun createConfiguredWebView(
             loadWithOverviewMode = true
             userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
         }
-        loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(currentVideoId), "text/html", "UTF-8", null)
+        loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(currentVideoId, isShort), "text/html", "UTF-8", null)
         onInstanceCreated(this)
     }
 }

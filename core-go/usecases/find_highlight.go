@@ -80,6 +80,10 @@ func (uc *FindHighlightUseCase) Execute(ctx context.Context, match domain.Match)
 		return trace, fmt.Errorf("discover candidates: %w", err)
 	}
 
+	if len(candidates) > 0 {
+		candidates, _ = uc.discovery.EnrichCandidateDetails(ctx, candidates)
+	}
+
 	trace.Candidates = candidates
 	if len(candidates) == 0 {
 		return uc.handleNotFound(ctx, match, trace, start)
@@ -90,81 +94,128 @@ func (uc *FindHighlightUseCase) Execute(ctx context.Context, match domain.Match)
 		return uc.handleNotFound(ctx, match, trace, start)
 	}
 
-	var candTitle string
-	var candChannel string
-	var candSource string
+	var winningCand domain.VideoCandidate
 	for _, c := range candidates {
 		if c.VideoID == eval.VideoID {
-			candTitle = c.Title
-			candChannel = c.ChannelHandle
-			candSource = c.Source
+			winningCand = c
 			eval.Source = c.Source
 			break
 		}
 	}
-	trace.LinkedVideoTitle = &candTitle
 
-	reg := match.RegionInfo
-	if reg == nil {
-		reg = &domain.RegionInfo{}
-	}
-	reg.SweepCount++
+	return uc.handleEvaluation(ctx, match, eval, winningCand, trace, start)
+}
 
-	watchability := domain.CalculateWorldwideWatchability(reg)
-	trace.GlobalWatchabilityPct = watchability
-
-	targetCatered := domain.IsTargetMarketCatered(reg)
-	if !targetCatered || watchability < 99.0 {
-		exhausted, exhaustReason := domain.CheckMatchTargetMarketCutoff(match, start, reg.SweepCount)
-		if exhausted {
-			reg.TargetMarketExhausted = true
-			reg.Terminal = true
-			reg.Reason = exhaustReason
+func (uc *FindHighlightUseCase) handleEvaluation(
+	ctx context.Context,
+	match domain.Match,
+	eval *domain.CandidateEvaluation,
+	cand domain.VideoCandidate,
+	trace *domain.MatchWaterfallTrace,
+	start time.Time,
+) (*domain.MatchWaterfallTrace, error) {
+	if match.HighlightVideoID != nil && *match.HighlightVideoID != "" {
+		better, reason := domain.IsBetterHighlight(cand, match)
+		if !better {
+			trace.Outcome = "RETAINED_SUPERIOR"
+			trace.DurationMs = time.Since(start).Milliseconds()
+			uc.logger.Info("[UPGRADE_REJECTED]", slog.Int64("match_id", match.ID), slog.String("reason", reason))
+			return uc.retainCurrentHighlight(ctx, match, trace, start)
 		}
 	}
 
-	trace.Outcome = "LINKED"
+	trace.LinkedVideoTitle = &cand.Title
 	trace.LinkedVideoID = &eval.VideoID
+	trace.GlobalWatchabilityPct = cand.WatchabilityPct
+	trace.Outcome = "LINKED"
 	trace.DurationMs = time.Since(start).Milliseconds()
 
+	reg := buildLinkedRegionInfo(match, cand, start)
 	if uc.isShadowMode {
-		uc.logger.Info("[SHADOW_HIGHLIGHT] Evaluated match candidate",
-			slog.Int64("match_id", match.ID),
-			slog.String("video_id", eval.VideoID),
-			slog.String("evaluator", eval.Evaluator),
-			slog.String("source", eval.Source),
-			slog.Int("score", eval.Score),
-		)
 		_ = uc.matchRepo.SaveWaterfallTrace(ctx, *trace)
 		return trace, nil
 	}
 
 	videoMeta := map[string]any{
 		"video_id":       eval.VideoID,
-		"title":          candTitle,
-		"channel":        candChannel,
-		"channel_handle": candChannel,
-		"source":         candSource,
-		"is_worldwide":   true,
+		"title":          cand.Title,
+		"channel":        cand.ChannelHandle,
+		"channel_handle": cand.ChannelHandle,
+		"source":         cand.Source,
+		"is_worldwide":   cand.WatchabilityPct >= 99.0,
 	}
 
 	if err := uc.matchRepo.UpdateMatchHighlight(ctx, match.ID, eval.VideoID, reg, videoMeta); err != nil {
 		return trace, fmt.Errorf("link match highlight: %w", err)
 	}
 
-	if uc.fcmClient != nil {
-		var hID, aID int
-		if match.HomeTeamID != nil {
-			hID = int(*match.HomeTeamID)
-		}
-		if match.AwayTeamID != nil {
-			aID = int(*match.AwayTeamID)
-		}
-		_ = uc.fcmClient.NotifyHighlightLinked(ctx, match, eval.VideoID, candTitle, hID, aID)
-	}
-
+	uc.dispatchNotification(ctx, match, eval.VideoID, cand.Title)
 	_ = uc.matchRepo.SaveWaterfallTrace(ctx, *trace)
 	return trace, nil
+}
+
+func (uc *FindHighlightUseCase) retainCurrentHighlight(
+	ctx context.Context,
+	match domain.Match,
+	trace *domain.MatchWaterfallTrace,
+	start time.Time,
+) (*domain.MatchWaterfallTrace, error) {
+	sweepCount := 1
+	if match.RegionInfo != nil {
+		sweepCount = match.RegionInfo.SweepCount + 1
+	}
+	reg := match.RegionInfo
+	if reg == nil {
+		reg = &domain.RegionInfo{}
+	}
+	reg.SweepCount = sweepCount
+	if exhausted, reason := domain.CheckMatchTargetMarketCutoff(match, start, sweepCount); exhausted {
+		reg.TargetMarketExhausted = true
+		reg.Terminal = true
+		reg.Reason = reason
+	}
+	_ = uc.matchRepo.UpdateMatchCheck(ctx, match.ID, reg)
+	_ = uc.matchRepo.SaveWaterfallTrace(ctx, *trace)
+	return trace, nil
+}
+
+func buildLinkedRegionInfo(match domain.Match, cand domain.VideoCandidate, start time.Time) *domain.RegionInfo {
+	sweepCount := 1
+	if match.RegionInfo != nil {
+		sweepCount = match.RegionInfo.SweepCount + 1
+	}
+	reg := &domain.RegionInfo{
+		SweepCount:      sweepCount,
+		WatchabilityPct: cand.WatchabilityPct,
+		Tier:            cand.Tier,
+		DurationSeconds: cand.DurationSeconds,
+	}
+	if domain.IsOptimalHighlight(cand) {
+		reg.Terminal = true
+		reg.Status = "OPTIMAL_LINKED"
+		reg.Reason = "Optimal Tier 1 highlight with >=99% worldwide reach secured"
+		return reg
+	}
+	if exhausted, reason := domain.CheckMatchTargetMarketCutoff(match, start, sweepCount); exhausted {
+		reg.TargetMarketExhausted = true
+		reg.Terminal = true
+		reg.Reason = reason
+	}
+	return reg
+}
+
+func (uc *FindHighlightUseCase) dispatchNotification(ctx context.Context, match domain.Match, videoID, title string) {
+	if uc.fcmClient == nil {
+		return
+	}
+	var hID, aID int
+	if match.HomeTeamID != nil {
+		hID = int(*match.HomeTeamID)
+	}
+	if match.AwayTeamID != nil {
+		aID = int(*match.AwayTeamID)
+	}
+	_ = uc.fcmClient.NotifyHighlightLinked(ctx, match, videoID, title, hID, aID)
 }
 
 func (uc *FindHighlightUseCase) handleNotFound(

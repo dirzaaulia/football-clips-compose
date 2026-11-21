@@ -102,3 +102,29 @@ func TestParseEvent(t *testing.T) {
 		t.Errorf("team names mismatch: %s vs %s", match.HomeTeamName, match.AwayTeamName)
 	}
 }
+
+func TestParseEvent_SecondsLessTimestamp(t *testing.T) {
+	ev := espn.RawEvent{
+		ID:   "401861159",
+		Date: "2026-11-17T19:45Z",
+	}
+	ev.Season.Year = 2026
+
+	var comp espn.RawCompetition
+	comp.Status.Type.State = "pre"
+	comp.Competitors = []espn.RawCompetitor{
+		{HomeAway: "home", Team: espn.RawTeam{ID: "604", Name: "Netherlands"}},
+		{HomeAway: "away", Team: espn.RawTeam{ID: "626", Name: "Greece"}},
+	}
+	ev.Competitions = []espn.RawCompetition{comp}
+
+	match, err := espn.ParseEvent(ev, "UNL", "UEFA Nations League")
+	if err != nil {
+		t.Fatalf("ParseEvent failed: %v", err)
+	}
+
+	expectedDate := "2026-11-17T19:45:00Z"
+	if match.UTCDate.Format("2006-01-02T15:04:05Z07:00") != expectedDate {
+		t.Errorf("expected UTCDate %s, got %s", expectedDate, match.UTCDate.Format("2006-01-02T15:04:05Z07:00"))
+	}
+}

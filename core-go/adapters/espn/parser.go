@@ -108,10 +108,11 @@ func ParseEvent(ev RawEvent, leagueCode, leagueName string) (*domain.Match, erro
 	}
 
 	comp := ev.Competitions[0]
-	parsedDate, err := time.Parse(time.RFC3339, strings.ReplaceAll(ev.Date, "Z", "+00:00"))
-	if err != nil {
-		parsedDate = time.Now().UTC()
+	dateRaw := comp.Date
+	if dateRaw == "" {
+		dateRaw = ev.Date
 	}
+	parsedDate := parseESPNDate(dateRaw)
 
 	status := NormalizeStatus(comp.Status.Type.State, comp.Status.Type.Detail)
 	displayClock := comp.Status.DisplayClock
@@ -170,4 +171,28 @@ func populateTeamsAndScores(m *domain.Match, competitors []RawCompetitor, status
 			}
 		}
 	}
+}
+
+// parseESPNDate parses various ISO-8601 timestamps returned by ESPN.
+func parseESPNDate(raw string) time.Time {
+	if raw == "" {
+		return time.Now().UTC()
+	}
+	normalized := strings.ReplaceAll(raw, "Z", "+00:00")
+	normalized = strings.ReplaceAll(normalized, "+0000", "+00:00")
+
+	layouts := []string{
+		time.RFC3339,
+		"2006-01-02T15:04:05Z07:00",
+		"2006-01-02T15:04Z07:00",
+		"2006-01-02T15:04:05",
+		"2006-01-02T15:04",
+		"2006-01-02",
+	}
+	for _, layout := range layouts {
+		if t, err := time.Parse(layout, normalized); err == nil {
+			return t.UTC()
+		}
+	}
+	return time.Now().UTC()
 }

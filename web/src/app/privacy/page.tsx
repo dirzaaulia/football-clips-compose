@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { Tv, Megaphone, CreditCard, ShieldCheck, ShoppingBag } from 'lucide-react';
 
 export const metadata = {
   title: 'Privacy Policy - Football Highlights & Clips',
@@ -65,7 +66,7 @@ export default function PrivacyPage() {
         <div className="grid gap-4">
           <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">
             <h3 className="text-base font-semibold text-white flex items-center gap-2">
-              <span>📺</span> YouTube API Services
+              <Tv className="w-4 h-4 text-[#7098F8] shrink-0" /> YouTube API Services
             </h3>
             <p className="text-sm leading-relaxed">
               Football Highlights &amp; Clips uses <strong className="text-white">YouTube API Services</strong> to display official match highlights and video recaps from verified broadcaster and club channels. By using Football Highlights &amp; Clips, you agree to be bound by the{' '}
@@ -87,7 +88,7 @@ export default function PrivacyPage() {
 
           <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-3">
             <h3 className="text-base font-semibold text-white flex items-center gap-2">
-              <span>📢</span> Advertising (Google AdMob &amp; Google AdSense)
+              <Megaphone className="w-4 h-4 text-[#DFFF00] shrink-0" /> Advertising (Google AdMob &amp; Google AdSense)
             </h3>
             <p className="text-sm leading-relaxed">
               We display advertisements served by Google AdMob (on our Android mobile application) and Google AdSense (on our website) to provide a free service to supporters:
@@ -118,7 +119,7 @@ export default function PrivacyPage() {
 
           <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">
             <h3 className="text-base font-semibold text-white flex items-center gap-2">
-              <span>💳</span> In-App Purchases (RevenueCat &amp; Google Play)
+              <CreditCard className="w-4 h-4 text-emerald-400 shrink-0" /> In-App Purchases (RevenueCat &amp; Google Play)
             </h3>
             <p className="text-sm leading-relaxed">
               We use RevenueCat to manage entitlements and validate receipts for digital purchases. For more information, consult{' '}
@@ -130,19 +131,16 @@ export default function PrivacyPage() {
 
           <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">
             <h3 className="text-base font-semibold text-white flex items-center gap-2">
-              <span>🛡️</span> Backend &amp; Authentication (Supabase)
+              <ShieldCheck className="w-4 h-4 text-[#38BDF8] shrink-0" /> Backend Infrastructure &amp; Datastore
             </h3>
             <p className="text-sm leading-relaxed">
-              User sessions and entitlement verification are securely powered by Supabase. Data is encrypted in transit using HTTPS/TLS. View the{' '}
-              <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" className="text-sky-400 hover:underline">
-                Supabase Privacy Policy
-              </a>.
+              Match statistics, verified telemetry, and user preferences are securely managed on our dedicated PostgreSQL 16 and PostgREST infrastructure hosted on Oracle Cloud Infrastructure (OCI). All data exchanges are encrypted in transit using industry-standard TLS 1.3 / HTTPS.
             </p>
           </div>
 
           <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">
             <h3 className="text-base font-semibold text-white flex items-center gap-2">
-              <span>🛍️</span> Amazon Associates Program
+              <ShoppingBag className="w-4 h-4 text-amber-400 shrink-0" /> Amazon Associates Program
             </h3>
             <p className="text-sm leading-relaxed">
               Football Highlights &amp; Clips is a participant in the <strong className="text-white">Amazon Services LLC Associates Program</strong>, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com and affiliated international marketplaces.

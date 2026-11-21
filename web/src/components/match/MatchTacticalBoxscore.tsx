@@ -102,7 +102,9 @@ export default function MatchTacticalBoxscore({
           y_percent: Math.max(6, Math.min(94, yPct)),
           target_x: txPct,
           target_y: tyPct,
+          goal_position_y: e.goal_position_y,
           period: e.period,
+          seconds: e.seconds,
         };
       });
     }

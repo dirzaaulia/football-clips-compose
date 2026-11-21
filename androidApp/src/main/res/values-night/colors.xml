@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Splash Screen Colors (Night / Dark Theme) -->
+    <color name="splash_window_background">#050508</color>
+    <color name="splash_ball_color">#FFFFFF</color>
+</resources>

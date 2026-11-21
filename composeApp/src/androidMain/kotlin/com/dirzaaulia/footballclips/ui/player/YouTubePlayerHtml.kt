@@ -2,7 +2,12 @@ package com.dirzaaulia.footballclips.ui.player
 
 import androidx.compose.foundation.layout.fillMaxSize
 
-internal fun buildYouTubeHtml(videoId: String): String {
+internal fun buildYouTubeHtml(videoId: String, isShort: Boolean = false): String {
+    val scaleTransform = if (isShort) "scale(1.18)" else "none"
+    val pointerEvents = if (isShort) "none" else "auto"
+    val controlsVal = if (isShort) 0 else 1
+    val fsVal = if (isShort) 0 else 1
+
     return """
         <!DOCTYPE html>
         <html>
@@ -11,9 +16,9 @@ internal fun buildYouTubeHtml(videoId: String): String {
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
             <style>
                 html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
-                #player { width: 100%; height: 100%; transform: scale(1.18); transform-origin: center center; }
-                iframe { width: 100%; height: 100%; border: none; pointer-events: none; }
-                .ytp-chrome-top, .ytp-chrome-bottom, .ytp-watermark, .ytp-pause-overlay { display: none !important; opacity: 0 !important; }
+                #player { width: 100%; height: 100%; transform: $scaleTransform; transform-origin: center center; }
+                iframe { width: 100%; height: 100%; border: none; pointer-events: $pointerEvents; }
+                .ytp-chrome-top, .ytp-watermark, .ytp-pause-overlay { display: none !important; opacity: 0 !important; }
             </style>
         </head>
         <body>
@@ -34,11 +39,11 @@ internal fun buildYouTubeHtml(videoId: String): String {
                             'autoplay': 1,
                             'playsinline': 1,
                             'rel': 0,
-                            'controls': 0,
-                            'disablekb': 1,
+                            'controls': $controlsVal,
+                            'disablekb': ${if (isShort) 1 else 0},
                             'iv_load_policy': 3,
                             'modestbranding': 1,
-                            'fs': 0,
+                            'fs': $fsVal,
                             'origin': 'https://dirzaaulia.com',
                             'enablejsapi': 1
                         },

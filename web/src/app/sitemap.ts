@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { database } from '@/lib/database';
+import { getAllArticles } from '@/lib/editorial-articles';
 
 export const dynamic = 'force-static';
 
@@ -35,6 +36,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/articles`,
       lastModified: new Date(),
       changeFrequency: 'hourly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/author/dirza-aulia`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
       priority: 0.85,
     },
     {
@@ -67,7 +74,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.5,
     },
+    {
+      url: `${baseUrl}/dmca`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
   ];
+
+  const articles = getAllArticles();
+  const articleRoutes: MetadataRoute.Sitemap = articles.map((art) => ({
+    url: `${baseUrl}/articles/${art.slug}`,
+    lastModified: new Date(art.updatedAt || art.publishedAt),
+    changeFrequency: 'weekly',
+    priority: 0.9,
+  }));
 
   try {
     const { data: matches } = await database
@@ -83,11 +104,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'daily',
         priority: 0.8,
       }));
-      return [...staticRoutes, ...matchRoutes];
+      return [...staticRoutes, ...articleRoutes, ...matchRoutes];
     }
   } catch (error) {
     console.warn('Failed to fetch matches for sitemap:', error);
   }
 
-  return staticRoutes;
+  return [...staticRoutes, ...articleRoutes];
 }

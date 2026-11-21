@@ -68,10 +68,11 @@ class OracleVmRepositoryImpl(
                         parameters.append("season", "eq.$it")
                     }
 
-                    competitionId?.let {
-                        if (it.isNotBlank()) {
-                            parameters.append("competition_id", "ilike.$it")
-                        }
+                    competitionId?.takeIf { it.isNotBlank() }?.let {
+                        val filter = if (it.equals("INTL", ignoreCase = true)) {
+                            "in.(UNL,CNL,WCQ_CONMEBOL,WCQ_AFC,WCQ_UEFA,WCQ_CONCACAF,WCQ_CAF,FRI)"
+                        } else "ilike.$it"
+                        parameters.append("competition_id", filter)
                     }
 
                     status?.let {
@@ -196,7 +197,10 @@ class OracleVmRepositoryImpl(
 
                 url {
                     parameters.append("select", "*")
-                    parameters.append("competition_code", "ilike.$competitionId")
+                    val codeFilter = if (competitionId.equals("INTL", ignoreCase = true)) {
+                        "in.(UNL,CNL,WCQ_CONMEBOL,WCQ_AFC,WCQ_UEFA,WCQ_CONCACAF,WCQ_CAF,FRI)"
+                    } else "ilike.$competitionId"
+                    parameters.append("competition_code", codeFilter)
                     parameters.append("season", "eq.$effSeason")
                     parameters.append("order", "position.asc")
                 }

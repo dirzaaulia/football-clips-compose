@@ -8,6 +8,35 @@ export interface FeedCompetitionGroup {
   matches: MatchRecord[];
 }
 
+const INTERNATIONAL_COMP_IDS = new Set([
+  'UNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA', 'CNL', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI',
+]);
+
+function getGroupPriority(
+  group: FeedCompetitionGroup,
+  competitions: Competition[],
+): number {
+  const compInfo = competitions.find((c) => c.competitionId === group.compId);
+  const isIntl = compInfo?.type === 'international' || INTERNATIONAL_COMP_IDS.has(group.compId);
+
+  let latestDateMs = 0;
+  for (const m of group.matches) {
+    if (m.utc_date) {
+      const ms = new Date(m.utc_date).getTime();
+      if (ms > latestDateMs) latestDateMs = ms;
+    }
+  }
+  const isRecent = latestDateMs > 0 && Date.now() - latestDateMs < 7 * 24 * 60 * 60 * 1000;
+
+  if (isIntl && isRecent) {
+    const idx = competitions.findIndex((c) => c.competitionId === group.compId);
+    return -1000 + (idx !== -1 ? idx : 0);
+  }
+
+  const idx = competitions.findIndex((c) => c.competitionId === group.compId);
+  return idx !== -1 ? idx : 999;
+}
+
 export function groupFeedMatchesByCompetition(
   matches: MatchRecord[],
   competitions: Competition[],
@@ -34,9 +63,7 @@ export function groupFeedMatchesByCompetition(
   });
 
   groups.sort((a, b) => {
-    const idxA = competitions.findIndex((c) => c.competitionId === a.compId);
-    const idxB = competitions.findIndex((c) => c.competitionId === b.compId);
-    return (idxA !== -1 ? idxA : 999) - (idxB !== -1 ? idxB : 999);
+    return getGroupPriority(a, competitions) - getGroupPriority(b, competitions);
   });
 
   return groups;

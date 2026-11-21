@@ -39,8 +39,8 @@ fun ScoreViewModel.getStandings(
         val hasLeaguePhase = matches.any { it.matchday != null }
 
         val compDef = oracleVmRepository.competitions.value.firstOrNull { it.id.equals(compId, ignoreCase = true) }
-        val isCup = (compDef?.isCup == true || compDef?.isInternational == true) || (hasKnockouts && !hasLeaguePhase)
-        val isHybrid = (compDef?.isHybrid == true) || (hasKnockouts && hasLeaguePhase)
+        val isCup = (compDef?.isCup == true) || (hasKnockouts && !hasLeaguePhase)
+        val isHybrid = (compDef?.isHybrid == true || compDef?.isInternational == true) || (hasKnockouts && hasLeaguePhase)
 
         if (isCup) {
             if (matchRes is NetworkResult.Success) {

@@ -20,6 +20,7 @@ export async function GET() {
           ...competition,
           code: competition.code || competition.id,
           emblem_url: competition.emblem_url || '',
+          emblem_dark_url: competition.emblem_dark_url || competition.emblem_url || '',
         })));
       }
     }

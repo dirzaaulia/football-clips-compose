@@ -35,6 +35,8 @@ export interface MatchEvent {
   y_coord?: number | null;
   target_x?: number | null;
   target_y?: number | null;
+  goal_position_y?: number | null;
+  seconds?: number | null;
 }
 
 export interface EspnH2HMatch {
@@ -93,13 +95,27 @@ export interface EspnSummaryResult {
     home?: {
       formation?: string;
       color?: string;
-      starters?: Array<{ name: string; jersey?: string; position?: string }>;
+      starters?: Array<{
+        name: string;
+        jersey?: string;
+        position?: string;
+        formationPlace?: string;
+        jerseyImage?: string;
+        stats?: Record<string, number>;
+      }>;
       substitutes?: Array<{ name: string; jersey?: string; position?: string }>;
     };
     away?: {
       formation?: string;
       color?: string;
-      starters?: Array<{ name: string; jersey?: string; position?: string }>;
+      starters?: Array<{
+        name: string;
+        jersey?: string;
+        position?: string;
+        formationPlace?: string;
+        jerseyImage?: string;
+        stats?: Record<string, number>;
+      }>;
       substitutes?: Array<{ name: string; jersey?: string; position?: string }>;
     };
   } | null;

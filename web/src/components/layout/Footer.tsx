@@ -75,8 +75,14 @@ export default function Footer() {
               <Link href="/about" className="text-white hover:text-[#DFFF00] transition-colors">
                 About Us & Masthead
               </Link>
+              <Link href="/contact" className="text-white hover:text-[#DFFF00] transition-colors">
+                Contact Us & Inquiries
+              </Link>
               <Link href="/editorial-standards" className="text-white hover:text-[#DFFF00] transition-colors">
                 Editorial Standards
+              </Link>
+              <Link href="/dmca" className="text-white hover:text-[#DFFF00] transition-colors">
+                DMCA & Copyright Policy
               </Link>
             </div>
           </div>
@@ -86,9 +92,13 @@ export default function Footer() {
         <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#A1A1AA] font-tech">
           <p>© 2026 Football Highlights & Clips. All rights reserved.</p>
           <div className="flex items-center gap-4">
+            <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
+            <span>•</span>
             <Link href="/info" className="hover:text-white transition-colors">Support Hub</Link>
             <span>•</span>
             <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <span>•</span>
+            <Link href="/dmca" className="hover:text-white transition-colors">DMCA</Link>
             <span>•</span>
             <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
           </div>

@@ -51,7 +51,7 @@ fun StandingsScreen(
     var hybridStage by remember(selectedCompetitionId) { mutableStateOf("league") }
     val currentComp = dynamicCompetitions?.firstOrNull { it.id.equals(selectedCompetitionId, ignoreCase = true) }
     val isCup = currentComp?.isCup == true || selectedCompetitionId in setOf("FAC", "EFL", "CDR", "DFB", "CIT")
-    val isHybrid = currentComp?.isHybrid == true || selectedCompetitionId in setOf("CL", "EL", "ECL")
+    val isHybrid = currentComp?.isHybrid == true || currentComp?.isInternational == true || selectedCompetitionId in setOf("CL", "EL", "ECL", "UNL", "CNL", "WCQ_CONMEBOL")
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val isLandscape = maxHeight < 500.dp

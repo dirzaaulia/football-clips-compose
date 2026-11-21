@@ -2,7 +2,6 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { Bebas_Neue, Space_Grotesk, Inter } from 'next/font/google';
 import AppShell from '@/components/layout/AppShell';
-import AdSenseScript from '@/components/common/AdSenseScript';
 import './globals.css';
 
 const bebasNeue = Bebas_Neue({
@@ -93,7 +92,6 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-[#0A0A0C] text-[#E3E2E6] font-body-ott antialiased selection:bg-[#DFFF00]/30 selection:text-white">
-        <AdSenseScript />
         <AppShell>{children}</AppShell>
       </body>
     </html>

@@ -200,6 +200,7 @@ internal fun HomeListContent(
                                         viewModel.selectCompetitionByName(compName)
                                     }
                                 },
+                                onRevealItem = onRevealItem,
                             )
                         }
                     }

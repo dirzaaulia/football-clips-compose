@@ -36,28 +36,42 @@ export default function CompetitionDrawer({
   }, [competitions, search]);
 
   const categories = useMemo(() => {
+    const international = filtered.filter(
+      (c) =>
+        c.type === 'international' ||
+        ['UNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA', 'CNL', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI'].includes(c.competitionId || '') ||
+        c.name.toLowerCase().includes('nations league') ||
+        c.name.toLowerCase().includes('world cup') ||
+        c.name.toLowerCase().includes('friendly') ||
+        c.name.toLowerCase().includes('friendlies')
+    );
+
     const european = filtered.filter(
       (c) =>
-        c.type === 'hybrid' ||
-        ['CL', 'EL', 'ECL', 'UECL', 'EC'].includes(c.competitionId || '') ||
-        c.name.toLowerCase().includes('champions') ||
-        c.name.toLowerCase().includes('europa')
+        !international.includes(c) && (
+          c.type === 'hybrid' ||
+          ['CL', 'EL', 'ECL', 'UECL', 'EC'].includes(c.competitionId || '') ||
+          c.name.toLowerCase().includes('champions') ||
+          c.name.toLowerCase().includes('europa')
+        )
     );
 
     const cups = filtered.filter(
       (c) =>
-        c.type === 'cup' ||
-        c.name.toLowerCase().includes('cup') ||
-        c.name.toLowerCase().includes('pokal') ||
-        c.name.toLowerCase().includes('copa') ||
-        c.name.toLowerCase().includes('coppa')
+        !international.includes(c) && !european.includes(c) && (
+          c.type === 'cup' ||
+          c.name.toLowerCase().includes('cup') ||
+          c.name.toLowerCase().includes('pokal') ||
+          c.name.toLowerCase().includes('copa') ||
+          c.name.toLowerCase().includes('coppa')
+        )
     );
 
     const leagues = filtered.filter(
-      (c) => !european.includes(c) && !cups.includes(c)
+      (c) => !international.includes(c) && !european.includes(c) && !cups.includes(c)
     );
 
-    return { european, leagues, cups };
+    return { international, european, leagues, cups };
   }, [filtered]);
 
   if (!isOpen) return null;
@@ -142,12 +156,32 @@ export default function CompetitionDrawer({
 
           {/* Scrollable Categorized List */}
           <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-2 space-y-5 scrollbar-thin">
+            {/* International Tournaments */}
+            {categories.international.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-tech font-black text-[#DFFF00] uppercase tracking-wider">
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>International Tournaments</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {categories.international.map((c) => (
+                    <CompetitionCard
+                      key={c.competitionId || c.name}
+                      competition={c}
+                      isSelected={selectedComp === c.competitionId}
+                      onSelect={() => handleSelect(c.competitionId || '')}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* European Competitions */}
             {categories.european.length > 0 && (
               <div className="space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-tech font-black text-[#DFFF00] uppercase tracking-wider">
+                <div className="flex items-center gap-1.5 text-xs font-tech font-black text-[#38BDF8] uppercase tracking-wider">
                   <Award className="w-3.5 h-3.5" />
-                  <span>European &amp; International</span>
+                  <span>European Competitions</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {categories.european.map((c) => (

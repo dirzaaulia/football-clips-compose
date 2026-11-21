@@ -11,12 +11,10 @@ import {
   Play,
   Flame,
   Settings,
-  ShoppingBag,
   Wrench,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
-import { useMerchandisePreference } from '@/hooks/useMerchandisePreference';
 
 interface SidebarNavProps {
   isCollapsed?: boolean;
@@ -24,13 +22,14 @@ interface SidebarNavProps {
   onToggleCollapse?: () => void;
 }
 
+// During Google AdSense site approval review, affiliate store links are suppressed
+// to adhere strictly to Google's "Thin affiliate site" policy guidelines.
 const NAV_LINKS = [
   { href: '/', label: 'Highlights', icon: Play },
   { href: '/shorts', label: 'Shorts', icon: Flame },
   { href: '/fixtures', label: 'Scores & Fixtures', icon: Calendar },
   { href: '/standings', label: 'Standings & Stats', icon: Trophy },
   { href: '/tools', label: 'Tactical Tools', icon: Wrench },
-  { href: '/store', label: 'Club Store', icon: ShoppingBag },
   { href: '/articles', label: 'Analysis Hub', icon: Newspaper },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
@@ -41,12 +40,8 @@ export default function SidebarNav({
   onToggleCollapse,
 }: SidebarNavProps) {
   const pathname = usePathname();
-  const { isMerchandiseEnabled } = useMerchandisePreference();
 
-  const links = React.useMemo(() => {
-    if (isMerchandiseEnabled) return NAV_LINKS;
-    return NAV_LINKS.filter((link) => link.href !== '/store');
-  }, [isMerchandiseEnabled]);
+  const links = NAV_LINKS;
 
   return (
     <div className="space-y-2.5 w-full">

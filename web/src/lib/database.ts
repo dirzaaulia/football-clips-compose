@@ -16,6 +16,9 @@ export interface StarterPlayer {
   name: string;
   jersey?: string;
   position?: string;
+  formationPlace?: string;
+  jerseyImage?: string;
+  stats?: Record<string, number>;
 }
 
 export interface TeamFormation {
@@ -88,6 +91,8 @@ export interface MatchEvent {
   y_coord?: number | null;
   target_x?: number | null;
   target_y?: number | null;
+  goal_position_y?: number | null;
+  seconds?: number | null;
 }
 
 export interface RegionRestriction {
@@ -170,7 +175,11 @@ export async function getRecentHighlights(
     query = query.range(offset, offset + limit - 1);
   }
 
-  if (competitionId && competitionId !== 'ALL') {
+  if (competitionId === 'INTL') {
+    query = query.in('competition_id', [
+      'UNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA', 'CNL', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI',
+    ]);
+  } else if (competitionId && competitionId !== 'ALL') {
     query = query.ilike('competition_id', competitionId);
   }
 
@@ -220,7 +229,11 @@ export async function getMatchesBySeason(
     .order('id', { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (competitionId && competitionId !== 'ALL') {
+  if (competitionId === 'INTL') {
+    query = query.in('competition_id', [
+      'UNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA', 'CNL', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI',
+    ]);
+  } else if (competitionId && competitionId !== 'ALL') {
     query = query.ilike('competition_id', competitionId);
   }
 

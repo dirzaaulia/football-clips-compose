@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
-import { ExternalLink, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import Image from 'next/image';
+import { ExternalLink, ShieldCheck, CheckCircle2, Play, EyeOff, Eye } from 'lucide-react';
 
 interface MatchDetailVideoPlayerProps {
   videoId: string;
@@ -9,6 +10,9 @@ interface MatchDetailVideoPlayerProps {
   homeName: string;
   awayName: string;
   competitionName?: string;
+  isSpoilerFree?: boolean;
+  isScoreRevealed?: boolean;
+  onRevealScore?: () => void;
 }
 
 export default function MatchDetailVideoPlayer({
@@ -17,7 +21,14 @@ export default function MatchDetailVideoPlayer({
   homeName,
   awayName,
   competitionName = 'OFFICIAL LEAGUE',
+  isSpoilerFree = false,
+  isScoreRevealed = false,
+  onRevealScore,
 }: MatchDetailVideoPlayerProps) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const isProtected = isSpoilerFree && !isScoreRevealed;
+  const thumbnailUrl = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+
   return (
     <div className="space-y-3 relative group select-none">
       {/* Cinema Frame Container */}
@@ -42,7 +53,7 @@ export default function MatchDetailVideoPlayer({
         </div>
 
         {/* 16:9 Viewport */}
-        <div className="relative w-full pt-[56.25%] bg-[#0A0A0C]">
+        <div className="relative w-full pt-[56.25%] bg-[#0A0A0C] overflow-hidden">
           {playbackMode === 'external' ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center bg-[#0A0E14]">
               <p className="text-white text-sm font-medium">
@@ -58,14 +69,87 @@ export default function MatchDetailVideoPlayer({
                 <span>Watch on YouTube</span>
               </a>
             </div>
-          ) : (
+          ) : isPlaying ? (
             <iframe
               className="absolute inset-0 w-full h-full"
-              src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=0&enablejsapi=1`}
+              src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1&enablejsapi=1`}
               title={`${homeName} vs ${awayName} Highlights`}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
+          ) : (
+            <div
+              onClick={() => {
+                if (!isProtected) setIsPlaying(true);
+              }}
+              className="absolute inset-0 w-full h-full cursor-pointer group/poster"
+            >
+              {/* Poster Thumbnail Image */}
+              <div
+                className={`w-full h-full transition-all duration-300 ${
+                  isProtected ? 'filter blur-[22px] scale-105 opacity-60' : 'opacity-80 group-hover/poster:opacity-95'
+                }`}
+              >
+                <Image
+                  src={thumbnailUrl}
+                  alt={`${homeName} vs ${awayName} Cover`}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
+
+              {/* Spoiler-Free Frosted Glass Shield Overlay */}
+              {isProtected ? (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 bg-black/55 backdrop-blur-[4px] text-center space-y-3"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white shadow-xl">
+                    <EyeOff className="w-6 h-6 text-[#DFFF00]" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-bold text-white font-tech uppercase tracking-wide">
+                      Spoiler Free Mode
+                    </h3>
+                    <p className="text-[11px] text-white/60 max-w-xs">
+                      Thumbnail &amp; final score are shielded to protect match suspense.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                    <button
+                      onClick={() => setIsPlaying(true)}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#DFFF00] hover:bg-[#cbe600] text-[#0A0A0C] font-tech text-xs font-black uppercase tracking-wider shadow-lg transition cursor-pointer"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <span>Play Highlights (Spoiler Free)</span>
+                    </button>
+                    {onRevealScore && (
+                      <button
+                        onClick={onRevealScore}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-tech text-xs font-bold uppercase tracking-wider border border-white/15 transition cursor-pointer"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Reveal Score</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                /* Normal Mode: Volt Play Button Overlay */
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-4 bg-gradient-to-t from-black/80 via-transparent to-black/40">
+                  <div className="w-16 h-16 rounded-full bg-[#DFFF00] text-[#0A0A0C] shadow-[0_0_30px_rgba(223,255,0,0.45)] flex items-center justify-center transition-transform group-hover/poster:scale-110">
+                    <Play className="w-7 h-7 fill-current ml-1" />
+                  </div>
+                  <span className="mt-3 text-xs font-tech font-extrabold uppercase tracking-wider text-white">
+                    Watch Official Highlights
+                  </span>
+                  <span className="text-[10px] text-white/50 font-tech">Click to start playback</span>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

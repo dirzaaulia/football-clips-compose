@@ -99,6 +99,7 @@ func (r *Repository) UpsertMatches(ctx context.Context, matches []domain.Match) 
 			$17, $18, $19
 		)
 		ON CONFLICT (id) DO UPDATE SET
+			utc_date = EXCLUDED.utc_date,
 			status = EXCLUDED.status,
 			home_score = EXCLUDED.home_score,
 			away_score = EXCLUDED.away_score,

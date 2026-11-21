@@ -7,11 +7,13 @@ import (
 )
 
 var compPriority = map[string]int{
-	"CL": 1, "EL": 2, "ECL": 3,
-	"PL": 4, "PD": 5, "SA": 6, "BL1": 7, "FL1": 8,
-	"FAC": 9, "CDR": 10, "CIT": 11, "DFB": 12, "EFL": 13,
-	"DED": 14, "PPL": 15, "SPL": 16, "MLS": 17,
-	"BRA": 18, "ARG": 19, "LIB": 20, "SUD": 21, "REC": 22, "IDN": 23,
+	"UNL": 1, "WCQ_CONMEBOL": 2, "WCQ_AFC": 3, "CNL": 4, "WCQ_UEFA": 5, "FRI": 6,
+	"CL": 7, "EL": 8, "ECL": 9,
+	"PL": 10, "PD": 11, "SA": 12, "BL1": 13, "FL1": 14,
+	"FAC": 15, "CDR": 16, "CIT": 17, "DFB": 18, "EFL": 19,
+	"DED": 20, "PPL": 21, "SPL": 22, "MLS": 23,
+	"BRA": 24, "ARG": 25, "LIB": 26, "SUD": 27, "REC": 28, "IDN": 29,
+	"WCQ_CONCACAF": 30, "WCQ_CAF": 31,
 }
 
 // ShouldCheckYouTubeForMatch implements the 4-tier quota guardrail:

@@ -9,4 +9,8 @@
     <color name="white">#FFFFFFFF</color>
     <color name="notification_brand">#FF3867D6</color>
     <color name="notification_accent">#FF00E5FF</color>
+
+    <!-- Splash Screen Colors (Day / Light Theme) -->
+    <color name="splash_window_background">#F8FAFC</color>
+    <color name="splash_ball_color">#0F172A</color>
 </resources>

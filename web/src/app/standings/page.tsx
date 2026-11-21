@@ -46,13 +46,18 @@ export default function StandingsPage() {
     [selectableLeagues, selectedCompCode],
   );
 
-  const isCup = useMemo(
-    () => selectedComp?.type === 'cup' || ['FAC', 'EFL', 'CDR', 'DFB', 'CIT'].includes(selectedCompCode),
+  const isInternational = useMemo(
+    () => selectedComp?.type === 'international' || ['UNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA', 'CNL', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI'].includes(selectedCompCode),
     [selectedComp, selectedCompCode],
   );
 
+  const isCup = useMemo(
+    () => !isInternational && (selectedComp?.type === 'cup' || ['FAC', 'EFL', 'CDR', 'DFB', 'CIT'].includes(selectedCompCode)),
+    [isInternational, selectedComp, selectedCompCode],
+  );
+
   const isHybrid = useMemo(
-    () => selectedComp?.type === 'hybrid' || ['CL', 'EL', 'ECL'].includes(selectedCompCode),
+    () => selectedComp?.type === 'hybrid' || ['CL', 'EL', 'ECL', 'UNL', 'CNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA'].includes(selectedCompCode),
     [selectedComp, selectedCompCode],
   );
 
@@ -72,16 +77,16 @@ export default function StandingsPage() {
     if (hasTable) {
       tabs.push({
         id: 'TABLE',
-        label: isHybrid ? 'League Phase (36 Teams)' : 'League Table',
+        label: isInternational ? 'Tournament Standings' : (isHybrid ? 'League Phase (36 Teams)' : 'League Table'),
       });
     }
     if (hasBrackets) {
-      tabs.push({ id: 'BRACKETS', label: 'Knockout Brackets' });
+      tabs.push({ id: 'BRACKETS', label: isInternational ? 'Tournament Stages' : 'Knockout Brackets' });
     }
     tabs.push({ id: 'PLAYER_STATS', label: 'Player Stats' });
     tabs.push({ id: 'CLUB_STATS', label: 'Club Telemetry' });
     return tabs;
-  }, [hasTable, hasBrackets, isHybrid]);
+  }, [hasTable, hasBrackets, isHybrid, isInternational]);
 
   useEffect(() => {
     let isCancelled = false;

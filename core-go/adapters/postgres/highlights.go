@@ -17,18 +17,22 @@ func (r *Repository) GetPendingHighlights(ctx context.Context, limit int) ([]dom
 		       last_youtube_check, youtube_region_info
 		FROM matches
 		WHERE status = 'FINISHED'
-		  AND (youtube_region_info IS NULL OR (youtube_region_info->>'terminal') IS DISTINCT FROM 'true')
+		  AND (youtube_region_info IS NULL OR (
+		      (youtube_region_info->>'terminal') IS DISTINCT FROM 'true'
+		      AND (youtube_region_info->>'status') IS DISTINCT FROM 'OPTIMAL_LINKED'
+		  ))
 		  AND season >= 2026
 		  AND utc_date >= NOW() - INTERVAL '30 days'
 		  AND (
 		      (highlight_video_id IS NULL OR highlight_video_id = '')
 		      OR (
 		          utc_date >= NOW() - INTERVAL '14 days'
-		          AND COALESCE((youtube_region_info->>'sweep_count')::int, 0) < 3
+		          AND COALESCE((youtube_region_info->>'sweep_count')::int, 0) < 12
 		          AND (youtube_region_info->>'target_market_exhausted') IS DISTINCT FROM 'true'
 		          AND (
-		              jsonb_array_length(COALESCE(youtube_region_info->'allowed', '[]'::jsonb)) BETWEEN 1 AND 235
-		              OR jsonb_array_length(COALESCE(youtube_region_info->'blocked', '[]'::jsonb)) > 15
+		              jsonb_array_length(COALESCE(youtube_region_info->'allowed', '[]'::jsonb)) BETWEEN 1 AND 246
+		              OR jsonb_array_length(COALESCE(youtube_region_info->'blocked', '[]'::jsonb)) > 2
+		              OR COALESCE((youtube_region_info->>'watchability_pct')::float, 0.0) < 99.0
 		          )
 		      )
 		  )
@@ -164,22 +168,26 @@ func (r *Repository) GetMatchChannels(ctx context.Context, match domain.Match) (
 	}
 
 	// 2. Official Club Channels from supported_clubs
-	if match.HomeTeamID != nil || match.AwayTeamID != nil {
-		clubQuery := `
-			SELECT DISTINCT youtube_channel_id
-			FROM supported_clubs
-			WHERE team_id IN ($1, $2)
-			  AND youtube_channel_id IS NOT NULL
-			  AND youtube_channel_id != ''
-			  AND is_active = true`
-		rows, err := r.pool.Query(ctx, clubQuery, match.HomeTeamID, match.AwayTeamID)
-		if err == nil {
-			defer rows.Close()
-			for rows.Next() {
-				var cid string
-				if err := rows.Scan(&cid); err == nil {
-					addChannel(cid)
-				}
+	clubQuery := `
+		SELECT DISTINCT youtube_channel_id
+		FROM supported_clubs
+		WHERE (
+		    ($1::bigint IS NOT NULL AND team_id = $1)
+		    OR ($2::bigint IS NOT NULL AND team_id = $2)
+		    OR LOWER(name) IN (LOWER($3), LOWER($4))
+		    OR aliases ? LOWER($3)
+		    OR aliases ? LOWER($4)
+		)
+		  AND youtube_channel_id IS NOT NULL
+		  AND youtube_channel_id != ''
+		  AND is_active = true`
+	rows, err := r.pool.Query(ctx, clubQuery, match.HomeTeamID, match.AwayTeamID, match.HomeTeamName, match.AwayTeamName)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var cid string
+			if err := rows.Scan(&cid); err == nil {
+				addChannel(cid)
 			}
 		}
 	}

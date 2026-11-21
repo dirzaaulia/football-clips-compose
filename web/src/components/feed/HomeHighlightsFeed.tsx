@@ -9,6 +9,10 @@ import RecentMatchesSection from '@/components/feed/RecentMatchesSection';
 import HomeShortsRail from '@/components/shorts/HomeShortsRail';
 import { Trophy } from 'lucide-react';
 
+const INTERNATIONAL_COMP_IDS = new Set([
+  'UNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA', 'CNL', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI',
+]);
+
 interface HomeHighlightsFeedProps {
   displayedMatches: MatchRecord[];
   groupedFeedMatches: FeedCompetitionGroup[] | null;
@@ -41,9 +45,32 @@ export default function HomeHighlightsFeed({
   }
 
   if (groupedFeedMatches) {
+    const internationalRecent = recentMatches.filter((m) =>
+      INTERNATIONAL_COMP_IDS.has(m.competition_id || '')
+    );
+    const clubRecent = recentMatches.filter(
+      (m) => !INTERNATIONAL_COMP_IDS.has(m.competition_id || '')
+    );
+
     return (
       <div className="space-y-6 my-4">
-        <RecentMatchesSection matches={recentMatches} onPlay={onPlay} className="pb-4 border-b border-white/10" />
+        {internationalRecent.length > 0 && (
+          <RecentMatchesSection
+            title="Recent International Highlights"
+            badgeText="INTERNATIONAL"
+            matches={internationalRecent}
+            onPlay={onPlay}
+            className="pb-4 border-b border-white/10"
+          />
+        )}
+
+        <RecentMatchesSection
+          title="Recent Highlights"
+          badgeText="CLUBS & LEAGUES"
+          matches={clubRecent}
+          onPlay={onPlay}
+          className="pb-4 border-b border-white/10"
+        />
 
         {groupedFeedMatches.map((group, groupIdx) => {
           return (

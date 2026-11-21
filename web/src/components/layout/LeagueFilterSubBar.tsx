@@ -20,6 +20,7 @@ interface LeagueFilterSubBarProps {
 
 const TOP_QUICK_LEAGUES = [
   { id: 'ALL', name: 'All' },
+  { id: 'INTL', name: "Int'l" },
   { id: 'CL', name: 'UCL' },
   { id: 'PL', name: 'PL' },
   { id: 'PD', name: 'LaLiga' },
@@ -44,7 +45,9 @@ export default function LeagueFilterSubBar({
   const activeCompetition = dynamicCompetitions.find(
     (c) => (c.competitionId || 'ALL') === selectedComp
   );
-  const activeLabel = activeCompetition?.shortName || activeCompetition?.name || 'All Competitions';
+  const activeLabel = selectedComp === 'INTL'
+    ? 'International'
+    : (activeCompetition?.shortName || activeCompetition?.name || 'All Competitions');
 
   return (
     <>

@@ -148,6 +148,9 @@ export default function MatchDetailClient({
                 homeName={homeName}
                 awayName={awayName}
                 competitionName={compName}
+                isSpoilerFree={isSpoilerFree}
+                isScoreRevealed={isScoreRevealed}
+                onRevealScore={() => setIsScoreRevealed(true)}
               />
               <MatchActionToolbar
                 title={`${homeName} vs ${awayName}`}

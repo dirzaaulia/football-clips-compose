@@ -96,7 +96,7 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
       '@type': 'Person',
       name: article.author.name,
       jobTitle: article.author.role,
-      url: `${siteUrl}/editorial-standards`,
+      url: `${siteUrl}/author/dirza-aulia`,
     },
     publisher: {
       '@type': 'Organization',
@@ -160,12 +160,12 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
 
         {/* Author Byline */}
         <div className="flex items-center justify-between pt-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#1E3A8A] border border-[#7098F8]/50 flex items-center justify-center font-bold text-white text-sm">
+          <Link href="/author/dirza-aulia" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-full bg-[#1E3A8A] border border-[#7098F8]/50 flex items-center justify-center font-bold text-white text-sm group-hover:border-[#DFFF00] transition-colors">
               DA
             </div>
             <div>
-              <div className="text-sm font-bold text-white flex items-center gap-1.5">
+              <div className="text-sm font-bold text-white flex items-center gap-1.5 group-hover:text-[#DFFF00] transition-colors">
                 {article.author.name}
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
                   Verified Editor
@@ -173,7 +173,7 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
               </div>
               <div className="text-xs text-[#94A3B8]">{article.author.role}</div>
             </div>
-          </div>
+          </Link>
 
           <Link
             href="/editorial-standards"
@@ -207,6 +207,23 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
         </ul>
       </div>
 
+      {/* Analytical Reading Framework Outline */}
+      <div className="my-6 p-4 rounded-xl bg-white/[0.02] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-tech text-[#A1A1AA]">
+        <div className="flex items-center gap-2 text-white font-bold uppercase tracking-wider text-[11px]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#DFFF00]" />
+          <span>Analytical Reading Structure:</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
+          <span>1. Positional Geometry</span>
+          <span>•</span>
+          <span>2. Rest-Defense Traps</span>
+          <span>•</span>
+          <span>3. Spatial Overloads</span>
+          <span>•</span>
+          <span>4. Empirical Takeaways</span>
+        </div>
+      </div>
+
       {/* Main Prose Content */}
       <div className="space-y-6 text-sm sm:text-base text-[#CBD5E1] leading-relaxed font-sans">
         {article.content.map((paragraph, index) => (
@@ -238,15 +255,25 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
 
       {/* Author Bio Card */}
       <div className="my-8 p-6 rounded-2xl bg-[#181C20] border border-[#334155]/80 flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
-        <div className="w-14 h-14 rounded-full bg-[#1E3A8A] border-2 border-[#7098F8] flex items-center justify-center font-bold text-white text-lg shrink-0">
+        <Link href="/author/dirza-aulia" className="w-14 h-14 rounded-full bg-[#1E3A8A] border-2 border-[#7098F8] hover:border-[#DFFF00] transition-colors flex items-center justify-center font-bold text-white text-lg shrink-0">
           DA
-        </div>
+        </Link>
         <div className="space-y-1">
-          <div className="text-sm font-bold text-white">{article.author.name}</div>
+          <Link href="/author/dirza-aulia" className="text-sm font-bold text-white hover:text-[#DFFF00] transition-colors inline-block">
+            {article.author.name}
+          </Link>
           <div className="text-xs text-[#4FC3F7]">{article.author.role}</div>
           <p className="text-xs text-[#94A3B8] leading-relaxed pt-1">
             {article.author.bio} Football Highlights & Clips maintains rigorous original reporting standards, utilizing Opta-aligned data feeds and verified video highlight integrations.
           </p>
+          <div className="pt-2">
+            <Link
+              href="/author/dirza-aulia"
+              className="text-xs font-bold text-[#DFFF00] hover:underline inline-flex items-center gap-1 font-tech"
+            >
+              View Author Profile &amp; Published Dossiers &rarr;
+            </Link>
+          </div>
         </div>
       </div>
 

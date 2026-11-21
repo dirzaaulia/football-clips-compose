@@ -87,7 +87,8 @@ func (r *Repository) GetActiveClubChannels(ctx context.Context, limit int) ([]st
 		WHERE is_active = true
 		  AND youtube_channel_id IS NOT NULL
 		  AND youtube_channel_id != ''
-		ORDER BY last_shorts_check ASC NULLS FIRST, channel_tier ASC, team_id ASC
+		  AND LOWER(name) ~* '(madrid|barcelona|arsenal|manchester|liverpool|chelsea|bayern|dortmund|juventus|milan|inter|psg|tottenham|atletico|leverkusen|napoli|roma|ajax|feyenoord|benfica|porto|sporting|nassr|hilal|ittihad|miami|galaxy|persija|persib|flamengo|palmeiras|boca|river)'
+		ORDER BY last_shorts_check ASC NULLS FIRST, team_id ASC
 		LIMIT $1`
 
 	rows, err := r.pool.Query(ctx, query, limit)

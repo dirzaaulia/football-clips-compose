@@ -74,7 +74,9 @@ func (c *Client) FetchStandings(ctx context.Context, compCode string, season int
 
 	var rawEntries []rawStandingEntry
 	if len(payload.Children) > 0 {
-		rawEntries = payload.Children[0].Standings.Entries
+		for _, child := range payload.Children {
+			rawEntries = append(rawEntries, child.Standings.Entries...)
+		}
 	} else if len(payload.Standings) > 0 {
 		rawEntries = payload.Standings[0].Entries
 	}

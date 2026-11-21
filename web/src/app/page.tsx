@@ -57,7 +57,7 @@ function EditorialSpotlightRail({ articles }: { articles: EditorialArticle[] }) 
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {articles.map((article) => (
           <article
             key={article.slug}
@@ -88,6 +88,48 @@ function EditorialSpotlightRail({ articles }: { articles: EditorialArticle[] }) 
             </div>
           </article>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function AnalyticalMissionSection() {
+  return (
+    <section className="rounded-3xl bg-[#121316] border border-white/10 p-5 sm:p-7 shadow-xl space-y-4">
+      <div className="flex items-center gap-2.5">
+        <span className="w-1 h-5 rounded-full bg-[#DFFF00] shadow-[0_0_8px_rgba(223,255,0,0.4)]" />
+        <h2 className="font-scoreboard text-xl sm:text-2xl text-white tracking-wider uppercase">
+          Analytical Mission &amp; Editorial Standards
+        </h2>
+      </div>
+      <p className="text-xs sm:text-sm text-[#A1A1AA] leading-relaxed font-tech">
+        Football Highlights &amp; Tactical Analysis delivers rigorous, data-driven football journalism. Every fixture breakdown integrates official match telemetry, Expected Goals (xG), Zone 14 spatial models, and tactical formation tracking. Our editorial team pairs verified club highlights with in-depth tactical deconstructions, providing supporters and analysts with professional analytical depth across Europe&apos;s elite competitions.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
+          <span className="text-[11px] font-bold text-[#DFFF00] font-tech uppercase tracking-wide">
+            Official Broadcast Feeds
+          </span>
+          <p className="text-[11px] text-[#A1A1AA] leading-normal font-tech">
+            Direct integration with official club and broadcaster channels with zero pirated feeds.
+          </p>
+        </div>
+        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
+          <span className="text-[11px] font-bold text-[#DFFF00] font-tech uppercase tracking-wide">
+            Algorithmic Debriefs
+          </span>
+          <p className="text-[11px] text-[#A1A1AA] leading-normal font-tech">
+            Multi-vector match recaps detailing tactical formations, xG variance, and decisive substitutions.
+          </p>
+        </div>
+        <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 space-y-1">
+          <span className="text-[11px] font-bold text-[#DFFF00] font-tech uppercase tracking-wide">
+            Independent Research
+          </span>
+          <p className="text-[11px] text-[#A1A1AA] leading-normal font-tech">
+            Original long-form tactical dossiers covering spatial geometry, rest-defense, and European strategy.
+          </p>
+        </div>
       </div>
     </section>
   );
@@ -135,7 +177,7 @@ export default async function HomePage() {
   let snapshotLabel = 'UCL 36-Team League Phase Snapshot';
 
   try {
-    const [matchesRes, liveRes, recentHighlightsRes, uclStandings] = await Promise.all([
+    const [matchesRes, liveRes, recentHighlightsRes, intlHighlightsRes, uclStandings] = await Promise.all([
       database
         .from('matches')
         .select('*')
@@ -149,11 +191,22 @@ export default async function HomePage() {
         .not('highlight_video_id', 'is', null)
         .order('utc_date', { ascending: false })
         .limit(20),
+      database
+        .from('matches')
+        .select('*')
+        .in('competition_id', ['UNL', 'CNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI'])
+        .not('highlight_video_id', 'is', null)
+        .order('utc_date', { ascending: false })
+        .limit(10),
       getStandingsByCompetition('uefa.champions'),
     ]);
 
-    initialMatches = (matchesRes.data as MatchRecord[]) || [];
-    recentHighlights = (recentHighlightsRes.data as MatchRecord[]) || [];
+    const intlHighlights = (intlHighlightsRes.data as MatchRecord[]) || [];
+    const generalMatches = (matchesRes.data as MatchRecord[]) || [];
+    const generalRecent = (recentHighlightsRes.data as MatchRecord[]) || [];
+
+    initialMatches = [...new Map([...intlHighlights, ...generalMatches].map((m) => [m.id, m])).values()];
+    recentHighlights = [...new Map([...intlHighlights, ...generalRecent].map((m) => [m.id, m])).values()];
     initialLiveMatches = liveRes || [];
     snapshotStandings = uclStandings || [];
 
@@ -165,7 +218,7 @@ export default async function HomePage() {
     console.error('Failed to pre-fetch matches for SSR:', err);
   }
 
-  const featuredArticles = getAllArticles().slice(0, 3);
+  const featuredArticles = getAllArticles().slice(0, 6);
   const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -184,6 +237,19 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
+      <div className="w-full bg-[#0D0E11] border-b border-white/5 py-1.5 px-3 sm:px-6 select-none">
+        <div className="max-w-[1600px] mx-auto flex items-center justify-between text-[11px] font-tech uppercase tracking-wider text-white/60">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#DFFF00] animate-pulse" />
+            <span className="text-white font-bold">Verified Sports Intelligence</span>
+            <span className="hidden md:inline text-white/40">• Official Broadcast Highlights &amp; Algorithmic Tactical Dossiers</span>
+          </div>
+          <Link href="/articles" className="text-[#DFFF00] hover:underline font-bold flex items-center gap-1">
+            <span>Tactical Lab (25 Dossiers)</span>
+            <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+      </div>
       <HomeInteractiveFeed
         initialMatches={initialMatches}
         initialLiveMatches={initialLiveMatches}
@@ -191,6 +257,7 @@ export default async function HomePage() {
       />
       <div className="max-w-[1600px] w-full mx-auto px-3.5 sm:px-6 lg:px-8 2xl:px-10 py-8 space-y-8">
         <EditorialSpotlightRail articles={featuredArticles} />
+        <AnalyticalMissionSection />
         <HomeStandingsSnapshotRail
           standings={snapshotStandings}
           competitionLabel={snapshotLabel}

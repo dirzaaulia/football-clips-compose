@@ -141,6 +141,10 @@ func (c *Client) evaluateDeterministic(
 
 	for _, cand := range candidates {
 		tLower := strings.ToLower(cand.Title)
+		if strings.Contains(tLower, "#shorts") || strings.Contains(tLower, "/shorts") {
+			continue
+		}
+
 		hasHighlights := strings.Contains(tLower, "highlight") ||
 			strings.Contains(tLower, "resumen") ||
 			strings.Contains(tLower, "cuplikan") ||
@@ -148,7 +152,13 @@ func (c *Client) evaluateDeterministic(
 			strings.Contains(tLower, "samenvatting") ||
 			strings.Contains(tLower, "goals") ||
 			strings.Contains(tLower, "tore") ||
-			strings.Contains(tLower, "buts")
+			strings.Contains(tLower, "buts") ||
+			strings.Contains(tLower, "quarterfinal") ||
+			strings.Contains(tLower, "semifinal") ||
+			strings.Contains(tLower, "final") ||
+			strings.Contains(tLower, "group stage") ||
+			strings.Contains(tLower, "matchday") ||
+			cand.Source == "RSS"
 
 		if strings.Contains(tLower, homeLower) && strings.Contains(tLower, awayLower) && hasHighlights {
 			return &domain.CandidateEvaluation{

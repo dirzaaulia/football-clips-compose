@@ -115,10 +115,7 @@ func (c *Client) DiscoverCandidates(
 		return discovered, nil
 	}
 
-	query := fmt.Sprintf("%s vs %s highlights", match.HomeTeamName, match.AwayTeamName)
-	if match.CompetitionName != "" {
-		query = fmt.Sprintf("%s vs %s highlights %s", match.HomeTeamName, match.AwayTeamName, match.CompetitionName)
-	}
+	query := fmt.Sprintf("%s vs %s highlights", normalizeText(match.HomeTeamName), normalizeText(match.AwayTeamName))
 
 	apiCandidates, err := c.searchAPI(ctx, query)
 	if err == nil {
@@ -129,14 +126,14 @@ func (c *Client) DiscoverCandidates(
 }
 
 func (c *Client) filterCandidates(videos []domain.VideoCandidate, match domain.Match) []domain.VideoCandidate {
-	homeLow := strings.ToLower(match.HomeTeamName)
-	awayLow := strings.ToLower(match.AwayTeamName)
+	homeNorm := normalizeText(match.HomeTeamName)
+	awayNorm := normalizeText(match.AwayTeamName)
 
 	var filtered []domain.VideoCandidate
 	for _, v := range videos {
-		tLow := strings.ToLower(v.Title)
-		hasHome := strings.Contains(tLow, homeLow)
-		hasAway := strings.Contains(tLow, awayLow)
+		tNorm := normalizeText(v.Title)
+		hasHome := strings.Contains(tNorm, homeNorm) || matchTeamTokens(tNorm, homeNorm)
+		hasAway := strings.Contains(tNorm, awayNorm) || matchTeamTokens(tNorm, awayNorm)
 
 		if !hasHome && !hasAway {
 			continue

@@ -2,18 +2,13 @@ package com.dirzaaulia.footballclips.ui.components.hub
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingBag
@@ -65,10 +60,12 @@ fun QuickActionHubSheet(
                 .padding(bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            HubProfileHeader(
+            HubSubscriptionHeader(
                 isPremium = isPremium,
-                profile = profile,
-                onShowPaywall = onShowPaywall,
+                onShowPaywall = {
+                    onDismissRequest()
+                    onShowPaywall()
+                },
             )
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
@@ -104,77 +101,94 @@ fun QuickActionHubSheet(
 }
 
 @Composable
-private fun HubProfileHeader(
+private fun HubSubscriptionHeader(
     isPremium: Boolean,
-    profile: Profile?,
     onShowPaywall: () -> Unit,
 ) {
-    val badgeColor = if (isPremium) VoltLime else MaterialTheme.colorScheme.primary
-    val badgeTextColor = if (isPremium) Color.Black else Color.White
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.weight(1f),
+    if (isPremium) {
+        Surface(
+            shape = RoundedCornerShape(14.dp),
+            color = VoltLime.copy(alpha = 0.12f),
+            border = BorderStroke(1.dp, VoltLime.copy(alpha = 0.45f)),
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                modifier = Modifier.size(44.dp),
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "Profile",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp),
+                Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = "Pro Active",
+                    tint = VoltLime,
+                    modifier = Modifier.size(24.dp),
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "PRO Subscriber Active",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = "Enjoying ad-free highlights",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = profile?.displayName?.takeIf { it.isNotBlank() } ?: "Football Clips Fan",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = if (isPremium) "PRO Subscriber" else "Free Account",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
         }
-
+    } else {
         Surface(
             onClick = onShowPaywall,
-            shape = RoundedCornerShape(12.dp),
-            color = badgeColor.copy(alpha = if (isPremium) 0.9f else 0.15f),
-            border = if (!isPremium) BorderStroke(1.dp, badgeColor.copy(alpha = 0.5f)) else null,
+            shape = RoundedCornerShape(14.dp),
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Icon(
-                    imageVector = if (isPremium) Icons.Default.Star else Icons.Default.Diamond,
-                    contentDescription = null,
-                    tint = badgeTextColor,
-                    modifier = Modifier.size(14.dp),
-                )
-                Text(
-                    text = if (isPremium) "PRO" else "UPGRADE",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Black,
-                    color = badgeTextColor,
-                    letterSpacing = 0.5.sp,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Diamond,
+                        contentDescription = "Upgrade",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Column {
+                        Text(
+                            text = "Upgrade to Pro",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = "Remove all ads & support development",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                ) {
+                    Text(
+                        text = "UPGRADE",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        letterSpacing = 0.5.sp,
+                    )
+                }
             }
         }
     }

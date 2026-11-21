@@ -42,6 +42,9 @@ func CalculateWorldwideWatchability(reg *RegionInfo) float64 {
 	if reg == nil {
 		return 100.0
 	}
+	if reg.WatchabilityPct > 0 {
+		return reg.WatchabilityPct
+	}
 	const totalCountries = 249.0
 	if len(reg.Allowed) > 0 {
 		return float64(len(reg.Allowed)) / totalCountries * 100.0
@@ -64,15 +67,15 @@ func CheckMatchTargetMarketCutoff(m Match, now time.Time, sweepCount int) (bool,
 	ageHours := now.Sub(m.UTCDate).Hours()
 	ageDays := ageHours / 24.0
 
-	// Protect active 2-week news cycle: matches under 14 days are never exhausted
-	if ageDays < 14.0 {
-		return false, fmt.Sprintf("Active Tier 1: age %.1fd (<14d), sweeps %d (protected from exhaustion)", ageDays, sweepCount)
+	// Protect active 2-week news cycle: allow up to 12 sweeps within 14 days
+	if ageDays < 14.0 && sweepCount < 12 {
+		return false, fmt.Sprintf("Active Tier 1: age %.1fd (<14d), sweeps %d/12 (protected from exhaustion)", ageDays, sweepCount)
 	}
 
-	// Cutoff for matches older than 14 days: 6 sweeps across official channels
-	if sweepCount >= 6 && ageDays >= 14.0 {
+	// Cutoff: 12 sweeps reached OR match completed over 14 days ago with at least 6 sweeps
+	if sweepCount >= 12 || (sweepCount >= 6 && ageDays >= 14.0) {
 		return true, fmt.Sprintf("Exhausted: %d sweeps across official channels and match completed %.1f days ago", sweepCount, ageDays)
 	}
 
-	return false, fmt.Sprintf("Active: sweeps %d, age %.1fd (cutoff at 6 sweeps + 14 days)", sweepCount, ageDays)
+	return false, fmt.Sprintf("Active: sweeps %d/12, age %.1fd", sweepCount, ageDays)
 }

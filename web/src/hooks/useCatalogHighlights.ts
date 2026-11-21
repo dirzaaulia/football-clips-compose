@@ -22,28 +22,37 @@ export interface UseInfiniteHighlightsResult {
   refresh: () => void;
 }
 
-const PRIORITY_COMPETITIONS = [
+const FALLBACK_COMPETITIONS = [
   'CL', 'EL', 'ECL', 'PL', 'PD', 'SA', 'BL1', 'FL1',
   'SPL', 'MLS', 'DED', 'PPL', 'IDN', 'BRA', 'ARG',
   'FAC', 'EFL', 'CDR', 'DFB', 'CIT', 'LIB', 'SUD', 'REC',
+  'UNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA', 'CNL', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI',
 ];
 
 export function useInfiniteHighlights(
   selectedComp = 'ALL',
   season = 2026,
   pageSize = 20,
-  query = ''
+  query = '',
+  dynamicCompIds?: string[]
 ): UseInfiniteHighlightsResult {
   const queryResult = useInfiniteQuery({
-    queryKey: ['highlights', selectedComp, season, pageSize, query],
+    queryKey: ['highlights', selectedComp, season, pageSize, query, dynamicCompIds?.join(',')],
     queryFn: async ({ pageParam }) => {
-      if (selectedComp === 'ALL' && !query && !pageParam) {
+      if ((selectedComp === 'ALL' || selectedComp === 'INTL') && !query && !pageParam) {
+        const targetComps = selectedComp === 'INTL'
+          ? ['UNL', 'CNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI']
+          : (dynamicCompIds && dynamicCompIds.length > 0)
+            ? dynamicCompIds.filter((id) => id && id !== 'ALL')
+            : FALLBACK_COMPETITIONS;
         const grouped = await getTopHighlightsGroupedByCompetition(
-          PRIORITY_COMPETITIONS,
+          targetComps,
           season,
           20
         );
-        const allMatches = Object.values(grouped).flat();
+        const allMatches = Object.values(grouped)
+          .flat()
+          .sort((a, b) => new Date(b.utc_date || 0).getTime() - new Date(a.utc_date || 0).getTime());
         return allMatches.map(enrichDatabaseMatch);
       }
       const records = await getRecentHighlights(
@@ -57,7 +66,7 @@ export function useInfiniteHighlights(
     },
     initialPageParam: undefined as HighlightCursor | undefined,
     getNextPageParam: (lastPage) => {
-      if (selectedComp === 'ALL' && !query) return undefined;
+      if ((selectedComp === 'ALL' || selectedComp === 'INTL') && !query) return undefined;
       if (!lastPage || lastPage.length < pageSize) return undefined;
       const last = lastPage[lastPage.length - 1];
       if (!last || !last.utc_date || !last.id) return undefined;

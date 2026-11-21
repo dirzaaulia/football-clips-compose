@@ -71,8 +71,14 @@ export default function HomeInteractiveFeed({
     return () => clearTimeout(timer);
   }, []);
 
+  const competitions = useCompetitions();
+  const dynamicCompIds = useMemo(
+    () => competitions.map((c) => c.competitionId).filter((id): id is string => Boolean(id && id !== 'ALL')),
+    [competitions]
+  );
+
   const isDefaultFeed = selectedComp === 'ALL' && selectedSeason === 2026 && !searchQuery.trim();
-  const catalog = useInfiniteHighlights(selectedComp, selectedSeason, 20, searchQuery);
+  const catalog = useInfiniteHighlights(selectedComp, selectedSeason, 20, searchQuery, dynamicCompIds);
 
   const matches = catalog.highlights.length > 0
     ? catalog.highlights
@@ -93,7 +99,6 @@ export default function HomeInteractiveFeed({
   }, [handleLoadMore, loading.hasMore, loading.initial, catalog.error]);
 
   const { leagues } = useMemo(() => extractFilterOptions(matches), [matches]);
-  const competitions = useCompetitions();
   const supportedClubs = useSupportedClubs();
   const competition = useMemo(() => competitions.find((b) => b.competitionId === selectedComp), [competitions, selectedComp]);
 
@@ -125,7 +130,13 @@ export default function HomeInteractiveFeed({
   }, [initialLiveMatches, isMyClubsActive, favoriteClubs, selectedComp, competition, supportedClubs]);
 
   const groupedFeedMatches = useMemo(() => {
-    if (selectedComp !== 'ALL' || searchQuery.trim() || selectedCountries.length > 0 || selectedLeagues.length > 0 || isMyClubsActive) {
+    if (
+      (selectedComp !== 'ALL' && selectedComp !== 'INTL') ||
+      searchQuery.trim() ||
+      selectedCountries.length > 0 ||
+      selectedLeagues.length > 0 ||
+      isMyClubsActive
+    ) {
       return null;
     }
     return groupFeedMatchesByCompetition(displayedMatches, competitions);
@@ -180,7 +191,7 @@ export default function HomeInteractiveFeed({
         <HomeHighlightsFeed
           displayedMatches={displayedMatches}
           groupedFeedMatches={groupedFeedMatches}
-          recentMatches={recentMatches || initialMatches}
+          recentMatches={displayedMatches.length > 0 ? displayedMatches : (recentMatches || initialMatches)}
           collapsedCompIds={collapsedCompIds}
           toggleCollapse={toggleCollapse}
           setSelectedComp={setSelectedComp}
