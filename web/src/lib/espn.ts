@@ -119,6 +119,10 @@ export interface EspnSummaryResult {
       substitutes?: Array<{ name: string; jersey?: string; position?: string }>;
     };
   } | null;
+  home_color?: string | null;
+  away_color?: string | null;
+  home_alternate_color?: string | null;
+  away_alternate_color?: string | null;
   editorial_headline?: string | null;
   editorial_story?: string | null;
   editorial_source?: string | null;

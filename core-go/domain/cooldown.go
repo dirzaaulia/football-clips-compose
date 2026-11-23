@@ -16,11 +16,13 @@ var compPriority = map[string]int{
 	"WCQ_CONCACAF": 30, "WCQ_CAF": 31,
 }
 
-// ShouldCheckYouTubeForMatch implements the 4-tier quota guardrail:
-// Tier 1 (0-14 days / <336h): check at most once every 30m. Top priority for highlights & worldwide availability.
-// Tier 2 (14-30 days / 336-720h): check at most once every 2h (120m).
-// Tier 3 (30-90 days / 720-2160h): check at most once every 6h (360m).
-// Tier 4 (>90 days / >2160h): check at most once every 24h (1440m).
+// ShouldCheckYouTubeForMatch implements staged sweep intervals aligned with broadcast embargo windows:
+// Tier 0 (<6h): check every 45m (fast-track immediate post-match uploads)
+// Tier 1a (6-24h): check every 2h (clubs embargo lift window at midnight / next morning)
+// Tier 1b (24-72h): check every 6h (club multi-angle and worldwide highlights)
+// Tier 1c (3-14d): check every 12h
+// Tier 2 (14-30d): check every 24h
+// Tier 3 (>30d): check every 48h
 func ShouldCheckYouTubeForMatch(m Match, now time.Time) (bool, string) {
 	if m.LastYouTubeCheck == nil {
 		return true, "Never checked"
@@ -33,18 +35,24 @@ func ShouldCheckYouTubeForMatch(m Match, now time.Time) (bool, string) {
 	var cooldownMin float64
 
 	switch {
-	case sinceMatch < 14*24: // < 14 days (336h)
-		tierName = "Tier 1 (<14d)"
-		cooldownMin = 30
-	case sinceMatch < 30*24: // 14-30 days
-		tierName = "Tier 2 (14-30d)"
+	case sinceMatch < 6:
+		tierName = "Tier 0 (<6h)"
+		cooldownMin = 45
+	case sinceMatch < 24:
+		tierName = "Tier 1a (6-24h)"
 		cooldownMin = 120
-	case sinceMatch < 90*24: // 30-90 days
-		tierName = "Tier 3 (30-90d)"
+	case sinceMatch < 72:
+		tierName = "Tier 1b (24-72h)"
 		cooldownMin = 360
-	default: // > 90 days
-		tierName = "Tier 4 (>90d)"
+	case sinceMatch < 14*24:
+		tierName = "Tier 1c (3-14d)"
+		cooldownMin = 720
+	case sinceMatch < 30*24:
+		tierName = "Tier 2 (14-30d)"
 		cooldownMin = 1440
+	default:
+		tierName = "Tier 3 (>30d)"
+		cooldownMin = 2880
 	}
 
 	if sinceCheck >= cooldownMin {

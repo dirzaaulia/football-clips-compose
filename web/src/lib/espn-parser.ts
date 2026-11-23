@@ -181,6 +181,16 @@ export function parseEspnSummaryPayload(data: any): EspnSummaryResult {
   const awayTeamBox =
     teams.find((t: any) => t.homeAway === 'away' || (awayId && String(t.team?.id) === awayId)) || teams[1];
 
+  const rawHColor = homeComp?.team?.color || homeTeamBox?.team?.color;
+  const rawAColor = awayComp?.team?.color || awayTeamBox?.team?.color;
+  const rawHAlt = homeComp?.team?.alternateColor || homeTeamBox?.team?.alternateColor;
+  const rawAAlt = awayComp?.team?.alternateColor || awayTeamBox?.team?.alternateColor;
+
+  const parsedHomeColor = rawHColor ? (String(rawHColor).startsWith('#') ? String(rawHColor) : `#${rawHColor}`) : null;
+  const parsedAwayColor = rawAColor ? (String(rawAColor).startsWith('#') ? String(rawAColor) : `#${rawAColor}`) : null;
+  const parsedHomeAlt = rawHAlt ? (String(rawHAlt).startsWith('#') ? String(rawHAlt) : `#${rawHAlt}`) : null;
+  const parsedAwayAlt = rawAAlt ? (String(rawAAlt).startsWith('#') ? String(rawAAlt) : `#${rawAAlt}`) : null;
+
   if (homeTeamBox) {
     for (const s of homeTeamBox.statistics || []) {
       if (s.name && s.displayValue !== undefined) statsHome[s.name] = String(s.displayValue);
@@ -212,7 +222,9 @@ export function parseEspnSummaryPayload(data: any): EspnSummaryResult {
     homeScore: String(ev.homeTeamScore ?? ev.competitors?.[0]?.score ?? '0'),
     awayScore: String(ev.awayTeamScore ?? ev.competitors?.[1]?.score ?? '0'),
     scoreText: ev.score || `${ev.homeTeamScore ?? 0}-${ev.awayTeamScore ?? 0}`,
-    competitionName: ev.leagueName || series?.title || 'Head-to-Head',
+    competitionName:
+      ev.leagueName ||
+      (series?.title && !series.title.toLowerCase().includes(' vs ') ? series.title : 'H2H Archive'),
   }));
 
   const rawEvents =
@@ -256,6 +268,10 @@ export function parseEspnSummaryPayload(data: any): EspnSummaryResult {
   });
 
   return {
+    home_color: parsedHomeColor,
+    away_color: parsedAwayColor,
+    home_alternate_color: parsedHomeAlt,
+    away_alternate_color: parsedAwayAlt,
     statistics:
       Object.keys(statsHome).length > 0 || Object.keys(statsAway).length > 0
         ? { home: statsHome, away: statsAway }

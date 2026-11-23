@@ -231,6 +231,15 @@ func (r *TaxonomyRegistry) loadDefaultFallback() {
 				"dichiarazioni", "aftermovie", "vlog", "all access",
 			},
 		},
+		{
+			Category:       "STUDIO_DEBATE",
+			RejectionLabel: "Studio Debate/Pundit Analysis",
+			Terms: []string{
+				"analyse", "analysis", "analisis", "discuss", "dissect", "pundit",
+				"pundits", "reaction", "reactions", "fan react", "watchalong",
+				"comms cam", "tactical analysis", "espn fc", "talksport",
+			},
+		},
 	}
 	r.lastUpdated = time.Now().UTC()
 }

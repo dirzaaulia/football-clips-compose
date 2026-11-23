@@ -96,6 +96,17 @@ export interface CumulativeAvailability {
   sweepCount?: number;
 }
 
+export interface CandidateDetail {
+  videoId: string;
+  title: string;
+  channel: string;
+  duration?: number;
+  watchabilityPct?: number;
+  source?: string;
+  isEmbeddable?: boolean;
+  publishedAt?: string;
+}
+
 export interface MatchCycleRun {
   cycleId?: number;
   timestamp: string;
@@ -119,6 +130,9 @@ export interface MatchCycleRun {
   cumulativeAvailability?: CumulativeAvailability;
   ingestionSource?: 'WEBSUB' | 'RSS' | 'API' | 'MANUAL';
   scannedUploads?: Record<string, ScannedVideo[]>;
+  durationMs?: number;
+  quotaUsed?: number;
+  candidatesList?: CandidateDetail[];
 }
 
 export interface MatchWaterfall {
@@ -213,39 +227,14 @@ export interface NotificationItem {
   };
 }
 
-export interface NotificationsPayload {
-  updated_at: string;
-  count: number;
-  notifications: NotificationItem[];
-}
-
-export interface ScannedVideo {
-  id: string;
-  title: string;
-  publishedAt?: string;
-  source?: 'rss' | 'api' | 'api_playlist';
-}
-
-export interface AudienceDevice {
-  device_id: string;
-  user_id: string;
-  platform: string;
-  device_name: string;
-  app_version: string;
-  last_active: string;
-  favorite_clubs: number[];
-}
-
+export interface NotificationsPayload { updated_at: string; count: number; notifications: NotificationItem[]; }
+export interface ScannedVideo { id: string; title: string; publishedAt?: string; source?: 'rss' | 'api' | 'api_playlist'; }
+export interface AudienceDevice { device_id: string; user_id: string; platform: string; device_name: string; app_version: string; last_active: string; favorite_clubs: number[]; }
 export interface AudiencePayload {
   updated_at: string;
   total_registered_users: number;
   total_registered_devices: number;
-  clubs?: Record<string, {
-    club_id: number;
-    total_devices: number;
-    distinct_users: number;
-    platform_breakdown?: { android?: number; web?: number };
-  }>;
+  clubs?: Record<string, { club_id: number; total_devices: number; distinct_users: number; platform_breakdown?: { android?: number; web?: number } }>;
   devices?: Record<string, AudienceDevice>;
 }
 
@@ -270,12 +259,7 @@ export interface WebSubNotificationItem {
   channel?: string;
   verdict: 'LINKED' | 'REJECTED' | 'IGNORED';
   reason?: string;
-  matchedMatch?: {
-    id: string;
-    homeTeam: string;
-    awayTeam: string;
-    comp: string;
-  };
+  matchedMatch?: { id: string; homeTeam: string; awayTeam: string; comp: string };
   evaluator?: string;
   timestamp: string;
 }

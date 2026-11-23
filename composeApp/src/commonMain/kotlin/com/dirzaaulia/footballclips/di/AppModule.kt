@@ -84,6 +84,7 @@ val viewModelModule = module {
         ShortsViewModel(
             repository = get(),
             billingManager = get(),
+            preferenceManager = get(),
         )
     }
 }

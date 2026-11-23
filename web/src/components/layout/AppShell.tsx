@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import TopHeaderNav from '@/components/layout/TopHeaderNav';
+import LiveScoreTicker from '@/components/layout/LiveScoreTicker';
 import Footer from '@/components/layout/Footer';
 import SplashScreen from '@/components/common/SplashScreen';
 import CookieConsentBanner from '@/components/common/CookieConsentBanner';
@@ -11,6 +12,7 @@ import FloatingMiniPlayer from '@/components/player/FloatingMiniPlayer';
 import QuickCommandPalette from '@/components/search/QuickCommandPalette';
 import QueryProvider from '@/components/providers/QueryProvider';
 import PaywallModal from '@/components/billing/PaywallModal';
+import AdSenseScript from '@/components/common/AdSenseScript';
 import { useProStatus } from '@/hooks/useProStatus';
 
 interface AppShellProps {
@@ -54,6 +56,7 @@ export default function AppShell({ children }: AppShellProps) {
 
         {/* Main Content Area offset by top header */}
         <div className={`flex-1 flex flex-col min-w-0 pt-12 relative ${isShorts ? 'h-[calc(100vh-3rem)] overflow-hidden' : ''}`}>
+          {!isShorts && <LiveScoreTicker />}
           <main className={`flex-1 ${isShorts ? 'h-full overflow-hidden' : ''}`}>{children}</main>
           {!isShorts && <Footer />}
           <QuickCommandPalette />
@@ -69,6 +72,9 @@ export default function AppShell({ children }: AppShellProps) {
 
         {/* Floating Docked Mini-Player */}
         <FloatingMiniPlayer />
+
+        {/* Selective Google AdSense Integration (suppressed on /telemetry) */}
+        <AdSenseScript />
       </div>
     </QueryProvider>
   );

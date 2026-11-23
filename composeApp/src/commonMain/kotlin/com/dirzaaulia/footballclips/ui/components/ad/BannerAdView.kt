@@ -9,6 +9,7 @@ enum class NativeAdStyle {
     MATCH,
     HIGHLIGHT,
     STANDINGS,
+    SHORTS,
 }
 
 @Composable

@@ -3,14 +3,31 @@ import React from 'react';
 export default function ArticlesLoading() {
   return (
     <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 py-6 select-none space-y-8 animate-pulse">
-      {/* Header 1:1 Skeleton */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
-        <div className="space-y-2">
-          <div className="w-36 h-4 bg-[#DFFF00]/20 rounded" />
-          <div className="w-80 h-8 bg-white/15 rounded-lg" />
+      {/* Premium OTT Tactical Hero Banner 1:1 Twin Skeleton */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#121316] via-[#1A1C22] to-[#121316] border border-white/10 p-6 sm:p-8 shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="space-y-3 max-w-2xl flex-1">
+          <div className="flex items-center gap-2">
+            <div className="w-48 h-6 bg-[#DFFF00]/20 rounded-full" />
+            <div className="w-36 h-4 bg-white/10 rounded" />
+          </div>
+          <div className="w-3/4 h-8 sm:h-10 bg-white/15 rounded-lg" />
+          <div className="w-full h-4 bg-white/10 rounded" />
+          <div className="w-4/5 h-4 bg-white/10 rounded" />
         </div>
-        <div className="w-64 h-4 bg-white/10 rounded" />
-      </header>
+
+        {/* Telemetry Metric Pills Skeleton */}
+        <div className="flex flex-wrap lg:flex-col gap-2.5 shrink-0 self-start lg:self-auto">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-[#0A0A0C]/80 border border-white/10 w-48 h-9"
+            >
+              <div className="w-2 h-2 rounded-full bg-white/20" />
+              <div className="w-32 h-3.5 bg-white/15 rounded" />
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* AnalysisMatchBar 1:1 Twin Skeleton */}
       <div className="w-full bg-[#1A1C22] rounded-2xl border border-white/10 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">

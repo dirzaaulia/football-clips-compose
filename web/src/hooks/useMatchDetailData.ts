@@ -46,6 +46,8 @@ export function useMatchDetailData(
 
           const mergedMatch: MatchRecord = {
             ...fetched,
+            home_color: espnData?.home_color || fetched.home_color,
+            away_color: espnData?.away_color || fetched.away_color,
             status: espnData?.status || fetched.status,
             home_score: espnData?.home_score != null ? espnData.home_score : fetched.home_score,
             away_score: espnData?.away_score != null ? espnData.away_score : fetched.away_score,
@@ -94,6 +96,8 @@ export function useMatchDetailData(
 
             const espnData = await fetchEspnMatchSummary(targetId).catch(() => null);
             if (espnData) {
+              fallbackRecord.home_color = espnData.home_color;
+              fallbackRecord.away_color = espnData.away_color;
               fallbackRecord.statistics = espnData.statistics;
               fallbackRecord.formations = espnData.formations;
               fallbackRecord.editorial_headline = espnData.editorial_headline;

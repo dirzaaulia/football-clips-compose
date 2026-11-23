@@ -236,7 +236,7 @@ fun ScoreViewModel.buildFixtureListWithAds(
     for (i in items.indices) {
         result.add(items[i])
         if ((i + 1) % 6 == 0 && i < items.size - 1) {
-            result.add(HighlightUiItem.BannerAd)
+            result.add(HighlightUiItem.BannerAd("fixture-ad-${i / 6}"))
         }
     }
     return result

@@ -72,15 +72,15 @@ export default function WebPitchTimelineScrubber({
           >
             <RotateCcw className="w-3 h-3" />
           </button>
-          <span className="font-mono font-bold text-white text-xs">{currentMinute}&apos;</span>
+          <span className="font-mono font-black text-white text-xs sm:text-sm">{currentMinute}&apos;</span>
         </div>
 
-        <div className="flex items-center gap-3 text-[10px] text-white/50">
-          <span className="flex items-center gap-1">
+        <div className="flex items-center gap-3 text-xs text-white/60 font-tech">
+          <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: homeColor }} />
             <span>Home Dominance</span>
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: awayColor }} />
             <span>Away Dominance</span>
           </span>

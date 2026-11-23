@@ -94,10 +94,10 @@ export default function MatchSidebar({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-xs font-bold text-white group-hover:text-[#DFFF00] transition-colors line-clamp-2 leading-tight">
+                    <h4 className="text-xs sm:text-sm font-extrabold text-white group-hover:text-[#DFFF00] transition-colors line-clamp-2 leading-snug">
                       {home} vs {away}
                     </h4>
-                    <span className="text-[10px] font-tech text-white/50">
+                    <span className="text-xs font-tech text-white/75 font-semibold">
                       {isSpoilerFree
                         ? 'Highlight Available'
                         : m.home_score !== null
@@ -111,7 +111,7 @@ export default function MatchSidebar({
           )
         ) : (
           fixtures.length === 0 ? (
-            <p className="text-xs font-tech text-white/40 text-center py-6">No scheduled fixtures found.</p>
+            <p className="text-xs font-tech text-white/70 text-center py-6">No scheduled fixtures found.</p>
           ) : (
             fixtures.map((m) => {
               const home = m.home_team_name || m.home_team;
@@ -125,9 +125,9 @@ export default function MatchSidebar({
                   href={`/match/${m.id}`}
                   className="block p-3 rounded-xl bg-[#1A1C22] hover:bg-[#252830] border border-white/10 hover:border-[#DFFF00]/40 transition-all text-xs"
                 >
-                  <div className="flex items-center justify-between text-[10px] text-white/50 font-tech mb-1.5">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-2.5 h-2.5 text-[#DFFF00]" />
+                  <div className="flex items-center justify-between text-xs text-white/75 font-tech mb-1.5">
+                    <span className="flex items-center gap-1 font-medium">
+                      <Calendar className="w-3 h-3 text-[#DFFF00]" />
                       {new Date(m.utc_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                     </span>
                     <span
@@ -135,22 +135,22 @@ export default function MatchSidebar({
                         isLive
                           ? 'text-red-400 font-black animate-pulse flex items-center gap-1'
                           : isFinished
-                          ? 'text-white/60 font-bold'
-                          : 'text-[#38BDF8]'
+                          ? 'text-white/80 font-bold'
+                          : 'text-[#38BDF8] font-bold'
                       }
                     >
                       {isLive && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />}
                       {isLive ? (m.status === 'PAUSED' ? 'HT' : m.display_clock ? `LIVE ${m.display_clock}` : 'LIVE') : isFinished ? 'FT' : 'Upcoming'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between font-bold text-white gap-2">
-                    <span className="line-clamp-2 leading-tight flex-1">{home}</span>
-                    <span className="px-2 text-center text-[#DFFF00] font-scoreboard shrink-0">
+                  <div className="flex items-center justify-between font-extrabold text-white text-xs sm:text-sm gap-2">
+                    <span className="line-clamp-2 leading-snug flex-1">{home}</span>
+                    <span className="px-2 text-center text-[#DFFF00] font-scoreboard shrink-0 text-sm">
                       {isLive || (isFinished && !isSpoilerFree)
                         ? `${m.home_score ?? 0} - ${m.away_score ?? 0}`
                         : 'vs'}
                     </span>
-                    <span className="line-clamp-2 leading-tight flex-1 text-right">{away}</span>
+                    <span className="line-clamp-2 leading-snug flex-1 text-right">{away}</span>
                   </div>
                 </Link>
               );
@@ -170,10 +170,10 @@ export default function MatchSidebar({
               <Zap className="w-4 h-4 fill-[#0A0A0C]" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="font-tech text-xs font-bold text-white group-hover:text-[#DFFF00] transition-colors truncate">
+              <span className="font-tech text-xs sm:text-sm font-bold text-white group-hover:text-[#DFFF00] transition-colors">
                 SHORTS VAULT
               </span>
-              <span className="font-tech text-[10px] text-white/50 truncate">
+              <span className="font-tech text-xs text-white/75">
                 60-Second Wondergoals &amp; Fast Snips
               </span>
             </div>

@@ -132,6 +132,38 @@ func (c *Client) evaluateWithAI(
 	return det, nil
 }
 
+func matchesTeam(title, team string) bool {
+	t := strings.ToLower(title)
+	tm := strings.ToLower(team)
+	if strings.Contains(t, tm) {
+		return true
+	}
+	if tm == "manchester united" && (strings.Contains(t, "man utd") || strings.Contains(t, "man united") || strings.Contains(t, "united")) {
+		return true
+	}
+	if tm == "manchester city" && (strings.Contains(t, "man city") || strings.Contains(t, "city")) {
+		return true
+	}
+	if tm == "tottenham hotspur" && (strings.Contains(t, "tottenham") || strings.Contains(t, "spurs")) {
+		return true
+	}
+	if tm == "wolverhampton wanderers" && strings.Contains(t, "wolves") {
+		return true
+	}
+	if tm == "brighton & hove albion" && strings.Contains(t, "brighton") {
+		return true
+	}
+	if tm == "nottingham forest" && strings.Contains(t, "forest") {
+		return true
+	}
+	for _, w := range strings.Fields(tm) {
+		if len(w) >= 5 && strings.Contains(t, w) {
+			return true
+		}
+	}
+	return false
+}
+
 func (c *Client) evaluateDeterministic(
 	match domain.Match,
 	candidates []domain.VideoCandidate,
@@ -139,9 +171,16 @@ func (c *Client) evaluateDeterministic(
 	homeLower := strings.ToLower(match.HomeTeamName)
 	awayLower := strings.ToLower(match.AwayTeamName)
 
+	var bestCand *domain.VideoCandidate
+	bestScore := -1.0
+
 	for _, cand := range candidates {
 		tLower := strings.ToLower(cand.Title)
 		if strings.Contains(tLower, "#shorts") || strings.Contains(tLower, "/shorts") {
+			continue
+		}
+
+		if !matchesTeam(tLower, homeLower) || !matchesTeam(tLower, awayLower) {
 			continue
 		}
 
@@ -153,21 +192,44 @@ func (c *Client) evaluateDeterministic(
 			strings.Contains(tLower, "goals") ||
 			strings.Contains(tLower, "tore") ||
 			strings.Contains(tLower, "buts") ||
-			strings.Contains(tLower, "quarterfinal") ||
-			strings.Contains(tLower, "semifinal") ||
-			strings.Contains(tLower, "final") ||
-			strings.Contains(tLower, "group stage") ||
-			strings.Contains(tLower, "matchday") ||
 			cand.Source == "RSS"
 
-		if strings.Contains(tLower, homeLower) && strings.Contains(tLower, awayLower) && hasHighlights {
-			return &domain.CandidateEvaluation{
-				VideoID:   cand.VideoID,
-				Verdict:   "ACCEPTED",
-				Score:     88,
-				Reason:    "Both club names and highlight keyword matched by deterministic scorer",
-				Evaluator: "DETERMINISTIC_FALLBACK",
-			}
+		if !hasHighlights {
+			continue
+		}
+
+		score := cand.WatchabilityPct
+		if cand.Tier == 1 {
+			score += 50.0
+		} else if cand.Tier == 2 {
+			score += 20.0
+		}
+		if cand.IsEmbeddable {
+			score += 10.0
+		}
+		if cand.DurationSeconds >= 90 && cand.DurationSeconds <= 900 {
+			score += 15.0
+		} else if cand.DurationSeconds > 900 {
+			score -= 20.0
+		}
+		if strings.Contains(tLower, "best") || strings.Contains(tLower, "build-up") || strings.Contains(tLower, "preview") {
+			score -= 50.0
+		}
+
+		if score > bestScore {
+			bestScore = score
+			candCopy := cand
+			bestCand = &candCopy
+		}
+	}
+
+	if bestCand != nil && bestScore > 0 {
+		return &domain.CandidateEvaluation{
+			VideoID:   bestCand.VideoID,
+			Verdict:   "ACCEPTED",
+			Score:     int(bestScore),
+			Reason:    fmt.Sprintf("Optimal highlight candidate selected (score: %.0f, reach: %.1f%%)", bestScore, bestCand.WatchabilityPct),
+			Evaluator: "DETERMINISTIC_SCORER",
 		}
 	}
 

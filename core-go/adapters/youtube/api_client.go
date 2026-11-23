@@ -110,8 +110,12 @@ func (c *Client) DiscoverCandidates(
 		return discovered, nil
 	}
 
-	// Quota Guard: Only query API for recent matches (within 72h)
-	if time.Since(match.UTCDate).Hours() > 72.0 {
+	// Quota Guard: Up to 14 days (336h) for international tournaments, 72h for clubs
+	maxHours := 72.0
+	if isIntlCompetition(match.CompetitionID) {
+		maxHours = 336.0
+	}
+	if time.Since(match.UTCDate).Hours() > maxHours {
 		return discovered, nil
 	}
 
@@ -122,7 +126,21 @@ func (c *Client) DiscoverCandidates(
 		matched := c.filterCandidates(apiCandidates, match)
 		discovered = append(discovered, matched...)
 	}
+
+	// Fallback to Spanish query for international/Latin matches if English yields 0
+	if len(discovered) == 0 && c.GetRemainingQuota() >= 100 && (isIntlCompetition(match.CompetitionID) || match.CompetitionID == "ARG" || match.CompetitionID == "BRA") {
+		esQuery := fmt.Sprintf("%s vs %s resumen", normalizeText(match.HomeTeamName), normalizeText(match.AwayTeamName))
+		if esCandidates, err := c.searchAPI(ctx, esQuery); err == nil {
+			matched := c.filterCandidates(esCandidates, match)
+			discovered = append(discovered, matched...)
+		}
+	}
+
 	return discovered, nil
+}
+
+func isIntlCompetition(cid string) bool {
+	return strings.HasPrefix(cid, "WCQ_") || cid == "UNL" || cid == "FRI" || cid == "CNL"
 }
 
 func (c *Client) filterCandidates(videos []domain.VideoCandidate, match domain.Match) []domain.VideoCandidate {

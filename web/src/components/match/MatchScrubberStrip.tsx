@@ -140,38 +140,38 @@ export default function MatchScrubberStrip({
 
   return (
     <div className="pt-3 border-t border-white/10 space-y-2.5 select-none">
-      <div className="flex items-center justify-between text-[10px] font-tech uppercase tracking-wider text-white/50">
+      <div className="flex items-center justify-between text-xs font-tech uppercase tracking-wider text-white/75">
         <div className="flex items-center gap-3">
-          <span className="font-bold text-white/75">Key Moments Timeline</span>
-          <span className="hidden sm:inline text-white/35">• {homeName} (Top) / {awayName} (Bottom)</span>
+          <span className="font-extrabold text-white">Key Moments Timeline</span>
+          <span className="hidden sm:inline text-white/60">• {homeName} (Top) / {awayName} (Bottom)</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 font-bold">
           <span className="inline-flex items-center gap-1">
-            <GoalBallIcon className="w-3 h-3" />
+            <GoalBallIcon className="w-3.5 h-3.5" />
             <span>Goal</span>
           </span>
           <span className="inline-flex items-center gap-1">
-            <span className="w-2 h-2.5 rounded-[1px] bg-amber-400 inline-block" />
+            <span className="w-2.5 h-3 rounded-[1px] bg-amber-400 inline-block" />
             <span>YC</span>
           </span>
           <span className="inline-flex items-center gap-1">
-            <span className="w-2 h-2.5 rounded-[1px] bg-rose-500 inline-block" />
+            <span className="w-2.5 h-3 rounded-[1px] bg-rose-500 inline-block" />
             <span>RC</span>
           </span>
         </div>
       </div>
 
       {/* Dual-Lane Anti-Collision Timeline Track */}
-      <div className="relative w-full h-20 bg-[#0A0A0C] border border-white/10 rounded-xl px-6 flex items-center shadow-inner">
+      <div className="relative w-full h-22 bg-[#0A0A0C] border border-white/10 rounded-xl px-6 flex items-center shadow-inner">
         {/* Center Axis Line */}
-        <div className="relative w-full h-1 bg-white/10 rounded-full">
-          <span className="absolute -left-4 -top-2.5 text-[9px] font-mono text-white/40 font-bold">0&apos;</span>
-          <div className="absolute left-1/2 -top-2.5 -translate-x-1/2 flex flex-col items-center z-0">
-            <span className="px-1.5 py-0.5 rounded bg-[#16181D] border border-white/10 text-[8px] font-mono font-bold text-white/50">
+        <div className="relative w-full h-1 bg-white/15 rounded-full">
+          <span className="absolute -left-4 -top-3 text-xs font-mono text-white/70 font-bold">0&apos;</span>
+          <div className="absolute left-1/2 -top-3 -translate-x-1/2 flex flex-col items-center z-0">
+            <span className="px-2 py-0.5 rounded bg-[#16181D] border border-white/15 text-xs font-mono font-bold text-white/80">
               HT
             </span>
           </div>
-          <span className="absolute -right-4 -top-2.5 text-[9px] font-mono text-white/40 font-bold">90&apos;+</span>
+          <span className="absolute -right-4 -top-3 text-xs font-mono text-white/70 font-bold">90&apos;+</span>
 
           {nodes.map((node) => {
             const isHome = node.side === 'home';
@@ -184,8 +184,8 @@ export default function MatchScrubberStrip({
                 style={{ left: `${node.pct}%` }}
                 className={`absolute -translate-x-1/2 flex flex-col items-center z-10 transition-transform ${
                   isHome
-                    ? isTier1 ? '-top-11' : '-top-6'
-                    : isTier1 ? 'top-3.5' : 'top-1'
+                    ? isTier1 ? '-top-12' : '-top-7'
+                    : isTier1 ? 'top-4' : 'top-1.5'
                 } ${isSelected ? 'scale-110 z-30' : 'hover:scale-105 opacity-90 hover:opacity-100'}`}
               >
                 {!isHome && (
@@ -199,7 +199,7 @@ export default function MatchScrubberStrip({
                   type="button"
                   onClick={() => setSelectedId(node.id)}
                   onMouseEnter={() => setSelectedId(node.id)}
-                  className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[9px] font-mono font-bold shadow-md cursor-pointer transition-all ${
+                  className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-xs font-mono font-bold shadow-md cursor-pointer transition-all ${
                     node.kind === 'goal'
                       ? 'bg-[#DFFF00]/15 border-[#DFFF00]/70 text-[#DFFF00]'
                       : node.kind === 'red'
@@ -208,13 +208,13 @@ export default function MatchScrubberStrip({
                   } ${isSelected ? 'ring-2 ring-white/40 shadow-lg' : ''}`}
                 >
                   {node.kind === 'goal' ? (
-                    <GoalBallIcon className="w-2.5 h-2.5 shrink-0" />
+                    <GoalBallIcon className="w-3 h-3 shrink-0" />
                   ) : node.kind === 'red' ? (
-                    <span className="w-2 h-2.5 rounded-[1px] bg-rose-500 shrink-0" />
+                    <span className="w-2.5 h-3 rounded-[1px] bg-rose-500 shrink-0" />
                   ) : node.kind === 'yellow' ? (
-                    <span className="w-2 h-2.5 rounded-[1px] bg-amber-400 shrink-0" />
+                    <span className="w-2.5 h-3 rounded-[1px] bg-amber-400 shrink-0" />
                   ) : (
-                    <ArrowLeftRight className="w-2.5 h-2.5 text-[#38BDF8] shrink-0" />
+                    <ArrowLeftRight className="w-3 h-3 text-[#38BDF8] shrink-0" />
                   )}
                   <span>{node.clockLabel}</span>
                 </button>
@@ -233,21 +233,21 @@ export default function MatchScrubberStrip({
 
       {/* Selected Event Inspection Strip */}
       {activeNode && (
-        <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-[#0A0A0C] border border-white/10 text-xs font-tech">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="px-1.5 py-0.5 rounded bg-[#DFFF00]/15 text-[#DFFF00] font-mono text-[10px] font-bold shrink-0">
+        <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl bg-[#0A0A0C] border border-white/10 text-xs sm:text-sm font-tech">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="px-2 py-0.5 rounded bg-[#DFFF00]/15 text-[#DFFF00] font-mono text-xs font-bold shrink-0">
               {activeNode.clockLabel}
             </span>
-            <span className="font-bold text-white truncate">{activeNode.playerName}</span>
+            <span className="font-extrabold text-white">{activeNode.playerName}</span>
             {activeNode.assistName && (
-              <span className="text-white/50 text-[11px] truncate hidden sm:inline">
+              <span className="text-white/70 text-xs hidden sm:inline">
                 (Assist: {activeNode.assistName})
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 shrink-0 text-[10px]">
-            <span className="text-white/50">{activeNode.teamName}</span>
-            <span className="px-2 py-0.5 rounded bg-white/5 text-white/80 font-bold uppercase">
+          <div className="flex items-center gap-2.5 shrink-0 text-xs font-medium">
+            <span className="text-white/75">{activeNode.teamName}</span>
+            <span className="px-2.5 py-0.5 rounded bg-white/10 text-white/90 font-bold uppercase">
               {activeNode.typeLabel}
             </span>
           </div>

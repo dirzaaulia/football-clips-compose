@@ -10,7 +10,6 @@ import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
 import MatchCentreHeader from '@/components/match/MatchCentreHeader';
 import MatchSidebar from '@/components/match/MatchSidebar';
-import MatchRecapSection from '@/components/match/MatchRecapSection';
 import MatchTacticalBoxscore from '@/components/match/MatchTacticalBoxscore';
 import MatchDayGearSection from '@/components/affiliate/MatchDayGearSection';
 import MatchScoreboardBanner from '@/components/match/MatchScoreboardBanner';
@@ -179,10 +178,10 @@ export default function MatchDetailClient({
               <MatchTacticalBoxscore
                 match={match}
                 espnSummary={espnSummary}
+                recapAnalysis={recapAnalysis}
                 isScoreRevealed={isScoreRevealed}
                 onRevealScore={() => setIsScoreRevealed(true)}
               />
-              <MatchRecapSection recapAnalysis={recapAnalysis} status={match.status} />
               <MatchDayGearSection
                 homeName={homeName}
                 homeCrest={match.home_team_crest}

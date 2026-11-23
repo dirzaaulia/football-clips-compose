@@ -17,6 +17,14 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
       },
       {
+        userAgent: 'AdsBot-Google',
+        allow: '/',
+      },
+      {
+        userAgent: 'AdsBot-Google-Mobile',
+        allow: '/',
+      },
+      {
         userAgent: 'Googlebot',
         allow: '/',
       },

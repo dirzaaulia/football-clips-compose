@@ -9,12 +9,19 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import kotlinx.serialization.json.Json
 
+data class TacticalSummaryResult(
+    val formations: FormationsDto? = null,
+    val statistics: Map<String, Map<String, String>>? = null,
+    val homeColor: String? = null,
+    val awayColor: String? = null,
+)
+
 interface EspnSummaryRepository {
     suspend fun getTacticalSummary(
         matchId: Long,
         competitionCode: String,
         competitionSlug: String? = null,
-    ): Pair<FormationsDto?, Map<String, Map<String, String>>?>
+    ): TacticalSummaryResult
 }
 
 class EspnSummaryRepositoryImpl(
@@ -22,7 +29,7 @@ class EspnSummaryRepositoryImpl(
 ) : EspnSummaryRepository {
 
     private val json = Json { ignoreUnknownKeys = true }
-    private val summaryCache = InMemorySwrCache<Long, Pair<FormationsDto?, Map<String, Map<String, String>>?>>(
+    private val summaryCache = InMemorySwrCache<Long, TacticalSummaryResult>(
         ttlMillis = 300_000L,
     )
 
@@ -30,7 +37,7 @@ class EspnSummaryRepositoryImpl(
         matchId: Long,
         competitionCode: String,
         competitionSlug: String?,
-    ): Pair<FormationsDto?, Map<String, Map<String, String>>?> {
+    ): TacticalSummaryResult {
         val cached = summaryCache.get(matchId)
         if (cached != null) return cached
 
@@ -45,12 +52,18 @@ class EspnSummaryRepositoryImpl(
             val summaryDto = json.decodeFromString<EspnSummaryResponseDto>(responseText)
             val formations = summaryDto.toFormationsDto()
             val statistics = summaryDto.toStatisticsMap()
+            val (hColor, aColor) = summaryDto.getTeamColors()
 
-            val result = Pair(formations, statistics)
+            val result = TacticalSummaryResult(
+                formations = formations,
+                statistics = statistics,
+                homeColor = hColor,
+                awayColor = aColor,
+            )
             summaryCache.put(matchId, result)
             result
         } catch (_: Exception) {
-            summaryCache.getStale(matchId) ?: Pair(null, null)
+            summaryCache.getStale(matchId) ?: TacticalSummaryResult()
         }
     }
 

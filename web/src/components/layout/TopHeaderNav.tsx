@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { EyeOff, Eye, Sparkles, User } from 'lucide-react';
+import { EyeOff, Eye, Sparkles, User, Menu } from 'lucide-react';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 import { useSeason } from '@/hooks/useSeason';
+import MobileNavDrawer from './MobileNavDrawer';
 
 interface TopHeaderNavProps {
   onOpenPaywall?: () => void;
@@ -32,6 +33,7 @@ export default function TopHeaderNav({
   const pathname = usePathname();
   const { isSpoilerFree, toggleSpoilerFree } = useSpoilerFree();
   const { selectedSeason } = useSeason();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-12 bg-[#121316]/75 backdrop-blur-md border-b border-white/10 shadow-[0_1px_8px_rgba(0,0,0,0.3)] select-none">
@@ -80,7 +82,7 @@ export default function TopHeaderNav({
         {/* Right: Utility Controls & Profile */}
         <div className="flex items-center gap-2.5 shrink-0">
           {/* Season Badge */}
-          <span className="hidden sm:inline-flex items-center text-[10px] font-tech font-bold px-2 py-0.5 rounded bg-white/5 text-white/80 border border-white/10 tracking-wider">
+          <span className="hidden sm:inline-flex items-center text-xs font-tech font-bold px-2.5 py-0.5 rounded bg-white/10 text-white/90 border border-white/10 tracking-wider">
             {selectedSeason - 1}/{String(selectedSeason).slice(-2)}
           </span>
 
@@ -107,22 +109,40 @@ export default function TopHeaderNav({
           {/* PRO Button */}
           <button
             onClick={onOpenPaywall}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-[#DFFF00]/40 bg-[#DFFF00]/10 hover:bg-[#DFFF00] text-[#DFFF00] hover:text-[#0A0A0C] font-tech text-[11px] font-bold tracking-wider uppercase transition-all shadow-[0_0_10px_rgba(223,255,0,0.15)] cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded border border-[#DFFF00]/40 bg-[#DFFF00]/10 hover:bg-[#DFFF00] text-[#DFFF00] hover:text-[#0A0A0C] font-tech text-xs font-black tracking-wider uppercase transition-all shadow-[0_0_10px_rgba(223,255,0,0.15)] cursor-pointer"
           >
-            <Sparkles className="w-3 h-3" />
+            <Sparkles className="w-3.5 h-3.5" />
             <span>{isPro ? 'PRO ACTIVE' : 'PRO'}</span>
           </button>
 
           {/* User Avatar */}
           <Link
             href="/settings"
-            className="w-7 h-7 rounded-full bg-[#1A1C22] border border-[#DFFF00]/50 text-[#DFFF00] font-tech text-[10px] font-bold flex items-center justify-center shadow-sm select-none hover:scale-105 transition-transform"
+            className="w-8 h-8 rounded-full bg-[#1A1C22] border border-[#DFFF00]/50 text-[#DFFF00] font-tech text-xs font-bold flex items-center justify-center shadow-sm select-none hover:scale-105 transition-transform"
             title="User Profile & Settings"
           >
-            <User className="w-3.5 h-3.5" />
+            <User className="w-4 h-4" />
           </Link>
+
+          {/* Mobile Menu Hamburger Toggle */}
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="md:hidden p-1.5 rounded-lg text-white/70 hover:text-white bg-white/5 border border-white/10 transition-colors flex items-center justify-center cursor-pointer min-w-[36px] min-h-[36px]"
+            title="Open navigation menu"
+            aria-label="Open navigation menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
         </div>
       </div>
+
+      {/* Mobile Responsive Navigation Drawer */}
+      <MobileNavDrawer
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        pathname={pathname}
+        links={NAV_LINKS}
+      />
     </header>
   );
 }

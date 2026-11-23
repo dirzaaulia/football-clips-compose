@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import TacticalZone14OverloadEngine from './TacticalZone14OverloadEngine';
-import TacticalDuelsMomentum from './TacticalDuelsMomentum';
+import TacticalZone14OverloadEngine from '@/components/tools/TacticalZone14OverloadEngine';
+import TacticalDuelsMomentum from '@/components/tools/TacticalDuelsMomentum';
 import H2HComparator from '@/components/tools/H2HComparator';
 import LeagueFormMatrix from '@/components/tools/LeagueFormMatrix';
 import BroadcastDirectory from '@/components/tools/BroadcastDirectory';

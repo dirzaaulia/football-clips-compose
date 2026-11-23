@@ -197,7 +197,7 @@ internal fun buildListWithAds(
     for (i in items.indices) {
         result.add(items[i])
         if ((i + 1) % 5 == 0 && i < items.size - 1) {
-            result.add(HighlightUiItem.BannerAd)
+            result.add(HighlightUiItem.BannerAd("home-ad-${i / 5}"))
         }
     }
     return result

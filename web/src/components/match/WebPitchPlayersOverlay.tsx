@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { FormationNode } from './WebPitchFormationHelper';
 import { derivePassingNetworkEdges } from './WebPitchXgHelper';
+import { WebPitchPlay } from './WebPitchRadar';
 
 interface WebPitchPlayersOverlayProps {
   homeNodes: FormationNode[];
@@ -12,6 +13,26 @@ interface WebPitchPlayersOverlayProps {
   selectedPlayerName?: string | null;
   onPlayerClick?: (node: FormationNode) => void;
   activePlayPlayer?: string | null;
+  timelineMinute?: number;
+  plays?: WebPitchPlay[];
+}
+
+function computeDynamicNode(node: FormationNode, minute: number): FormationNode {
+  const isGK = node.player.position === 'GK' || node.player.position === 'G';
+  if (isGK) return node;
+
+  // Tactical block shift: early high press -> mid block -> late compactness
+  let deltaX = 0;
+  if (minute <= 25) {
+    deltaX = node.isHome ? 2.2 : -2.2;
+  } else if (minute >= 75) {
+    deltaX = node.isHome ? -1.8 : 1.8;
+  } else if (minute > 45 && minute <= 65) {
+    deltaX = node.isHome ? 1.4 : -1.4;
+  }
+
+  const safeX = Math.max(7.5, Math.min(97.5, node.x + deltaX));
+  return { ...node, x: safeX };
 }
 
 export default function WebPitchPlayersOverlay({
@@ -22,9 +43,35 @@ export default function WebPitchPlayersOverlay({
   selectedPlayerName,
   onPlayerClick,
   activePlayPlayer,
+  timelineMinute = 90,
+  plays = [],
 }: WebPitchPlayersOverlayProps) {
-  const allNodes = useMemo(() => [...homeNodes, ...awayNodes], [homeNodes, awayNodes]);
-  const passingLinks = useMemo(() => derivePassingNetworkEdges(homeNodes, awayNodes), [homeNodes, awayNodes]);
+  const dynamicHomeNodes = useMemo(
+    () => homeNodes.map((n) => computeDynamicNode(n, timelineMinute)),
+    [homeNodes, timelineMinute],
+  );
+  const dynamicAwayNodes = useMemo(
+    () => awayNodes.map((n) => computeDynamicNode(n, timelineMinute)),
+    [awayNodes, timelineMinute],
+  );
+
+  const allNodes = useMemo(
+    () => [...dynamicHomeNodes, ...dynamicAwayNodes],
+    [dynamicHomeNodes, dynamicAwayNodes],
+  );
+
+  const passingLinks = useMemo(
+    () => derivePassingNetworkEdges(dynamicHomeNodes, dynamicAwayNodes),
+    [dynamicHomeNodes, dynamicAwayNodes],
+  );
+
+  const activeEvent = useMemo(() => {
+    return plays.find((p) => {
+      const m = p.clock.match(/(\d+)/);
+      const min = m ? parseInt(m[1], 10) : -1;
+      return Math.abs(min - timelineMinute) <= 1;
+    });
+  }, [plays, timelineMinute]);
 
   return (
     <g className="formation-players-overlay">
@@ -54,7 +101,35 @@ export default function WebPitchPlayersOverlay({
         })}
       </g>
 
-      {/* Player Tokens */}
+      {/* Chronological Event Banner Overlay (Goal / Sub / Card) */}
+      {activeEvent && (
+        <g transform="translate(52.5, 7.5)">
+          <rect
+            x="-26"
+            y="-3.5"
+            width="52"
+            height="7"
+            rx="2.0"
+            fill="#090A0D"
+            fillOpacity="0.95"
+            stroke="#DFFF00"
+            strokeWidth="0.5"
+          />
+          <text
+            x="0"
+            y="0.8"
+            fontSize="1.9"
+            textAnchor="middle"
+            fill="#FFFFFF"
+            fontWeight="bold"
+            fontFamily="monospace"
+          >
+            {activeEvent.clock} • {activeEvent.text.slice(0, 38)}
+          </text>
+        </g>
+      )}
+
+      {/* Player Tokens (Zero CSS scale transforms to prevent coordinate jitter) */}
       {allNodes.map((node) => {
         const isSelected = Boolean(
           selectedPlayerName &&
@@ -86,15 +161,14 @@ export default function WebPitchPlayersOverlay({
               </circle>
             )}
 
-            {/* Champions League / Opta Style Circular Glass Disc */}
+            {/* Stable Circular Disc with zero scale transforms */}
             <circle
               cx={node.x}
               cy={node.y}
-              r="2.6"
+              r={isSelected ? '2.8' : '2.5'}
               fill={isSelected ? '#FFFFFF' : '#0B0D11'}
-              stroke={jerseyColor}
-              strokeWidth={isSelected ? '0.7' : '0.45'}
-              className="transition-transform group-hover:scale-110"
+              stroke={isSelected ? '#FFFFFF' : jerseyColor}
+              strokeWidth={isSelected ? '0.75' : '0.5'}
             />
 
             {/* Squad Number */}
@@ -110,7 +184,7 @@ export default function WebPitchPlayersOverlay({
               {node.player.jersey || (node.player.position ? node.player.position.slice(0, 2) : '•')}
             </text>
 
-            {/* Frosted Glass Surname Badge */}
+            {/* Surname Badge */}
             <g transform={`translate(${node.x}, ${node.y < 12 ? node.y + 4.4 : node.y - 3.8})`}>
               <rect
                 x="-8.5"

@@ -11,6 +11,11 @@ export default function CookieConsentBanner() {
 
   useEffect(() => {
     try {
+      // Yield if Google AdSense / TCF v2.2 CMP is actively managing consent for EEA/UK
+      if (typeof window !== 'undefined' && typeof (window as unknown as { __tcfapi?: unknown }).__tcfapi === 'function') {
+        return;
+      }
+
       const consent = localStorage.getItem(CONSENT_STORAGE_KEY);
       if (!consent) {
         // Small delay to ensure smooth entry without jarring initial load

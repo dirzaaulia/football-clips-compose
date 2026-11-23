@@ -10,11 +10,13 @@ import {
   resolveWorldwideAvailability,
 } from './mapperHelper';
 import { resolveCumulativeAvailability } from './availabilityHelper';
+import { WaterfallTraceRow, mapTraceToCycleRun } from './waterfallTraceHelper';
 
 export function buildMatchWaterfalls(
   events: TelemetryEvent[],
   dbMatches: DbFinishedMatch[] = [],
   channelLookup?: ChannelLookupMap,
+  waterfallTraces: WaterfallTraceRow[] = [],
 ): MatchWaterfall[] {
   const dbMap = new Map<string, DbFinishedMatch>();
   const dbTitleMap = new Map<string, DbFinishedMatch>();
@@ -22,6 +24,15 @@ export function buildMatchWaterfalls(
     dbMap.set(String(dm.id), dm);
     const titleKey = `${dm.home_team_name} vs ${dm.away_team_name}`.toLowerCase().trim();
     dbTitleMap.set(titleKey, dm);
+  }
+
+  const traceMap = new Map<string, WaterfallTraceRow[]>();
+  for (const t of waterfallTraces) {
+    const mid = t.metadata?.match_id ? String(t.metadata.match_id) : undefined;
+    if (mid) {
+      if (!traceMap.has(mid)) traceMap.set(mid, []);
+      traceMap.get(mid)!.push(t);
+    }
   }
 
   const matchMap = new Map<string, TelemetryEvent[]>();
@@ -58,7 +69,11 @@ export function buildMatchWaterfalls(
       cycles.push(processCycleEvents(cEvents, typeof cId === 'number' ? cId : undefined));
     }
     cycles.reverse();
-    const latest = cycles[0] || processCycleEvents(rawEvList);
+
+    const dbTraces = traceMap.get(key) || [];
+    const traceCycles = dbTraces.map((tr) => mapTraceToCycleRun(tr, channelLookup));
+    const finalCycles = traceCycles.length > 0 ? traceCycles : cycles;
+    const latest = finalCycles[0] || processCycleEvents(rawEvList);
 
     let dm = dbMap.get(key);
     if (!dm) {
@@ -172,32 +187,18 @@ export function buildMatchWaterfalls(
       if (dm && dm.status && dm.status !== 'FINISHED') continue;
       if (matchDate && new Date(matchDate).getTime() > Date.now()) continue;
       results.push({
-        matchId: key,
-        title,
-        date: matchDate,
-        timestamp: latest.timestamp,
-        homeScore,
-        awayScore,
-        competitionId: compId,
-        competitionName: compName,
-        status: finalStatus,
-        step1Channels: latest.step1Channels,
-        step2Candidates: latest.step2Candidates,
-        step3Verdicts: latest.step3Verdicts,
-        step4Outcome: latest.step4Outcome,
-        outcomeVideoId: outcomeId,
+        matchId: key, title, date: matchDate, timestamp: latest.timestamp,
+        homeScore, awayScore, competitionId: compId, competitionName: compName,
+        status: finalStatus, step1Channels: latest.step1Channels,
+        step2Candidates: latest.step2Candidates, step3Verdicts: latest.step3Verdicts,
+        step4Outcome: latest.step4Outcome, outcomeVideoId: outcomeId,
         outcomeVideoUrl: outcomeId ? `https://youtu.be/${outcomeId}` : undefined,
-        linkedChannelHandle: linkedChannel,
-        linkedChannelTier: linkedTier,
-        worldwideAvailabilityText: avail?.text,
-        worldwidePercentage: avail?.percentage,
-        cumulativeAvailability: cumulativeAvail,
-        ingestionSource,
-        stoppedAtStep: latest.stoppedAtStep,
-        stoppedReason: latest.stoppedReason,
-        nextCycleEta: sched?.nextCycleEta,
-        nextCycleTimestamp: sched?.nextCycleTimestamp,
-        cycles,
+        linkedChannelHandle: linkedChannel, linkedChannelTier: linkedTier,
+        worldwideAvailabilityText: avail?.text, worldwidePercentage: avail?.percentage,
+        cumulativeAvailability: cumulativeAvail, ingestionSource,
+        stoppedAtStep: latest.stoppedAtStep, stoppedReason: latest.stoppedReason,
+        nextCycleEta: sched?.nextCycleEta, nextCycleTimestamp: sched?.nextCycleTimestamp,
+        cycles: finalCycles,
       });
     }
   }
@@ -226,12 +227,16 @@ export function buildMatchWaterfalls(
     const avail = cumulativeAvail || (isLinked ? resolveWorldwideAvailability(dm.youtube_region_info) : undefined);
     const sched = !isLinked ? computeNextCycleSchedule(dm.utc_date, dm.last_youtube_check) : undefined;
     const resolvedTargets = resolveDbMatchTargets(dm, channelLookup);
-    const defaultChannels = resolvedTargets.length > 0
-      ? [`Configured targets: ${resolvedTargets.join(', ')}`]
-      : isLinked ? [linkedChannel || 'Official Broadcaster Linked in Database'] : ['Awaiting Highlight Sweep'];
+    const dbTraces = traceMap.get(idStr) || [];
+    const traceCycles = dbTraces.map((tr) => mapTraceToCycleRun(tr, channelLookup));
+    const latestTrace = traceCycles[0];
 
-    const defaultCandidates = isLinked && outcomeId ? [outcomeId] : [];
-    const defaultVerdicts = isLinked && outcomeId ? [{
+    const defaultChannels = latestTrace?.step1Channels || (resolvedTargets.length > 0
+      ? [`Configured targets: ${resolvedTargets.join(', ')}`]
+      : isLinked ? [linkedChannel || 'Official Broadcaster Linked in Database'] : ['Awaiting Highlight Sweep']);
+
+    const defaultCandidates = latestTrace?.step2Candidates || (isLinked && outcomeId ? [outcomeId] : []);
+    const defaultVerdicts = latestTrace?.step3Verdicts || (isLinked && outcomeId ? [{
       candidateId: outcomeId,
       index: 1,
       title: `${title} Highlights`,
@@ -242,22 +247,16 @@ export function buildMatchWaterfalls(
       evaluator: 'PIPELINE_LINKED',
       score: 100,
       source: ingestionSource,
-    }] : [];
+    }] : []);
 
-    results.push({
-      matchId: idStr,
-      title,
-      date,
-      timestamp: date ? `${date} Final` : 'Recently',
-      homeScore: dm.home_score,
-      awayScore: dm.away_score,
-      competitionId: dm.competition_id,
-      competitionName: dm.competition_name,
-      status: isLinked ? 'LINKED' : 'UNLINKED',
+    const defaultOutcome = latestTrace?.step4Outcome || (isLinked ? `Official highlight linked: https://youtu.be/${outcomeId}${linkedChannel ? ` (${linkedChannel})` : ''}` : 'Match finished in DB, awaiting next highlight processor run');
+
+    const fallbackCycles: MatchCycleRun[] = traceCycles.length > 0 ? traceCycles : [{
+      timestamp: date || 'Recently',
       step1Channels: defaultChannels,
       step2Candidates: defaultCandidates,
       step3Verdicts: defaultVerdicts,
-      step4Outcome: isLinked ? `Official highlight linked: https://youtu.be/${outcomeId}${linkedChannel ? ` (${linkedChannel})` : ''}` : 'Match finished in DB, awaiting next highlight processor run',
+      step4Outcome: defaultOutcome,
       outcomeVideoId: outcomeId,
       outcomeVideoUrl: outcomeId ? `https://youtu.be/${outcomeId}` : undefined,
       linkedChannelHandle: linkedChannel,
@@ -266,31 +265,29 @@ export function buildMatchWaterfalls(
       worldwidePercentage: avail?.percentage,
       cumulativeAvailability: cumulativeAvail,
       ingestionSource,
+      status: isLinked ? 'LINKED' : 'UNLINKED',
       stoppedAtStep: isLinked ? undefined : 1,
       stoppedReason: isLinked ? undefined : 'Scheduled for upcoming background highlight search',
       nextCycleEta: sched?.nextCycleEta,
       nextCycleTimestamp: sched?.nextCycleTimestamp,
-      cycles: [{
-        cycleId: undefined,
-        timestamp: date || 'Recently',
-        step1Channels: defaultChannels,
-        step2Candidates: defaultCandidates,
-        step3Verdicts: defaultVerdicts,
-        step4Outcome: isLinked ? `Official highlight linked: https://youtu.be/${outcomeId}${linkedChannel ? ` (${linkedChannel})` : ''}` : 'Match finished in DB, awaiting next highlight processor run',
-        outcomeVideoId: outcomeId,
-        outcomeVideoUrl: outcomeId ? `https://youtu.be/${outcomeId}` : undefined,
-        linkedChannelHandle: linkedChannel,
-        linkedChannelTier: linkedTier,
-        worldwideAvailabilityText: avail?.text,
-        worldwidePercentage: avail?.percentage,
-        cumulativeAvailability: cumulativeAvail,
-        ingestionSource,
-        status: isLinked ? 'LINKED' : 'UNLINKED',
-        stoppedAtStep: isLinked ? undefined : 1,
-        stoppedReason: isLinked ? undefined : 'Scheduled for upcoming background highlight search',
-        nextCycleEta: sched?.nextCycleEta,
-        nextCycleTimestamp: sched?.nextCycleTimestamp,
-      }],
+    }];
+
+    results.push({
+      matchId: idStr, title, date, timestamp: date ? `${date} Final` : 'Recently',
+      homeScore: dm.home_score, awayScore: dm.away_score,
+      competitionId: dm.competition_id, competitionName: dm.competition_name,
+      status: isLinked ? 'LINKED' : 'UNLINKED',
+      step1Channels: defaultChannels, step2Candidates: defaultCandidates,
+      step3Verdicts: defaultVerdicts, step4Outcome: defaultOutcome,
+      outcomeVideoId: outcomeId,
+      outcomeVideoUrl: outcomeId ? `https://youtu.be/${outcomeId}` : undefined,
+      linkedChannelHandle: linkedChannel, linkedChannelTier: linkedTier,
+      worldwideAvailabilityText: avail?.text, worldwidePercentage: avail?.percentage,
+      cumulativeAvailability: cumulativeAvail, ingestionSource,
+      stoppedAtStep: isLinked ? undefined : 1,
+      stoppedReason: isLinked ? undefined : 'Scheduled for upcoming background highlight search',
+      nextCycleEta: sched?.nextCycleEta, nextCycleTimestamp: sched?.nextCycleTimestamp,
+      cycles: fallbackCycles,
     });
   }
 

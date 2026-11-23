@@ -7,6 +7,7 @@ import {
   AudiencePayload, AppSessionItem, TelemetryTab, UserAnalyticsEvent, DbFinishedMatch,
 } from './types';
 import { buildMatchWaterfalls } from './mapper';
+import { WaterfallTraceRow } from './waterfallTraceHelper';
 import { groupWaterfallsByWeekAndCompetition } from './grouping';
 import { TelemetryHeader } from './components/TelemetryHeader';
 import { QuotaGaugeCard } from './components/QuotaGaugeCard';
@@ -32,6 +33,7 @@ export default function TelemetryPage() {
   const [data, setData] = useState<TelemetryPayload | null>(null);
   const [dbFinishedMatches, setDbFinishedMatches] = useState<DbFinishedMatch[]>([]);
   const [dbShorts, setDbShorts] = useState<DbFootballShort[]>([]);
+  const [waterfallTraces, setWaterfallTraces] = useState<WaterfallTraceRow[]>([]);
   const [channelLookup, setChannelLookup] = useState<ChannelLookupMap>({});
   const [notifications, setNotifications] = useState<NotificationsPayload | null>(null);
   const [audience, setAudience] = useState<AudiencePayload | null>(null);
@@ -113,14 +115,16 @@ export default function TelemetryPage() {
       setChannelLookup({ compHandles, clubHandles, broadcasters });
       if (shortRows) setDbShorts(shortRows as DbFootballShort[]);
 
-      const [{ data: aRows, count: aCount }, { data: sRows, count: sCount }] = await Promise.all([
+      const [{ data: aRows, count: aCount }, { data: sRows, count: sCount }, { data: traceRows }] = await Promise.all([
         database.from('user_analytics_events').select('*', { count: 'exact' }).order('created_at', { ascending: false }).limit(200),
         database.from('app_sessions').select('*', { count: 'exact' }).order('started_at', { ascending: false }).limit(200),
+        database.from('worker_events').select('event_id, timestamp, metadata').eq('action', 'WATERFALL_TRACE').order('timestamp', { ascending: false }).limit(250),
       ]);
       if (aRows) setAnalyticsEvents(aRows as UserAnalyticsEvent[]);
       if (typeof aCount === 'number') setTotalAnalyticsCount(aCount);
       if (sRows) setAppSessions(sRows as AppSessionItem[]);
       if (typeof sCount === 'number') setTotalSessionsCount(sCount);
+      if (traceRows) setWaterfallTraces(traceRows as WaterfallTraceRow[]);
     } catch (err) {
       console.error('Failed to load telemetry state:', err);
     } finally {
@@ -151,8 +155,8 @@ export default function TelemetryPage() {
   };
 
   const waterfalls: MatchWaterfall[] = useMemo(
-    () => buildMatchWaterfalls(data?.events || [], dbFinishedMatches, channelLookup),
-    [data, dbFinishedMatches, channelLookup],
+    () => buildMatchWaterfalls(data?.events || [], dbFinishedMatches, channelLookup, waterfallTraces),
+    [data, dbFinishedMatches, channelLookup, waterfallTraces],
   );
 
   const filteredWaterfalls = useMemo(() => {

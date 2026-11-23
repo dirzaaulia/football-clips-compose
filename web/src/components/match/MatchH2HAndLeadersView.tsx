@@ -47,10 +47,10 @@ export default function MatchH2HAndLeadersView({
       <div className="rounded-xl bg-gradient-to-r from-[#1B1B1F] via-[#23252C] to-[#1B1B1F] border border-[#DFFF00]/30 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-[#DFFF00] text-[#0A0A0C] font-tech text-[10px] font-extrabold uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded bg-[#DFFF00] text-[#0A0A0C] font-tech text-xs font-black uppercase tracking-wider">
               Head-to-Head Hub
             </span>
-            <span className="text-xs font-tech text-white/60">
+            <span className="text-xs font-tech text-white/80">
               Multi-Season H2H • Season Form • Club Comparison
             </span>
           </div>
@@ -78,7 +78,7 @@ export default function MatchH2HAndLeadersView({
                 Key Player Match Leaders
               </h4>
             </div>
-            <span className="text-[11px] font-tech text-white/45">Official Match Boxscore</span>
+            <span className="text-xs font-tech text-white/70">Official Match Boxscore</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -88,23 +88,23 @@ export default function MatchH2HAndLeadersView({
             ].map((col) => (
               <div key={col.title} className="bg-[#16181D] rounded-xl border border-white/10 p-4 space-y-2.5">
                 <div className="flex items-center gap-2 pb-2 border-b border-white/5">
-                  <GlassLogoBadge src={col.crest} alt={col.title} size={22} />
-                  <span className={`font-tech text-xs font-bold uppercase ${col.accent}`}>
+                  <GlassLogoBadge src={col.crest} alt={col.title} size={24} />
+                  <span className={`font-tech text-xs sm:text-sm font-extrabold uppercase ${col.accent}`}>
                     {col.title}
                   </span>
                 </div>
                 {col.list.slice(0, 3).map((ldr, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-none font-tech text-xs"
+                    className="flex items-center justify-between py-1.5 border-b border-white/5 last:border-none font-tech text-xs sm:text-sm"
                   >
                     <div>
-                      <span className="text-[10px] uppercase text-white/45 block">{ldr.displayName}</span>
-                      <span className="font-bold text-white">
+                      <span className="text-xs uppercase text-white/70 font-bold block">{ldr.displayName}</span>
+                      <span className="font-extrabold text-white text-xs sm:text-sm">
                         {ldr.playerName} {ldr.jersey ? `#${ldr.jersey}` : ''}
                       </span>
                     </div>
-                    <span className={`px-2.5 py-1 rounded bg-[#0D0E11] border border-white/10 font-bold ${col.accent}`}>
+                    <span className={`px-2.5 py-1 rounded bg-[#0D0E11] border border-white/10 font-black ${col.accent}`}>
                       {ldr.displayValue}
                     </span>
                   </div>
@@ -145,26 +145,24 @@ export default function MatchH2HAndLeadersView({
                 <Link
                   key={past.id}
                   href={`/match/${past.id}`}
-                  className="grid grid-cols-[76px_1fr_76px] sm:grid-cols-[96px_1fr_110px] items-center gap-2 p-3 rounded-xl bg-[#16181D] hover:bg-[#1F2229] border border-white/10 transition-colors font-tech text-xs"
+                  className="grid grid-cols-[84px_1fr_80px] sm:grid-cols-[104px_1fr_110px] items-center gap-2 p-3 rounded-xl bg-[#16181D] hover:bg-[#1F2229] border border-white/10 transition-colors font-tech text-xs sm:text-sm"
                 >
-                  <span className="text-white/45 truncate text-[11px]">{dateStr}</span>
+                  <span className="text-white/75 text-xs font-medium">{dateStr}</span>
                   <div className="grid grid-cols-[1fr_64px_1fr] items-center gap-2.5 min-w-0">
-                    <span className="font-bold text-white text-right truncate">{pHome}</span>
+                    <span className="font-bold text-white text-right text-xs sm:text-sm">{pHome}</span>
                     <span className="w-16 py-0.5 rounded bg-[#0D0E11] border border-white/10 font-scoreboard text-base text-[#DFFF00] text-center shrink-0">
                       {past.home_score ?? 0} - {past.away_score ?? 0}
                     </span>
-                    <span className="font-bold text-white text-left truncate">{pAway}</span>
+                    <span className="font-bold text-white text-left text-xs sm:text-sm">{pAway}</span>
                   </div>
-                  <div className="flex items-center justify-end gap-1.5 min-w-0">
+                  <div className="flex items-center justify-end gap-1.5 shrink-0">
                     {past.highlight_video_id ? (
-                      <span className="px-2 py-0.5 rounded bg-[#DFFF00] text-[#0A0A0C] text-[10px] font-bold uppercase inline-flex items-center gap-1 shrink-0">
-                        <Play className="w-2.5 h-2.5 fill-[#0A0A0C]" />
+                      <span className="px-2.5 py-0.5 rounded bg-[#DFFF00] text-[#0A0A0C] text-xs font-black uppercase inline-flex items-center gap-1 shrink-0">
+                        <Play className="w-3 h-3 fill-[#0A0A0C]" />
                         <span>VOD</span>
                       </span>
                     ) : (
-                      <span className="text-[11px] text-white/45 truncate">
-                        {past.competition_name || 'Match'}
-                      </span>
+                      <ArrowRight className="w-4 h-4 text-white/50" />
                     )}
                   </div>
                 </Link>
@@ -184,19 +182,19 @@ export default function MatchH2HAndLeadersView({
               return (
                 <div
                   key={ev.id}
-                  className="grid grid-cols-[76px_1fr_76px] sm:grid-cols-[96px_1fr_110px] items-center gap-2 p-3 rounded-xl bg-[#16181D] border border-white/10 font-tech text-xs"
+                  className="grid grid-cols-[84px_1fr_80px] sm:grid-cols-[104px_1fr_110px] items-center gap-2 p-3 rounded-xl bg-[#16181D] border border-white/10 font-tech text-xs sm:text-sm"
                 >
-                  <span className="text-white/45 truncate text-[11px]">{dStr}</span>
+                  <span className="text-white/75 text-xs font-medium">{dStr}</span>
                   <div className="grid grid-cols-[1fr_64px_1fr] items-center gap-2.5 min-w-0">
-                    <span className="font-bold text-white text-right truncate">{ev.homeTeamName}</span>
+                    <span className="font-bold text-white text-right text-xs sm:text-sm">{ev.homeTeamName}</span>
                     <span className="w-16 py-0.5 rounded bg-[#0D0E11] border border-white/10 font-scoreboard text-base text-[#DFFF00] text-center shrink-0">
                       {ev.scoreText}
                     </span>
-                    <span className="font-bold text-white text-left truncate">{ev.awayTeamName}</span>
+                    <span className="font-bold text-white text-left text-xs sm:text-sm">{ev.awayTeamName}</span>
                   </div>
-                  <span className="text-[11px] text-white/45 text-right truncate">
-                    {ev.competitionName}
-                  </span>
+                  <div className="flex items-center justify-end shrink-0">
+                    <ArrowRight className="w-4 h-4 text-white/50" />
+                  </div>
                 </div>
               );
             })}
@@ -232,7 +230,7 @@ export default function MatchH2HAndLeadersView({
                 >
                   <div className="flex items-center gap-2">
                     <span
-                      className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold ${
+                      className={`w-6 h-6 rounded flex items-center justify-center text-xs font-black ${
                         gm.result === 'W'
                           ? 'bg-emerald-500/20 text-emerald-400'
                           : gm.result === 'D'
@@ -242,10 +240,10 @@ export default function MatchH2HAndLeadersView({
                     >
                       {gm.result}
                     </span>
-                    <span className="text-white/50">{gm.atVs}</span>
-                    <span className="font-bold text-white">{gm.opponentName}</span>
+                    <span className="text-white/70 font-semibold">{gm.atVs}</span>
+                    <span className="font-bold text-white text-xs sm:text-sm">{gm.opponentName}</span>
                   </div>
-                  <span className="font-mono text-white/80">{gm.score}</span>
+                  <span className="font-mono text-white/90 font-bold">{gm.score}</span>
                 </div>
               ))}
             </div>

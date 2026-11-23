@@ -14,24 +14,51 @@ export default async function ArticlesPage() {
 
   return (
     <div className="max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 2xl:px-10 py-6 select-none space-y-8">
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[10px] font-tech font-bold uppercase tracking-wider bg-[#DFFF00]/15 text-[#DFFF00] border border-[#DFFF00]/30">
-              <Sparkles className="w-3 h-3" />
-              Tactical Lab
+      {/* Premium OTT Tactical Hero Banner */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#121316] via-[#1A1C22] to-[#121316] border border-white/10 p-6 sm:p-8 shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="absolute -top-16 -left-16 w-56 h-56 bg-[#DFFF00]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10 space-y-2.5 max-w-2xl">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-tech font-bold uppercase tracking-wider bg-[#DFFF00]/15 text-[#DFFF00] border border-[#DFFF00]/30 shadow-sm">
+              <Sparkles className="w-3.5 h-3.5" />
+              Tactical Lab • UEFA Matrix
             </span>
-            <span className="text-xs text-white/50 font-tech">UEFA Elite Matrix &amp; Journalism</span>
+            <span className="text-xs text-white/60 font-tech font-bold">
+              Verified Sports Intelligence
+            </span>
           </div>
-          <h1 className="font-scoreboard text-3xl sm:text-4xl uppercase text-white tracking-wide leading-none">
+
+          <h1 className="font-scoreboard text-2xl sm:text-4xl uppercase text-white tracking-wider leading-tight">
             Tactical Analysis &amp; Scouting Hub
           </h1>
+
+          <p className="text-xs sm:text-sm text-white/70 font-tech leading-relaxed">
+            Algorithmic tactical dossiers, lidar-calibrated passing models, spatial Zone 14 infiltration metrics, and verified sports journalism across Europe.
+          </p>
         </div>
-        <p className="text-xs text-white/50 max-w-sm sm:text-right hidden sm:block font-tech">
-          Algorithmic tactical dossiers, lidar-calibrated passing models, and verified sports journalism.
-        </p>
-      </header>
+
+        {/* Telemetry Metric Pills */}
+        <div className="relative z-10 flex flex-wrap lg:flex-col gap-2.5 shrink-0 self-start lg:self-auto">
+          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-[#0A0A0C]/80 border border-white/10 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-[#DFFF00] animate-pulse" />
+            <span className="font-tech text-xs text-white/90 font-bold">
+              {editorialArticles.length} Long-Form Dossiers
+            </span>
+          </div>
+          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-[#0A0A0C]/80 border border-white/10 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-[#38BDF8]" />
+            <span className="font-tech text-xs text-white/90 font-bold">
+              Zone 14 Spatial Engine
+            </span>
+          </div>
+          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-[#0A0A0C]/80 border border-white/10 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span className="font-tech text-xs text-white/90 font-bold">
+              6 Verified Media Feeds
+            </span>
+          </div>
+        </div>
+      </section>
 
       {/* Dynamic Match-Driven Tactical Analysis Suite */}
       <AnalysisHubClient matches={recentMatches} />

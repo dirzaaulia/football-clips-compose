@@ -49,8 +49,8 @@ export default function WebPitchPlayerCardHUD({
           )}
 
           <div className="min-w-0">
-            <h4 className="text-xs font-bold text-white truncate">{p.name}</h4>
-            <div className="flex items-center gap-1.5 text-[10px] text-white/50 font-tech">
+            <h4 className="text-xs sm:text-sm font-bold text-white truncate">{p.name}</h4>
+            <div className="flex items-center gap-1.5 text-xs text-white/60 font-tech">
               <span className="uppercase font-semibold text-[#DFFF00]">{p.position || 'Player'}</span>
               <span>•</span>
               <span>No. {p.jersey || '-'}</span>
@@ -63,26 +63,26 @@ export default function WebPitchPlayerCardHUD({
           className="text-white/40 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
           aria-label="Close player card"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="grid grid-cols-4 gap-1 pt-1 border-t border-white/10 text-center text-[10px] font-mono">
-        <div className="bg-white/5 rounded p-1">
-          <span className="text-white/40 block text-[8px] uppercase">{isGK ? 'Saves' : 'Shots'}</span>
-          <span className="font-bold text-white">{isGK ? stats.saves ?? 0 : stats.totalShots ?? 0}</span>
+      <div className="grid grid-cols-4 gap-1.5 pt-1.5 border-t border-white/10 text-center text-xs font-mono">
+        <div className="bg-white/5 rounded-lg p-1">
+          <span className="text-white/50 block text-[10px] font-bold uppercase">{isGK ? 'Saves' : 'Shots'}</span>
+          <span className="font-extrabold text-white text-xs sm:text-sm">{isGK ? stats.saves ?? 0 : stats.totalShots ?? 0}</span>
         </div>
-        <div className="bg-white/5 rounded p-1">
-          <span className="text-white/40 block text-[8px] uppercase">{isGK ? 'Against' : 'On Target'}</span>
-          <span className="font-bold text-white">{isGK ? stats.goalsConceded ?? 0 : stats.shotsOnTarget ?? 0}</span>
+        <div className="bg-white/5 rounded-lg p-1">
+          <span className="text-white/50 block text-[10px] font-bold uppercase">{isGK ? 'Against' : 'Target'}</span>
+          <span className="font-extrabold text-white text-xs sm:text-sm">{isGK ? stats.goalsConceded ?? 0 : stats.shotsOnTarget ?? 0}</span>
         </div>
-        <div className="bg-white/5 rounded p-1">
-          <span className="text-white/40 block text-[8px] uppercase">Goals</span>
-          <span className="font-bold text-[#DFFF00]">{stats.totalGoals ?? 0}</span>
+        <div className="bg-white/5 rounded-lg p-1">
+          <span className="text-white/50 block text-[10px] font-bold uppercase">Goals</span>
+          <span className="font-extrabold text-[#DFFF00] text-xs sm:text-sm">{stats.totalGoals ?? 0}</span>
         </div>
-        <div className="bg-white/5 rounded p-1">
-          <span className="text-white/40 block text-[8px] uppercase">{isGK ? 'Fouls' : 'Assists'}</span>
-          <span className="font-bold text-white">{isGK ? stats.foulsCommitted ?? 0 : stats.goalAssists ?? 0}</span>
+        <div className="bg-white/5 rounded-lg p-1">
+          <span className="text-white/50 block text-[10px] font-bold uppercase">{isGK ? 'Fouls' : 'Assists'}</span>
+          <span className="font-extrabold text-white text-xs sm:text-sm">{isGK ? stats.foulsCommitted ?? 0 : stats.goalAssists ?? 0}</span>
         </div>
       </div>
     </div>

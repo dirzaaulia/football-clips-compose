@@ -1,33 +1,20 @@
+'use client';
+
 import React from 'react';
 import { MatchRecord } from '@/lib/database';
-import { FeedCompetitionGroup } from '@/components/feed/feedGroupHelpers';
-import CompetitionFeedRail from '@/components/feed/CompetitionFeedRail';
 import HighlightGridCard from '@/components/feed/HighlightGridCard';
 import NativeInFeedAdCard from '@/components/ads/NativeInFeedAdCard';
 import AdSenseBanner from '@/components/ads/AdSenseBanner';
-import RecentMatchesSection from '@/components/feed/RecentMatchesSection';
 import HomeShortsRail from '@/components/shorts/HomeShortsRail';
 import { Trophy } from 'lucide-react';
 
-const INTERNATIONAL_COMP_IDS = new Set([
-  'UNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA', 'CNL', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI',
-]);
-
 interface HomeHighlightsFeedProps {
   displayedMatches: MatchRecord[];
-  groupedFeedMatches: FeedCompetitionGroup[] | null;
-  recentMatches: MatchRecord[];
-  collapsedCompIds: Set<string>;
-  toggleCollapse: (compId: string) => void;
-  setSelectedComp: (compId: string) => void;
   onPlay: (match: MatchRecord) => void;
 }
 
 export default function HomeHighlightsFeed({
   displayedMatches,
-  groupedFeedMatches,
-  recentMatches,
-  setSelectedComp,
   onPlay,
 }: HomeHighlightsFeedProps) {
   if (displayedMatches.length === 0) {
@@ -44,66 +31,30 @@ export default function HomeHighlightsFeed({
     );
   }
 
-  if (groupedFeedMatches) {
-    const internationalRecent = recentMatches.filter((m) =>
-      INTERNATIONAL_COMP_IDS.has(m.competition_id || '')
-    );
-    const clubRecent = recentMatches.filter(
-      (m) => !INTERNATIONAL_COMP_IDS.has(m.competition_id || '')
-    );
-
-    return (
-      <div className="space-y-6 my-4">
-        {internationalRecent.length > 0 && (
-          <RecentMatchesSection
-            title="Recent International Highlights"
-            badgeText="INTERNATIONAL"
-            matches={internationalRecent}
-            onPlay={onPlay}
-            className="pb-4 border-b border-white/10"
-          />
-        )}
-
-        <RecentMatchesSection
-          title="Recent Highlights"
-          badgeText="CLUBS & LEAGUES"
-          matches={clubRecent}
-          onPlay={onPlay}
-          className="pb-4 border-b border-white/10"
-        />
-
-        {groupedFeedMatches.map((group, groupIdx) => {
-          return (
-            <React.Fragment key={group.compId}>
-              <CompetitionFeedRail
-                compId={group.compId}
-                name={group.name}
-                emblemUrl={group.emblem}
-                matches={group.matches}
-                onPlay={onPlay}
-                onSeeAll={(id) => setSelectedComp(id)}
-              />
-
-              {/* 9:16 Shorts Rail after the top league */}
-              {groupIdx === 0 && <HomeShortsRail />}
-
-              {(groupIdx + 1) % 2 === 0 && groupIdx < groupedFeedMatches.length - 1 && (
-                <AdSenseBanner slotId="5616816386" format="auto" className="my-4" />
-              )}
-            </React.Fragment>
-          );
-        })}
-      </div>
-    );
-  }
-
-  // Filtered view: Multi-column grid with infinite scroll
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 my-6 animate-in fade-in duration-300">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 my-4 animate-in fade-in duration-300">
       {displayedMatches.map((m, idx) => (
         <React.Fragment key={m.id}>
           <HighlightGridCard match={m} onPlay={onPlay} />
-          {idx > 0 && idx % 6 === 0 && <NativeInFeedAdCard slotId="5616816386" />}
+
+          {/* 9:16 Shorts Rail injected cleanly across full grid width after 4 cards */}
+          {idx === 3 && (
+            <div className="col-span-full my-2">
+              <HomeShortsRail />
+            </div>
+          )}
+
+          {/* Native In-Feed Ad Card every 8 items */}
+          {idx > 0 && idx % 8 === 0 && (
+            <NativeInFeedAdCard slotId="5616816386" />
+          )}
+
+          {/* Responsive AdSense Banner across full width every 16 items */}
+          {idx > 0 && idx % 16 === 0 && idx < displayedMatches.length - 1 && (
+            <div className="col-span-full my-2">
+              <AdSenseBanner slotId="5616816386" format="auto" />
+            </div>
+          )}
         </React.Fragment>
       ))}
     </div>

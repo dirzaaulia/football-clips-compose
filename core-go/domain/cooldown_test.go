@@ -20,52 +20,52 @@ func TestShouldCheckYouTubeForMatch(t *testing.T) {
 		t.Fatalf("expected true for never checked, got %v (%s)", ok, reason)
 	}
 
-	// 2. Tier 1 (<14d, e.g. 5 days old): checked 10m ago (should be false, cooldown 30m)
+	// 2. Tier 0 (<6h, e.g. 2h old): checked 10m ago (should be false, cooldown 45m)
 	check10m := now.Add(-10 * time.Minute)
 	m2 := domain.Match{
 		ID:               2,
-		UTCDate:          now.Add(-5 * 24 * time.Hour),
+		UTCDate:          now.Add(-2 * time.Hour),
 		LastYouTubeCheck: &check10m,
 	}
 	ok, _ = domain.ShouldCheckYouTubeForMatch(m2, now)
 	if ok {
-		t.Fatalf("expected false for Tier 1 (<14d) check 10m ago")
+		t.Fatalf("expected false for Tier 0 (<6h) check 10m ago")
 	}
 
-	// 3. Tier 1 (<14d, e.g. 13 days old): checked 35m ago (should be true)
-	check35m := now.Add(-35 * time.Minute)
+	// 3. Tier 0 (<6h, e.g. 2h old): checked 50m ago (cooldown 45m, should be true)
+	check50m := now.Add(-50 * time.Minute)
 	m3 := domain.Match{
 		ID:               3,
-		UTCDate:          now.Add(-13 * 24 * time.Hour),
-		LastYouTubeCheck: &check35m,
+		UTCDate:          now.Add(-2 * time.Hour),
+		LastYouTubeCheck: &check50m,
 	}
 	ok, _ = domain.ShouldCheckYouTubeForMatch(m3, now)
 	if !ok {
-		t.Fatalf("expected true for Tier 1 (<14d) check 35m ago")
+		t.Fatalf("expected true for Tier 0 (<6h) check 50m ago")
 	}
 
-	// 4. Tier 2 (14-30d, e.g. 20 days old): checked 90m ago (cooldown 120m, should be false)
+	// 4. Tier 1a (6-24h, e.g. 12h old): checked 90m ago (cooldown 120m, should be false)
 	check90m := now.Add(-90 * time.Minute)
 	m4 := domain.Match{
 		ID:               4,
-		UTCDate:          now.Add(-20 * 24 * time.Hour),
+		UTCDate:          now.Add(-12 * time.Hour),
 		LastYouTubeCheck: &check90m,
 	}
 	ok, _ = domain.ShouldCheckYouTubeForMatch(m4, now)
 	if ok {
-		t.Fatalf("expected false for Tier 2 check 90m ago")
+		t.Fatalf("expected false for Tier 1a check 90m ago")
 	}
 
-	// 5. Tier 3 (30-90d, e.g. 45 days old): checked 200m ago (cooldown 360m, should be false)
+	// 5. Tier 1c (3-14d, e.g. 5 days old): checked 200m ago (cooldown 720m, should be false)
 	check200m := now.Add(-200 * time.Minute)
 	m5 := domain.Match{
 		ID:               5,
-		UTCDate:          now.Add(-45 * 24 * time.Hour),
+		UTCDate:          now.Add(-5 * 24 * time.Hour),
 		LastYouTubeCheck: &check200m,
 	}
 	ok, _ = domain.ShouldCheckYouTubeForMatch(m5, now)
 	if ok {
-		t.Fatalf("expected false for Tier 3 check 200m ago")
+		t.Fatalf("expected false for Tier 1c check 200m ago")
 	}
 }
 

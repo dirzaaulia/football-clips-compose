@@ -90,14 +90,14 @@ export default function MatchScoreboardBanner({
             imageClassName="object-contain p-1.5 drop-shadow-md"
           />
           <div className="flex flex-col min-w-0">
-            <span className="font-scoreboard text-base sm:text-2xl text-white tracking-wide truncate">
+            <span className="font-scoreboard text-lg sm:text-3xl text-white tracking-wide leading-none">
               {homeName}
             </span>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="px-1.5 py-0.5 rounded bg-white/5 text-[9px] font-bold text-white/60 uppercase">
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="px-2 py-0.5 rounded bg-white/10 text-xs font-bold text-white/90 uppercase">
                 HOME
               </span>
-              <span className="font-tech text-[11px] text-white/40 truncate hidden sm:inline">
+              <span className="font-tech text-xs text-white/75 hidden sm:inline">
                 {match.stage || match.round_name || 'Matchday'}
               </span>
             </div>
@@ -118,7 +118,7 @@ export default function MatchScoreboardBanner({
               title={isHidden ? 'Click to reveal score' : 'Click to hide score'}
             >
               <div
-                className={`flex items-baseline justify-center gap-1.5 font-scoreboard text-3xl sm:text-5xl text-white tracking-tight transition-all ${
+                className={`flex items-baseline justify-center gap-1.5 font-scoreboard text-4xl sm:text-6xl text-white tracking-tight transition-all ${
                   isHidden ? 'blur-md opacity-40 group-hover:opacity-75' : ''
                 }`}
               >
@@ -126,14 +126,14 @@ export default function MatchScoreboardBanner({
                 <span className="text-[#DFFF00] opacity-80 mx-0.5">:</span>
                 <span>{awayScoreVal}</span>
               </div>
-              <div className="flex items-center gap-1 mt-1">
-                <span className="font-tech text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[#1A1C22] text-[#DFFF00] border border-white/5">
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="font-tech text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded bg-[#1A1C22] text-[#DFFF00] border border-white/10">
                   {isLive ? `LIVE ${match.display_clock || ''}` : 'FULL TIME'}
                 </span>
                 {isHidden ? (
-                  <Eye className="w-3 h-3 text-[#DFFF00]" />
+                  <Eye className="w-3.5 h-3.5 text-[#DFFF00]" />
                 ) : (
-                  <EyeOff className="w-3 h-3 text-white/30" />
+                  <EyeOff className="w-3.5 h-3.5 text-white/60" />
                 )}
               </div>
             </button>
@@ -143,14 +143,14 @@ export default function MatchScoreboardBanner({
         {/* Away Team */}
         <div className="flex items-center justify-end gap-3 sm:gap-4 min-w-0 text-right">
           <div className="flex flex-col min-w-0 items-end">
-            <span className="font-scoreboard text-base sm:text-2xl text-white tracking-wide truncate">
+            <span className="font-scoreboard text-lg sm:text-3xl text-white tracking-wide leading-none">
               {awayName}
             </span>
-            <div className="flex items-center justify-end gap-1.5 mt-0.5">
-              <span className="font-tech text-[11px] text-white/40 truncate hidden sm:inline">
+            <div className="flex items-center justify-end gap-1.5 mt-1">
+              <span className="font-tech text-xs text-white/75 hidden sm:inline">
                 {match.competition_name || 'Official Fixture'}
               </span>
-              <span className="px-1.5 py-0.5 rounded bg-white/5 text-[9px] font-bold text-white/60 uppercase">
+              <span className="px-2 py-0.5 rounded bg-white/10 text-xs font-bold text-white/90 uppercase">
                 AWAY
               </span>
             </div>
@@ -170,9 +170,9 @@ export default function MatchScoreboardBanner({
         <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-3 pt-3 border-t border-white/10 font-tech text-xs">
           <div className="flex flex-col items-end gap-1 text-right min-w-0">
             {homeScorers.map((g, i) => (
-              <div key={i} className="inline-flex items-center justify-end gap-1.5 text-white/80 max-w-full">
-                <span className="font-semibold text-white truncate">{g.name}</span>
-                <span className="font-mono text-[11px] text-[#DFFF00] shrink-0">
+              <div key={i} className="inline-flex items-center justify-end gap-2 text-white/90 max-w-full">
+                <span className="font-bold text-xs sm:text-sm text-white">{g.name}</span>
+                <span className="font-mono text-xs font-black text-[#DFFF00] shrink-0">
                   {g.minutes.join(', ')}
                 </span>
               </div>
@@ -180,16 +180,16 @@ export default function MatchScoreboardBanner({
           </div>
 
           <div className="flex items-center justify-center pt-0.5 px-1">
-            <GoalBallIcon className="w-3.5 h-3.5 text-[#DFFF00]" />
+            <GoalBallIcon className="w-4 h-4 text-[#DFFF00]" />
           </div>
 
           <div className="flex flex-col items-start gap-1 text-left min-w-0">
             {awayScorers.map((g, i) => (
-              <div key={i} className="inline-flex items-center gap-1.5 text-white/80 max-w-full">
-                <span className="font-mono text-[11px] text-[#DFFF00] shrink-0">
+              <div key={i} className="inline-flex items-center gap-2 text-white/90 max-w-full">
+                <span className="font-mono text-xs font-black text-[#DFFF00] shrink-0">
                   {g.minutes.join(', ')}
                 </span>
-                <span className="font-semibold text-white truncate">{g.name}</span>
+                <span className="font-bold text-xs sm:text-sm text-white">{g.name}</span>
               </div>
             ))}
           </div>

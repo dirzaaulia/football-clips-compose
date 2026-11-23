@@ -10,6 +10,7 @@ import com.dirzaaulia.footballclips.data.model.remote.StandingDto
 import com.dirzaaulia.footballclips.data.cache.InMemorySwrCache
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -31,6 +32,11 @@ class OracleVmRepositoryImpl(
 
     private val _supportedClubs = MutableStateFlow<List<SupportedClub>>(emptyList())
     override val supportedClubs: StateFlow<List<SupportedClub>> = _supportedClubs.asStateFlow()
+
+    private fun HttpRequestBuilder.authHeaders() {
+        header("apikey", databaseApiKey)
+        header("Authorization", "Bearer $databaseApiKey")
+    }
 
     override suspend fun getMatches(
         competitionId: String?,
@@ -55,66 +61,33 @@ class OracleVmRepositoryImpl(
             val order = if (ascending) "utc_date.asc,id.asc" else "utc_date.desc,id.desc"
             val effectiveLimit = if (limit > 0) limit else 20
             val response = client.get("$databaseUrl/rest/v1/matches") {
-                header("apikey", databaseApiKey)
-                header("Authorization", "Bearer $databaseApiKey")
-
+                authHeaders()
                 url {
                     parameters.append("select", "id,competition_id,competition_name,utc_date,status,matchday,home_team_id,home_team_name,home_team_crest,away_team_id,away_team_name,away_team_crest,home_score,away_score,home_penalties,away_penalties,highlight_video_id,backup_highlight_video_id,season,round_name,display_clock,youtube_region_info,backup_youtube_region_info")
                     parameters.append("order", order)
                     parameters.append("limit", effectiveLimit.toString())
                     parameters.append("offset", offset.toString())
-
-                    season?.let {
-                        parameters.append("season", "eq.$it")
-                    }
-
+                    season?.let { parameters.append("season", "eq.$it") }
                     competitionId?.takeIf { it.isNotBlank() }?.let {
                         val filter = if (it.equals("INTL", ignoreCase = true)) {
                             "in.(UNL,CNL,WCQ_CONMEBOL,WCQ_AFC,WCQ_UEFA,WCQ_CONCACAF,WCQ_CAF,FRI)"
                         } else "ilike.$it"
                         parameters.append("competition_id", filter)
                     }
-
-                    status?.let {
-                        if (it.isNotBlank()) {
-                            parameters.append("status", "eq.$it")
-                        }
-                    }
-
-                    excludeStatus?.let {
-                        if (it.isNotBlank()) {
-                            parameters.append("status", "neq.$it")
-                        }
-                    }
-
-                    startDate?.let {
-                        parameters.append("utc_date", "gte.$it")
-                    }
-
-                    endDate?.let {
-                        parameters.append("utc_date", "lte.$it")
-                    }
-
-                    if (hasHighlight) {
-                        parameters.append("highlight_video_id", "not.is.null")
-                    }
-
-                    query?.let { q ->
-                        if (q.isNotBlank()) {
-                            val cleanQuery = q.trim()
-                            parameters.append(
-                                "or",
-                                "(home_team_name.ilike.*$cleanQuery*,away_team_name.ilike.*$cleanQuery*,competition_name.ilike.*$cleanQuery*)",
-                            )
-                        }
+                    status?.takeIf { it.isNotBlank() }?.let { parameters.append("status", "eq.$it") }
+                    excludeStatus?.takeIf { it.isNotBlank() }?.let { parameters.append("status", "neq.$it") }
+                    startDate?.let { parameters.append("utc_date", "gte.$it") }
+                    endDate?.let { parameters.append("utc_date", "lte.$it") }
+                    if (hasHighlight) parameters.append("highlight_video_id", "not.is.null")
+                    query?.takeIf { it.isNotBlank() }?.let { q ->
+                        val clean = q.trim()
+                        parameters.append("or", "(home_team_name.ilike.*$clean*,away_team_name.ilike.*$clean*,competition_name.ilike.*$clean*)")
                     }
                 }
             }
             if (response.status.value == 200) {
                 val body: List<MatchDto> = response.body()
-                if (offset == 0 && query.isNullOrBlank()) {
-                    matchesCache.put(cacheKey, body)
-                }
+                if (offset == 0 && query.isNullOrBlank()) matchesCache.put(cacheKey, body)
                 NetworkResult.Success(body)
             } else {
                 val stale = matchesCache.getStale(cacheKey)
@@ -129,9 +102,7 @@ class OracleVmRepositoryImpl(
     override suspend fun getMatch(id: Long): NetworkResult<MatchDto> {
         return try {
             val response = client.get("$databaseUrl/rest/v1/matches") {
-                header("apikey", databaseApiKey)
-                header("Authorization", "Bearer $databaseApiKey")
-
+                authHeaders()
                 url {
                     parameters.append("select", "*")
                     parameters.append("id", "eq.$id")
@@ -141,10 +112,15 @@ class OracleVmRepositoryImpl(
                 val list: List<MatchDto> = response.body()
                 val match = list.firstOrNull()
                 if (match != null) {
-                    val enrichedMatch = if (match.formations == null && espnSummaryRepository != null) {
+                    val enrichedMatch = if (espnSummaryRepository != null && (match.formations == null || match.homeColor == null || match.awayColor == null)) {
                         val compSlug = _competitions.value.find { it.id.equals(match.competitionId, ignoreCase = true) }?.slug
-                        val (formations, stats) = espnSummaryRepository.getTacticalSummary(match.id, match.competitionId, compSlug)
-                        match.copy(formations = formations, statistics = stats)
+                        val summary = espnSummaryRepository.getTacticalSummary(match.id, match.competitionId, compSlug)
+                        match.copy(
+                            formations = match.formations ?: summary.formations,
+                            statistics = match.statistics ?: summary.statistics,
+                            homeColor = match.homeColor ?: summary.homeColor ?: summary.formations?.home?.color,
+                            awayColor = match.awayColor ?: summary.awayColor ?: summary.formations?.away?.color,
+                        )
                     } else {
                         match
                     }
@@ -192,9 +168,7 @@ class OracleVmRepositoryImpl(
         return try {
             val effSeason = season ?: 2026
             val response = client.get("$databaseUrl/rest/v1/standings") {
-                header("apikey", databaseApiKey)
-                header("Authorization", "Bearer $databaseApiKey")
-
+                authHeaders()
                 url {
                     parameters.append("select", "*")
                     val codeFilter = if (competitionId.equals("INTL", ignoreCase = true)) {
@@ -218,9 +192,7 @@ class OracleVmRepositoryImpl(
     override suspend fun refreshCompetitions() {
         try {
             val response = client.get("$databaseUrl/rest/v1/competitions") {
-                header("apikey", databaseApiKey)
-                header("Authorization", "Bearer $databaseApiKey")
-
+                authHeaders()
                 url {
                     parameters.append("select", "*")
                     parameters.append("order", "display_order.asc")
@@ -228,12 +200,9 @@ class OracleVmRepositoryImpl(
             }
             if (response.status.value == 200) {
                 val list: List<BigLeague> = response.body()
-                if (list.isNotEmpty()) {
-                    _competitions.value = list
-                }
+                if (list.isNotEmpty()) _competitions.value = list
             }
-        } catch (_: Exception) {
-        }
+        } catch (_: Exception) {}
     }
 
     override fun getCompetitionEmblem(competitionId: String?, isDarkTheme: Boolean): String {
@@ -246,8 +215,7 @@ class OracleVmRepositoryImpl(
     override suspend fun getLiveMatches(): NetworkResult<List<MatchDto>> {
         return try {
             val response = client.get("$databaseUrl/rest/v1/matches") {
-                header("apikey", databaseApiKey)
-                header("Authorization", "Bearer $databaseApiKey")
+                authHeaders()
                 url {
                     parameters.append("select", "id,competition_id,competition_name,utc_date,status,matchday,home_team_id,home_team_name,home_team_crest,away_team_id,away_team_name,away_team_crest,home_score,away_score,home_penalties,away_penalties,highlight_video_id,backup_highlight_video_id,season,round_name,display_clock,youtube_region_info,backup_youtube_region_info")
                     parameters.append("or", "(status.eq.IN_PLAY,status.eq.PAUSED,status.eq.LIVE)")
@@ -268,9 +236,7 @@ class OracleVmRepositoryImpl(
     override suspend fun refreshClubs() {
         try {
             val response = client.get("$databaseUrl/rest/v1/supported_clubs") {
-                header("apikey", databaseApiKey)
-                header("Authorization", "Bearer $databaseApiKey")
-
+                authHeaders()
                 url {
                     parameters.append("select", "id,name,short_name,competition_code,competition_name,crest_url,aliases")
                     parameters.append("order", "name.asc")
@@ -278,12 +244,9 @@ class OracleVmRepositoryImpl(
             }
             if (response.status.value == 200) {
                 val list: List<SupportedClub> = response.body()
-                if (list.isNotEmpty()) {
-                    _supportedClubs.value = list
-                }
+                if (list.isNotEmpty()) _supportedClubs.value = list
             }
-        } catch (_: Exception) {
-        }
+        } catch (_: Exception) {}
     }
 
     override fun findClubById(id: String): SupportedClub? {

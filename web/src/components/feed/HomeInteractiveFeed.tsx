@@ -1,22 +1,20 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { MatchRecord } from '@/lib/database';
 import { extractFilterOptions } from '@/lib/middleware-highlights';
-import { useCompetitions, isLeagueMatch } from '@/hooks/useCompetitions';
+import { useCompetitions } from '@/hooks/useCompetitions';
 import { isMatchForFavoriteClubs, useSupportedClubs } from '@/hooks/useSupportedClubs';
 import { useInfiniteHighlights } from '@/hooks/useCatalogHighlights';
 import { useMyClubs } from '@/hooks/useMyClubs';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
 import HeroBillboard from '@/components/hero/HeroBillboard';
 import LeagueFilterSubBar from '@/components/layout/LeagueFilterSubBar';
-import LiveMatchTickerStrip from '@/components/layout/LiveMatchTickerStrip';
 import FeedLoadingSkeleton from '@/components/feed/FeedLoadingSkeleton';
 import HomeHighlightsFeed from '@/components/feed/HomeHighlightsFeed';
 import HomeModalsAndOverlays from '@/components/feed/HomeModalsAndOverlays';
 import InfiniteScrollSentinel from '@/components/feed/InfiniteScrollSentinel';
 import MyClubsStoreShelf from '@/components/affiliate/MyClubsStoreShelf';
-import { groupFeedMatchesByCompetition } from '@/components/feed/feedGroupHelpers';
 import { useSeason } from '@/hooks/useSeason';
 import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import { useMerchandisePreference } from '@/hooks/useMerchandisePreference';
@@ -30,7 +28,6 @@ interface HomeInteractiveFeedProps {
 
 export default function HomeInteractiveFeed({
   initialMatches = [],
-  initialLiveMatches = [],
   recentMatches,
 }: HomeInteractiveFeedProps) {
   const { selectedSeason } = useSeason();
@@ -50,16 +47,6 @@ export default function HomeInteractiveFeed({
   const { favoriteClubs, favoriteCount } = useMyClubs();
   const { isMerchandiseEnabled } = useMerchandisePreference();
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const [collapsedCompIds, setCollapsedCompIds] = useState<Set<string>>(new Set());
-
-  const toggleCollapse = useCallback((compId: string) => {
-    setCollapsedCompIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(compId)) next.delete(compId);
-      else next.add(compId);
-      return next;
-    });
-  }, []);
 
   useEffect(() => {
     trackSessionStart();
@@ -74,7 +61,7 @@ export default function HomeInteractiveFeed({
   const competitions = useCompetitions();
   const dynamicCompIds = useMemo(
     () => competitions.map((c) => c.competitionId).filter((id): id is string => Boolean(id && id !== 'ALL')),
-    [competitions]
+    [competitions],
   );
 
   const isDefaultFeed = selectedComp === 'ALL' && selectedSeason === 2026 && !searchQuery.trim();
@@ -100,7 +87,6 @@ export default function HomeInteractiveFeed({
 
   const { leagues } = useMemo(() => extractFilterOptions(matches), [matches]);
   const supportedClubs = useSupportedClubs();
-  const competition = useMemo(() => competitions.find((b) => b.competitionId === selectedComp), [competitions, selectedComp]);
 
   const displayedMatches = useMemo(() => {
     return matches.filter((m) => {
@@ -117,31 +103,6 @@ export default function HomeInteractiveFeed({
     });
   }, [matches, isMyClubsActive, favoriteClubs, searchQuery, selectedCountries, selectedLeagues, supportedClubs]);
 
-  const displayedLiveMatches = useMemo(() => {
-    return initialLiveMatches.filter((m) => {
-      if (isMyClubsActive && favoriteClubs.size > 0) {
-        if (!isMatchForFavoriteClubs(m.home_team, m.away_team, favoriteClubs, supportedClubs)) return false;
-      } else if (selectedComp !== 'ALL' && competition) {
-        const matchComp = m.competition_id === selectedComp || isLeagueMatch(competition.name, m.competition_name);
-        if (!matchComp) return false;
-      }
-      return true;
-    });
-  }, [initialLiveMatches, isMyClubsActive, favoriteClubs, selectedComp, competition, supportedClubs]);
-
-  const groupedFeedMatches = useMemo(() => {
-    if (
-      (selectedComp !== 'ALL' && selectedComp !== 'INTL') ||
-      searchQuery.trim() ||
-      selectedCountries.length > 0 ||
-      selectedLeagues.length > 0 ||
-      isMyClubsActive
-    ) {
-      return null;
-    }
-    return groupFeedMatchesByCompetition(displayedMatches, competitions);
-  }, [displayedMatches, selectedComp, searchQuery, selectedCountries, selectedLeagues, isMyClubsActive, competitions]);
-
   const activeFilterCount = (searchQuery ? 1 : 0) + selectedCountries.length + selectedLeagues.length;
 
   const heroCandidateMatches = useMemo(() => {
@@ -151,13 +112,7 @@ export default function HomeInteractiveFeed({
 
   return (
     <div className="w-full">
-      {/* Top Live Ticker Strip (Sticky under header) */}
-      <LiveMatchTickerStrip
-        liveMatches={displayedLiveMatches}
-        onPlayMatch={(m) => { setActiveVideoMatch(m); playVideo(m); }}
-      />
-
-      {/* Full-Bleed Edge-to-Edge DAZN Hero Billboard */}
+      {/* 1. Full-Bleed Edge-to-Edge DAZN Hero Billboard */}
       <HeroBillboard
         matches={heroCandidateMatches}
         match={heroCandidateMatches[0]}
@@ -165,7 +120,7 @@ export default function HomeInteractiveFeed({
         isLoading={isMountEntrance && heroCandidateMatches.length === 0}
       />
 
-      {/* League Filter Sub-Bar with Integrated Search (Positioned below Hero) */}
+      {/* 2. Horizontal Supported Competitions Filter Bar */}
       <LeagueFilterSubBar
         selectedComp={selectedComp}
         onSelectComp={(comp) => { setIsMyClubsActive(false); setSelectedComp(comp); }}
@@ -178,37 +133,31 @@ export default function HomeInteractiveFeed({
         activeFilterCount={activeFilterCount}
       />
 
-      {/* Boxed Content Container below Hero */}
+      {/* 3. Modern Vertical Grid List with Infinite Scroll (Chronological Newest Matches) */}
       <div className="max-w-[1600px] w-full mx-auto px-3.5 sm:px-6 lg:px-8 2xl:px-10 py-4 space-y-6">
         {isMerchandiseEnabled && isMyClubsActive && (
           <MyClubsStoreShelf onOpenMyClubs={() => setIsMyClubsModalOpen(true)} className="mb-4" />
         )}
 
-      {/* Highlights Feed: Grouped Rails or Full Multi-Column Grid */}
-      {loading.initial ? (
-        <FeedLoadingSkeleton isGrouped={selectedComp === 'ALL' && !searchQuery.trim()} />
-      ) : (
-        <HomeHighlightsFeed
-          displayedMatches={displayedMatches}
-          groupedFeedMatches={groupedFeedMatches}
-          recentMatches={displayedMatches.length > 0 ? displayedMatches : (recentMatches || initialMatches)}
-          collapsedCompIds={collapsedCompIds}
-          toggleCollapse={toggleCollapse}
-          setSelectedComp={setSelectedComp}
-          onPlay={(sel) => {
-            setActiveVideoMatch(sel);
-            playVideo(sel);
-          }}
-        />
-      )}
+        {loading.initial ? (
+          <FeedLoadingSkeleton isGrouped={false} />
+        ) : (
+          <HomeHighlightsFeed
+            displayedMatches={displayedMatches}
+            onPlay={(sel) => {
+              setActiveVideoMatch(sel);
+              playVideo(sel);
+            }}
+          />
+        )}
 
-      <InfiniteScrollSentinel
-        sentinelRef={sentinelRef}
-        loadingMore={loading.more}
-        hasMore={loading.hasMore}
-        hasMatches={displayedMatches.length > 0}
-        initialLoading={loading.initial}
-      />
+        <InfiniteScrollSentinel
+          sentinelRef={sentinelRef}
+          loadingMore={loading.more}
+          hasMore={loading.hasMore}
+          hasMatches={displayedMatches.length > 0}
+          initialLoading={loading.initial}
+        />
       </div>
 
       <HomeModalsAndOverlays

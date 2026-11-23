@@ -25,8 +25,8 @@ export default function WebPitchGoalmouthHUD({
 
   return (
     <div className="bg-[#0B0D11] border border-white/10 rounded-xl p-2.5 space-y-2 select-none shadow-lg">
-      <div className="flex items-center justify-between text-[10px] font-tech text-white/60">
-        <span className="uppercase tracking-wider font-bold">Goalmouth Placement</span>
+      <div className="flex items-center justify-between text-xs font-tech text-white/70">
+        <span className="uppercase tracking-wider font-extrabold">Goalmouth Placement</span>
         <span className="font-mono text-[#DFFF00] font-black">{outcomeLabel}</span>
       </div>
 
@@ -55,14 +55,14 @@ export default function WebPitchGoalmouthHUD({
         </svg>
       </div>
 
-      <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono text-center">
-        <div className="bg-white/5 rounded px-1.5 py-0.5">
-          <span className="text-white/40 block text-[9px]">xG</span>
-          <span className="font-bold text-white">{xg.toFixed(2)}</span>
+      <div className="grid grid-cols-2 gap-2 text-xs font-mono text-center">
+        <div className="bg-white/5 rounded-lg px-2 py-1">
+          <span className="text-white/50 block text-[11px] font-bold">xG</span>
+          <span className="font-extrabold text-white text-xs sm:text-sm">{xg.toFixed(2)}</span>
         </div>
-        <div className="bg-white/5 rounded px-1.5 py-0.5">
-          <span className="text-white/40 block text-[9px]">xGOT</span>
-          <span className="font-bold text-[#DFFF00]">{xgot.toFixed(2)}</span>
+        <div className="bg-white/5 rounded-lg px-2 py-1">
+          <span className="text-white/50 block text-[11px] font-bold">xGOT</span>
+          <span className="font-extrabold text-[#DFFF00] text-xs sm:text-sm">{xgot.toFixed(2)}</span>
         </div>
       </div>
     </div>

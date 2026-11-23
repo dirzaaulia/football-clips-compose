@@ -74,13 +74,13 @@ func runHighlightCycle(
 	}
 
 	sorted := domain.SortMatchesByPriority(pending, time.Now().UTC())
-	limit := 5
-	if len(sorted) < limit {
-		limit = len(sorted)
-	}
+	maxProcessed := 15
 
 	var cooldownCount, processedCount, linkedCount int
-	for _, m := range sorted[:limit] {
+	for _, m := range sorted {
+		if processedCount >= maxProcessed {
+			break
+		}
 		trace, err := uc.Execute(cycleCtx, m)
 		if err != nil {
 			logger.Warn("[HL_CYCLE_WARN]", slog.Int64("match_id", m.ID), slog.String("err", err.Error()))

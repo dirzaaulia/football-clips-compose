@@ -9,12 +9,32 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class EspnSummaryResponseDto(
+    @SerialName("header") val header: EspnHeaderDto? = null,
     @SerialName("rosters") val rosters: List<EspnRosterDto>? = null,
     @SerialName("boxscore") val boxscore: EspnBoxscoreDto? = null,
     @SerialName("commentary") val commentary: List<EspnCommentaryDto>? = null,
 ) {
+    fun getTeamColors(): Pair<String?, String?> {
+        var home: String? = null
+        var away: String? = null
+        header?.competitions?.firstOrNull()?.competitors?.forEach { comp ->
+            val c = comp.team?.color?.let { if (it.startsWith("#")) it else "#$it" }
+            if (comp.homeAway?.equals("home", ignoreCase = true) == true) home = c
+            else if (comp.homeAway?.equals("away", ignoreCase = true) == true) away = c
+        }
+        if (home == null || away == null) {
+            boxscore?.teams?.forEachIndexed { idx, t ->
+                val c = t.team?.color?.let { if (it.startsWith("#")) it else "#$it" }
+                if (idx == 0 && home == null) home = c
+                if (idx == 1 && away == null) away = c
+            }
+        }
+        return Pair(home, away)
+    }
+
     fun toFormationsDto(): FormationsDto? {
         val rosterList = rosters ?: return null
+        val (hCol, aCol) = getTeamColors()
         var homeFormation: TeamFormationDto? = null
         var awayFormation: TeamFormationDto? = null
 
@@ -31,18 +51,16 @@ data class EspnSummaryResponseDto(
                 }
                 ?: emptyList()
 
-            val uColor = item.uniform?.color?.let { if (it.startsWith("#")) it else "#$it" }
+            val fallbackColor = if (side == "home") hCol else aCol
+            val uColor = item.uniform?.color?.let { if (it.startsWith("#")) it else "#$it" } ?: fallbackColor
             val formation = TeamFormationDto(
                 formation = item.formation,
                 color = uColor,
                 starters = starters,
             )
 
-            if (side == "home") {
-                homeFormation = formation
-            } else if (side == "away") {
-                awayFormation = formation
-            }
+            if (side == "home") homeFormation = formation
+            else if (side == "away") awayFormation = formation
         }
 
         return if (homeFormation != null || awayFormation != null) {
@@ -58,8 +76,7 @@ data class EspnSummaryResponseDto(
         val awayStats = mutableMapOf<String, String>()
 
         for ((idx, teamObj) in teams.withIndex()) {
-            val isHome = idx == 0
-            val targetMap = if (isHome) homeStats else awayStats
+            val targetMap = if (idx == 0) homeStats else awayStats
             for (stat in teamObj.statistics.orEmpty()) {
                 val name = stat.name ?: stat.label ?: continue
                 val value = stat.displayValue ?: continue
@@ -81,6 +98,18 @@ data class EspnSummaryResponseDto(
 }
 
 @Serializable
+data class EspnHeaderDto(@SerialName("competitions") val competitions: List<EspnHeaderCompetitionDto>? = null)
+
+@Serializable
+data class EspnHeaderCompetitionDto(@SerialName("competitors") val competitors: List<EspnHeaderCompetitorDto>? = null)
+
+@Serializable
+data class EspnHeaderCompetitorDto(
+    @SerialName("homeAway") val homeAway: String? = null,
+    @SerialName("team") val team: EspnTeamRefDto? = null,
+)
+
+@Serializable
 data class EspnRosterDto(
     @SerialName("homeAway") val homeAway: String? = null,
     @SerialName("formation") val formation: String? = null,
@@ -89,10 +118,7 @@ data class EspnRosterDto(
 )
 
 @Serializable
-data class EspnUniformDto(
-    @SerialName("color") val color: String? = null,
-    @SerialName("alternateColor") val alternateColor: String? = null,
-)
+data class EspnUniformDto(@SerialName("color") val color: String? = null, @SerialName("alternateColor") val alternateColor: String? = null)
 
 @Serializable
 data class EspnRosterPlayerDto(
@@ -103,34 +129,22 @@ data class EspnRosterPlayerDto(
 )
 
 @Serializable
-data class EspnAthleteDto(
-    @SerialName("id") val id: String? = null,
-    @SerialName("displayName") val displayName: String? = null,
-    @SerialName("shortName") val shortName: String? = null,
-)
+data class EspnAthleteDto(@SerialName("id") val id: String? = null, @SerialName("displayName") val displayName: String? = null, @SerialName("shortName") val shortName: String? = null)
 
 @Serializable
-data class EspnPositionDto(
-    @SerialName("abbreviation") val abbreviation: String? = null,
-    @SerialName("name") val name: String? = null,
-)
+data class EspnPositionDto(@SerialName("abbreviation") val abbreviation: String? = null, @SerialName("name") val name: String? = null)
 
 @Serializable
-data class EspnBoxscoreDto(
-    @SerialName("teams") val teams: List<EspnBoxscoreTeamDto>? = null,
-)
+data class EspnBoxscoreDto(@SerialName("teams") val teams: List<EspnBoxscoreTeamDto>? = null)
 
 @Serializable
 data class EspnBoxscoreTeamDto(
+    @SerialName("team") val team: EspnTeamRefDto? = null,
     @SerialName("statistics") val statistics: List<EspnStatItemDto>? = null,
 )
 
 @Serializable
-data class EspnStatItemDto(
-    @SerialName("name") val name: String? = null,
-    @SerialName("label") val label: String? = null,
-    @SerialName("displayValue") val displayValue: String? = null,
-)
+data class EspnStatItemDto(@SerialName("name") val name: String? = null, @SerialName("label") val label: String? = null, @SerialName("displayValue") val displayValue: String? = null)
 
 @Serializable
 data class EspnCommentaryDto(
@@ -141,8 +155,24 @@ data class EspnCommentaryDto(
 )
 
 @Serializable
-data class EspnClockDto(
-    @SerialName("displayValue") val displayValue: String? = null,
+data class EspnClockDto(@SerialName("displayValue") val displayValue: String? = null)
+
+@Serializable
+data class EspnPeriodDto(@SerialName("number") val number: Int? = null)
+
+@Serializable
+data class EspnPlayTypeDto(
+    @SerialName("id") val id: String? = null,
+    @SerialName("text") val text: String? = null,
+    @SerialName("type") val type: String? = null,
+)
+
+@Serializable
+data class EspnTeamRefDto(
+    @SerialName("id") val id: String? = null,
+    @SerialName("displayName") val displayName: String? = null,
+    @SerialName("color") val color: String? = null,
+    @SerialName("alternateColor") val alternateColor: String? = null,
 )
 
 @Serializable
@@ -160,23 +190,6 @@ data class EspnPlayDto(
     @SerialName("fieldPosition2Y") val fieldPosition2Y: Float? = null,
 )
 
-@Serializable
-data class EspnPeriodDto(
-    @SerialName("number") val number: Int? = null,
-)
-
-@Serializable
-data class EspnPlayTypeDto(
-    @SerialName("id") val id: String? = null,
-    @SerialName("text") val text: String? = null,
-    @SerialName("type") val type: String? = null,
-)
-
-@Serializable
-data class EspnTeamRefDto(
-    @SerialName("displayName") val displayName: String? = null,
-)
-
 private fun EspnCommentaryDto.toPitchPlay(homeTeamName: String, awayTeamName: String): PitchPlay? {
     val p = play ?: return null
     val pType = (p.type?.type ?: p.type?.text ?: "").lowercase()
@@ -190,7 +203,7 @@ private fun EspnCommentaryDto.toPitchPlay(homeTeamName: String, awayTeamName: St
     val isHome = p.team?.displayName?.equals(homeTeamName, ignoreCase = true) == true
     val sideName = if (isHome) homeTeamName else awayTeamName
     val clockStr = p.clock?.displayValue ?: time?.displayValue ?: "0'"
-    val (fx, fy) = resolvePlayCoords(p, isHome, isShot, isCorner, isGoal, isCard)
+    val (fx, fy) = resolvePlayCoords(p, isHome, isShot, isCorner, isGoal)
 
     return PitchPlay(
         id = p.id ?: "${clockStr}_${pType}",
@@ -215,7 +228,6 @@ private fun resolvePlayCoords(
     isShot: Boolean,
     isCorner: Boolean,
     isGoal: Boolean,
-    isCard: Boolean,
 ): Pair<Float, Float> {
     val rawX = p.fieldPositionX?.times(100f)
     val rawY = p.fieldPositionY?.times(100f)
@@ -225,9 +237,7 @@ private fun resolvePlayCoords(
         isGoal -> if (isHome) 92f else 8f
         isShot -> if (isHome) 80f else 20f
         isCorner -> if (isHome) 98f else 2f
-        isCard -> if (isHome) 58f else 42f
-        else -> 50f
+        else -> if (isHome) 58f else 42f
     }
-    val defY = if (isCorner) 6f else 50f
-    return Pair(defX, defY)
+    return Pair(defX, if (isCorner) 6f else 50f)
 }

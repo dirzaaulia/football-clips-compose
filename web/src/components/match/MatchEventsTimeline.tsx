@@ -117,55 +117,55 @@ export default function MatchEventsTimeline({
               <div className="flex-1 bg-[#121316] border border-white/10 hover:border-white/20 rounded-xl p-3 transition-colors shadow-sm">
                 {isSub ? (
                   <div className="space-y-1">
-                    <div className="flex items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
                       <div className="flex items-center gap-1.5 font-bold text-white">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono font-black">
+                        <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono font-black">
                           IN
                         </span>
-                        <span className="font-tech">{playerName}</span>
+                        <span className="font-tech text-xs sm:text-sm font-extrabold">{playerName}</span>
                       </div>
-                      <span className="font-mono text-xs font-black text-[#DFFF00] shrink-0">
+                      <span className="font-mono text-xs sm:text-sm font-black text-[#DFFF00] shrink-0">
                         {e.clock || `${idx + 1}'`}
                       </span>
                     </div>
                     {e.assist && (
-                      <div className="flex items-center gap-1.5 text-xs text-white/50 font-tech">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono font-black">
+                      <div className="flex items-center gap-1.5 text-xs text-white/75 font-tech">
+                        <span className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-mono font-black">
                           OUT
                         </span>
-                        <span>{e.assist}</span>
+                        <span className="text-white/80 font-semibold">{e.assist}</span>
                       </div>
                     )}
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
                       <div className="flex items-center gap-1.5 font-bold text-white">
-                        <span className="font-tech">{playerName}</span>
+                        <span className="font-tech text-xs sm:text-sm font-extrabold">{playerName}</span>
                         {isGoal && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#DFFF00]/20 text-[#DFFF00] font-mono font-black">
+                          <span className="text-xs px-2 py-0.5 rounded bg-[#DFFF00]/20 text-[#DFFF00] font-mono font-black">
                             GOAL
                           </span>
                         )}
                       </div>
-                      <span className="font-mono text-xs font-black text-[#DFFF00] shrink-0">
+                      <span className="font-mono text-xs sm:text-sm font-black text-[#DFFF00] shrink-0">
                         {e.clock || `${idx + 1}'`}
                       </span>
                     </div>
 
                     {isGoal && e.assist && (
-                      <div className="text-[11px] text-white/50 font-tech mt-0.5">
-                        Assist: <span className="text-white/80 font-medium">{e.assist}</span>
+                      <div className="text-xs text-white/75 font-tech mt-1">
+                        Assist: <span className="text-white/90 font-bold">{e.assist}</span>
                       </div>
                     )}
                   </>
                 )}
 
-                <div className="flex items-center justify-between text-[10px] text-white/40 mt-1.5 pt-1.5 border-t border-white/5 font-tech">
-                  <span className="font-semibold text-white/70">
+                <div className="flex items-center justify-between text-xs text-white/70 mt-2 pt-2 border-t border-white/10 font-tech">
+                  <span className="font-bold text-white/90">
                     {isHome ? homeName : awayName}
                   </span>
-                  <span>
+                  <span className="font-semibold text-white/75">
                     {e.type_text ||
                       (isGoal ? 'Goal' : isYellow ? 'Yellow Card' : isRed ? 'Red Card' : 'Event')}
                   </span>

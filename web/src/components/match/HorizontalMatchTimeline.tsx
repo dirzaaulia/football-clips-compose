@@ -146,15 +146,15 @@ export default function HorizontalMatchTimeline({
         <div className="relative min-w-[540px] sm:min-w-full pt-12 pb-14 px-6 sm:px-8">
           <div className="relative h-2 w-full bg-[#1A1C22] rounded-full overflow-visible border border-white/10">
             <div className="absolute left-[50%] -top-2 bottom-0 w-0.5 h-6 bg-white/20 -translate-x-1/2">
-              <span className="absolute -bottom-5 -translate-x-1/2 text-[10px] font-mono font-bold text-white/60">
+              <span className="absolute -bottom-5 -translate-x-1/2 text-xs font-mono font-bold text-white/80">
                 HT
               </span>
             </div>
 
-            <span className="absolute -left-2 -bottom-5 text-[10px] font-mono font-bold text-white/40">
+            <span className="absolute -left-2 -bottom-5 text-xs font-mono font-bold text-white/70">
               0&apos;
             </span>
-            <span className="absolute -right-2 -bottom-5 text-[10px] font-mono font-bold text-white/40">
+            <span className="absolute -right-2 -bottom-5 text-xs font-mono font-bold text-white/70">
               90&apos;+
             </span>
 
@@ -176,7 +176,7 @@ export default function HorizontalMatchTimeline({
                   }`}
                 >
                   <div
-                    className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-tech font-bold shadow-md border ${badge.color}`}
+                    className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-tech font-black shadow-md border ${badge.color}`}
                   >
                     {badge.node}
                     <span>{e.clock || `${minute}'`}</span>
@@ -188,27 +188,27 @@ export default function HorizontalMatchTimeline({
         </div>
       </div>
 
-      <div className="min-h-[44px] px-4 py-2.5 rounded-xl bg-[#0A0A0C] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
+      <div className="min-h-[44px] px-4 py-2.5 rounded-xl bg-[#0A0A0C] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm gap-2">
         {hoveredEvent ? (
           <div className="flex items-center gap-3 min-w-0">
             {renderBadgeIcon(hoveredEvent).node}
             <div className="min-w-0 font-tech">
-              <span className="font-extrabold text-white mr-2 truncate">
+              <span className="font-extrabold text-white mr-2 text-xs sm:text-sm">
                 {extractScorerDisplayName(hoveredEvent)}
               </span>
-              <span className="text-white/60 text-[11px] block sm:inline">
+              <span className="text-white/80 text-xs block sm:inline">
                 {hoveredEvent.assist ? ` (Assist: ${hoveredEvent.assist})` : ''}
               </span>
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-2 text-white/50 text-[11px] font-tech">
-            <Users className="w-3.5 h-3.5 text-[#DFFF00] shrink-0" />
+          <div className="flex items-center gap-2 text-white/75 text-xs font-tech">
+            <Users className="w-4 h-4 text-[#DFFF00] shrink-0" />
             <span>Tap or hover any event badge on the timeline to inspect player details</span>
           </div>
         )}
         {hoveredEvent && (
-          <span className="text-[10px] font-tech font-black text-[#DFFF00] uppercase tracking-wider self-start sm:self-auto shrink-0">
+          <span className="text-xs font-tech font-black text-[#DFFF00] uppercase tracking-wider self-start sm:self-auto shrink-0">
             {renderBadgeIcon(hoveredEvent).label}
           </span>
         )}

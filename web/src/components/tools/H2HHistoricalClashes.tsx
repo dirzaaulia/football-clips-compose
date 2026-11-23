@@ -106,7 +106,9 @@ export default function H2HHistoricalClashes({
                     </span>
                     <span className="font-bold text-white text-left truncate">{ev.awayTeamName}</span>
                   </div>
-                  <span className="text-[11px] text-white/50 text-right truncate">{ev.competitionName}</span>
+                  <div className="flex items-center justify-end shrink-0">
+                    <ArrowRight className="w-3.5 h-3.5 text-white/30" />
+                  </div>
                 </div>
               );
             })}

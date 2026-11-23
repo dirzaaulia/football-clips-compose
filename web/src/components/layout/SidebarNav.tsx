@@ -100,11 +100,11 @@ export default function SidebarNav({
                 <span className="font-scoreboard text-base text-white tracking-wider leading-none group-hover:text-[#DFFF00] transition-colors">
                   FOOTBALL
                 </span>
-                <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-[#DFFF00]/15 text-[#DFFF00] border border-[#DFFF00]/30 leading-none">
+                <span className="text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-[#DFFF00]/15 text-[#DFFF00] border border-[#DFFF00]/30 leading-none">
                   CLIPS
                 </span>
               </div>
-              <span className="text-[9px] font-tech text-[#A1A1AA] tracking-widest uppercase mt-1 leading-none">
+              <span className="text-xs font-tech text-white/70 tracking-widest uppercase mt-1 leading-none font-semibold">
                 OTT ARENA
               </span>
             </div>

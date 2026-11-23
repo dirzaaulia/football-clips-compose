@@ -60,6 +60,9 @@ func (m Match) HasGeoDeficit() bool {
 	if m.RegionInfo == nil {
 		return false
 	}
+	if m.RegionInfo.WatchabilityPct > 0 && m.RegionInfo.WatchabilityPct < 99.0 {
+		return true
+	}
 	if !IsTargetMarketCatered(m.RegionInfo) {
 		return true
 	}
@@ -73,7 +76,7 @@ func (m Match) HasGeoDeficit() bool {
 }
 
 // NeedsHighlight returns true if match is finished, not terminal or optimal, and either has no highlight
-// or has a geo deficit (<99% WW) within the 14-day upgrade window with sweep_count < 12.
+// or has a geo deficit (<99% WW) within the 14-day upgrade window with sweep_count < 15.
 func (m Match) NeedsHighlight(now ...time.Time) bool {
 	if !m.IsFinished() {
 		return false
@@ -95,7 +98,7 @@ func (m Match) NeedsHighlight(now ...time.Time) bool {
 		if m.RegionInfo != nil {
 			sweepCount = m.RegionInfo.SweepCount
 		}
-		if sweepCount < 12 && m.HasGeoDeficit() {
+		if sweepCount < 15 && m.HasGeoDeficit() {
 			return true
 		}
 	}

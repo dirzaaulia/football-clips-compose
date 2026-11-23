@@ -83,28 +83,28 @@ export default function MatchCentreHeader({
             {competitionName || 'FOOTBALL'}
           </span>
           <span className="text-white/20">/</span>
-          <span className="text-[#DFFF00] font-bold uppercase truncate max-w-[200px] sm:max-w-xs">
+          <span className="text-[#DFFF00] font-bold uppercase">
             {homeName && awayName ? `${homeName} vs ${awayName}` : title || 'MATCH'}
             {matchId ? ` (#${matchId})` : ''}
           </span>
         </div>
 
         {/* Right: Stitch Status Badge + Stadium + Referee + Season */}
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0 text-[11px] font-tech">
-          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0 text-xs font-tech">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
             <span
-              className={`w-1.5 h-1.5 rounded-full ${
+              className={`w-2 h-2 rounded-full ${
                 isLive ? 'bg-red-500 animate-ping' : isFinished ? 'bg-emerald-400' : 'bg-[#38BDF8]'
               }`}
             />
-            <span className="font-bold">
+            <span className="font-extrabold">
               {isLive ? 'LIVE' : isFinished ? 'FULL TIME • FT' : 'SCHEDULED'}
             </span>
           </div>
 
           {gameInfo?.venueName && (
-            <span className="hidden md:inline-flex items-center gap-1 text-white/60">
-              <MapPin className="w-3 h-3 text-[#DFFF00]" />
+            <span className="hidden md:inline-flex items-center gap-1 text-white/80 font-medium">
+              <MapPin className="w-3.5 h-3.5 text-[#DFFF00]" />
               <span>
                 {gameInfo.venueName}
                 {gameInfo.attendance ? ` (${gameInfo.attendance.toLocaleString()})` : ''}
@@ -113,17 +113,17 @@ export default function MatchCentreHeader({
           )}
 
           {gameInfo?.referee && (
-            <span className="hidden lg:inline-flex items-center gap-1 text-white/60">
-              <ShieldCheck className="w-3 h-3 text-[#DFFF00]" />
+            <span className="hidden lg:inline-flex items-center gap-1 text-white/80 font-medium">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#DFFF00]" />
               <span>Ref: {gameInfo.referee}</span>
             </span>
           )}
 
           {stage && !gameInfo?.venueName && (
-            <span className="hidden md:inline text-white/50">{stage}</span>
+            <span className="hidden md:inline text-white/70 font-semibold">{stage}</span>
           )}
 
-          <span className="px-2 py-0.5 rounded bg-white/5 text-white/60 border border-white/5 text-[10px] font-mono">
+          <span className="px-2.5 py-0.5 rounded bg-white/10 text-white/90 border border-white/10 text-xs font-mono font-bold">
             {season ? `${season}` : '2026/27'}
           </span>
         </div>
@@ -133,9 +133,9 @@ export default function MatchCentreHeader({
       <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs font-tech font-bold text-white/60 hover:text-[#DFFF00] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-tech font-bold text-white/80 hover:text-[#DFFF00] transition-colors"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="w-4 h-4" />
           <span>Back to Highlights</span>
         </Link>
 

@@ -14,7 +14,7 @@ func (r *Repository) GetPendingHighlights(ctx context.Context, limit int) ([]dom
 		SELECT id, competition_id, competition_name, utc_date, status,
 		       home_team_name, away_team_name, home_score, away_score,
 		       season, updated_at, home_team_id, away_team_id,
-		       last_youtube_check, youtube_region_info
+		       last_youtube_check, youtube_region_info, highlight_video_id
 		FROM matches
 		WHERE status = 'FINISHED'
 		  AND (youtube_region_info IS NULL OR (
@@ -27,7 +27,7 @@ func (r *Repository) GetPendingHighlights(ctx context.Context, limit int) ([]dom
 		      (highlight_video_id IS NULL OR highlight_video_id = '')
 		      OR (
 		          utc_date >= NOW() - INTERVAL '14 days'
-		          AND COALESCE((youtube_region_info->>'sweep_count')::int, 0) < 12
+		          AND COALESCE((youtube_region_info->>'sweep_count')::int, 0) < 15
 		          AND (youtube_region_info->>'target_market_exhausted') IS DISTINCT FROM 'true'
 		          AND (
 		              jsonb_array_length(COALESCE(youtube_region_info->'allowed', '[]'::jsonb)) BETWEEN 1 AND 246
@@ -53,7 +53,7 @@ func (r *Repository) GetPendingHighlights(ctx context.Context, limit int) ([]dom
 			&m.ID, &m.CompetitionID, &m.CompetitionName, &m.UTCDate, &m.Status,
 			&m.HomeTeamName, &m.AwayTeamName, &m.HomeScore, &m.AwayScore,
 			&m.Season, &m.UpdatedAt, &m.HomeTeamID, &m.AwayTeamID,
-			&m.LastYouTubeCheck, &regStr,
+			&m.LastYouTubeCheck, &regStr, &m.HighlightVideoID,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scan pending match: %w", err)
@@ -175,8 +175,8 @@ func (r *Repository) GetMatchChannels(ctx context.Context, match domain.Match) (
 		    ($1::bigint IS NOT NULL AND team_id = $1)
 		    OR ($2::bigint IS NOT NULL AND team_id = $2)
 		    OR LOWER(name) IN (LOWER($3), LOWER($4))
-		    OR aliases ? LOWER($3)
-		    OR aliases ? LOWER($4)
+		    OR LOWER($3) = ANY(aliases)
+		    OR LOWER($4) = ANY(aliases)
 		)
 		  AND youtube_channel_id IS NOT NULL
 		  AND youtube_channel_id != ''
@@ -200,7 +200,7 @@ func (r *Repository) GetMatchChannels(ctx context.Context, match domain.Match) (
 			WHERE competitions ? $1
 			  AND channel_id IS NOT NULL
 			  AND channel_id != ''
-			  AND status = 'active'`
+			  AND LOWER(status) = 'active'`
 		rows, err := r.pool.Query(ctx, bcastQuery, match.CompetitionID)
 		if err == nil {
 			defer rows.Close()

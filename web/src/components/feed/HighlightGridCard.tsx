@@ -3,9 +3,10 @@
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Play, Bookmark, BookmarkCheck, Share2, Eye, EyeOff } from 'lucide-react';
+import { Play, Bookmark, BookmarkCheck, Share2, Eye, EyeOff, Trophy } from 'lucide-react';
 import { MatchRecord } from '@/lib/database';
 import { useSpoilerFree } from '@/hooks/useSpoilerFree';
+import { getCompetitionMeta } from '@/lib/competitions';
 
 interface HighlightGridCardProps {
   match: MatchRecord;
@@ -47,21 +48,14 @@ export default function HighlightGridCard({
   const isHidden = isSpoilerFree && !isRevealed;
   const hasScores = match.home_score !== null && match.away_score !== null;
   const kickoffFormatted = useMemo(() => formatMatchKickoff(match.utc_date), [match.utc_date]);
+  const compMeta = useMemo(
+    () => getCompetitionMeta(match.competition_id, match.competition_name),
+    [match.competition_id, match.competition_name],
+  );
 
-  const handleCardClick = () => {
-    router.push(`/match/${match.id}`);
-  };
-
-  const handleToggleReveal = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsRevealed((prev) => !prev);
-  };
-
-  const handleBookmark = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsBookmarked((prev) => !prev);
-  };
-
+  const handleCardClick = () => router.push(`/match/${match.id}`);
+  const handleToggleReveal = (e: React.MouseEvent) => { e.stopPropagation(); setIsRevealed((p) => !p); };
+  const handleBookmark = (e: React.MouseEvent) => { e.stopPropagation(); setIsBookmarked((p) => !p); };
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
     const url = typeof window !== 'undefined' ? `${window.location.origin}/match/${match.id}` : '';
@@ -106,14 +100,35 @@ export default function HighlightGridCard({
         {/* Dual Vignette Scrim */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#121316] via-transparent to-black/40" />
 
-        {/* Top-Left: Competition Badge */}
-        <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-black/80 backdrop-blur-md font-tech text-[10px] text-[#DFFF00] uppercase tracking-wider font-mono border border-white/10">
-          {match.competition_name || 'UCL'}
-        </div>
+        {/* Top Flex Header: Competition Emblem Badge (Left) + Kickoff/LIVE Pill (Right) */}
+        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-2 pointer-events-none z-10">
+          {/* Left: Competition Badge with Official Emblem */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/85 backdrop-blur-md border border-white/10 min-w-0 max-w-[calc(100%-105px)] shadow-sm">
+            {compMeta.logo ? (
+              <div className="relative w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0">
+                <Image
+                  src={compMeta.logo}
+                  alt={compMeta.shortName}
+                  fill
+                  className="object-contain"
+                  unoptimized
+                />
+              </div>
+            ) : (
+              <Trophy className="w-3.5 h-3.5 text-[#DFFF00] shrink-0" />
+            )}
+            <span className="font-tech text-xs text-[#DFFF00] uppercase tracking-wider font-mono font-bold truncate">
+              {compMeta.shortName}
+            </span>
+          </div>
 
-        {/* Top-Right: Localized Kickoff Time / Live Badge */}
-        <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full bg-black/80 backdrop-blur-md font-tech text-[10px] text-white/90 font-mono border border-white/10">
-          {match.status === 'IN_PLAY' ? 'LIVE' : kickoffFormatted}
+          {/* Right: Kickoff Time / LIVE Status Badge */}
+          <div className="shrink-0 px-2.5 py-1 rounded-full bg-black/85 backdrop-blur-md font-tech text-xs text-white font-mono font-bold border border-white/10 shadow-sm flex items-center gap-1.5">
+            {match.status === 'IN_PLAY' && (
+              <span className="w-1.5 h-1.5 rounded-full bg-[#DFFF00] animate-pulse" />
+            )}
+            <span>{match.status === 'IN_PLAY' ? 'LIVE' : kickoffFormatted}</span>
+          </div>
         </div>
 
         {/* Center: High Voltage Kinetic Play Glyph */}
@@ -128,10 +143,10 @@ export default function HighlightGridCard({
           <div className="absolute bottom-2.5 right-2.5">
             <div
               onClick={handleToggleReveal}
-              className={`px-3 py-1 rounded-full font-tech text-xs font-bold transition-all cursor-pointer backdrop-blur-md ${
+              className={`px-3.5 py-1.5 rounded-full font-tech text-xs sm:text-sm font-black transition-all cursor-pointer backdrop-blur-md ${
                 isHidden
                   ? 'bg-black/90 text-[#DFFF00] filter blur-sm hover:blur-none border border-[#DFFF00]/40'
-                  : 'bg-black/80 text-[#DFFF00] border border-white/10'
+                  : 'bg-black/85 text-[#DFFF00] border border-white/15'
               }`}
               title={isHidden ? 'Click to reveal score' : 'Click to hide score'}
             >
@@ -142,7 +157,7 @@ export default function HighlightGridCard({
                 {isHidden ? (
                   <Eye className="w-3.5 h-3.5 text-[#DFFF00]" />
                 ) : (
-                  <EyeOff className="w-3 h-3 text-white/40 ml-0.5" />
+                  <EyeOff className="w-3.5 h-3.5 text-white/50 ml-0.5" />
                 )}
               </div>
             </div>
@@ -151,11 +166,11 @@ export default function HighlightGridCard({
       </div>
 
       {/* Card Info Body */}
-      <div className="p-3.5 flex flex-col flex-1 justify-between gap-2">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
+      <div className="p-4 flex flex-col flex-1 justify-between gap-2.5">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2.5">
             {match.home_team_crest ? (
-              <div className="relative w-4 h-4 shrink-0">
+              <div className="relative w-6 h-6 shrink-0">
                 <Image
                   src={match.home_team_crest}
                   alt={homeName}
@@ -165,14 +180,14 @@ export default function HighlightGridCard({
                 />
               </div>
             ) : null}
-            <span className="font-bold text-xs sm:text-sm text-white group-hover:text-[#DFFF00] transition-colors leading-tight">
+            <span className="font-extrabold text-sm sm:text-base text-white group-hover:text-[#DFFF00] transition-colors leading-snug">
               {homeName}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {match.away_team_crest ? (
-              <div className="relative w-4 h-4 shrink-0">
+              <div className="relative w-6 h-6 shrink-0">
                 <Image
                   src={match.away_team_crest}
                   alt={awayName}
@@ -182,27 +197,27 @@ export default function HighlightGridCard({
                 />
               </div>
             ) : null}
-            <span className="font-bold text-xs sm:text-sm text-white group-hover:text-[#DFFF00] transition-colors leading-tight">
+            <span className="font-extrabold text-sm sm:text-base text-white group-hover:text-[#DFFF00] transition-colors leading-snug">
               {awayName}
             </span>
           </div>
         </div>
 
         {match.recap_analysis && (
-          <p className="text-[11px] font-tech text-white/60 line-clamp-2 leading-relaxed">
+          <p className="text-xs font-tech text-white/85 line-clamp-2 leading-relaxed">
             {match.recap_analysis}
           </p>
         )}
 
         {/* Card Footer: Match Centre Link & Actions */}
-        <div className="flex items-center justify-between text-white/50 font-tech text-xs pt-2 border-t border-white/5">
-          <span className="text-[#DFFF00] font-bold group-hover:underline">
+        <div className="flex items-center justify-between text-white/70 font-tech text-xs sm:text-sm pt-2.5 border-t border-white/10">
+          <span className="text-[#DFFF00] font-black group-hover:underline">
             Match Centre &rarr;
           </span>
 
           <div className="flex items-center gap-2">
             {copied ? (
-              <span className="text-[10px] text-[#DFFF00] font-bold">Copied!</span>
+              <span className="text-xs text-[#DFFF00] font-bold">Copied!</span>
             ) : null}
 
             <button

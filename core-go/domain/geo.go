@@ -67,15 +67,22 @@ func CheckMatchTargetMarketCutoff(m Match, now time.Time, sweepCount int) (bool,
 	ageHours := now.Sub(m.UTCDate).Hours()
 	ageDays := ageHours / 24.0
 
-	// Protect active 2-week news cycle: allow up to 12 sweeps within 14 days
-	if ageDays < 14.0 && sweepCount < 12 {
-		return false, fmt.Sprintf("Active Tier 1: age %.1fd (<14d), sweeps %d/12 (protected from exhaustion)", ageDays, sweepCount)
+	// Invariant: Matches under 3 days old (72 hours) must NEVER be marked terminal exhausted.
+	// Official clubs and licensed broadcasters upload extended highlights and worldwide versions
+	// between 12 hours and 48 hours post-match due to local broadcast embargo windows.
+	if ageDays < 3.0 {
+		return false, fmt.Sprintf("Active grace period: age %.1fd (<3.0d), sweeps %d (protected from exhaustion)", ageDays, sweepCount)
 	}
 
-	// Cutoff: 12 sweeps reached OR match completed over 14 days ago with at least 6 sweeps
-	if sweepCount >= 12 || (sweepCount >= 6 && ageDays >= 14.0) {
+	// Between 3 and 14 days, require at least 15 sweeps before considering exhausted
+	if ageDays < 14.0 && sweepCount < 15 {
+		return false, fmt.Sprintf("Active Tier 1: age %.1fd (<14d), sweeps %d/15", ageDays, sweepCount)
+	}
+
+	// Cutoff: match completed over 14 days ago with at least 6 sweeps, OR over 3 days ago with >= 15 sweeps
+	if (sweepCount >= 6 && ageDays >= 14.0) || sweepCount >= 15 {
 		return true, fmt.Sprintf("Exhausted: %d sweeps across official channels and match completed %.1f days ago", sweepCount, ageDays)
 	}
 
-	return false, fmt.Sprintf("Active: sweeps %d/12, age %.1fd", sweepCount, ageDays)
+	return false, fmt.Sprintf("Active: sweeps %d/15, age %.1fd", sweepCount, ageDays)
 }

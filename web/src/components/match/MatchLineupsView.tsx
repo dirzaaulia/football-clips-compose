@@ -29,10 +29,10 @@ export default function MatchLineupsView({
       {/* Home Team Lineup */}
       <div className="bg-[#121316] border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3 shadow-md">
         <div className="flex items-center justify-between pb-2.5 border-b border-white/10">
-          <span className="font-tech font-bold text-white text-xs sm:text-sm truncate uppercase tracking-wider">{homeName}</span>
+          <span className="font-tech font-extrabold text-white text-xs sm:text-sm uppercase tracking-wider">{homeName}</span>
           {formations?.home?.formation && (
             <span
-              className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-black border"
+              className="px-2.5 py-1 rounded-lg text-xs font-mono font-black border"
               style={{ color: hColor, borderColor: `${hColor}40`, backgroundColor: `${hColor}18` }}
             >
               {formations.home.formation}
@@ -48,14 +48,14 @@ export default function MatchLineupsView({
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <span
-                  className="w-5 text-center font-mono font-bold text-[11px] shrink-0"
+                  className="w-6 text-center font-mono font-black text-xs shrink-0"
                   style={{ color: hColor }}
                 >
                   {p.jersey || '-'}
                 </span>
-                <span className="font-tech font-medium text-white truncate">{p.name}</span>
+                <span className="font-tech font-bold text-xs sm:text-sm text-white">{p.name}</span>
               </div>
-              <span className="text-[10px] text-white/40 font-bold font-mono shrink-0 ml-2">
+              <span className="text-xs text-white/80 font-bold font-mono shrink-0 ml-2">
                 {p.position || ''}
               </span>
             </div>
@@ -66,10 +66,10 @@ export default function MatchLineupsView({
       {/* Away Team Lineup */}
       <div className="bg-[#121316] border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3 shadow-md">
         <div className="flex items-center justify-between pb-2.5 border-b border-white/10">
-          <span className="font-tech font-bold text-white text-xs sm:text-sm truncate uppercase tracking-wider">{awayName}</span>
+          <span className="font-tech font-extrabold text-white text-xs sm:text-sm uppercase tracking-wider">{awayName}</span>
           {formations?.away?.formation && (
             <span
-              className="px-2.5 py-0.5 rounded-lg text-[10px] font-mono font-black border"
+              className="px-2.5 py-1 rounded-lg text-xs font-mono font-black border"
               style={{ color: aColor, borderColor: `${aColor}40`, backgroundColor: `${aColor}18` }}
             >
               {formations.away.formation}
@@ -85,14 +85,14 @@ export default function MatchLineupsView({
             >
               <div className="flex items-center gap-2.5 min-w-0">
                 <span
-                  className="w-5 text-center font-mono font-bold text-[11px] shrink-0"
+                  className="w-6 text-center font-mono font-black text-xs shrink-0"
                   style={{ color: aColor }}
                 >
                   {p.jersey || '-'}
                 </span>
-                <span className="font-tech font-medium text-white truncate">{p.name}</span>
+                <span className="font-tech font-bold text-xs sm:text-sm text-white">{p.name}</span>
               </div>
-              <span className="text-[10px] text-white/40 font-bold font-mono shrink-0 ml-2">
+              <span className="text-xs text-white/80 font-bold font-mono shrink-0 ml-2">
                 {p.position || ''}
               </span>
             </div>

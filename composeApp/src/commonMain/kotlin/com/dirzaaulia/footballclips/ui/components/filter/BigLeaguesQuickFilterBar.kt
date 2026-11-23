@@ -92,10 +92,15 @@ fun BigLeaguesQuickFilterBar(
                     league.leagueId == null && league.competitionId.isEmpty()
                 }
 
+                val isAllOption = league.leagueId == null && league.competitionId.isEmpty()
+                val isIntlOption = league.id.equals("INTL", ignoreCase = true) || league.isInternational
+                val label = if (isAllOption) "ALL" else if (isIntlOption) "INTL" else (league.shortName ?: league.name.take(4).uppercase())
+
                 LeagueModernFilterItem(
                     name = league.name,
                     logo = league.getEmblemUrl(com.dirzaaulia.footballclips.ui.theme.LocalThemeIsDark.current),
                     isSelected = isSelected,
+                    label = label,
                     isWeb = isWeb,
                     isCompact = isCompact,
                     onClick = { onLeagueSelected(league.leagueId, league.competitionId) },
@@ -110,16 +115,19 @@ fun LeagueModernFilterItem(
     name: String,
     logo: String,
     isSelected: Boolean,
+    label: String = "ALL",
     isWeb: Boolean = false,
     isCompact: Boolean = false,
     onClick: () -> Unit,
 ) {
-    val isALL = logo.isEmpty()
+    val isDark = com.dirzaaulia.footballclips.ui.theme.LocalThemeIsDark.current
 
     val contentColor by animateColorAsState(
-        if (isSelected && isALL) MaterialTheme.colorScheme.onPrimary
-        else if (isSelected) MaterialTheme.colorScheme.primary
-        else MaterialTheme.colorScheme.onSurface,
+        if (isSelected) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        },
     )
 
     val itemWidth = if (isCompact) 44.dp else if (isWeb) 68.dp else 52.dp
@@ -139,17 +147,24 @@ fun LeagueModernFilterItem(
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
                 )
-            } else {
+            } else if (isDark) {
                 listOf(
                     Color.White.copy(alpha = 0.22f),
                     Color.White.copy(alpha = 0.12f),
+                )
+            } else {
+                listOf(
+                    Color.Black.copy(alpha = 0.06f),
+                    Color.Black.copy(alpha = 0.02f),
                 )
             },
         )
         val borderColor = if (isSelected) {
             MaterialTheme.colorScheme.primary
-        } else {
+        } else if (isDark) {
             Color.White.copy(alpha = 0.25f)
+        } else {
+            Color.Black.copy(alpha = 0.15f)
         }
 
         Box(
@@ -174,7 +189,7 @@ fun LeagueModernFilterItem(
                 )
             } else {
                 Text(
-                    text = "ALL",
+                    text = label,
                     style = if (isCompact) MaterialTheme.typography.labelSmall else if (isWeb) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Black,
                     color = contentColor,

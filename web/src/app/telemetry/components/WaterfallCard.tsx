@@ -5,10 +5,11 @@ import {
   ChevronDown, ChevronUp, CheckCircle, Clock, AlertTriangle,
   Copy, Check, Calendar, RotateCcw, Loader2,
 } from 'lucide-react';
-import { MatchWaterfall } from '../types';
+import { MatchCycleRun, MatchWaterfall } from '../types';
 import { WaterfallSteps } from './WaterfallSteps';
 import { ManualOverrideModal } from './ManualOverrideModal';
 import { database } from '@/lib/database';
+import { mapTraceToCycleRun } from '../waterfallTraceHelper';
 
 interface WaterfallCardProps {
   waterfall: MatchWaterfall;
@@ -22,8 +23,29 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
   const [isReSearching, setIsReSearching] = useState(false);
   const [isReset, setIsReset] = useState(false);
   const [selectedCycleIdx, setSelectedCycleIdx] = useState(0);
+  const [lazyCycles, setLazyCycles] = useState<MatchCycleRun[] | null>(null);
 
-  const cycles = waterfall.cycles && waterfall.cycles.length > 0
+  const fetchLazyTraces = async () => {
+    if (lazyCycles !== null) return;
+    try {
+      const { data } = await database
+        .from('worker_events')
+        .select('event_id, timestamp, metadata')
+        .eq('action', 'WATERFALL_TRACE')
+        .filter('metadata->>match_id', 'eq', waterfall.matchId)
+        .order('timestamp', { ascending: false })
+        .limit(20);
+      if (data && data.length > 0) {
+        setLazyCycles(data.map((r: any) => mapTraceToCycleRun(r)));
+      }
+    } catch (e) {
+      console.warn('Failed lazy trace fetch', e);
+    }
+  };
+
+  const cycles = (lazyCycles && lazyCycles.length > 0)
+    ? lazyCycles
+    : (waterfall.cycles && waterfall.cycles.length > 0)
     ? waterfall.cycles
     : [{
         cycleId: undefined,
@@ -55,16 +77,13 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
     if (isReSearching) return;
     setIsReSearching(true);
     try {
-      const { error } = await database
-        .from('matches')
-        .update({
-          highlight_video_id: null,
-          highlight_videos: [],
-          last_youtube_check: null,
-          youtube_region_info: null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', waterfall.matchId);
+      const { error } = await database.from('matches').update({
+        highlight_video_id: null,
+        highlight_videos: [],
+        last_youtube_check: null,
+        youtube_region_info: null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', waterfall.matchId);
 
       if (error) throw new Error(error.message);
       fetch('https://edge.fc.dirzaaulia.com/api/purge-cache', { method: 'POST' }).catch(() => {});
@@ -79,35 +98,34 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
 
   const statusBadge = isReset ? (
     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30">
-      <Clock className="w-3 h-3" />
-      DUE NOW
+      <Clock className="w-3 h-3" /> DUE NOW
     </span>
   ) : isLinked ? (
     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-      <CheckCircle className="w-3 h-3" />
-      LINKED
+      <CheckCircle className="w-3 h-3" /> LINKED
     </span>
   ) : isCooldown ? (
     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-      <Clock className="w-3 h-3" />
-      COOLDOWN
+      <Clock className="w-3 h-3" /> COOLDOWN
     </span>
   ) : (
     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-500/15 text-slate-400 border border-slate-500/30">
-      <AlertTriangle className="w-3 h-3" />
-      {activeCycle.status}
+      <AlertTriangle className="w-3 h-3" /> {activeCycle.status}
     </span>
   );
 
   const sourceName = waterfall.ingestionSource || activeCycle.ingestionSource;
-  const wwText = waterfall.cumulativeAvailability?.text || waterfall.worldwideAvailabilityText || activeCycle.worldwideAvailabilityText;
   const isWorldwideGood = waterfall.cumulativeAvailability?.targetMarketsStatus === 'ALL_COVERED' || (waterfall.worldwidePercentage ?? 0) >= 90;
 
   return (
     <div className="bg-slate-900/80 border border-slate-800 rounded-xl transition-all duration-200">
       {/* Clean 2-Line Header */}
       <div
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          const next = !isOpen;
+          setIsOpen(next);
+          if (next) fetchLazyTraces();
+        }}
         className={`p-3.5 sm:p-4 cursor-pointer select-none transition ${
           isOpen
             ? 'sticky top-24 z-10 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/90 rounded-t-xl shadow-md'

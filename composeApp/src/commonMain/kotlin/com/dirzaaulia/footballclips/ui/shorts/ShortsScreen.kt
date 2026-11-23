@@ -95,12 +95,15 @@ private fun ShortsPagerContent(
             }
             is ShortsFeedItem.Ad -> {
                 Box(
-                    modifier = Modifier.fillMaxSize().background(Color(0xFF0F172A)),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF0A0B0E))
+                        .padding(horizontal = 16.dp, vertical = 32.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     BannerAdItem(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        style = NativeAdStyle.HIGHLIGHT,
+                        modifier = Modifier.fillMaxSize(),
+                        style = NativeAdStyle.SHORTS,
                     )
                 }
             }

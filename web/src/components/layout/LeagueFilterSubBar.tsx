@@ -51,7 +51,7 @@ export default function LeagueFilterSubBar({
 
   return (
     <>
-      <div className="w-full bg-[#121316] border-y border-white/10 px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3.5 select-none relative z-30">
+      <div className="sticky top-[84px] z-30 w-full bg-[#121316]/95 backdrop-blur-md border-y border-white/10 px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 select-none shadow-[0_8px_24px_rgba(0,0,0,0.6)] transition-all">
         {/* Left: Search Input & Advanced Filter Trigger */}
         <div className="relative flex-1 max-w-sm flex items-center bg-[#0A0A0C] rounded-xl px-3.5 py-2 border border-white/10 focus-within:border-[#DFFF00] transition-colors">
           <Search className="w-4 h-4 text-white/40 mr-2.5 shrink-0" />
@@ -74,11 +74,11 @@ export default function LeagueFilterSubBar({
         </div>
 
         {/* Center: Master Competition Drawer Button & Generous Quick Chips */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 max-w-full">
           {/* Master Competition Side Sheet Trigger */}
           <button
             onClick={() => setIsDrawerOpen(true)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-tech font-bold uppercase tracking-wider transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-tech font-bold uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
               selectedComp !== 'ALL' && !isMyClubsActive
                 ? 'bg-[#DFFF00] text-[#0A0A0C] border-[#DFFF00] shadow-[0_0_15px_rgba(223,255,0,0.3)]'
                 : 'bg-[#1A1C22] text-white/90 hover:text-white border-white/10 hover:border-white/20'
@@ -90,14 +90,14 @@ export default function LeagueFilterSubBar({
           </button>
 
           {/* Quick Generous Chips */}
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             {TOP_QUICK_LEAGUES.map((league) => {
               const isSelected = selectedComp === league.id && !isMyClubsActive;
               return (
                 <button
                   key={league.id}
                   onClick={() => onSelectComp(league.id)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-tech font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-tech font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap ${
                     isSelected
                       ? 'bg-[#DFFF00] text-[#0A0A0C] font-black shadow-[0_0_12px_rgba(223,255,0,0.25)]'
                       : 'bg-[#1A1C22] hover:bg-[#252830] text-white/70 hover:text-white border border-white/10'
@@ -124,7 +124,7 @@ export default function LeagueFilterSubBar({
           >
             <Star className={`w-3.5 h-3.5 ${isMyClubsActive ? 'fill-[#0A0A0C]' : 'text-[#DFFF00]'}`} />
             <span>My Clubs</span>
-            <span className="px-1.5 py-0.5 rounded bg-black/40 text-[10px] font-mono">
+            <span className="px-2 py-0.5 rounded bg-black/40 text-xs font-mono font-bold">
               {favoriteCount}
             </span>
           </button>

@@ -3,7 +3,9 @@ package com.dirzaaulia.footballclips.ui.score.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -79,19 +81,21 @@ fun ColumnScope.LeagueStandingsTable(
             }
         }
 
+        StandingsLegend(
+            competitionId = selectedCompetitionId,
+            totalTeams = standings.size,
+            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+        )
+
         if (!isAdsRemoved && standings.isNotEmpty()) {
             BannerAdItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 6.dp),
-                style = NativeAdStyle.MATCH,
+                style = NativeAdStyle.STANDINGS,
             )
         }
 
-        StandingsLegend(
-            competitionId = selectedCompetitionId,
-            totalTeams = standings.size,
-            modifier = Modifier.padding(top = 4.dp, bottom = bottomLegendPadding),
-        )
+        Spacer(modifier = Modifier.height(bottomLegendPadding))
     }
 }

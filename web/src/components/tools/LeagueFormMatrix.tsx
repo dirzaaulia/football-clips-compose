@@ -4,23 +4,24 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import {
   ALL_SUPPORTED_COMPETITIONS,
-  SupportedCompetition,
   fetchLiveStandings,
   standingToTacticalProfile,
   ClubTacticalProfile,
 } from '@/lib/tools-data';
 import { StandingRecord } from '@/lib/database';
-import { Activity, ShieldCheck } from 'lucide-react';
+import { computeClubAnalyticsFromStandings, ClubAnalyticsSummary } from '@/lib/free-stats';
+import { Activity, Sparkles } from 'lucide-react';
 
 export default function LeagueFormMatrix() {
   const [selectedCompCode, setSelectedCompCode] = useState<string>('PL');
   const [standings, setStandings] = useState<StandingRecord[]>([]);
+  const [analytics, setAnalytics] = useState<Record<string, ClubAnalyticsSummary>>({});
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [emblems, setEmblems] = useState<Record<string, string>>({});
 
   const selectedComp =
     ALL_SUPPORTED_COMPETITIONS.find((c) => c.code === selectedCompCode) ||
-    ALL_SUPPORTED_COMPETITIONS[3]; // Default: Premier League
+    ALL_SUPPORTED_COMPETITIONS[3];
 
   useEffect(() => {
     fetch('/api/competitions')
@@ -46,6 +47,14 @@ export default function LeagueFormMatrix() {
       const data = await fetchLiveStandings(selectedCompCode, 2026);
       if (!isCancelled) {
         setStandings(data);
+        if (data.length > 0) {
+          const stats = computeClubAnalyticsFromStandings(data);
+          const map: Record<string, ClubAnalyticsSummary> = {};
+          stats.forEach((item) => {
+            map[item.teamName] = item;
+          });
+          setAnalytics(map);
+        }
         setIsLoading(false);
       }
     }
@@ -54,18 +63,18 @@ export default function LeagueFormMatrix() {
   }, [selectedCompCode]);
 
   return (
-    <div className="space-y-5">
-      {/* 23-Competition Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#181C20] border border-[#334155]/60">
-        <label htmlFor="comp-matrix-select" className="text-xs font-bold text-[#94A3B8] uppercase tracking-wider">
-          Select Competition (23 Official Leagues &amp; Tournaments)
+    <div className="space-y-5 select-none">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#1B1B1F] border border-white/10 shadow-lg">
+        <label htmlFor="comp-matrix-select" className="text-xs font-bold font-tech text-[#DFFF00] uppercase tracking-wider flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5" />
+          Select Official League Benchmark
         </label>
         <select
           id="comp-matrix-select"
           aria-label="Select Competition"
           value={selectedCompCode}
           onChange={(e) => setSelectedCompCode(e.target.value)}
-          className="bg-[#101418] border border-[#334155] rounded-xl px-3.5 py-2 text-xs font-bold text-white focus:outline-none focus:border-[#7098F8] cursor-pointer"
+          className="bg-[#0D0E11] border border-white/10 rounded-xl px-3.5 py-2 text-xs font-bold text-white focus:outline-none focus:border-[#DFFF00] cursor-pointer font-tech"
         >
           {['European Competitions', 'Domestic Leagues', 'Domestic Cups', 'South American Competitions'].map((cat) => (
             <optgroup key={cat} label={cat}>
@@ -79,20 +88,19 @@ export default function LeagueFormMatrix() {
         </select>
       </div>
 
-      {/* Form Matrix Table Card */}
-      <div className="rounded-2xl bg-[#181C20] border border-[#334155]/60 overflow-hidden">
-        <div className="p-4 border-b border-[#334155]/60 flex items-center justify-between">
+      <div className="rounded-2xl bg-[#1B1B1F] border border-white/10 overflow-hidden shadow-2xl">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {emblems[selectedCompCode.toUpperCase()] ? (
               <div className="relative w-7 h-7 shrink-0">
                 <Image src={emblems[selectedCompCode.toUpperCase()]} alt={selectedComp.name} fill sizes="28px" className="object-contain" />
               </div>
             ) : (
-              <Activity className="w-5 h-5 text-[#7098F8] shrink-0" />
+              <Activity className="w-5 h-5 text-[#DFFF00] shrink-0" />
             )}
             <div>
-              <h3 className="text-sm font-extrabold text-white">{selectedComp.name}</h3>
-              <p className="text-[11px] text-[#94A3B8]">Live 2026/2027 Season Standings &amp; Form Guide</p>
+              <h3 className="text-sm font-extrabold text-white font-scoreboard">{selectedComp.name}</h3>
+              <p className="text-[11px] text-white/50 font-tech">Live Standings &amp; xPts Expected Points Delta</p>
             </div>
           </div>
           <span className="text-[11px] font-tech text-[#DFFF00] font-bold px-2.5 py-1 rounded-full bg-[#DFFF00]/10 border border-[#DFFF00]/30">
@@ -101,55 +109,44 @@ export default function LeagueFormMatrix() {
         </div>
 
         {isLoading ? (
-          <div className="p-4 space-y-3 animate-pulse select-none">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex items-center justify-between py-2.5 px-3 border-b border-white/5">
-                <div className="flex items-center gap-3">
-                  <div className="w-5 h-4 rounded bg-white/10" />
-                  <div className="w-6 h-6 rounded-full bg-white/10" />
-                  <div className="w-32 h-4 rounded bg-white/20" />
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-3 rounded bg-white/10 hidden sm:block" />
-                  <div className="w-8 h-4 rounded bg-[#DFFF00]/20" />
-                </div>
-              </div>
-            ))}
+          <div className="p-6 text-center font-tech text-xs text-white/50 animate-pulse">
+            Calibrating league table &amp; expected points telemetry...
           </div>
         ) : standings.length === 0 ? (
-          <div className="py-14 text-center text-[#94A3B8] space-y-2 px-4">
-            <Activity className="w-8 h-8 text-[#94A3B8]/40 mx-auto" />
+          <div className="py-14 text-center text-white/50 space-y-2 px-4 font-tech">
+            <Activity className="w-8 h-8 text-white/30 mx-auto" />
             <p className="text-sm font-bold text-white">No Standings Table for {selectedComp.name}</p>
-            <p className="text-xs text-[#94A3B8] max-w-sm mx-auto">
-              This tournament uses a single-elimination knockout format. Explore brackets and fixtures in the Scores &amp; Fixtures hub.
+            <p className="text-xs max-w-sm mx-auto">
+              This tournament uses a single-elimination knockout format. Explore fixtures in the Fixtures hub.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full text-left border-collapse text-xs font-tech">
               <thead>
-                <tr className="border-b border-[#334155]/40 text-[#94A3B8] uppercase text-[10px] font-bold tracking-wider">
+                <tr className="border-b border-white/10 text-white/50 uppercase text-[10px] font-bold tracking-wider">
                   <th className="py-3 px-3 text-center w-8">#</th>
                   <th className="py-3 px-4">Club</th>
                   <th className="py-3 px-3">Recent Form</th>
                   <th className="py-3 px-2 text-center">PL</th>
-                  <th className="py-3 px-2 text-center">W</th>
-                  <th className="py-3 px-2 text-center">D</th>
-                  <th className="py-3 px-2 text-center">L</th>
                   <th className="py-3 px-2 text-center">GD</th>
                   <th className="py-3 px-3 text-center font-black text-white">PTS</th>
+                  <th className="py-3 px-2 text-center text-[#DFFF00]">xPts</th>
+                  <th className="py-3 px-2 text-center text-white/70">Delta</th>
                   <th className="py-3 px-4 text-right">Tactical Style</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#334155]/30">
+              <tbody className="divide-y divide-white/5">
                 {standings.map((s, idx) => {
                   const profile = standingToTacticalProfile(s, selectedComp.name);
+                  const stat = analytics[s.team_name];
                   return (
                     <MatrixRow
                       key={s.id || idx}
                       pos={s.position || idx + 1}
                       standing={s}
                       profile={profile}
+                      stat={stat}
                     />
                   );
                 })}
@@ -162,16 +159,22 @@ export default function LeagueFormMatrix() {
   );
 }
 
-interface MatrixRowProps {
+function MatrixRow({
+  pos,
+  standing,
+  profile,
+  stat,
+}: {
   pos: number;
   standing: StandingRecord;
   profile: ClubTacticalProfile;
-}
+  stat?: ClubAnalyticsSummary;
+}) {
+  const delta = stat ? stat.pointsDelta : 0;
 
-function MatrixRow({ pos, standing, profile }: MatrixRowProps) {
   return (
-    <tr className="hover:bg-white/[0.02] transition-colors">
-      <td className="py-3 px-3 text-center font-bold text-[#94A3B8]">{pos}</td>
+    <tr className="hover:bg-white/[0.03] transition-colors">
+      <td className="py-3 px-3 text-center font-bold text-white/50">{pos}</td>
       <td className="py-3 px-4 font-bold text-white flex items-center gap-3">
         <div className="relative w-5 h-5 shrink-0">
           <Image src={profile.emblem} alt={standing.team_name} fill sizes="20px" className="object-contain" />
@@ -196,16 +199,19 @@ function MatrixRow({ pos, standing, profile }: MatrixRowProps) {
           ))}
         </div>
       </td>
-      <td className="py-3 px-2 text-center text-[#94A3B8]">{standing.played_games}</td>
-      <td className="py-3 px-2 text-center text-[#94A3B8]">{standing.won}</td>
-      <td className="py-3 px-2 text-center text-[#94A3B8]">{standing.draw}</td>
-      <td className="py-3 px-2 text-center text-[#94A3B8]">{standing.lost}</td>
-      <td className={`py-3 px-2 text-center font-bold ${(standing.goal_difference || 0) > 0 ? 'text-emerald-400' : (standing.goal_difference || 0) < 0 ? 'text-rose-400' : 'text-[#94A3B8]'}`}>
+      <td className="py-3 px-2 text-center text-white/60">{standing.played_games}</td>
+      <td className={`py-3 px-2 text-center font-bold ${(standing.goal_difference || 0) > 0 ? 'text-emerald-400' : (standing.goal_difference || 0) < 0 ? 'text-rose-400' : 'text-white/60'}`}>
         {(standing.goal_difference || 0) > 0 ? `+${standing.goal_difference}` : standing.goal_difference}
       </td>
       <td className="py-3 px-3 text-center font-black text-white bg-white/[0.02]">{standing.points}</td>
+      <td className="py-3 px-2 text-center font-bold text-[#DFFF00]">
+        {stat ? stat.expectedPoints : '-'}
+      </td>
+      <td className={`py-3 px-2 text-center font-bold ${delta > 0 ? 'text-emerald-400' : delta < 0 ? 'text-rose-400' : 'text-white/60'}`}>
+        {delta > 0 ? `+${delta}` : delta}
+      </td>
       <td className="py-3 px-4 text-right">
-        <span className="text-[11px] font-semibold text-[#94A3B8]">{profile.archetype}</span>
+        <span className="text-[11px] font-semibold text-white/50">{profile.archetype}</span>
       </td>
     </tr>
   );

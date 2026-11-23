@@ -105,7 +105,7 @@ func main() {
 
 	scoreTicker := time.NewTicker(60 * time.Second)
 	defer scoreTicker.Stop()
-	hlTicker := time.NewTicker(5 * time.Minute)
+	hlTicker := time.NewTicker(2 * time.Minute)
 	defer hlTicker.Stop()
 	shortsTicker := time.NewTicker(30 * time.Minute)
 	defer shortsTicker.Stop()

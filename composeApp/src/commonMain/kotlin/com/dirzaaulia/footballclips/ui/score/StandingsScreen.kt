@@ -78,27 +78,13 @@ fun StandingsScreen(
                 )
             },
         ) { innerPadding ->
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
+                contentAlignment = Alignment.Center,
             ) {
-                if (!isPremium) {
-                    BannerAdItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = horizontalPadding, vertical = 6.dp),
-                        style = NativeAdStyle.MATCH,
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    when (state) {
+                when (state) {
                         is StandingsState.Loading -> {
                             StandingsTableSkeleton(
                                 modifier = Modifier.fillMaxSize(),
@@ -130,7 +116,6 @@ fun StandingsScreen(
             }
         }
     }
-}
 
 @Composable
 private fun StandingsContent(

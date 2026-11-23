@@ -8,14 +8,14 @@ import com.dirzaaulia.footballclips.util.normalizeLeagueName
 sealed class HighlightUiItem {
     data class OracleMatch(val match: Match) : HighlightUiItem()
     data class Highlight(val highlight: HighlightUiModel) : HighlightUiItem()
-    data object BannerAd : HighlightUiItem()
+    data class BannerAd(val id: String = "ad-banner") : HighlightUiItem()
 }
 
 val HighlightUiItem.uniqueId: String
     get() = when (this) {
         is HighlightUiItem.OracleMatch -> "match-${match.id}"
         is HighlightUiItem.Highlight -> "hl-${highlight.id}"
-        is HighlightUiItem.BannerAd -> "ad-${hashCode()}"
+        is HighlightUiItem.BannerAd -> "ad-$id"
     }
 
 val HighlightUiItem.competitionName: String

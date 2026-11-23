@@ -3,6 +3,7 @@ package com.dirzaaulia.footballclips.ui.shorts
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dirzaaulia.footballclips.data.billing.BillingManager
+import com.dirzaaulia.footballclips.data.local.PreferenceManager
 import com.dirzaaulia.footballclips.data.model.NetworkResult
 import com.dirzaaulia.footballclips.data.repository.ShortsRepository
 import com.dirzaaulia.footballclips.domain.model.FootballShort
@@ -11,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -18,6 +21,7 @@ import kotlinx.coroutines.launch
 class ShortsViewModel(
     private val repository: ShortsRepository,
     private val billingManager: BillingManager,
+    private val preferenceManager: PreferenceManager? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ShortsUiState>(ShortsUiState.Loading)
@@ -26,11 +30,31 @@ class ShortsViewModel(
     private val _effects = Channel<ShortsUiEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
 
-    val isPremium: StateFlow<Boolean> = billingManager.isPremium
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+    val isAdsRemoved: StateFlow<Boolean> = if (preferenceManager != null) {
+        combine(
+            billingManager.isPremium,
+            preferenceManager.isAdsRemoved,
+        ) { premium, adsRemoved ->
+            premium || adsRemoved
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+    } else {
+        billingManager.isPremium
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+    }
 
     init {
         loadShorts()
+        viewModelScope.launch {
+            isAdsRemoved.collectLatest { removed ->
+                val current = _uiState.value
+                if (current is ShortsUiState.Success) {
+                    val rawVideos = current.items.filterIsInstance<ShortsFeedItem.Video>().map { it.short }
+                    _uiState.value = current.copy(
+                        items = buildShortsFeedItems(rawVideos, removed),
+                    )
+                }
+            }
+        }
     }
 
     fun onAction(action: ShortsUiAction) {
@@ -49,7 +73,7 @@ class ShortsViewModel(
             _uiState.value = ShortsUiState.Loading
             when (val result = repository.getShorts(category = category)) {
                 is NetworkResult.Success -> {
-                    val feedItems = buildShortsFeedItems(result.data, isPremium.value)
+                    val feedItems = buildShortsFeedItems(result.data, isAdsRemoved.value)
                     _uiState.value = ShortsUiState.Success(
                         items = feedItems,
                         selectedCategory = category,
@@ -95,9 +119,9 @@ class ShortsViewModel(
 
 internal fun buildShortsFeedItems(
     shorts: List<FootballShort>,
-    premium: Boolean,
+    isAdsRemoved: Boolean,
 ): List<ShortsFeedItem> {
-    if (premium || shorts.isEmpty()) {
+    if (isAdsRemoved || shorts.isEmpty()) {
         return shorts.map { ShortsFeedItem.Video(it) }
     }
     val items = mutableListOf<ShortsFeedItem>()

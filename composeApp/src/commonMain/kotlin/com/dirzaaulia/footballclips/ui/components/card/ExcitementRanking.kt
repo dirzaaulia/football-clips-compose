@@ -109,7 +109,7 @@ fun arrangeExcitementCarouselPages(
     ranked.forEachIndexed { index, rankedItem ->
         result.add(rankedItem.item to rankedItem.tag)
         if ((index + 1) % 2 == 0 && index < ranked.size - 1) {
-            result.add(HighlightUiItem.BannerAd to "")
+            result.add(HighlightUiItem.BannerAd("excitement-ad-${index / 2}") to "")
         }
     }
     return result

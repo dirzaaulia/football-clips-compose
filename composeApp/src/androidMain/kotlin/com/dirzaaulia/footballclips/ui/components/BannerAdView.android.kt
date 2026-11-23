@@ -16,6 +16,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
 import com.dirzaaulia.footballclips.data.admob.NativeAdCache
+import com.dirzaaulia.footballclips.ui.home.findActivity
+import com.dirzaaulia.footballclips.util.ActivityHolder
 import com.dirzaaulia.footballclips.util.getBuildConfigString
 import com.dirzaaulia.footballclips.util.isDebugBuild
 import com.google.android.libraries.ads.mobile.sdk.nativead.NativeAd
@@ -31,35 +33,32 @@ actual fun BannerAdView(
     style: NativeAdStyle
 ) {
     val context = LocalContext.current
-    val activity = context as? Activity
+    val activity = context.findActivity() ?: ActivityHolder.currentActivity
     var nativeAdState by remember { mutableStateOf<NativeAd?>(null) }
     var isAdLoaded by remember { mutableStateOf(false) }
 
     LaunchedEffect(style) {
-        if (activity != null) {
-            val adUnitId = if (isDebugBuild) {
-                "ca-app-pub-3940256099942544/2247696110"
-            } else {
-                getBuildConfigString("ADMOB_NATIVE_ID", "ca-app-pub-6717632447198427/5222531302").ifEmpty { "ca-app-pub-3940256099942544/2247696110" }
-            }
-            NativeAdCache.fetchOrLoadAd(
-                context = activity.applicationContext,
-                adUnitId = adUnitId,
-                onAdLoaded = { ad ->
-                    nativeAdState = ad
-                    isAdLoaded = true
-                    onAdLoaded()
-                },
-                onAdFailed = { error ->
-                    onAdFailed(error)
-                }
-            )
+        val appContext = activity?.applicationContext ?: context.applicationContext
+        val adUnitId = if (isDebugBuild) {
+            "ca-app-pub-3940256099942544/2247696110"
         } else {
-            onAdFailed("No Activity context available")
+            getBuildConfigString("ADMOB_NATIVE_ID", "ca-app-pub-6717632447198427/5222531302").ifEmpty { "ca-app-pub-3940256099942544/2247696110" }
         }
+        NativeAdCache.fetchOrLoadAd(
+            context = appContext,
+            adUnitId = adUnitId,
+            onAdLoaded = { ad ->
+                nativeAdState = ad
+                isAdLoaded = true
+                onAdLoaded()
+            },
+            onAdFailed = { error ->
+                onAdFailed(error)
+            }
+        )
     }
 
-    if (isAdLoaded && nativeAdState != null && activity != null) {
+    if (isAdLoaded && nativeAdState != null) {
         Box(modifier = modifier) {
             AndroidView(
                 factory = { ctx ->

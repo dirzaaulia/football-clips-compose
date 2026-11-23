@@ -30,17 +30,17 @@ export default function HomeShortsRail() {
               Shorts & Fast Clips
             </h2>
           </div>
-          <p className="font-tech text-xs text-white/50 mt-1">
+          <p className="font-tech text-xs sm:text-sm text-white/75 mt-1">
             Instant vertical snips: 60-second wondergoals, VAR controversies, and viral tactical press moments.
           </p>
         </div>
 
         <Link
           href="/shorts"
-          className="font-tech text-xs uppercase tracking-wider text-[#DFFF00] hover:text-white transition-colors flex items-center gap-1 shrink-0"
+          className="font-tech text-xs sm:text-sm font-bold uppercase tracking-wider text-[#DFFF00] hover:text-white transition-colors flex items-center gap-1.5 shrink-0"
         >
           <span>Open Shorts Vault</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
 
@@ -66,18 +66,18 @@ export default function HomeShortsRail() {
                 className="object-cover group-hover:scale-110 transition-transform duration-500 opacity-80"
                 unoptimized
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0C] via-[#0A0A0C]/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0C] via-[#0A0A0C]/50 to-transparent" />
 
-              <div className="relative z-10 space-y-1">
-                <span className="inline-block px-1.5 py-0.5 rounded bg-[#DFFF00] text-[#0A0A0C] font-tech text-[10px] uppercase font-black tracking-wider">
+              <div className="relative z-10 space-y-1.5">
+                <span className="inline-block px-2 py-0.5 rounded bg-[#DFFF00] text-[#0A0A0C] font-tech text-xs uppercase font-black tracking-wider">
                   {short.category || 'FAST CLIP'}
                 </span>
 
-                <h4 className="font-tech text-xs font-bold text-white line-clamp-2 leading-tight group-hover:text-[#DFFF00] transition-colors">
+                <h4 className="font-tech text-sm sm:text-base font-extrabold text-white line-clamp-2 leading-snug group-hover:text-[#DFFF00] transition-colors">
                   {short.title}
                 </h4>
 
-                <span className="font-tech text-[10px] text-white/50 block">
+                <span className="font-tech text-xs font-bold text-white/80 block">
                   {loopsCount}K loops
                 </span>
               </div>
