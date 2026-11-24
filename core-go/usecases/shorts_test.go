@@ -40,8 +40,24 @@ func (m *mockShortsRepo) GetActiveClubChannels(ctx context.Context, limit int) (
 		{ClubID: 1, Name: "Arsenal", ChannelID: "UC_arsenal"},
 	}, nil
 }
+func (m *mockShortsRepo) GetBroadcasterAndLeagueChannels(ctx context.Context) ([]struct {
+	Name      string
+	ChannelID string
+}, error) {
+	return []struct {
+		Name      string
+		ChannelID string
+	}{
+		{Name: "Premier League", ChannelID: "UC_pl"},
+	}, nil
+}
+
 func (m *mockShortsRepo) MarkChannelsChecked(ctx context.Context, clubIDs []int64) error {
 	return nil
+}
+
+func (m *mockShortsRepo) PruneStaleShorts(ctx context.Context, maxAgeDays int, maxCapacity int) (int64, error) {
+	return 0, nil
 }
 func TestIngestShortsUseCase(t *testing.T) {
 	repo := &mockShortsRepo{}

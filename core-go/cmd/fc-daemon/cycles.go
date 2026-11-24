@@ -114,10 +114,10 @@ func runHighlightCycle(
 }
 
 func runShortsCycle(ctx context.Context, uc *usecases.IngestShortsUseCase, logger *slog.Logger) {
-	cycleCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	cycleCtx, cancel := context.WithTimeout(ctx, 120*time.Second)
 	defer cancel()
 
-	count, err := uc.Execute(cycleCtx, 50)
+	count, err := uc.Execute(cycleCtx, 80)
 	if err != nil {
 		logger.Warn("[SHORTS_CYCLE_WARN]", slog.String("err", err.Error()))
 		return

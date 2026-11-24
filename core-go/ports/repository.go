@@ -41,6 +41,11 @@ type ShortsRepository interface {
 		Name      string
 		ChannelID string
 	}, error)
+	GetBroadcasterAndLeagueChannels(ctx context.Context) ([]struct {
+		Name      string
+		ChannelID string
+	}, error)
 	MarkChannelsChecked(ctx context.Context, clubIDs []int64) error
+	PruneStaleShorts(ctx context.Context, maxAgeDays int, maxCapacity int) (int64, error)
 }
 

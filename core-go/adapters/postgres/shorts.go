@@ -87,7 +87,6 @@ func (r *Repository) GetActiveClubChannels(ctx context.Context, limit int) ([]st
 		WHERE is_active = true
 		  AND youtube_channel_id IS NOT NULL
 		  AND youtube_channel_id != ''
-		  AND LOWER(name) ~* '(madrid|barcelona|arsenal|manchester|liverpool|chelsea|bayern|dortmund|juventus|milan|inter|psg|tottenham|atletico|leverkusen|napoli|roma|ajax|feyenoord|benfica|porto|sporting|nassr|hilal|ittihad|miami|galaxy|persija|persib|flamengo|palmeiras|boca|river)'
 		ORDER BY last_shorts_check ASC NULLS FIRST, team_id ASC
 		LIMIT $1`
 
@@ -115,6 +114,59 @@ func (r *Repository) GetActiveClubChannels(ctx context.Context, limit int) ([]st
 	return channels, nil
 }
 
+// GetBroadcasterAndLeagueChannels returns official competition and curated broadcaster channels.
+func (r *Repository) GetBroadcasterAndLeagueChannels(ctx context.Context) ([]struct {
+	Name      string
+	ChannelID string
+}, error) {
+	query := `
+		SELECT name, youtube_channel_id
+		FROM competitions
+		WHERE youtube_channel_id IS NOT NULL
+		  AND youtube_channel_id != ''`
+
+	rows, err := r.pool.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("query competition channels: %w", err)
+	}
+	defer rows.Close()
+
+	var channels []struct {
+		Name      string
+		ChannelID string
+	}
+	seen := make(map[string]bool)
+
+	for rows.Next() {
+		var item struct {
+			Name      string
+			ChannelID string
+		}
+		if err := rows.Scan(&item.Name, &item.ChannelID); err == nil && item.ChannelID != "" && !seen[item.ChannelID] {
+			channels = append(channels, item)
+			seen[item.ChannelID] = true
+		}
+	}
+
+	curatedBroadcasters := []struct {
+		Name      string
+		ChannelID string
+	}{
+		{Name: "CBS Sports Golazo", ChannelID: "UCET00YnetHT7tOpu12v8jxg"},
+		{Name: "Sky Sports Football", ChannelID: "UCNAf1k0yIjyGu3k9BwAg3lg"},
+		{Name: "ESPN FC", ChannelID: "UC63x6yqL9dVrr6hWTQ8UeaQ"},
+		{Name: "UEFA", ChannelID: "UCyGa1YEx9ST66rYrJTGIKOw"},
+	}
+	for _, b := range curatedBroadcasters {
+		if !seen[b.ChannelID] {
+			channels = append(channels, b)
+			seen[b.ChannelID] = true
+		}
+	}
+
+	return channels, nil
+}
+
 // MarkChannelsChecked updates last_shorts_check timestamp for round-robin rotation.
 func (r *Repository) MarkChannelsChecked(ctx context.Context, clubIDs []int64) error {
 	if len(clubIDs) == 0 {
@@ -126,4 +178,45 @@ func (r *Repository) MarkChannelsChecked(ctx context.Context, clubIDs []int64) e
 		return fmt.Errorf("update last_shorts_check: %w", err)
 	}
 	return nil
+}
+
+// PruneStaleShorts deletes shorts older than maxAgeDays and keeps total under maxCapacity.
+func (r *Repository) PruneStaleShorts(ctx context.Context, maxAgeDays int, maxCapacity int) (int64, error) {
+	if maxAgeDays <= 0 {
+		maxAgeDays = 30
+	}
+	if maxCapacity <= 0 {
+		maxCapacity = 3000
+	}
+
+	ttlQuery := `DELETE FROM football_shorts WHERE published_at < NOW() - ($1 || ' days')::INTERVAL`
+	tagTTL, err := r.pool.Exec(ctx, ttlQuery, maxAgeDays)
+	if err != nil {
+		return 0, fmt.Errorf("prune ttl shorts: %w", err)
+	}
+	deleted := tagTTL.RowsAffected()
+
+	var total int
+	countQuery := `SELECT COUNT(*) FROM football_shorts`
+	if err := r.pool.QueryRow(ctx, countQuery).Scan(&total); err != nil {
+		return deleted, fmt.Errorf("count shorts for capacity prune: %w", err)
+	}
+
+	if total > maxCapacity {
+		excess := total - maxCapacity
+		capQuery := `
+			DELETE FROM football_shorts
+			WHERE id IN (
+				SELECT id FROM football_shorts
+				ORDER BY is_featured ASC, hype_score ASC, published_at ASC
+				LIMIT $1
+			)`
+		tagCap, err := r.pool.Exec(ctx, capQuery, excess)
+		if err != nil {
+			return deleted, fmt.Errorf("prune excess shorts: %w", err)
+		}
+		deleted += tagCap.RowsAffected()
+	}
+
+	return deleted, nil
 }

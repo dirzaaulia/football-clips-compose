@@ -37,7 +37,7 @@ class ShortsRepositoryImpl(
 
                 url {
                     parameters.append("select", "*")
-                    parameters.append("order", "is_featured.desc,hype_score.desc,published_at.desc")
+                    parameters.append("order", "published_at.desc,hype_score.desc")
                     parameters.append("limit", limit.toString())
                     parameters.append("offset", offset.toString())
                     if (!category.isNullOrBlank()) {

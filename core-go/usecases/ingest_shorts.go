@@ -4,210 +4,226 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/dirzaaulia/footballclips/core-go/adapters/youtube"
 	"github.com/dirzaaulia/footballclips/core-go/domain"
 	"github.com/dirzaaulia/footballclips/core-go/ports"
 )
 
-// IngestShortsUseCase coordinates discovering, classifying, and ingesting vertical shorts clips.
-type IngestShortsUseCase struct {
-	rssClient  *youtube.RSSClient
-	shortsRepo ports.ShortsRepository
-	logger     *slog.Logger
+type rssFetcher interface {
+	FetchRecentVideos(ctx context.Context, channelID string) ([]domain.VideoCandidate, error)
 }
 
-// NewIngestShortsUseCase instantiates the shorts ingestion interactor.
-func NewIngestShortsUseCase(
-	rss *youtube.RSSClient,
-	repo ports.ShortsRepository,
-	logger *slog.Logger,
-) *IngestShortsUseCase {
+type IngestShortsUseCase struct {
+	rssClient  rssFetcher
+	shortsRepo ports.ShortsRepository
+	logger     *slog.Logger
+	httpClient *http.Client
+}
+
+type channelTarget struct {
+	ClubID    *int64
+	Name      string
+	ChannelID string
+}
+
+func NewIngestShortsUseCase(rss rssFetcher, repo ports.ShortsRepository, logger *slog.Logger) *IngestShortsUseCase {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &IngestShortsUseCase{
-		rssClient:  rss,
-		shortsRepo: repo,
-		logger:     logger,
+	client := &http.Client{
+		Timeout: 3 * time.Second,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 	}
+	return &IngestShortsUseCase{rssClient: rss, shortsRepo: repo, logger: logger, httpClient: client}
 }
 
-// Execute discovers and ingests new vertical shorts from official club channels.
 func (uc *IngestShortsUseCase) Execute(ctx context.Context, channelLimit int) (int, error) {
-	existingIDs, err := uc.shortsRepo.GetExistingShortVideoIDs(ctx, 1000)
+	existingIDs, err := uc.shortsRepo.GetExistingShortVideoIDs(ctx, 3000)
 	if err != nil {
 		return 0, fmt.Errorf("fetch existing shorts IDs: %w", err)
 	}
 
-	channels, err := uc.shortsRepo.GetActiveClubChannels(ctx, channelLimit)
+	targets, checkedClubIDs, err := uc.resolveChannelTargets(ctx, channelLimit)
 	if err != nil {
-		return 0, fmt.Errorf("fetch active club channels: %w", err)
+		return 0, err
 	}
 
-	var discovered []domain.FootballShort
-	now := time.Now().UTC()
+	discovered := uc.scanChannelsConcurrently(ctx, targets, existingIDs)
 
-	for _, ch := range channels {
-		vids, err := uc.rssClient.FetchRecentVideos(ctx, ch.ChannelID)
-		if err != nil || len(vids) == 0 {
-			continue
-		}
+	if len(checkedClubIDs) > 0 {
+		_ = uc.shortsRepo.MarkChannelsChecked(ctx, checkedClubIDs)
+	}
 
-		for _, v := range vids {
-			if existingIDs[v.VideoID] {
-				continue
-			}
-
-			if !isShortFormVideo(v.Title) {
-				continue
-			}
-
-			if isCommercialSpam(v.Title) {
-				continue
-			}
-
-			category := classifyShortCategory(v.Title)
-			thumb := fmt.Sprintf("https://img.youtube.com/vi/%s/hqdefault.jpg", v.VideoID)
-			pub := now
-			if v.PublishedAt != nil {
-				pub = *v.PublishedAt
-			}
-
-			clubID := ch.ClubID
-			hype := calculateHypeScore(v.Title, ch.Name, pub)
-			if hype < 80 {
-				continue
-			}
-
-			discovered = append(discovered, domain.FootballShort{
-				YouTubeVideoID:  v.VideoID,
-				Title:           v.Title,
-				ChannelID:       ch.ChannelID,
-				ChannelName:     ch.Name,
-				ClubID:          &clubID,
-				Category:        category,
-				ThumbnailURL:    thumb,
-				DurationSeconds: 45,
-				LikeCount:       0,
-				HypeScore:       hype,
-				Source:          "RSS",
-				IsFeatured:      hype >= 85,
-				PublishedAt:     pub,
-				CreatedAt:       now,
-			})
-			existingIDs[v.VideoID] = true
+	if len(discovered) > 0 {
+		if err := uc.shortsRepo.UpsertShorts(ctx, discovered); err != nil {
+			return 0, fmt.Errorf("upsert shorts: %w", err)
 		}
 	}
 
-	var checkedClubIDs []int64
-	for _, ch := range channels {
-		checkedClubIDs = append(checkedClubIDs, ch.ClubID)
-	}
-	_ = uc.shortsRepo.MarkChannelsChecked(ctx, checkedClubIDs)
-
-	if len(discovered) == 0 {
-		return 0, nil
-	}
-
-	if err := uc.shortsRepo.UpsertShorts(ctx, discovered); err != nil {
-		return 0, fmt.Errorf("upsert shorts: %w", err)
-	}
-
-	uc.logger.Info("[SHORTS_INGESTED]", slog.Int("count", len(discovered)))
+	pruned, _ := uc.shortsRepo.PruneStaleShorts(ctx, 30, 3000)
+	uc.logger.Info("[SHORTS_CYCLE_DONE]", slog.Int("ingested", len(discovered)), slog.Int64("pruned", pruned))
 	return len(discovered), nil
 }
 
-func isShortFormVideo(title string) bool {
+func (uc *IngestShortsUseCase) resolveChannelTargets(
+	ctx context.Context,
+	limit int,
+) ([]channelTarget, []int64, error) {
+	clubChannels, err := uc.shortsRepo.GetActiveClubChannels(ctx, limit)
+	if err != nil {
+		return nil, nil, fmt.Errorf("fetch active club channels: %w", err)
+	}
+
+	var targets []channelTarget
+	var checkedClubIDs []int64
+	for _, ch := range clubChannels {
+		cid := ch.ClubID
+		targets = append(targets, channelTarget{
+			ClubID:    &cid,
+			Name:      ch.Name,
+			ChannelID: ch.ChannelID,
+		})
+		checkedClubIDs = append(checkedClubIDs, ch.ClubID)
+	}
+
+	broadcasters, err := uc.shortsRepo.GetBroadcasterAndLeagueChannels(ctx)
+	if err == nil {
+		for _, b := range broadcasters {
+			targets = append(targets, channelTarget{ClubID: nil, Name: b.Name, ChannelID: b.ChannelID})
+		}
+	}
+
+	return targets, checkedClubIDs, nil
+}
+
+func (uc *IngestShortsUseCase) scanChannelsConcurrently(
+	ctx context.Context,
+	targets []channelTarget,
+	existingIDs map[string]bool,
+) []domain.FootballShort {
+	const workerCount = 10
+	jobs := make(chan channelTarget, len(targets))
+	for _, t := range targets {
+		jobs <- t
+	}
+	close(jobs)
+
+	var mu sync.Mutex
+	var discovered []domain.FootballShort
+	var wg sync.WaitGroup
+
+	for i := 0; i < workerCount; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for target := range jobs {
+				if ctx.Err() != nil {
+					return
+				}
+				uc.processSingleTarget(ctx, target, existingIDs, &mu, &discovered)
+			}
+		}()
+	}
+	wg.Wait()
+	return discovered
+}
+
+func (uc *IngestShortsUseCase) processSingleTarget(
+	ctx context.Context,
+	target channelTarget,
+	existingIDs map[string]bool,
+	mu *sync.Mutex,
+	discovered *[]domain.FootballShort,
+) {
+	subCtx, cancel := context.WithTimeout(ctx, 6*time.Second)
+	defer cancel()
+
+	vids, err := uc.rssClient.FetchRecentVideos(subCtx, target.ChannelID)
+	if err != nil || len(vids) == 0 {
+		return
+	}
+
+	now := time.Now().UTC()
+	for _, v := range vids {
+		mu.Lock()
+		already := existingIDs[v.VideoID]
+		mu.Unlock()
+		if already || isCommercialSpam(v.Title) || !uc.isShortFormVideo(subCtx, v.VideoID, v.Title) {
+			continue
+		}
+
+		item := buildShortItem(v, target, now)
+		if item == nil {
+			continue
+		}
+
+		mu.Lock()
+		if !existingIDs[v.VideoID] {
+			existingIDs[v.VideoID] = true
+			*discovered = append(*discovered, *item)
+		}
+		mu.Unlock()
+	}
+}
+
+func buildShortItem(v domain.VideoCandidate, target channelTarget, now time.Time) *domain.FootballShort {
+	pub := now
+	if v.PublishedAt != nil {
+		pub = *v.PublishedAt
+	}
+
+	hype := calculateHypeScore(v.Title, target.Name, pub)
+	if hype < 60 {
+		return nil
+	}
+
+	return &domain.FootballShort{
+		YouTubeVideoID:  v.VideoID,
+		Title:           v.Title,
+		ChannelID:       target.ChannelID,
+		ChannelName:     target.Name,
+		ClubID:          target.ClubID,
+		Category:        classifyShortCategory(v.Title),
+		ThumbnailURL:    fmt.Sprintf("https://img.youtube.com/vi/%s/hqdefault.jpg", v.VideoID),
+		DurationSeconds: 45,
+		LikeCount:       0,
+		HypeScore:       hype,
+		Source:          "RSS",
+		IsFeatured:      hype >= 85,
+		PublishedAt:     pub,
+		CreatedAt:       now,
+	}
+}
+
+func (uc *IngestShortsUseCase) isShortFormVideo(ctx context.Context, videoID, title string) bool {
 	tLow := strings.ToLower(title)
-	if !strings.Contains(tLow, "#shorts") && !strings.Contains(tLow, "#short") {
-		return false
-	}
-	fillerMarkers := []string{
+	fillers := []string{
 		"highlights", "resumen", "full match", "press conference", "interview",
-		"extended", "samenvatting", "episode", "documentary", "training",
-		"arrival", "tunnel", "behind the scenes", "podcast", "vlog", "sponsor",
-		"kit reveal", "signing", "presentation", "mic'd up", "reaction",
+		"extended", "samenvatting", "episode", "documentary", "podcast", "vlog",
 	}
-	for _, m := range fillerMarkers {
+	for _, m := range fillers {
 		if strings.Contains(tLow, m) {
 			return false
 		}
 	}
-	actionKeywords := []string{
-		"goal", "gol", "golazo", "skill", "dribble", "save", "assist",
-		"banger", "screamer", "nutmeg", "curler", "strike", "tekkers",
-		"insane", "impossible", "worldie", "free kick", "penalty", "winner",
+	if strings.Contains(tLow, "#shorts") || strings.Contains(tLow, "#short") {
+		return true
 	}
-	for _, kw := range actionKeywords {
-		if strings.Contains(tLow, kw) {
-			return true
-		}
+	req, err := http.NewRequestWithContext(ctx, http.MethodHead, "https://www.youtube.com/shorts/"+videoID, nil)
+	if err != nil {
+		return false
 	}
-	return false
-}
-
-func isCommercialSpam(title string) bool {
-	tLow := strings.ToLower(title)
-	spamWords := []string{"merchandise", "kit reveal", "buy tickets", "shop now", "sponsor", "discount", "code"}
-	for _, w := range spamWords {
-		if strings.Contains(tLow, w) {
-			return true
-		}
+	req.Header.Set("User-Agent", "Mozilla/5.0")
+	resp, err := uc.httpClient.Do(req)
+	if err != nil {
+		return false
 	}
-	return false
-}
-
-func classifyShortCategory(title string) string {
-	tLow := strings.ToLower(title)
-	if strings.Contains(tLow, "moment") || strings.Contains(tLow, "celebration") || strings.Contains(tLow, "fans") {
-		return "MOMENTS"
-	}
-	return "GOALS_SKILLS"
-}
-
-func calculateHypeScore(title, channelName string, publishedAt time.Time) int {
-	score := 30
-	tLow := strings.ToLower(title)
-	cLow := strings.ToLower(channelName)
-
-	tier1Clubs := []string{
-		"real madrid", "barcelona", "arsenal", "manchester city", "liverpool",
-		"manchester united", "chelsea", "bayern", "juventus", "inter", "milan",
-		"psg", "tottenham", "dortmund", "atletico", "leverkusen", "napoli",
-		"al nassr", "inter miami", "persija", "persib", "boca", "river",
-	}
-	for _, club := range tier1Clubs {
-		if strings.Contains(cLow, club) || strings.Contains(tLow, club) {
-			score += 40
-			break
-		}
-	}
-
-	superExciting := []string{"golazo", "screamer", "banger", "curler", "rocket", "impossible", "insane", "worldie"}
-	for _, kw := range superExciting {
-		if strings.Contains(tLow, kw) {
-			score += 20
-			break
-		}
-	}
-
-	exciting := []string{"goal", "gol", "strike", "assist", "nutmeg", "dribble", "save", "tekkers", "winner", "hat-trick"}
-	for _, kw := range exciting {
-		if strings.Contains(tLow, kw) {
-			score += 15
-			break
-		}
-	}
-
-	if time.Since(publishedAt).Hours() < 48.0 {
-		score += 10
-	}
-
-	if score > 100 {
-		return 100
-	}
-	return score
+	_ = resp.Body.Close()
+	return resp.StatusCode == http.StatusOK
 }
