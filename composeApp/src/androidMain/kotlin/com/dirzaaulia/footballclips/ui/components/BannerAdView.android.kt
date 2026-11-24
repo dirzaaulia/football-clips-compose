@@ -63,14 +63,18 @@ actual fun BannerAdView(
             AndroidView(
                 factory = { ctx ->
                     val nativeAdView = NativeAdView(ctx)
+                    nativeAdView.tag = nativeAdState
                     nativeAdState?.let { ad ->
                         bindAdView(ctx, nativeAdView, ad, style)
                     }
                     nativeAdView
                 },
                 update = { nativeAdView ->
-                    nativeAdState?.let { ad ->
-                        bindAdView(nativeAdView.context, nativeAdView, ad, style)
+                    if (nativeAdView.tag != nativeAdState) {
+                        nativeAdView.tag = nativeAdState
+                        nativeAdState?.let { ad ->
+                            bindAdView(nativeAdView.context, nativeAdView, ad, style)
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxSize()

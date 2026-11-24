@@ -69,6 +69,17 @@ fun ColumnScope.LeagueStandingsTable(
             verticalArrangement = Arrangement.spacedBy(6.dp),
             contentPadding = PaddingValues(bottom = 8.dp),
         ) {
+            if (!isAdsRemoved && standings.isNotEmpty()) {
+                item(key = "standings-top-ad") {
+                    BannerAdItem(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        style = NativeAdStyle.STANDINGS,
+                    )
+                }
+            }
+
             items(
                 items = sortedList,
                 key = { "${it.competitionId}-${it.teamId}-${it.position}" },
@@ -79,23 +90,18 @@ fun ColumnScope.LeagueStandingsTable(
                     competitionId = selectedCompetitionId,
                 )
             }
+
+            item(key = "standings-legend") {
+                StandingsLegend(
+                    competitionId = selectedCompetitionId,
+                    totalTeams = standings.size,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                )
+            }
+
+            item(key = "standings-bottom-spacer") {
+                Spacer(modifier = Modifier.height(bottomLegendPadding))
+            }
         }
-
-        StandingsLegend(
-            competitionId = selectedCompetitionId,
-            totalTeams = standings.size,
-            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
-        )
-
-        if (!isAdsRemoved && standings.isNotEmpty()) {
-            BannerAdItem(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp),
-                style = NativeAdStyle.STANDINGS,
-            )
-        }
-
-        Spacer(modifier = Modifier.height(bottomLegendPadding))
     }
 }

@@ -40,15 +40,15 @@ class ShortsFeedJourneyTest {
         assertTrue(allRes is NetworkResult.Success)
         val shorts = allRes.data
 
-        // Free user (premium = false): Ad card injected after every 6 videos (indices 6 and 13)
-        val freeFeed = buildShortsFeedItems(shorts = shorts, premium = false)
+        // Free user (isAdsRemoved = false): Ad card injected after every 6 videos (indices 6 and 13)
+        val freeFeed = buildShortsFeedItems(shorts = shorts, isAdsRemoved = false)
         assertEquals(14, freeFeed.size) // 12 videos + 2 ads
         assertTrue(freeFeed[6] is ShortsFeedItem.Ad)
         assertTrue(freeFeed[13] is ShortsFeedItem.Ad)
         assertEquals(2, freeFeed.count { it is ShortsFeedItem.Ad })
 
-        // Premium user (premium = true): 0 Ad cards injected
-        val premiumFeed = buildShortsFeedItems(shorts = shorts, premium = true)
+        // Ad-free user (isAdsRemoved = true): 0 Ad cards injected
+        val premiumFeed = buildShortsFeedItems(shorts = shorts, isAdsRemoved = true)
         assertEquals(12, premiumFeed.size)
         assertEquals(0, premiumFeed.count { it is ShortsFeedItem.Ad })
         assertTrue(premiumFeed.all { it is ShortsFeedItem.Video })

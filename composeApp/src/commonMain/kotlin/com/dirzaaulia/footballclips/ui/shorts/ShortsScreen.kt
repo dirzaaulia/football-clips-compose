@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -18,7 +17,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -70,9 +68,10 @@ private fun ShortsPagerContent(
 ) {
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { state.items.size })
 
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
-            onAction(ShortsUiAction.OnPageChanged(page))
+    LaunchedEffect(pagerState.currentPage, state.items.size) {
+        onAction(ShortsUiAction.OnPageChanged(pagerState.currentPage))
+        if (pagerState.currentPage >= state.items.size - 4) {
+            onAction(ShortsUiAction.LoadMore)
         }
     }
 

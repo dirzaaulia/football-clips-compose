@@ -98,11 +98,11 @@ private fun NavGraphBuilder.addSecondaryNavRoutes(
         val dynamicCompetitions by scoreViewModel.competitions.collectAsState()
         val selectedCompetitionId by scoreViewModel.selectedCompetitionId.collectAsState()
         val selectedSeason by scoreViewModel.selectedSeason.collectAsState()
-        val isPremium by scoreViewModel.isPremium.collectAsState()
+        val isAdsRemoved by scoreViewModel.isAdsRemoved.collectAsState()
         val favoriteClubs by scoreViewModel.favoriteClubs.collectAsState()
         StandingsScreen(
             state = standingsState,
-            isPremium = isPremium,
+            isAdsRemoved = isAdsRemoved,
             selectedCompetitionId = selectedCompetitionId,
             dynamicCompetitions = dynamicCompetitions,
             selectedSeason = selectedSeason,

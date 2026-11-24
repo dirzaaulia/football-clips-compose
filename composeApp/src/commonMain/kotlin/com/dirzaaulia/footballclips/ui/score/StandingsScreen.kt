@@ -36,7 +36,7 @@ import com.dirzaaulia.footballclips.ui.score.components.StandingsTopBar
 @Composable
 fun StandingsScreen(
     state: StandingsState,
-    isPremium: Boolean,
+    isAdsRemoved: Boolean = false,
     selectedCompetitionId: String? = null,
     dynamicCompetitions: List<BigLeague>? = null,
     selectedSeason: Int = 2026,
@@ -105,7 +105,7 @@ fun StandingsScreen(
                                 isHybrid = isHybrid,
                                 hybridStage = hybridStage,
                                 onHybridStageChange = { hybridStage = it },
-                                isPremium = isPremium,
+                                isAdsRemoved = isAdsRemoved,
                                 horizontalPadding = horizontalPadding,
                                 bottomLegendPadding = bottomLegendPadding,
                                 selectedCompetitionId = selectedCompetitionId,
@@ -124,7 +124,7 @@ private fun StandingsContent(
     isHybrid: Boolean,
     hybridStage: String,
     onHybridStageChange: (String) -> Unit,
-    isPremium: Boolean,
+    isAdsRemoved: Boolean,
     horizontalPadding: androidx.compose.ui.unit.Dp,
     bottomLegendPadding: androidx.compose.ui.unit.Dp,
     selectedCompetitionId: String?,
@@ -147,7 +147,7 @@ private fun StandingsContent(
                         .fillMaxWidth()
                         .weight(1f),
                 )
-                if (!isPremium) {
+                if (!isAdsRemoved) {
                     BannerAdItem(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -190,7 +190,7 @@ private fun StandingsContent(
                         .fillMaxWidth()
                         .weight(1f),
                 )
-                if (!isPremium) {
+                if (!isAdsRemoved) {
                     BannerAdItem(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -203,7 +203,7 @@ private fun StandingsContent(
                     standings = state.standings,
                     bottomLegendPadding = bottomLegendPadding,
                     selectedCompetitionId = selectedCompetitionId,
-                    isAdsRemoved = isPremium,
+                    isAdsRemoved = isAdsRemoved,
                 )
             }
         }
@@ -217,7 +217,7 @@ private fun StandingsContent(
                 standings = state.standings,
                 bottomLegendPadding = bottomLegendPadding,
                 selectedCompetitionId = selectedCompetitionId,
-                isAdsRemoved = isPremium,
+                isAdsRemoved = isAdsRemoved,
             )
         }
     }

@@ -30,30 +30,29 @@ class ShortsViewModel(
     private val _effects = Channel<ShortsUiEffect>(Channel.BUFFERED)
     val effects = _effects.receiveAsFlow()
 
+    private var currentOffset = 0
+    private var isLoadingMore = false
+    private var hasMoreData = true
+    private val cachedShorts = mutableListOf<FootballShort>()
+
     val isAdsRemoved: StateFlow<Boolean> = if (preferenceManager != null) {
-        combine(
-            billingManager.isPremium,
-            preferenceManager.isAdsRemoved,
-        ) { premium, adsRemoved ->
+        combine(billingManager.isPremium, preferenceManager.isAdsRemoved) { premium, adsRemoved ->
             premium || adsRemoved
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
     } else {
-        billingManager.isPremium
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+        billingManager.isPremium.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
     }
 
     init {
         loadShorts()
-        viewModelScope.launch {
-            isAdsRemoved.collectLatest { removed ->
-                val current = _uiState.value
-                if (current is ShortsUiState.Success) {
-                    val rawVideos = current.items.filterIsInstance<ShortsFeedItem.Video>().map { it.short }
-                    _uiState.value = current.copy(
-                        items = buildShortsFeedItems(rawVideos, removed),
-                    )
-                }
-            }
+        observeAdsRemoved()
+    }
+
+    private fun observeAdsRemoved() = viewModelScope.launch {
+        isAdsRemoved.collectLatest { removed ->
+            val current = _uiState.value as? ShortsUiState.Success ?: return@collectLatest
+            val raw = current.items.filterIsInstance<ShortsFeedItem.Video>().map { it.short }
+            _uiState.value = current.copy(items = buildShortsFeedItems(raw, removed))
         }
     }
 
@@ -65,73 +64,86 @@ class ShortsViewModel(
             is ShortsUiAction.LikeShort -> handleLike(action.videoId)
             is ShortsUiAction.SelectCategory -> loadShorts(action.category)
             is ShortsUiAction.Retry -> loadShorts()
+            is ShortsUiAction.LoadMore -> loadMoreShorts()
         }
     }
 
-    private fun loadShorts(category: String? = null) {
+    private fun loadShorts(category: String? = null) = viewModelScope.launch {
+        _uiState.value = ShortsUiState.Loading
+        currentOffset = 0
+        hasMoreData = true
+        cachedShorts.clear()
+        when (val res = repository.getShorts(category, 20, 0)) {
+            is NetworkResult.Success -> {
+                cachedShorts.addAll(res.data)
+                currentOffset = res.data.size
+                hasMoreData = res.data.size >= 20
+                val items = buildShortsFeedItems(res.data, isAdsRemoved.value)
+                _uiState.value = ShortsUiState.Success(items = items, selectedCategory = category)
+            }
+            is NetworkResult.Error -> _uiState.value = ShortsUiState.Error(res.message)
+            is NetworkResult.Exception -> _uiState.value = ShortsUiState.Error(res.e.message ?: "Failed")
+        }
+    }
+
+    private fun loadMoreShorts() {
+        val current = _uiState.value as? ShortsUiState.Success ?: return
+        if (isLoadingMore) return
+        isLoadingMore = true
         viewModelScope.launch {
-            _uiState.value = ShortsUiState.Loading
-            when (val result = repository.getShorts(category = category)) {
-                is NetworkResult.Success -> {
-                    val feedItems = buildShortsFeedItems(result.data, isAdsRemoved.value)
-                    _uiState.value = ShortsUiState.Success(
-                        items = feedItems,
-                        selectedCategory = category,
-                    )
+            try {
+                if (hasMoreData) {
+                    when (val res = repository.getShorts(current.selectedCategory, 20, currentOffset)) {
+                        is NetworkResult.Success -> handleMoreSuccess(current, res.data)
+                        else -> triggerLoopFallback(current)
+                    }
+                } else {
+                    triggerLoopFallback(current)
                 }
-                is NetworkResult.Error -> {
-                    _uiState.value = ShortsUiState.Error(result.message)
-                }
-                is NetworkResult.Exception -> {
-                    _uiState.value = ShortsUiState.Error(result.e.message ?: "Failed to load shorts")
-                }
+            } finally {
+                isLoadingMore = false
             }
         }
     }
 
+    private fun handleMoreSuccess(current: ShortsUiState.Success, data: List<FootballShort>) {
+        if (data.isNotEmpty()) {
+            cachedShorts.addAll(data)
+            currentOffset += data.size
+            hasMoreData = data.size >= 20
+            _uiState.value = current.copy(
+                items = appendShortsFeedItems(current.items, data, isAdsRemoved.value),
+            )
+        } else {
+            hasMoreData = false
+            triggerLoopFallback(current)
+        }
+    }
+
+    private fun triggerLoopFallback(current: ShortsUiState.Success) {
+        val updated = createLoopFallbackBatch(cachedShorts, current.items, isAdsRemoved.value)
+        _uiState.value = current.copy(items = updated)
+    }
+
     private fun updatePageIndex(index: Int) {
-        val current = _uiState.value as? ShortsUiState.Success ?: return
-        _uiState.value = current.copy(currentVideoIndex = index, isPlaying = true)
+        (_uiState.value as? ShortsUiState.Success)?.let {
+            _uiState.value = it.copy(currentVideoIndex = index, isPlaying = true)
+        }
     }
 
     private fun togglePlayPause() {
-        val current = _uiState.value as? ShortsUiState.Success ?: return
-        _uiState.value = current.copy(isPlaying = !current.isPlaying)
+        (_uiState.value as? ShortsUiState.Success)?.let { _uiState.value = it.copy(isPlaying = !it.isPlaying) }
     }
 
     private fun toggleMute() {
-        val current = _uiState.value as? ShortsUiState.Success ?: return
-        _uiState.value = current.copy(isMuted = !current.isMuted)
+        (_uiState.value as? ShortsUiState.Success)?.let { _uiState.value = it.copy(isMuted = !it.isMuted) }
     }
 
-    private fun handleLike(videoId: String) {
-        viewModelScope.launch {
-            _effects.send(ShortsUiEffect.ShowToast("Added to liked shorts!"))
-        }
+    private fun handleLike(videoId: String) = viewModelScope.launch {
+        _effects.send(ShortsUiEffect.ShowToast("Added to liked shorts!"))
     }
 
-    fun openYouTubeOutlink(videoId: String) {
-        viewModelScope.launch {
-            _effects.send(ShortsUiEffect.OpenExternalYouTube("https://youtube.com/shorts/$videoId"))
-        }
+    fun openYouTubeOutlink(videoId: String) = viewModelScope.launch {
+        _effects.send(ShortsUiEffect.OpenExternalYouTube("https://youtube.com/shorts/$videoId"))
     }
 }
-
-internal fun buildShortsFeedItems(
-    shorts: List<FootballShort>,
-    isAdsRemoved: Boolean,
-): List<ShortsFeedItem> {
-    if (isAdsRemoved || shorts.isEmpty()) {
-        return shorts.map { ShortsFeedItem.Video(it) }
-    }
-    val items = mutableListOf<ShortsFeedItem>()
-    var adIndex = 0
-    shorts.forEachIndexed { index, short ->
-        items.add(ShortsFeedItem.Video(short))
-        if ((index + 1) % 6 == 0) {
-            items.add(ShortsFeedItem.Ad(adIndex++))
-        }
-    }
-    return items
-}
-

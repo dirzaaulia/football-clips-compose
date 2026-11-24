@@ -180,10 +180,14 @@ actual class PreferenceManager(
     }
 
     actual val selectedSeason: Flow<Int> = combine(
-        context.dataStore.data.map { preferences -> preferences[selectedSeasonKey] ?: 2026 },
-        _inMemorySelectedSeason
+        context.dataStore.data.map { preferences ->
+            val diskSeason = preferences[selectedSeasonKey] ?: 2026
+            if (diskSeason < 2026) 2026 else diskSeason
+        },
+        _inMemorySelectedSeason,
     ) { fromDisk, inMem ->
-        inMem ?: fromDisk
+        val resolved = inMem ?: fromDisk
+        if (resolved < 2026) 2026 else resolved
     }
 
     actual suspend fun setSelectedSeason(season: Int) {

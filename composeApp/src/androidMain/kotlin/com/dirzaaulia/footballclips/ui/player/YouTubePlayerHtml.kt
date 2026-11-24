@@ -15,10 +15,10 @@ internal fun buildYouTubeHtml(videoId: String, isShort: Boolean = false): String
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
             <style>
-                html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
-                #player { width: 100%; height: 100%; transform: $scaleTransform; transform-origin: center center; }
-                iframe { width: 100%; height: 100%; border: none; pointer-events: $pointerEvents; }
-                .ytp-chrome-top, .ytp-watermark, .ytp-pause-overlay { display: none !important; opacity: 0 !important; }
+                html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000000 !important; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+                #player { width: 100%; height: 100%; transform: $scaleTransform; transform-origin: center center; background-color: #000000 !important; }
+                iframe { width: 100%; height: 100%; border: none; pointer-events: $pointerEvents; background-color: #000000 !important; }
+                .ytp-chrome-top, .ytp-watermark, .ytp-pause-overlay, .ytp-cued-thumbnail-overlay { display: none !important; opacity: 0 !important; }
             </style>
         </head>
         <body>

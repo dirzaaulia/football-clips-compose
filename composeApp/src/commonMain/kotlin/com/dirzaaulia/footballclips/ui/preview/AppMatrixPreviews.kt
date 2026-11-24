@@ -212,7 +212,7 @@ fun StandingsTabPreviewContent(deviceLabel: String) {
                 standings = previewMockStandings,
                 knockoutMatches = previewMockMatches,
             ),
-            isPremium = true,
+            isAdsRemoved = true,
             selectedCompetitionId = "PL",
             selectedSeason = 2026,
             onRetry = {},

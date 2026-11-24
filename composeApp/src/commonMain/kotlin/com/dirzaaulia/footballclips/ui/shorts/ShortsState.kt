@@ -5,8 +5,11 @@ import com.dirzaaulia.footballclips.domain.model.FootballShort
 sealed interface ShortsFeedItem {
     val stableId: String
 
-    data class Video(val short: FootballShort) : ShortsFeedItem {
-        override val stableId: String = short.youtubeVideoId
+    data class Video(
+        val short: FootballShort,
+        val itemKey: String = short.youtubeVideoId,
+    ) : ShortsFeedItem {
+        override val stableId: String = itemKey
     }
 
     data class Ad(val adIndex: Int) : ShortsFeedItem {
@@ -33,6 +36,7 @@ sealed interface ShortsUiAction {
     data class LikeShort(val videoId: String) : ShortsUiAction
     data class SelectCategory(val category: String?) : ShortsUiAction
     data object Retry : ShortsUiAction
+    data object LoadMore : ShortsUiAction
 }
 
 sealed interface ShortsUiEffect {

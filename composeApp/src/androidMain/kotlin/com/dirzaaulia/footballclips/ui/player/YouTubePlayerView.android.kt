@@ -223,20 +223,22 @@ private fun createConfiguredWebView(
 ): WebView {
     return WebView(context).apply {
         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        setBackgroundColor(android.graphics.Color.BLACK)
         webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val url = request?.url?.toString().orEmpty()
                 if (url.startsWith("fc-state://")) {
                     val state = url.removePrefix("fc-state://").toIntOrNull()
-                    if (state == 1 || state == 2 || state == 3) {
+                    if (state == 1) {
                         onLoadingState(false)
                         onPlaybackStarted()
+                    } else if (state == 2) {
+                        onLoadingState(false)
                     }
                     return true
                 }
                 if (url.startsWith("fc-ready://")) {
-                    onLoadingState(false)
-                    onPlaybackStarted()
+                    if (!isShort) onLoadingState(false)
                     return true
                 }
                 if (url.startsWith("fc-error://")) {

@@ -97,13 +97,20 @@ fun SeasonDropdownSelector(
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                if (!isCompact && currentOption.isCurrent) {
+                if (currentOption.isCurrent) {
                     Box(
                         modifier = Modifier
-                            .size(6.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF34C759))
-                    )
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color(0xFFDFFF00).copy(alpha = 0.2f))
+                            .padding(horizontal = 4.dp, vertical = 1.dp),
+                    ) {
+                        Text(
+                            text = "LIVE",
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFFDFFF00),
+                        )
+                    }
                 }
 
                 Icon(

@@ -19,11 +19,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.data.model.HighlightUiItem
-import com.dirzaaulia.footballclips.data.model.matchesLeague
 import com.dirzaaulia.footballclips.data.model.remote.BigLeague
 import com.dirzaaulia.footballclips.data.model.remote.SupportedClub
 import com.dirzaaulia.footballclips.data.model.remote.isMatchForFavoriteClubs
@@ -32,10 +34,6 @@ import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
 import com.dirzaaulia.footballclips.ui.components.common.EmptyState
 import com.dirzaaulia.footballclips.ui.theme.LocalThemeIsDark
-
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -59,28 +57,7 @@ fun FixturesContentList(
     var collapsedCompIds by remember { mutableStateOf(emptySet<String>()) }
 
     val groupedItems = remember(matches, dynamicCompetitions, selectedCompetitionId, isAdsRemoved) {
-        val rawMatches = matches.filter { it !is HighlightUiItem.BannerAd }
-        if (!selectedCompetitionId.isNullOrEmpty()) {
-            val listWithAds = if (isAdsRemoved) rawMatches else injectFixtureAds(rawMatches, selectedCompetitionId)
-            listOf(null to listWithAds)
-        } else {
-            val remaining = rawMatches.toMutableList()
-            val groups = mutableListOf<Pair<BigLeague?, List<HighlightUiItem>>>()
-
-            dynamicCompetitions.forEach { comp ->
-                val compMatches = remaining.filter { it.matchesLeague(comp) }
-                if (compMatches.isNotEmpty()) {
-                    val listWithAds = if (isAdsRemoved) compMatches else injectFixtureAds(compMatches, comp.id)
-                    groups.add(comp to listWithAds)
-                    remaining.removeAll(compMatches)
-                }
-            }
-            if (remaining.isNotEmpty()) {
-                val listWithAds = if (isAdsRemoved) remaining else injectFixtureAds(remaining, "other")
-                groups.add(null to listWithAds)
-            }
-            groups
-        }
+        buildFixtureGroupsWithAds(matches, dynamicCompetitions, selectedCompetitionId, isAdsRemoved)
     }
 
     if (isGrid) {
@@ -245,16 +222,4 @@ fun FixturesContentList(
             }
         }
     }
-}
-
-private fun injectFixtureAds(items: List<HighlightUiItem>, prefix: String = "feed"): List<HighlightUiItem> {
-    if (items.size < 6) return items
-    val result = mutableListOf<HighlightUiItem>()
-    for (i in items.indices) {
-        result.add(items[i])
-        if ((i + 1) % 5 == 0 && i < items.size - 1) {
-            result.add(HighlightUiItem.BannerAd("fixture-$prefix-ad-${i / 5}"))
-        }
-    }
-    return result
 }
