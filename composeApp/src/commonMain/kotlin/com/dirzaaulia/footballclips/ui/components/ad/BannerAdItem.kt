@@ -6,14 +6,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,8 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndicator
+
 @Composable
 fun BannerAdItem(
     modifier: Modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -39,70 +39,91 @@ fun BannerAdItem(
 
     BoxWithConstraints {
         val isLandscape = maxHeight < 300.dp
-        val cardHeight = when (style) {
-            NativeAdStyle.HERO,
-            NativeAdStyle.HERO_LANDSCAPE,
-            -> if (isLandscape) 180.dp else 240.dp
-            NativeAdStyle.MATCH -> if (isLandscape) 130.dp else 150.dp
-            NativeAdStyle.HIGHLIGHT -> if (isLandscape) 120.dp else 145.dp
-            NativeAdStyle.STANDINGS -> if (isLandscape) 110.dp else 130.dp
-            NativeAdStyle.SHORTS -> if (isLandscape) 280.dp else 420.dp
-        }
+        val cardHeight = resolveAdHeight(style, isLandscape, maxHeight)
+        val shape = resolveAdShape(style)
+        val border = resolveAdBorder(style)
 
-        val shape = when (style) {
-            NativeAdStyle.MATCH -> RoundedCornerShape(14.dp)
-            NativeAdStyle.STANDINGS -> RoundedCornerShape(12.dp)
-            NativeAdStyle.SHORTS -> RoundedCornerShape(20.dp)
-            else -> RoundedCornerShape(16.dp)
-        }
-        val border = when (style) {
-            NativeAdStyle.MATCH -> BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-            NativeAdStyle.STANDINGS -> BorderStroke(1.dp, Color(0xFF334155).copy(alpha = 0.6f))
-            NativeAdStyle.SHORTS -> BorderStroke(1.dp, Color(0xFF334155).copy(alpha = 0.5f))
-            else -> BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-        }
-
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(cardHeight)
-            .animateContentSize(),
-        shape = shape,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        border = border,
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Box(
-            modifier = Modifier
+        Card(
+            modifier = modifier
                 .fillMaxWidth()
-                .height(cardHeight),
-            contentAlignment = Alignment.Center
+                .height(cardHeight)
+                .animateContentSize(),
+            shape = shape,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            border = border,
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         ) {
-            if (isLoading) {
-                ExpressiveLoadingIndicator(
-                    modifier = Modifier.size(32.dp),
-                    strokeWidth = 3.dp
-                )
-            }
-
-            BannerAdView(
-                onAdLoaded = { 
+            AdCardContent(
+                cardHeight = cardHeight,
+                isLoading = isLoading,
+                style = style,
+                onLoaded = {
                     isLoading = false
                     isAdFailed = false
                 },
-                onAdFailed = { 
+                onFailed = {
                     isLoading = false
                     isAdFailed = true
                     onAdFailed?.invoke()
                 },
-                style = style,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(cardHeight)
-                    .alpha(if (isLoading) 0f else 1f)
-                    .clip(RoundedCornerShape(18.dp))
             )
         }
     }
 }
+
+@Composable
+private fun AdCardContent(
+    cardHeight: Dp,
+    isLoading: Boolean,
+    style: NativeAdStyle,
+    onLoaded: () -> Unit,
+    onFailed: () -> Unit,
+) {
+    Box(
+        modifier = Modifier.fillMaxWidth().height(cardHeight),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (isLoading) {
+            ExpressiveLoadingIndicator(
+                modifier = Modifier.size(32.dp),
+                strokeWidth = 3.dp,
+            )
+        }
+
+        BannerAdView(
+            onAdLoaded = onLoaded,
+            onAdFailed = { onFailed() },
+            style = style,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(cardHeight)
+                .alpha(if (isLoading) 0f else 1f)
+                .clip(RoundedCornerShape(18.dp)),
+        )
+    }
+}
+
+private fun resolveAdHeight(style: NativeAdStyle, isLandscape: Boolean, maxHeight: Dp): Dp = when (style) {
+    NativeAdStyle.HERO,
+    NativeAdStyle.HERO_LANDSCAPE,
+    -> if (isLandscape) 180.dp else 240.dp
+    NativeAdStyle.MATCH -> if (isLandscape) 130.dp else 150.dp
+    NativeAdStyle.HIGHLIGHT -> if (isLandscape) 120.dp else 145.dp
+    NativeAdStyle.STANDINGS -> if (isLandscape) 110.dp else 130.dp
+    NativeAdStyle.SHORTS -> if (isLandscape) 280.dp else (maxHeight - 48.dp).coerceIn(420.dp, 600.dp)
+}
+
+private fun resolveAdShape(style: NativeAdStyle): RoundedCornerShape = when (style) {
+    NativeAdStyle.MATCH -> RoundedCornerShape(14.dp)
+    NativeAdStyle.STANDINGS -> RoundedCornerShape(12.dp)
+    NativeAdStyle.SHORTS -> RoundedCornerShape(20.dp)
+    else -> RoundedCornerShape(16.dp)
+}
+
+@Composable
+private fun resolveAdBorder(style: NativeAdStyle): BorderStroke = when (style) {
+    NativeAdStyle.MATCH -> BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+    NativeAdStyle.STANDINGS -> BorderStroke(1.dp, Color(0xFF334155).copy(alpha = 0.6f))
+    NativeAdStyle.SHORTS -> BorderStroke(1.dp, Color(0xFF334155).copy(alpha = 0.5f))
+    else -> BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 }
