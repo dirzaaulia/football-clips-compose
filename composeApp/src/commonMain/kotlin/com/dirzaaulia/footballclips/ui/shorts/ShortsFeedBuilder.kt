@@ -48,3 +48,8 @@ internal fun createLoopFallbackBatch(
     val loopedBatch = cachedShorts.shuffled().take(12)
     return appendShortsFeedItems(currentItems, loopedBatch, isAdsRemoved)
 }
+
+internal fun filterOutFailedAd(
+    items: List<ShortsFeedItem>,
+    adIndex: Int,
+): List<ShortsFeedItem> = items.filterNot { it is ShortsFeedItem.Ad && it.adIndex == adIndex }

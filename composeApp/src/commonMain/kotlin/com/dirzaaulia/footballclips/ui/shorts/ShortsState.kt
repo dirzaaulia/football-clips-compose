@@ -37,6 +37,7 @@ sealed interface ShortsUiAction {
     data class SelectCategory(val category: String?) : ShortsUiAction
     data object Retry : ShortsUiAction
     data object LoadMore : ShortsUiAction
+    data class OnAdFailed(val adIndex: Int) : ShortsUiAction
 }
 
 sealed interface ShortsUiEffect {

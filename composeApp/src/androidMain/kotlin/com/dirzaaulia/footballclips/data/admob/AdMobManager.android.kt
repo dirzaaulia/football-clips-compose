@@ -56,7 +56,9 @@ actual class AdMobManager(private val context: Context) {
         val nativeAdUnitId = if (isDebugBuild) {
             "ca-app-pub-3940256099942544/2247696110"
         } else {
-            getBuildConfigString("ADMOB_NATIVE_ID", "ca-app-pub-6717632447198427/5222531302").ifEmpty { "ca-app-pub-3940256099942544/2247696110" }
+            getBuildConfigString("ADMOB_NATIVE_ID", "ca-app-pub-6717632447198427/5222531302").ifEmpty {
+                "ca-app-pub-6717632447198427/5222531302"
+            }
         }
         NativeAdCache.preloadAd(context.applicationContext, nativeAdUnitId)
     }

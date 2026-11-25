@@ -41,7 +41,6 @@ fun formatAdError(adError: LoadAdError, adType: String = "NATIVE"): String {
 object NativeAdCache {
     private const val MAX_CACHE_SIZE = 5
     private const val CACHE_EXPIRATION_MS = 60 * 60 * 1000L // 1 hour
-    private const val TEST_AD_UNIT_ID = "ca-app-pub-3940256099942544/2247696110"
 
     private class CachedNativeAd(
         val ad: NativeAd,
@@ -118,7 +117,7 @@ object NativeAdCache {
         onAdLoaded: (NativeAd) -> Unit,
         onAdFailed: (String) -> Unit
     ) {
-        val cachedAd = getAd(adUnitId) ?: getAd(TEST_AD_UNIT_ID)
+        val cachedAd = getAd(adUnitId)
         if (cachedAd != null) {
             Log.d(TAG_NATIVE, "⚡ FETCH HIT: Serving preloaded NativeAd '${cachedAd.headline}'")
             onAdLoaded(cachedAd)
@@ -127,14 +126,13 @@ object NativeAdCache {
         }
 
         AdMobInitializer.runWhenInitialized(context) {
-            loadDirect(context, adUnitId, true, onAdLoaded, onAdFailed)
+            loadDirect(context, adUnitId, onAdLoaded, onAdFailed)
         }
     }
 
     private fun loadDirect(
         context: Context,
         adUnitId: String,
-        fallbackToTest: Boolean,
         onAdLoaded: (NativeAd) -> Unit,
         onAdFailed: (String) -> Unit
     ) {
@@ -151,21 +149,12 @@ object NativeAdCache {
 
                 override fun onAdFailedToLoad(adError: LoadAdError) {
                     Log.e(TAG_NATIVE, formatAdError(adError, "DIRECT NATIVE LOAD ($adUnitId)"))
-                    if (fallbackToTest && adUnitId != TEST_AD_UNIT_ID) {
-                        Log.d(TAG_NATIVE, "🔄 FALLBACK: Attempting load with test ad unit $TEST_AD_UNIT_ID")
-                        loadDirect(context, TEST_AD_UNIT_ID, false, onAdLoaded, onAdFailed)
-                    } else {
-                        onAdFailed(adError.message)
-                    }
+                    onAdFailed(adError.message)
                 }
             })
         } catch (t: Throwable) {
             Log.e(TAG_NATIVE, "💥 DIRECT NATIVE LOAD EXCEPTION: ${t.message}", t)
-            if (fallbackToTest && adUnitId != TEST_AD_UNIT_ID) {
-                loadDirect(context, TEST_AD_UNIT_ID, false, onAdLoaded, onAdFailed)
-            } else {
-                onAdFailed(t.message ?: "Native ad load exception")
-            }
+            onAdFailed(t.message ?: "Native ad load exception")
         }
     }
 

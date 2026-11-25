@@ -29,7 +29,8 @@ import com.dirzaaulia.footballclips.ui.components.common.ExpressiveLoadingIndica
 @Composable
 fun BannerAdItem(
     modifier: Modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-    style: NativeAdStyle = NativeAdStyle.MATCH
+    style: NativeAdStyle = NativeAdStyle.MATCH,
+    onAdFailed: (() -> Unit)? = null,
 ) {
     var isLoading by remember { mutableStateOf(true) }
     var isAdFailed by remember { mutableStateOf(false) }
@@ -92,6 +93,7 @@ fun BannerAdItem(
                 onAdFailed = { 
                     isLoading = false
                     isAdFailed = true
+                    onAdFailed?.invoke()
                 },
                 style = style,
                 modifier = Modifier

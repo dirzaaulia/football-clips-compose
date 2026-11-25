@@ -50,9 +50,9 @@ class ShortsViewModel(
 
     private fun observeAdsRemoved() = viewModelScope.launch {
         isAdsRemoved.collectLatest { removed ->
-            val current = _uiState.value as? ShortsUiState.Success ?: return@collectLatest
-            val raw = current.items.filterIsInstance<ShortsFeedItem.Video>().map { it.short }
-            _uiState.value = current.copy(items = buildShortsFeedItems(raw, removed))
+            val curr = _uiState.value as? ShortsUiState.Success ?: return@collectLatest
+            val raw = curr.items.filterIsInstance<ShortsFeedItem.Video>().map { it.short }
+            _uiState.value = curr.copy(items = buildShortsFeedItems(raw, removed))
         }
     }
 
@@ -65,6 +65,7 @@ class ShortsViewModel(
             is ShortsUiAction.SelectCategory -> loadShorts(action.category)
             is ShortsUiAction.Retry -> loadShorts()
             is ShortsUiAction.LoadMore -> loadMoreShorts()
+            is ShortsUiAction.OnAdFailed -> handleAdFailed(action.adIndex)
         }
     }
 
@@ -97,9 +98,7 @@ class ShortsViewModel(
                         is NetworkResult.Success -> handleMoreSuccess(current, res.data)
                         else -> triggerLoopFallback(current)
                     }
-                } else {
-                    triggerLoopFallback(current)
-                }
+                } else triggerLoopFallback(current)
             } finally {
                 isLoadingMore = false
             }
@@ -111,9 +110,8 @@ class ShortsViewModel(
             cachedShorts.addAll(data)
             currentOffset += data.size
             hasMoreData = data.size >= 20
-            _uiState.value = current.copy(
-                items = appendShortsFeedItems(current.items, data, isAdsRemoved.value),
-            )
+            val items = appendShortsFeedItems(current.items, data, isAdsRemoved.value)
+            _uiState.value = current.copy(items = items)
         } else {
             hasMoreData = false
             triggerLoopFallback(current)
@@ -121,22 +119,23 @@ class ShortsViewModel(
     }
 
     private fun triggerLoopFallback(current: ShortsUiState.Success) {
-        val updated = createLoopFallbackBatch(cachedShorts, current.items, isAdsRemoved.value)
-        _uiState.value = current.copy(items = updated)
+        _uiState.value = current.copy(items = createLoopFallbackBatch(cachedShorts, current.items, isAdsRemoved.value))
     }
 
-    private fun updatePageIndex(index: Int) {
-        (_uiState.value as? ShortsUiState.Success)?.let {
-            _uiState.value = it.copy(currentVideoIndex = index, isPlaying = true)
-        }
+    private fun handleAdFailed(adIndex: Int) = (_uiState.value as? ShortsUiState.Success)?.let {
+        _uiState.value = it.copy(items = filterOutFailedAd(it.items, adIndex))
     }
 
-    private fun togglePlayPause() {
-        (_uiState.value as? ShortsUiState.Success)?.let { _uiState.value = it.copy(isPlaying = !it.isPlaying) }
+    private fun updatePageIndex(index: Int) = (_uiState.value as? ShortsUiState.Success)?.let {
+        _uiState.value = it.copy(currentVideoIndex = index, isPlaying = true)
     }
 
-    private fun toggleMute() {
-        (_uiState.value as? ShortsUiState.Success)?.let { _uiState.value = it.copy(isMuted = !it.isMuted) }
+    private fun togglePlayPause() = (_uiState.value as? ShortsUiState.Success)?.let {
+        _uiState.value = it.copy(isPlaying = !it.isPlaying)
+    }
+
+    private fun toggleMute() = (_uiState.value as? ShortsUiState.Success)?.let {
+        _uiState.value = it.copy(isMuted = !it.isMuted)
     }
 
     private fun handleLike(videoId: String) = viewModelScope.launch {

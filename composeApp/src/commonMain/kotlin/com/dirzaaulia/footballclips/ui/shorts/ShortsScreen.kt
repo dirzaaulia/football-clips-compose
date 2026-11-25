@@ -103,6 +103,7 @@ private fun ShortsPagerContent(
                     BannerAdItem(
                         modifier = Modifier.fillMaxSize(),
                         style = NativeAdStyle.SHORTS,
+                        onAdFailed = { onAction(ShortsUiAction.OnAdFailed(item.adIndex)) },
                     )
                 }
             }
