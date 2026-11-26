@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.dirzaaulia.footballclips.domain.model.FootballShort
@@ -35,19 +36,24 @@ fun ShortsRoute(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val uriHandler = LocalUriHandler.current
 
-    when (val state = uiState) {
-        is ShortsUiState.Loading -> {
-            ShortsScreenShimmer(modifier = modifier)
-        }
-        is ShortsUiState.Error -> {
-            Box(
-                modifier = modifier.fillMaxSize().background(Color.Black),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(text = state.message, color = Color.White)
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is ShortsUiEffect.OpenExternalYouTube -> {
+                    try {
+                        uriHandler.openUri(effect.url)
+                    } catch (_: Throwable) {}
+                }
+                is ShortsUiEffect.ShowToast -> {}
             }
         }
+    }
+
+    when (val state = uiState) {
+        is ShortsUiState.Loading -> ShortsScreenShimmer(modifier = modifier)
+        is ShortsUiState.Error -> ShortsErrorContent(message = state.message, modifier = modifier)
         is ShortsUiState.Success -> {
             ShortsPagerContent(
                 state = state,
@@ -56,6 +62,19 @@ fun ShortsRoute(
                 modifier = modifier,
             )
         }
+    }
+}
+
+@Composable
+private fun ShortsErrorContent(
+    message: String,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier.fillMaxSize().background(Color.Black),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = message, color = Color.White)
     }
 }
 
@@ -82,10 +101,9 @@ private fun ShortsPagerContent(
     ) { page ->
         when (val item = state.items[page]) {
             is ShortsFeedItem.Video -> {
-                val isCurrent = page == pagerState.currentPage
                 ShortVideoPage(
                     short = item.short,
-                    isCurrent = isCurrent,
+                    isCurrent = page == pagerState.currentPage,
                     isPlaying = state.isPlaying,
                     isMuted = state.isMuted,
                     onAction = onAction,
@@ -93,21 +111,33 @@ private fun ShortsPagerContent(
                 )
             }
             is ShortsFeedItem.Ad -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0xFF0A0B0E))
-                        .padding(horizontal = 16.dp, vertical = 32.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    BannerAdItem(
-                        modifier = Modifier.fillMaxSize(),
-                        style = NativeAdStyle.SHORTS,
-                        onAdFailed = { onAction(ShortsUiAction.OnAdFailed(item.adIndex)) },
-                    )
-                }
+                ShortAdPage(
+                    adIndex = item.adIndex,
+                    onAdFailed = { onAction(ShortsUiAction.OnAdFailed(item.adIndex)) },
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun ShortAdPage(
+    adIndex: Int,
+    onAdFailed: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFF0A0B0E))
+            .padding(horizontal = 16.dp, vertical = 32.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        BannerAdItem(
+            modifier = Modifier.fillMaxSize(),
+            style = NativeAdStyle.SHORTS,
+            onAdFailed = onAdFailed,
+        )
     }
 }
 
@@ -132,7 +162,7 @@ private fun ShortVideoPage(
                 modifier = Modifier.fillMaxSize(),
                 isPlaying = isPlaying,
                 isMuted = isMuted,
-                onDismiss = {},
+                onDismiss = { isPlaybackActive = true },
                 onPlaybackStarted = { isPlaybackActive = true },
                 isShort = true,
             )

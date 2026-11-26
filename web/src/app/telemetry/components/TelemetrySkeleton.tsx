@@ -193,6 +193,21 @@ export default function TelemetrySkeleton() {
             </div>
           </aside>
           <main className="flex-1 min-w-0 w-full space-y-5">
+            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="w-44 h-4 bg-slate-800 rounded" />
+                <div className="w-56 h-7 bg-slate-800/80 rounded-lg" />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="p-3 rounded-xl border border-slate-800 bg-slate-950/70 space-y-2">
+                    <div className="w-24 h-3 bg-slate-800 rounded" />
+                    <div className="w-16 h-7 bg-slate-800/90 rounded" />
+                    <div className="w-20 h-4 bg-slate-800/60 rounded" />
+                  </div>
+                ))}
+              </div>
+            </div>
             <PipelineFlowGraphSkeleton />
             <TelemetryFilterBarSkeleton />
             <div className="flex items-center justify-between text-xs px-1">

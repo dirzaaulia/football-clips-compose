@@ -7,6 +7,7 @@ internal fun buildYouTubeHtml(videoId: String, isShort: Boolean = false): String
     val pointerEvents = if (isShort) "none" else "auto"
     val controlsVal = if (isShort) 0 else 1
     val fsVal = if (isShort) 0 else 1
+    val loopConfig = if (isShort) "'loop': 1, 'playlist': '$videoId'," else ""
 
     return """
         <!DOCTYPE html>
@@ -44,19 +45,36 @@ internal fun buildYouTubeHtml(videoId: String, isShort: Boolean = false): String
                             'iv_load_policy': 3,
                             'modestbranding': 1,
                             'fs': $fsVal,
+                            $loopConfig
                             'origin': 'https://dirzaaulia.com',
                             'enablejsapi': 1
                         },
                         events: {
                             'onReady': function(event) {
-                                window.location.href = "fc-ready://ready";
+                                if (window.FCBridge && window.FCBridge.postReady) {
+                                    window.FCBridge.postReady();
+                                } else {
+                                    window.location.href = "fc-ready://ready";
+                                }
                                 event.target.playVideo();
                             },
                             'onStateChange': function(event) {
-                                window.location.href = "fc-state://" + event.data;
+                                if (window.FCBridge && window.FCBridge.postStateChange) {
+                                    window.FCBridge.postStateChange(event.data);
+                                } else {
+                                    window.location.href = "fc-state://" + event.data;
+                                }
+                                if (event.data === 0) {
+                                    event.target.seekTo(0);
+                                    event.target.playVideo();
+                                }
                             },
                             'onError': function(event) {
-                                window.location.href = "fc-error://" + event.data;
+                                if (window.FCBridge && window.FCBridge.postError) {
+                                    window.FCBridge.postError(event.data);
+                                } else {
+                                    window.location.href = "fc-error://" + event.data;
+                                }
                             }
                         }
                     });

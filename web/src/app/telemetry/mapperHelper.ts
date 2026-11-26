@@ -1,9 +1,17 @@
 import { CandidateVerdict, DbFinishedMatch, MatchCycleRun, ScannedVideo, TelemetryEvent } from './types';
 
+export interface ClubNameEntry {
+  name: string;
+  shortName?: string;
+  crestUrl?: string;
+}
+
 export interface ChannelLookupMap {
   compHandles?: Record<string, string[]>;
   clubHandles?: Record<string, string>;
   broadcasters?: Record<string, { name: string; handle: string; tier: number }>;
+  channelIdToName?: Record<string, string>;
+  clubNamesById?: Record<number, ClubNameEntry>;
 }
 
 export function resolveDbMatchTargets(dm: DbFinishedMatch, lookup?: ChannelLookupMap): string[] {

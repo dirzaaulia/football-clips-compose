@@ -1,16 +1,9 @@
 package com.dirzaaulia.footballclips.ui.player
 
 import android.content.pm.ActivityInfo
-import android.telephony.TelephonyManager
 import android.view.View
-import android.view.ViewGroup
 import android.webkit.WebChromeClient
-import android.webkit.WebResourceError
-import android.webkit.WebResourceRequest
-import android.webkit.WebSettings
 import android.webkit.WebView
-import android.webkit.WebViewClient
-import android.widget.FrameLayout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -35,7 +28,6 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import com.dirzaaulia.footballclips.domain.model.RegionRestriction
 import com.dirzaaulia.footballclips.ui.home.findActivity
 import kotlinx.coroutines.delay
-import java.util.Locale
 
 @Composable
 actual fun YouTubePlayerView(
@@ -72,7 +64,6 @@ actual fun YouTubePlayerView(
     var retryNonce by remember { mutableStateOf(0) }
     var webViewInstance by remember { mutableStateOf<WebView?>(null) }
 
-    // 7-second watchdog timer for stream connection stalls
     LaunchedEffect(currentVideoId, isLoading, errorState, retryNonce) {
         if (isLoading && errorState == PlayerErrorState.NONE) {
             delay(7000)
@@ -112,22 +103,14 @@ actual fun YouTubePlayerView(
         }
     }
 
-    SetupLifecycleAndOrientation(activity = activity, customView = customView, webViewInstance = webViewInstance)
+    SetupLifecycleAndOrientation(
+        activity = activity,
+        customView = customView,
+        webViewInstance = webViewInstance,
+        isPlaying = isPlaying,
+    )
 
-    val playerModifier = if (customView != null) {
-        modifier.background(Color.Black)
-    } else {
-        modifier
-            .background(Color.Black)
-            .border(
-                width = 1.dp,
-                brush = Brush.verticalGradient(
-                    listOf(Color(0xFF7098F8).copy(alpha = 0.35f), Color(0xFF1E293B).copy(alpha = 0.2f)),
-                ),
-                shape = RoundedCornerShape(16.dp),
-            )
-            .clip(RoundedCornerShape(16.dp))
-    }
+    val playerModifier = resolvePlayerModifier(modifier, customView)
 
     Box(modifier = playerModifier) {
         if (errorState == PlayerErrorState.NONE) {
@@ -183,11 +166,29 @@ actual fun YouTubePlayerView(
     }
 }
 
+private fun resolvePlayerModifier(modifier: Modifier, customView: View?): Modifier {
+    return if (customView != null) {
+        modifier.background(Color.Black)
+    } else {
+        modifier
+            .background(Color.Black)
+            .border(
+                width = 1.dp,
+                brush = Brush.verticalGradient(
+                    listOf(Color(0xFF7098F8).copy(alpha = 0.35f), Color(0xFF1E293B).copy(alpha = 0.2f)),
+                ),
+                shape = RoundedCornerShape(16.dp),
+            )
+            .clip(RoundedCornerShape(16.dp))
+    }
+}
+
 @Composable
 private fun SetupLifecycleAndOrientation(
     activity: android.app.Activity?,
     customView: View?,
     webViewInstance: WebView?,
+    isPlaying: Boolean,
 ) {
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) {
         webViewInstance?.evaluateJavascript("if (typeof player !== 'undefined' && player.pauseVideo) { player.pauseVideo(); }", null)
@@ -195,6 +196,9 @@ private fun SetupLifecycleAndOrientation(
     }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         webViewInstance?.onResume()
+        if (isPlaying) {
+            webViewInstance?.evaluateJavascript("if (typeof player !== 'undefined' && player.playVideo) { player.playVideo(); }", null)
+        }
     }
     DisposableEffect(customView) {
         activity?.requestedOrientation = if (customView != null) {
@@ -203,86 +207,5 @@ private fun SetupLifecycleAndOrientation(
             ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
         onDispose { activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED }
-    }
-}
-
-
-private fun createConfiguredWebView(
-    context: android.content.Context,
-    currentVideoId: String,
-    backupVideoId: String?,
-    hasSwitchedToBackup: Boolean,
-    isBackupAllowed: Boolean,
-    onLoadingState: (Boolean) -> Unit,
-    onErrorState: (PlayerErrorState) -> Unit,
-    onSwitchedToBackup: (String) -> Unit,
-    onCustomViewChange: (View?, WebChromeClient.CustomViewCallback?) -> Unit,
-    onInstanceCreated: (WebView) -> Unit,
-    onPlaybackStarted: () -> Unit,
-    isShort: Boolean,
-): WebView {
-    return WebView(context).apply {
-        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        setBackgroundColor(android.graphics.Color.BLACK)
-        webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                val url = request?.url?.toString().orEmpty()
-                if (url.startsWith("fc-state://")) {
-                    val state = url.removePrefix("fc-state://").toIntOrNull()
-                    if (state == 1) {
-                        onLoadingState(false)
-                        onPlaybackStarted()
-                    } else if (state == 2) {
-                        onLoadingState(false)
-                    }
-                    return true
-                }
-                if (url.startsWith("fc-ready://")) {
-                    if (!isShort) onLoadingState(false)
-                    return true
-                }
-                if (url.startsWith("fc-error://")) {
-                    onLoadingState(false)
-                    val code = url.removePrefix("fc-error://").toIntOrNull() ?: 150
-                    if ((code == 101 || code == 150 || code == 100) && backupVideoId != null && !hasSwitchedToBackup && backupVideoId != currentVideoId && isBackupAllowed) {
-                        onSwitchedToBackup(backupVideoId)
-                        loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(backupVideoId, isShort), "text/html", "UTF-8", null)
-                    } else if (code == 101 || code == 150 || code == 100) {
-                        onErrorState(PlayerErrorState.NOT_EMBEDDABLE)
-                    } else {
-                        onErrorState(PlayerErrorState.USER_SIDE_ERROR)
-                    }
-                    return true
-                }
-                if (url.startsWith("fc-") || !url.startsWith("http")) {
-                    return true
-                }
-                return super.shouldOverrideUrlLoading(view, request)
-            }
-
-            override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
-                super.onReceivedError(view, request, error)
-                val failingUrl = request?.url?.toString().orEmpty()
-                if (request?.isForMainFrame == true && !failingUrl.startsWith("fc-")) {
-                    onLoadingState(false)
-                    onErrorState(PlayerErrorState.USER_SIDE_ERROR)
-                }
-            }
-        }
-        webChromeClient = object : WebChromeClient() {
-            override fun onShowCustomView(view: View?, callback: CustomViewCallback?) { onCustomViewChange(view, callback) }
-            override fun onHideCustomView() { onCustomViewChange(null, null) }
-        }
-        settings.apply {
-            javaScriptEnabled = true
-            domStorageEnabled = true
-            mediaPlaybackRequiresUserGesture = false
-            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-            useWideViewPort = true
-            loadWithOverviewMode = true
-            userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
-        }
-        loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(currentVideoId, isShort), "text/html", "UTF-8", null)
-        onInstanceCreated(this)
     }
 }

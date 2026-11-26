@@ -1,14 +1,24 @@
 import React from 'react';
 import { Search, Filter, Layers, List } from 'lucide-react';
+import { CoverageFilterType } from '../types';
 
 interface TelemetryFilterBarProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
   viewMode: 'grouped' | 'flat';
   onViewModeChange: (m: 'grouped' | 'flat') => void;
-  statusFilter: 'ALL' | 'LINKED' | 'COOLDOWN' | 'UNLINKED';
-  onStatusFilterChange: (st: 'ALL' | 'LINKED' | 'COOLDOWN' | 'UNLINKED') => void;
+  statusFilter: CoverageFilterType;
+  onStatusFilterChange: (st: CoverageFilterType) => void;
 }
+
+const FILTER_OPTIONS: { key: CoverageFilterType; label: string }[] = [
+  { key: 'ALL', label: 'ALL' },
+  { key: 'LINKED', label: 'LINKED' },
+  { key: 'COOLDOWN', label: 'COOLDOWN' },
+  { key: 'UNLINKED', label: 'UNLINKED' },
+  { key: 'BELOW_TARGET', label: 'BELOW TARGET' },
+  { key: 'WORLDWIDE_99', label: '99%+ WW' },
+];
 
 export function TelemetryFilterBar({
   searchQuery,
@@ -56,17 +66,17 @@ export function TelemetryFilterBar({
         </div>
 
         <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
-        {(['ALL', 'LINKED', 'COOLDOWN', 'UNLINKED'] as const).map((st) => (
+        {FILTER_OPTIONS.map((opt) => (
           <button
-            key={st}
-            onClick={() => onStatusFilterChange(st)}
+            key={opt.key}
+            onClick={() => onStatusFilterChange(opt.key)}
             className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition shrink-0 ${
-              statusFilter === st
+              statusFilter === opt.key
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700'
             }`}
           >
-            {st}
+            {opt.label}
           </button>
         ))}
       </div>

@@ -14,6 +14,7 @@ export interface WaterfallTraceRow {
     candidates?: Array<{
       video_id: string;
       title: string;
+      channel_id?: string;
       channel_handle?: string;
       channel_title?: string;
       duration_seconds?: number;
@@ -37,11 +38,20 @@ export function mapTraceToCycleRun(
   channelLookup?: ChannelLookupMap,
 ): MatchCycleRun {
   const meta = row.metadata || {};
+  const candidateChNames: Record<string, string> = {};
+  for (const c of (meta.candidates || [])) {
+    if (c.channel_id && (c.channel_title || c.channel_handle)) {
+      candidateChNames[c.channel_id] = c.channel_title || c.channel_handle || c.channel_id;
+    }
+  }
+
   const channels = (meta.channels_searched || []).map((cid) => {
+    if (channelLookup?.channelIdToName?.[cid]) return channelLookup.channelIdToName[cid];
+    if (candidateChNames[cid]) return candidateChNames[cid];
     if (channelLookup?.broadcasters) {
       for (const b of Object.values(channelLookup.broadcasters)) {
         if (b.handle && (b.handle === cid || (b as any).channel_id === cid)) {
-          return b.handle.startsWith('@') ? b.handle : `@${b.handle}`;
+          return b.name ? `${b.name} (${b.handle})` : b.handle.startsWith('@') ? b.handle : `@${b.handle}`;
         }
       }
     }
@@ -90,15 +100,16 @@ export function mapTraceToCycleRun(
   });
 
   const rawOutcome = meta.outcome || 'NOT_FOUND';
-  const isLinked = rawOutcome === 'LINKED' || Boolean(meta.linked_video_id);
+  const isRetained = rawOutcome === 'RETAINED_SUPERIOR';
+  const isLinked = rawOutcome === 'LINKED' || isRetained || Boolean(meta.linked_video_id);
   const isCooldown = rawOutcome === 'COOLDOWN_PROTECTED';
   const status: MatchCycleRun['status'] = isLinked ? 'LINKED' : isCooldown ? 'COOLDOWN' : 'UNLINKED';
 
   let step4Outcome = '';
-  if (isLinked) {
-    step4Outcome = `Official highlight linked: https://youtu.be/${meta.linked_video_id}${meta.linked_video_title ? ` (${meta.linked_video_title})` : ''}`;
-  } else if (rawOutcome === 'RETAINED_SUPERIOR') {
+  if (isRetained) {
     step4Outcome = `Retained superior existing highlight (evaluation complete in ${meta.duration_ms || 0}ms)`;
+  } else if (isLinked) {
+    step4Outcome = `Official highlight linked: https://youtu.be/${meta.linked_video_id}${meta.linked_video_title ? ` (${meta.linked_video_title})` : ''}`;
   } else if (isCooldown) {
     step4Outcome = 'Tier cooldown guardrail active (sweep deferred)';
   } else {

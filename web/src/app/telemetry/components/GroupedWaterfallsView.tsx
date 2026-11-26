@@ -4,13 +4,15 @@ import React, { useState } from 'react';
 import { Trophy, Calendar, ChevronDown, ChevronRight, ChevronsUpDown } from 'lucide-react';
 import { WeekCompetitionGroup } from '../types';
 import { WaterfallCard } from './WaterfallCard';
+import { ChannelLookupMap } from '../mapperHelper';
 
 interface GroupedWaterfallsViewProps {
   groups: WeekCompetitionGroup[];
+  channelLookup?: ChannelLookupMap;
   onOverrideSuccess?: () => void;
 }
 
-export function GroupedWaterfallsView({ groups, onOverrideSuccess }: GroupedWaterfallsViewProps) {
+export function GroupedWaterfallsView({ groups, channelLookup, onOverrideSuccess }: GroupedWaterfallsViewProps) {
   const [expandedWeeks, setExpandedWeeks] = useState<Set<string>>(
     () => new Set(groups.map((g) => g.monthWeekKey)),
   );
@@ -195,6 +197,7 @@ export function GroupedWaterfallsView({ groups, onOverrideSuccess }: GroupedWate
                             <WaterfallCard
                               key={wf.matchId}
                               waterfall={wf}
+                              channelLookup={channelLookup}
                               onOverrideSuccess={onOverrideSuccess}
                             />
                           ))}

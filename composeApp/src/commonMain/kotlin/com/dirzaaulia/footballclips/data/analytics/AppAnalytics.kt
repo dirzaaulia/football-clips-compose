@@ -1,6 +1,12 @@
 package com.dirzaaulia.footballclips.data.analytics
 
-import io.github.jan.supabase.postgrest.Postgrest
+import com.dirzaaulia.footballclips.data.constants.DatabaseConstants
+import io.ktor.client.HttpClient
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,9 +59,10 @@ interface AppAnalytics {
 }
 
 class AppAnalyticsImpl(
-    private val postgrest: Postgrest,
+    private val client: HttpClient,
 ) : AppAnalytics {
 
+    private val eventsEndpoint = "${DatabaseConstants.DATABASE_URL}/rest/v1/user_analytics_events"
     private val scope = CoroutineScope(Dispatchers.Default)
     private val sessionId: String = "and_" + (1..10).map { "abcdefghijklmnopqrstuvwxyz0123456789".random() }.joinToString("")
     private var currentDeviceId: String = "android_device"
@@ -87,7 +94,11 @@ class AppAnalyticsImpl(
                     platform = "android",
                     payload = JsonObject(jsonProps),
                 )
-                postgrest["user_analytics_events"].insert(dto)
+                client.post(eventsEndpoint) {
+                    contentType(ContentType.Application.Json)
+                    header("Prefer", "return=minimal")
+                    setBody(dto)
+                }
             } catch (_: Exception) {
                 // Defensive: analytics errors must never crash the app
             }

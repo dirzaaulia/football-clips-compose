@@ -36,6 +36,11 @@ export function CandidatePreviewGrid({
                   {c.channel}
                 </span>
                 <div className="flex items-center gap-1.5">
+                  {c.source && (
+                    <span className="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-800 text-cyan-300 border border-slate-700">
+                      {c.source === 'RSS' ? '📡 RSS' : c.source === 'API' ? '🔑 API' : c.source === 'WEBSUB' ? '⚡ WebSub' : c.source}
+                    </span>
+                  )}
                   <span
                     className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-bold border ${
                       isGoodReach

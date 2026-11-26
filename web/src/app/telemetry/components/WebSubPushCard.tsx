@@ -109,7 +109,10 @@ export function WebSubPushCard({ push }: WebSubPushCardProps) {
             </div>
           )}
           {push.reason && (
-            <p className="text-xs text-rose-400/90 font-mono mt-1">Rejection Reason: {push.reason}</p>
+            <p className={`text-xs font-mono mt-1 ${isLink ? 'text-emerald-400/90' : isReject ? 'text-rose-400/90' : 'text-slate-400/90'}`}>
+              {isLink ? 'Verification Rationale: ' : isReject ? 'Rejection Reason: ' : 'Evaluation: '}
+              {push.reason}
+            </p>
           )}
         </div>
 

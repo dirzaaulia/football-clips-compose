@@ -101,7 +101,7 @@ func (c *Client) DiscoverCandidates(
 		wg.Wait()
 	}
 
-	if len(discovered) > 0 {
+	if hasExactTwoTeamMatch(discovered, match) {
 		return discovered, nil
 	}
 
@@ -110,12 +110,8 @@ func (c *Client) DiscoverCandidates(
 		return discovered, nil
 	}
 
-	// Quota Guard: Up to 14 days (336h) for international tournaments, 72h for clubs
-	maxHours := 72.0
-	if isIntlCompetition(match.CompetitionID) {
-		maxHours = 336.0
-	}
-	if time.Since(match.UTCDate).Hours() > maxHours {
+	// Quota Guard: Up to 14 days (336h) across all competitions when quota permits
+	if time.Since(match.UTCDate).Hours() > 336.0 {
 		return discovered, nil
 	}
 
@@ -127,11 +123,15 @@ func (c *Client) DiscoverCandidates(
 		discovered = append(discovered, matched...)
 	}
 
-	// Fallback to Spanish query for international/Latin matches if English yields 0
-	if len(discovered) == 0 && c.GetRemainingQuota() >= 100 && (isIntlCompetition(match.CompetitionID) || match.CompetitionID == "ARG" || match.CompetitionID == "BRA") {
-		esQuery := fmt.Sprintf("%s vs %s resumen", normalizeText(match.HomeTeamName), normalizeText(match.AwayTeamName))
-		if esCandidates, err := c.searchAPI(ctx, esQuery); err == nil {
-			matched := c.filterCandidates(esCandidates, match)
+	// Fallback to localized query (Spanish resumen / French resume) if English yields no 2-team match
+	if !hasExactTwoTeamMatch(discovered, match) && c.GetRemainingQuota() >= 100 {
+		localKeyword := "resumen"
+		if match.CompetitionID == "FL1" {
+			localKeyword = "resume"
+		}
+		localQuery := fmt.Sprintf("%s vs %s %s", normalizeText(match.HomeTeamName), normalizeText(match.AwayTeamName), localKeyword)
+		if localCandidates, err := c.searchAPI(ctx, localQuery); err == nil {
+			matched := c.filterCandidates(localCandidates, match)
 			discovered = append(discovered, matched...)
 		}
 	}
@@ -139,8 +139,18 @@ func (c *Client) DiscoverCandidates(
 	return discovered, nil
 }
 
-func isIntlCompetition(cid string) bool {
-	return strings.HasPrefix(cid, "WCQ_") || cid == "UNL" || cid == "FRI" || cid == "CNL"
+func hasExactTwoTeamMatch(videos []domain.VideoCandidate, match domain.Match) bool {
+	homeNorm := normalizeText(match.HomeTeamName)
+	awayNorm := normalizeText(match.AwayTeamName)
+	for _, v := range videos {
+		tNorm := normalizeText(v.Title)
+		hasHome := strings.Contains(tNorm, homeNorm) || matchTeamTokens(tNorm, homeNorm)
+		hasAway := strings.Contains(tNorm, awayNorm) || matchTeamTokens(tNorm, awayNorm)
+		if hasHome && hasAway {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *Client) filterCandidates(videos []domain.VideoCandidate, match domain.Match) []domain.VideoCandidate {

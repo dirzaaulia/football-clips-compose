@@ -9,15 +9,18 @@ import {
   Smartphone,
 } from 'lucide-react';
 import { NotificationItem, NotificationsPayload, AudiencePayload } from '../types';
+import { ClubNameEntry } from '../mapperHelper';
 
 interface NotificationsPipelineViewProps {
   notificationsPayload?: NotificationsPayload | null;
   audiencePayload?: AudiencePayload | null;
+  clubNamesById?: Record<number, ClubNameEntry>;
 }
 
 export function NotificationsPipelineView({
   notificationsPayload,
   audiencePayload,
+  clubNamesById,
 }: NotificationsPipelineViewProps) {
   const [filterType, setFilterType] = useState<string>('ALL');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -117,17 +120,26 @@ export function NotificationsPipelineView({
       {/* Top Favorited Clubs Cards */}
       {audienceStats.topClubs.length > 0 && (
         <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 space-y-2">
-          <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Top Subscribed Club IDs</p>
+          <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">Top Subscribed Clubs</p>
           <div className="flex flex-wrap gap-2">
-            {audienceStats.topClubs.map(({ clubId, count }) => (
-              <span
-                key={clubId}
-                className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 rounded-lg text-xs font-mono"
-              >
-                <Users className="w-3.5 h-3.5" />
-                <span>Club #{clubId}: {count} device{count === 1 ? '' : 's'}</span>
-              </span>
-            ))}
+            {audienceStats.topClubs.map(({ clubId, count }) => {
+              const club = clubNamesById?.[clubId];
+              const label = club ? `${club.name} (#${clubId})` : `Club #${clubId}`;
+              return (
+                <span
+                  key={clubId}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 rounded-lg text-xs font-mono"
+                >
+                  {club?.crestUrl ? (
+                    <img src={club.crestUrl} alt={club.name} className="w-4 h-4 object-contain shrink-0" />
+                  ) : (
+                    <Users className="w-3.5 h-3.5 shrink-0" />
+                  )}
+                  <span className="font-semibold text-slate-100">{label}:</span>
+                  <span>{count} device{count === 1 ? '' : 's'}</span>
+                </span>
+              );
+            })}
           </div>
         </div>
       )}

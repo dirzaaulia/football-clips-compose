@@ -101,6 +101,12 @@ func (r *Repository) UpsertMatches(ctx context.Context, matches []domain.Match) 
 		ON CONFLICT (id) DO UPDATE SET
 			utc_date = EXCLUDED.utc_date,
 			status = EXCLUDED.status,
+			home_team_id = CASE WHEN EXCLUDED.home_team_name NOT ILIKE '%TBD%' THEN EXCLUDED.home_team_id ELSE matches.home_team_id END,
+			home_team_name = CASE WHEN EXCLUDED.home_team_name NOT ILIKE '%TBD%' THEN EXCLUDED.home_team_name ELSE matches.home_team_name END,
+			home_team_crest = CASE WHEN COALESCE(EXCLUDED.home_team_crest, '') <> '' THEN EXCLUDED.home_team_crest ELSE matches.home_team_crest END,
+			away_team_id = CASE WHEN EXCLUDED.away_team_name NOT ILIKE '%TBD%' THEN EXCLUDED.away_team_id ELSE matches.away_team_id END,
+			away_team_name = CASE WHEN EXCLUDED.away_team_name NOT ILIKE '%TBD%' THEN EXCLUDED.away_team_name ELSE matches.away_team_name END,
+			away_team_crest = CASE WHEN COALESCE(EXCLUDED.away_team_crest, '') <> '' THEN EXCLUDED.away_team_crest ELSE matches.away_team_crest END,
 			home_score = EXCLUDED.home_score,
 			away_score = EXCLUDED.away_score,
 			home_penalties = EXCLUDED.home_penalties,

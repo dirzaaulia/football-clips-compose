@@ -5,7 +5,15 @@ import { database } from '@/lib/database';
 import {
   TelemetryPayload, MatchWaterfall, NotificationsPayload,
   AudiencePayload, AppSessionItem, TelemetryTab, UserAnalyticsEvent, DbFinishedMatch,
+  CoverageFilterType, SeasonFilterType,
 } from './types';
+import {
+  fetchFinishedMatchesBySeason,
+  fetchTelemetryChannels,
+  computeCoverageMetrics,
+  matchesCoverageFilter,
+} from './coverageMetricsHelper';
+import { CoverageMetricsDeck } from './components/CoverageMetricsDeck';
 import { buildMatchWaterfalls } from './mapper';
 import { WaterfallTraceRow } from './waterfallTraceHelper';
 import { groupWaterfallsByWeekAndCompetition } from './grouping';
@@ -47,8 +55,16 @@ export default function TelemetryPage() {
   const [isTaxonomyOpen, setIsTaxonomyOpen] = useState(false);
   const [autoRefreshInterval, setAutoRefreshInterval] = useState(15);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'LINKED' | 'COOLDOWN' | 'UNLINKED'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<CoverageFilterType>('ALL');
+  const [seasonFilter, setSeasonFilter] = useState<SeasonFilterType>('2026');
+  const [isSeasonLoading, setIsSeasonLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'grouped' | 'flat'>('grouped');
+
+  const handleSeasonChange = (nextSeason: SeasonFilterType) => {
+    if (nextSeason === seasonFilter) return;
+    setIsSeasonLoading(true);
+    setSeasonFilter(nextSeason);
+  };
 
   const fetchTelemetry = useCallback(async () => {
     setIsRefreshing(true);
@@ -69,55 +85,21 @@ export default function TelemetryPage() {
         }
       }
 
-      const now = new Date();
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const matchCols = 'id, competition_id, competition_name, utc_date, status, home_team_name, away_team_name, home_score, away_score, highlight_video_id, last_youtube_check, youtube_region_info, highlight_videos';
-      const { data: mRows } = await database.from('matches').select(matchCols).eq('status', 'FINISHED').gte('utc_date', thirtyDaysAgo.toISOString()).lte('utc_date', now.toISOString()).order('utc_date', { ascending: false });
+      const extraIds = Array.from(new Set<string>(
+        ((telemetryPayload as any)?.events || [])
+          .map((ev: any) => (ev.match_id ? String(ev.match_id) : ''))
+          .filter(Boolean),
+      ));
+      const seasonMatches = await fetchFinishedMatchesBySeason(seasonFilter, extraIds);
+      setDbFinishedMatches(seasonMatches);
 
-      let allMatches = mRows || [];
-      const loadedIds = new Set(allMatches.map((m: any) => String(m.id)));
-      const extraIds = new Set<string>();
-      for (const ev of (telemetryPayload as any)?.events || []) {
-        if (ev.match_id && !loadedIds.has(String(ev.match_id))) extraIds.add(String(ev.match_id));
-      }
-      if (extraIds.size > 0) {
-        const { data: xRows } = await database.from('matches').select(matchCols).eq('status', 'FINISHED').lte('utc_date', now.toISOString()).in('id', Array.from(extraIds).slice(0, 50));
-        if (xRows) allMatches = [...allMatches, ...xRows];
-      }
-      setDbFinishedMatches(allMatches.filter((m: any) => m.status === 'FINISHED' && (!m.utc_date || new Date(m.utc_date).getTime() <= now.getTime())) as DbFinishedMatch[]);
-
-      const [{ data: compRows }, { data: clubRows }, { data: shortRows }, { data: bcastRows }] = await Promise.all([
-        database.from('competitions').select('id, youtube_handle, backup_channel_handles'),
-        database.from('supported_clubs').select('name, youtube_handle, aliases').limit(1000),
-        database.from('football_shorts').select('youtube_video_id, title, channel_id, channel_name, category, duration_seconds, published_at').order('published_at', { ascending: false }).limit(50),
-        database.from('broadcasters').select('broadcaster_id, name, channel_handle, channel_id, allowed_countries'),
-      ]);
-      const compHandles: Record<string, string[]> = {};
-      for (const c of (compRows || []) as any[]) {
-        const list = [c.youtube_handle, ...(Array.isArray(c.backup_channel_handles) ? c.backup_channel_handles : [])].filter(Boolean);
-        if (c.id && list.length > 0) compHandles[String(c.id)] = list;
-      }
-      const clubHandles: Record<string, string> = {};
-      for (const cl of (clubRows || []) as any[]) {
-        if (cl.name && cl.youtube_handle) {
-          clubHandles[String(cl.name).toLowerCase().trim()] = String(cl.youtube_handle);
-          for (const al of (Array.isArray(cl.aliases) ? cl.aliases : [])) clubHandles[String(al).toLowerCase().trim()] = String(cl.youtube_handle);
-        }
-      }
-      const broadcasters: Record<string, { name: string; handle: string; tier: number }> = {};
-      for (const b of (bcastRows || []) as any[]) {
-        if (b.channel_handle) {
-          const isDom = Array.isArray(b.allowed_countries) && b.allowed_countries.length > 0 && b.allowed_countries.length <= 5;
-          broadcasters[String(b.channel_handle).toLowerCase().trim()] = { name: b.name || b.channel_handle, handle: b.channel_handle, tier: isDom ? 3 : 2 };
-        }
-      }
-      setChannelLookup({ compHandles, clubHandles, broadcasters });
+      const { channelLookup: resolvedChannels, shortRows } = await fetchTelemetryChannels();
+      setChannelLookup(resolvedChannels);
       if (shortRows) setDbShorts(shortRows as DbFootballShort[]);
 
       const [{ data: aRows, count: aCount }, { data: sRows, count: sCount }, { data: traceRows }] = await Promise.all([
         database.from('user_analytics_events').select('*', { count: 'exact' }).order('created_at', { ascending: false }).limit(200),
-        database.from('app_sessions').select('*', { count: 'exact' }).order('started_at', { ascending: false }).limit(200),
+        database.from('app_sessions').select('*', { count: 'exact' }).order('last_active', { ascending: false }).limit(200),
         database.from('worker_events').select('event_id, timestamp, metadata').eq('action', 'WATERFALL_TRACE').order('timestamp', { ascending: false }).limit(250),
       ]);
       if (aRows) setAnalyticsEvents(aRows as UserAnalyticsEvent[]);
@@ -130,8 +112,9 @@ export default function TelemetryPage() {
     } finally {
       setIsRefreshing(false);
       setIsLoading(false);
+      setIsSeasonLoading(false);
     }
-  }, []);
+  }, [seasonFilter]);
 
   useEffect(() => {
     fetchTelemetry();
@@ -159,17 +142,18 @@ export default function TelemetryPage() {
     [data, dbFinishedMatches, channelLookup, waterfallTraces],
   );
 
+  const coverageMetrics = useMemo(() => computeCoverageMetrics(waterfalls), [waterfalls]);
+
   const filteredWaterfalls = useMemo(() => {
     return waterfalls.filter((wf: MatchWaterfall) => {
       const matchesSearch = !searchQuery || wf.title.toLowerCase().includes(searchQuery.toLowerCase()) || wf.matchId.includes(searchQuery);
-      const matchesStatus = statusFilter === 'ALL' || wf.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesCoverageFilter(wf, statusFilter);
     });
   }, [waterfalls, searchQuery, statusFilter]);
 
   const groupedWaterfalls = useMemo(() => groupWaterfallsByWeekAndCompetition(filteredWaterfalls), [filteredWaterfalls]);
 
-  const unlinkedCount = useMemo(() => waterfalls.filter((w) => w.status === 'UNLINKED' || w.status === 'COOLDOWN').length, [waterfalls]);
+  const unlinkedCount = coverageMetrics.unlinkedCount;
 
   const liveMatchesCount = useMemo(() => {
     if (!data?.events) return 0;
@@ -219,6 +203,15 @@ export default function TelemetryPage() {
           <main className="flex-1 min-w-0 w-full space-y-5">
             {activeTab === 'highlights' && (
               <>
+                <CoverageMetricsDeck
+                  metrics={coverageMetrics}
+                  activeFilter={statusFilter}
+                  onSelectFilter={setStatusFilter}
+                  seasonFilter={seasonFilter}
+                  onSeasonChange={handleSeasonChange}
+                  isLoadingSeason={isSeasonLoading}
+                />
+
                 <PipelineFlowGraph
                   todayQuotaUsage={data?.quota?.hits_today ?? 0}
                   onNodeClick={(key) => setSearchQuery((prev) => (prev === key ? '' : key))}
@@ -239,7 +232,7 @@ export default function TelemetryPage() {
                     <span>Click any match card to inspect diagnostic steps</span>
                   </div>
 
-                  {isLoading ? (
+                  {isLoading || isSeasonLoading ? (
                     viewMode === 'grouped' ? (
                       <WaterfallGroupedSkeleton />
                     ) : (
@@ -252,6 +245,7 @@ export default function TelemetryPage() {
                   ) : viewMode === 'grouped' ? (
                     <GroupedWaterfallsView
                       groups={groupedWaterfalls}
+                      channelLookup={channelLookup}
                       onOverrideSuccess={fetchTelemetry}
                     />
                   ) : filteredWaterfalls.length === 0 ? (
@@ -260,7 +254,12 @@ export default function TelemetryPage() {
                     </div>
                   ) : (
                     filteredWaterfalls.map((wf) => (
-                      <WaterfallCard key={wf.matchId} waterfall={wf} onOverrideSuccess={fetchTelemetry} />
+                      <WaterfallCard
+                        key={wf.matchId}
+                        waterfall={wf}
+                        channelLookup={channelLookup}
+                        onOverrideSuccess={fetchTelemetry}
+                      />
                     ))
                   )}
                 </div>
@@ -270,7 +269,13 @@ export default function TelemetryPage() {
             {activeTab === 'fixtures' && <LiveScoresPipelineView pipelineInfo={data?.pipelines?.fixtures} events={data?.events || []} />}
             {activeTab === 'shorts' && <ShortsPipelineView dbShorts={dbShorts} events={data?.events || []} />}
             {activeTab === 'websub' && <WebSubPipelineView pipelineInfo={data?.pipelines?.websub} events={data?.events || []} />}
-            {activeTab === 'notifications' && <NotificationsPipelineView notificationsPayload={notifications} audiencePayload={audience} />}
+            {activeTab === 'notifications' && (
+              <NotificationsPipelineView
+                notificationsPayload={notifications}
+                audiencePayload={audience}
+                clubNamesById={channelLookup.clubNamesById}
+              />
+            )}
             {activeTab === 'analytics' && (
               <AnalyticsPipelineView
                 events={analyticsEvents}

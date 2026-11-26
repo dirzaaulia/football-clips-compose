@@ -178,8 +178,19 @@ export interface WeekCompetitionGroup {
   }[];
 }
 
+export type CoverageFilterType =
+  | 'ALL'
+  | 'LINKED'
+  | 'COOLDOWN'
+  | 'UNLINKED'
+  | 'BELOW_TARGET'
+  | 'WORLDWIDE_99';
+
+export type SeasonFilterType = '2026' | '2025' | 'ALL';
+
 export interface DbFinishedMatch {
   id: string | number;
+  season?: number;
   competition_id?: string;
   competition_name?: string;
   utc_date?: string;

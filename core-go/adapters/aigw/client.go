@@ -132,38 +132,6 @@ func (c *Client) evaluateWithAI(
 	return det, nil
 }
 
-func matchesTeam(title, team string) bool {
-	t := strings.ToLower(title)
-	tm := strings.ToLower(team)
-	if strings.Contains(t, tm) {
-		return true
-	}
-	if tm == "manchester united" && (strings.Contains(t, "man utd") || strings.Contains(t, "man united") || strings.Contains(t, "united")) {
-		return true
-	}
-	if tm == "manchester city" && (strings.Contains(t, "man city") || strings.Contains(t, "city")) {
-		return true
-	}
-	if tm == "tottenham hotspur" && (strings.Contains(t, "tottenham") || strings.Contains(t, "spurs")) {
-		return true
-	}
-	if tm == "wolverhampton wanderers" && strings.Contains(t, "wolves") {
-		return true
-	}
-	if tm == "brighton & hove albion" && strings.Contains(t, "brighton") {
-		return true
-	}
-	if tm == "nottingham forest" && strings.Contains(t, "forest") {
-		return true
-	}
-	for _, w := range strings.Fields(tm) {
-		if len(w) >= 5 && strings.Contains(t, w) {
-			return true
-		}
-	}
-	return false
-}
-
 func (c *Client) evaluateDeterministic(
 	match domain.Match,
 	candidates []domain.VideoCandidate,
@@ -176,6 +144,7 @@ func (c *Client) evaluateDeterministic(
 
 	for _, cand := range candidates {
 		tLower := strings.ToLower(cand.Title)
+		tNorm := normalizeText(cand.Title)
 		if strings.Contains(tLower, "#shorts") || strings.Contains(tLower, "/shorts") {
 			continue
 		}
@@ -184,15 +153,17 @@ func (c *Client) evaluateDeterministic(
 			continue
 		}
 
-		hasHighlights := strings.Contains(tLower, "highlight") ||
-			strings.Contains(tLower, "resumen") ||
-			strings.Contains(tLower, "cuplikan") ||
-			strings.Contains(tLower, "sintesi") ||
-			strings.Contains(tLower, "samenvatting") ||
-			strings.Contains(tLower, "goals") ||
-			strings.Contains(tLower, "tore") ||
-			strings.Contains(tLower, "buts") ||
-			cand.Source == "RSS"
+		hasHighlights := strings.Contains(tNorm, "highlight") ||
+			strings.Contains(tNorm, "resumen") ||
+			strings.Contains(tNorm, "resume") ||
+			strings.Contains(tNorm, "cuplikan") ||
+			strings.Contains(tNorm, "sintesi") ||
+			strings.Contains(tNorm, "samenvatting") ||
+			strings.Contains(tNorm, "goals") ||
+			strings.Contains(tNorm, "tore") ||
+			strings.Contains(tNorm, "buts") ||
+			cand.Source == "RSS" ||
+			(cand.DurationSeconds >= 90 && cand.Tier > 0)
 
 		if !hasHighlights {
 			continue

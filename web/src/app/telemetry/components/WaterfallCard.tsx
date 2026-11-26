@@ -10,13 +10,15 @@ import { WaterfallSteps } from './WaterfallSteps';
 import { ManualOverrideModal } from './ManualOverrideModal';
 import { database } from '@/lib/database';
 import { mapTraceToCycleRun } from '../waterfallTraceHelper';
+import { ChannelLookupMap } from '../mapperHelper';
 
 interface WaterfallCardProps {
   waterfall: MatchWaterfall;
+  channelLookup?: ChannelLookupMap;
   onOverrideSuccess?: () => void;
 }
 
-export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardProps) {
+export function WaterfallCard({ waterfall, channelLookup, onOverrideSuccess }: WaterfallCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isOverrideOpen, setIsOverrideOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -36,7 +38,22 @@ export function WaterfallCard({ waterfall, onOverrideSuccess }: WaterfallCardPro
         .order('timestamp', { ascending: false })
         .limit(20);
       if (data && data.length > 0) {
-        setLazyCycles(data.map((r: any) => mapTraceToCycleRun(r)));
+        const mapped = data.map((r: any) => mapTraceToCycleRun(r, channelLookup));
+        if (waterfall.status === 'LINKED' && mapped[0]?.status !== 'LINKED') {
+          const linkedHead: MatchCycleRun = waterfall.cycles?.[0]?.status === 'LINKED' ? waterfall.cycles[0] : {
+            timestamp: waterfall.timestamp || 'Linked',
+            step1Channels: waterfall.step1Channels,
+            step2Candidates: waterfall.step2Candidates,
+            step3Verdicts: waterfall.step3Verdicts,
+            step4Outcome: waterfall.step4Outcome,
+            outcomeVideoId: waterfall.outcomeVideoId,
+            outcomeVideoUrl: waterfall.outcomeVideoUrl,
+            status: 'LINKED',
+          };
+          setLazyCycles([linkedHead, ...mapped]);
+        } else {
+          setLazyCycles(mapped);
+        }
       }
     } catch (e) {
       console.warn('Failed lazy trace fetch', e);
