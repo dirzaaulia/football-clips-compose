@@ -10,14 +10,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +33,8 @@ import com.dirzaaulia.footballclips.data.model.HighlightUiItem
 import com.dirzaaulia.footballclips.data.model.remote.SupportedClub
 import com.dirzaaulia.footballclips.data.model.remote.isMatchForFavoriteClubs
 import com.dirzaaulia.footballclips.domain.model.Match
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 @Composable
 fun HomeLiveMatchSection(
@@ -59,27 +64,68 @@ fun HomeLiveMatchSection(
             onSeeAllClick = onSeeAllClick,
         )
 
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 2.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(displayedMatches, key = { it.id }) { match ->
-                val isFav = match.isMatchForFavoriteClubs(favoriteClubs, supportedClubs)
-                CompactLiveMatchCard(
-                    match = match,
-                    isFavorite = isFav,
-                    onClick = { onMatchClick(HighlightUiItem.OracleMatch(match)) },
-                )
-            }
+        LiveMatchCarouselRow(
+            displayedMatches = displayedMatches,
+            hasMore = sortedMatches.size > 5,
+            remainingCount = sortedMatches.size - 5,
+            favoriteClubs = favoriteClubs,
+            supportedClubs = supportedClubs,
+            onMatchClick = onMatchClick,
+            onSeeAllClick = onSeeAllClick,
+        )
+    }
+}
 
-            if (sortedMatches.size > 5) {
-                item(key = "see_all_live") {
-                    SeeAllLiveMatchesCard(
-                        remaining = sortedMatches.size - 5,
-                        onClick = onSeeAllClick,
-                    )
-                }
+@Composable
+private fun rememberLiveMatchAutoScrollState(itemCount: Int): LazyListState {
+    val listState = rememberLazyListState()
+    LaunchedEffect(itemCount) {
+        if (itemCount <= 1) return@LaunchedEffect
+        while (isActive) {
+            delay(4000L)
+            if (!listState.isScrollInProgress) {
+                val nextIndex = (listState.firstVisibleItemIndex + 1) % itemCount
+                listState.animateScrollToItem(index = nextIndex)
+            }
+        }
+    }
+    return listState
+}
+
+@Composable
+private fun LiveMatchCarouselRow(
+    displayedMatches: List<Match>,
+    hasMore: Boolean,
+    remainingCount: Int,
+    favoriteClubs: Set<String>,
+    supportedClubs: List<SupportedClub>,
+    onMatchClick: (HighlightUiItem) -> Unit,
+    onSeeAllClick: () -> Unit,
+) {
+    val totalCount = displayedMatches.size + (if (hasMore) 1 else 0)
+    val listState = rememberLiveMatchAutoScrollState(itemCount = totalCount)
+
+    LazyRow(
+        state = listState,
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(displayedMatches, key = { it.id }) { match ->
+            val isFav = match.isMatchForFavoriteClubs(favoriteClubs, supportedClubs)
+            CompactLiveMatchCard(
+                match = match,
+                isFavorite = isFav,
+                onClick = { onMatchClick(HighlightUiItem.OracleMatch(match)) },
+            )
+        }
+
+        if (hasMore) {
+            item(key = "see_all_live") {
+                SeeAllLiveMatchesCard(
+                    remaining = remainingCount,
+                    onClick = onSeeAllClick,
+                )
             }
         }
     }
@@ -95,28 +141,7 @@ private fun LiveMatchSectionHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Box(modifier = Modifier.size(7.dp).clip(CircleShape).background(Color(0xFFEF4444)))
-            Text(
-                text = "LIVE MATCHES",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 0.5.sp,
-                color = Color(0xFFEF4444),
-            )
-            Surface(color = Color(0xFFEF4444).copy(alpha = 0.15f), shape = CircleShape) {
-                Text(
-                    text = "$totalInPlay In-Play",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFEF4444),
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                )
-            }
-        }
+        LiveMatchHeaderPill(totalInPlay = totalInPlay)
 
         Text(
             text = "See all",
@@ -128,5 +153,31 @@ private fun LiveMatchSectionHeader(
                 .clickable { onSeeAllClick() }
                 .padding(4.dp),
         )
+    }
+}
+
+@Composable
+private fun LiveMatchHeaderPill(totalInPlay: Int) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Box(modifier = Modifier.size(7.dp).clip(CircleShape).background(Color(0xFFEF4444)))
+        Text(
+            text = "LIVE MATCHES",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 0.5.sp,
+            color = Color(0xFFEF4444),
+        )
+        Surface(color = Color(0xFFEF4444).copy(alpha = 0.15f), shape = CircleShape) {
+            Text(
+                text = "$totalInPlay In-Play",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFEF4444),
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+            )
+        }
     }
 }

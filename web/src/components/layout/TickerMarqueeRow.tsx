@@ -51,7 +51,7 @@ export default function TickerMarqueeRow({
   return (
     <div
       aria-hidden={ariaHidden}
-      className="flex items-center gap-2.5 shrink-0 animate-marquee hover:[animation-play-state:paused]"
+      className="flex items-center gap-2.5 pr-2.5 shrink-0 animate-marquee group-hover:[animation-play-state:paused]"
       style={{ animationDuration: `${duration}s` }}
     >
       {matches.map((match, idx) => {

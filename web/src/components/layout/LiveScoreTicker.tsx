@@ -92,9 +92,18 @@ export default function LiveScoreTicker() {
     return matches.filter((m) => m.competition_id === selectedComp);
   }, [matches, selectedComp]);
 
+  const marqueeMatches = useMemo(() => {
+    if (filteredMatches.length === 0) return [];
+    let result = [...filteredMatches];
+    while (result.length < 8) {
+      result = [...result, ...filteredMatches];
+    }
+    return result;
+  }, [filteredMatches]);
+
   const marqueeDuration = useMemo(() => {
-    return Math.max(22, Math.round(filteredMatches.length * 8));
-  }, [filteredMatches.length]);
+    return Math.max(25, Math.round(marqueeMatches.length * 4.5));
+  }, [marqueeMatches.length]);
 
   if (loading && matches.length === 0) return null;
   if (filteredMatches.length === 0) return null;
@@ -132,9 +141,9 @@ export default function LiveScoreTicker() {
         </div>
 
         {/* Marquee Track Container with Fade Masks */}
-        <div className="flex items-center overflow-hidden flex-1 relative [mask-image:linear-gradient(to_right,transparent,black_15px,black_calc(100%-15px),transparent)]">
+        <div className="group flex items-center overflow-hidden flex-1 relative [mask-image:linear-gradient(to_right,transparent,black_15px,black_calc(100%-15px),transparent)]">
           <TickerMarqueeRow
-            matches={filteredMatches}
+            matches={marqueeMatches}
             mode={mode}
             duration={marqueeDuration}
             isSpoilerFree={isSpoilerFree}
@@ -142,7 +151,7 @@ export default function LiveScoreTicker() {
             onToggleUnblur={toggleUnblur}
           />
           <TickerMarqueeRow
-            matches={filteredMatches}
+            matches={marqueeMatches}
             mode={mode}
             duration={marqueeDuration}
             isSpoilerFree={isSpoilerFree}
