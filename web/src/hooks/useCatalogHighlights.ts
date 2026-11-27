@@ -25,6 +25,7 @@ export interface UseInfiniteHighlightsResult {
 const FALLBACK_COMPETITIONS = [
   'CL', 'EL', 'ECL', 'PL', 'PD', 'SA', 'BL1', 'FL1',
   'SPL', 'MLS', 'DED', 'PPL', 'IDN', 'BRA', 'ARG',
+  'ACL', 'ACL2', 'ENG2', 'JPN1', 'TUR1', 'MEX1', 'BEL1',
   'FAC', 'EFL', 'CDR', 'DFB', 'CIT', 'LIB', 'SUD', 'REC',
   'UNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA', 'CNL', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI',
 ];

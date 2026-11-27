@@ -96,6 +96,14 @@ fun String.normalizeLeagueName(): String {
         trimmed.contains("BRI", ignoreCase = true) ||
         trimmed.equals("IDN", ignoreCase = true) -> "BRI Super League (Liga Indonesia)"
 
+        trimmed.equals("ACL", ignoreCase = true) -> "AFC Champions League Elite"
+        trimmed.equals("ACL2", ignoreCase = true) -> "AFC Champions League Two"
+        trimmed.equals("ENG2", ignoreCase = true) -> "EFL Championship"
+        trimmed.equals("JPN1", ignoreCase = true) -> "J1 League"
+        trimmed.equals("TUR1", ignoreCase = true) -> "Turkish Super Lig"
+        trimmed.equals("MEX1", ignoreCase = true) -> "Liga MX"
+        trimmed.equals("BEL1", ignoreCase = true) -> "Belgian Pro League"
+
         else -> trimmed
     }
 }

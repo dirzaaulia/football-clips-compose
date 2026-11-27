@@ -1,0 +1,22 @@
+schema: spec-driven
+githubCopilot:
+  cloudAgent: false
+
+context: |
+  FootballClips is a polyglot football OTT & live telemetry platform:
+  - Backend: Golang 1.23+ micro-daemon (core-go/) on Oracle VM ARM64 + PostgreSQL 16 + PostgREST (edge.fc.dirzaaulia.com).
+  - Telemetry: Next.js Telemetry Hub (web/src/app/telemetry/) reading PostgREST waterfall diagnostics.
+  - Android: Kotlin Multiplatform + Jetpack Compose (composeApp/ + androidApp/, SDK 37, AGP 9.4.0).
+  - Web: Next.js 16 static export (web/out/) deployed to Firebase Hosting.
+  Non-negotiable invariants:
+  - File length max 250 lines (ceiling 300), function/composable max 40 lines, ViewModel max 150 lines.
+  - Historical archive seasons (season < 2026) are immutable (protect_archive_matches trigger).
+  - Legacy cloud Supabase is decommissioned; datastore is strictly PostgreSQL 16 / PostgREST.
+  - Zero raw emojis in production UI; vector icons only. Zero circular spinners; 1:1 shimmer skeletons only.
+  - All Shorts must be embeddable (videos.list status.embeddable + /embed/{id} HTML check).
+
+rules:
+  proposal:
+    - Specify impacted pillars (backend, telemetry, android, web) and DB migrations.
+  tasks:
+    - Include compilation & test verification gates (go test -race, npm run build, :composeApp:compileAndroidMain).

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SupportedClub",
+  "type": "object",
+  "required": ["id", "team_id", "name", "competition_code", "is_active"],
+  "properties": {
+    "id": { "type": "string" },
+    "team_id": { "type": "integer" },
+    "name": { "type": "string" },
+    "short_name": { "type": "string" },
+    "competition_code": { "type": "string" },
+    "competition_name": { "type": "string" },
+    "crest_url": { "type": "string" },
+    "youtube_handle": { "type": ["string", "null"] },
+    "youtube_channel_id": { "type": ["string", "null"] },
+    "channel_tier": { "type": "integer" },
+    "backup_channel_handle": { "type": ["string", "null"] },
+    "is_active": { "type": "boolean" }
+  }
+}

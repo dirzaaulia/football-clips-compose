@@ -1,3 +1,5 @@
+import { MARKET_COMPETITIONS } from '@/lib/marketCompetitions';
+
 export interface CompetitionMeta {
   id: string;
   name: string;
@@ -6,6 +8,7 @@ export interface CompetitionMeta {
 }
 
 const COMPETITION_REGISTRY: Record<string, CompetitionMeta> = {
+  ...MARKET_COMPETITIONS,
   CL: {
     id: 'CL',
     name: 'UEFA Champions League',

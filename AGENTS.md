@@ -199,10 +199,12 @@ All AI models and autonomous agents working in this repository (Claude, Cursor, 
 5. **Zero Secret & IP Exposure**: Never hardcode production IP addresses (`168.110.196.30`) or plain-text credentials. Always read from environment variables or `getSecret()`.
 6. **Lean Database Storage**: Never persist tactical boxscore coordinates, formations, statistics, or editorial stories to PostgreSQL `matches`. Stream them 100% on-demand from ESPN API.
 
-### Gate 2: Planning & Approval Gate
+### Gate 2: Planning, OpenSpec SDD & Approval Gate
 1. For any multi-file refactoring, architectural shift, or feature introduction, generate or update a structured Implementation Plan Artifact (`...plan.md`) and Walkthrough Artifact (`walkthrough.md`).
-2. Clearly highlight architectural trade-offs, security invariants, and user experience.
-3. Never introduce breaking changes to active endpoint tiers (Transitional Cloudflare Edge, Production Caddy / PostgREST).
+2. **Spec-Driven Development (`OpenSpec`)**: Maintain living specifications in `openspec/specs/{backend,telemetry,android,web}/spec.md` and frozen PostgREST contracts in `openspec/specs/contracts/*.schema.json`. Significant feature changes or competition expansions MUST be proposed/applied via `openspec/changes/` and synced back to `openspec/specs/`.
+3. **New Competition Onboarding**: Follow `docs/NEW_COMPETITION_CHECKLIST.md` end-to-end (ESPN feasibility, `/embed/` playability audit, PostgreSQL migration, club/channel audit, Go daemon, Web & Android fallbacks).
+4. Clearly highlight architectural trade-offs, security invariants, and user experience.
+5. Never introduce breaking changes to active endpoint tiers (Transitional Cloudflare Edge, Production Caddy / PostgREST).
 
 ### Gate 3: Automated Quality & Compilation Verification
 Before presenting completion, execute and verify all applicable automated gates:

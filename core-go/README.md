@@ -20,19 +20,21 @@ core-go/
 ├── ports/                     # Input/Output interface contracts
 │   └── repositories.go        # Database, ESPN, YouTube, and AI Gateway protocols
 ├── usecases/                  # Single-action application interactors
-│   ├── sync_live.go           # Live match polling & FCM dispatch (60s tick)
-│   ├── discover_highlights.go # Highlight search, multi-tier discovery & AI reranking (5m tick)
-│   ├── ingest_shorts.go       # 0-quota Atom RSS shorts ingestion & Hype Score (10–100) (30m tick)
-│   └── renew_websub.go        # PubSubHubbub subscription renewal (12h tick)
+│   ├── sync_scores.go         # Live match polling & FCM dispatch (60s tick)
+│   ├── find_highlight.go      # Highlight search, multi-tier discovery & AI reranking (2m tick)
+│   ├── ingest_shorts.go       # Concurrent RSS shorts ingestion + 30-day TTL pruning (30m tick)
+│   ├── shorts_embeddability.go # Mandatory videos.list + /embed/{id} HTML playability gate
+│   ├── shorts_scoring.go      # Hype Score (50-100) & anti-spam classification
+│   └── sync_standings.go      # Automated ESPN league/cup standings sync (6h tick)
 ├── adapters/                  # Outbound technology adapters
 │   ├── postgres/              # Direct pgx/v5 binary protocol connection pool
-│   ├── espn/                  # ESPN live match & score REST client
+│   ├── espn/                  # ESPN live match & score REST client (38 active competitions)
 │   ├── youtube/               # Zero-quota Atom XML RSS parser & YouTube Data API v3 client
 │   ├── websub/                # HTTP callback server (:8094) for instant upload notifications
 │   ├── aigw/                  # Oracle VM AI Gateway / Ollama ARM64 reranking adapter
 │   ├── fcm/                   # Firebase Cloud Messaging HTTP v1 push notification adapter
 │   └── edge/                  # Edge cache invalidation adapter
-└── tests/                     # Unit & integration test suites
+└── tests/                     # Unit & integration test suites (verified against openspec/specs/)
 ```
 
 ---
@@ -41,10 +43,13 @@ core-go/
 
 ### 1. `fc-daemon` (Autonomous Operations Micro-Daemon)
 Runs continuously on the Oracle VM host via systemd (`fc-daemon.service`):
-- **Live Match Polling**: Queries ESPN API every 60s for active matches and goal alerts.
-- **Highlight Discovery**: Runs every 5m evaluating finished matches through Tier 1 (League), Tier 2 (Club), and Tier 3 (Broadcaster) channels.
-- **Shorts Rotation**: Runs every 30m cycling 50 clubs per batch via zero-quota Atom RSS, assigning dynamic Hype Scores (10–100).
+- **Live Match Polling**: Queries ESPN API every 60s across all active competitions in PostgreSQL `competitions`.
+- **Highlight Discovery**: Runs every 2m evaluating finished matches through Tier 1 (League), Tier 2 (Club), and Tier 3 (Broadcaster) channels with per-match waterfall telemetry.
+- **Embeddable Shorts Pipeline**: Runs every 30m concurrently scanning 80+ clubs & broadcasters, verifying `HEAD /shorts/{id}`, YouTube Data API `videos.list` (`status.embeddable` + `WatchabilityPct >= 50%`), and `/embed/{id}` HTML playability, plus 30-day TTL / 3,000-cap rolling pruning.
+- **Standings Sync**: Runs every 6h across all active league/hybrid/group-cup competitions.
 - **WebSub Push Hub**: Listens on port `8094` for real-time YouTube upload webhooks.
+
+> **OpenSpec SDD**: See [openspec/specs/backend/spec.md](../openspec/specs/backend/spec.md) and [docs/NEW_COMPETITION_CHECKLIST.md](../docs/NEW_COMPETITION_CHECKLIST.md).
 
 ### 2. `fc-deploy` (Native Deployment CLI)
 Replaces legacy deployment scripts with type-safe Go execution:

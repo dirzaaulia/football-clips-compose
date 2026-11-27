@@ -94,12 +94,15 @@ func main() {
 
 	fallbackComps := []string{
 		"PL", "PD", "SA", "BL1", "FL1", "CL", "EL", "ECL",
-		"FAC", "EFL", "CDR", "DFB", "CIT", "SPL", "MLS", "DED", "PPL",
+		"FAC", "EFL", "CDR", "DFB", "CIT", "SPL", "MLS", "DED", "PPL", "IDN",
+		"ACL", "ACL2", "ENG2", "JPN1", "TUR1", "MEX1", "BEL1",
+		"BRA", "ARG", "LIB", "SUD", "REC",
 		"UNL", "WCQ_CONMEBOL", "WCQ_AFC", "WCQ_UEFA", "CNL", "WCQ_CONCACAF", "WCQ_CAF", "FRI",
 	}
 	targetComps := resolveTargetComps(ctx, repo, fallbackComps)
 	standingsComps := []string{
 		"PL", "PD", "SA", "BL1", "FL1", "CL", "SPL", "MLS", "DED", "PPL", "IDN", "BRA", "ARG",
+		"ACL", "ACL2", "ENG2", "JPN1", "TUR1", "MEX1", "BEL1",
 		"UNL", "CNL", "WCQ_CONMEBOL",
 	}
 

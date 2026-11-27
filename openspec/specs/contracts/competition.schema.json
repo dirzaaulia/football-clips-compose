@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Competition",
+  "type": "object",
+  "required": ["id", "name", "slug", "type", "is_active", "display_order"],
+  "properties": {
+    "id": { "type": "string", "minLength": 2 },
+    "name": { "type": "string" },
+    "short_name": { "type": "string" },
+    "country_code": { "type": "string" },
+    "slug": { "type": "string" },
+    "type": { "type": "string", "enum": ["league", "cup", "hybrid"] },
+    "emblem_url": { "type": "string", "format": "uri" },
+    "emblem_dark_url": { "type": "string", "format": "uri" },
+    "youtube_handle": { "type": ["string", "null"] },
+    "youtube_channel_id": { "type": ["string", "null"] },
+    "is_active": { "type": "boolean" },
+    "display_order": { "type": "integer" }
+  }
+}
