@@ -82,6 +82,7 @@ kotlin {
             implementation(libs.androidx.core.splashscreen)
             implementation(libs.androidx.material)
             implementation(libs.admob.nextgen)
+            implementation(libs.android.youtube.player)
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.koin.android)

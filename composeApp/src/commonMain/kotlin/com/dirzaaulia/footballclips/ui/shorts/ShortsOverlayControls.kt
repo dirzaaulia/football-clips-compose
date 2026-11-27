@@ -87,12 +87,12 @@ fun ShortsOverlayControls(
             onShare = onShare,
             onToggleMute = onToggleMute,
             onOpenYouTube = onOpenYouTube,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 12.dp, bottom = 80.dp),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 12.dp, bottom = 116.dp),
         )
 
         ShortsBottomMetadata(
             short = short,
-            modifier = Modifier.align(Alignment.BottomStart).padding(start = 16.dp, end = 80.dp, bottom = 24.dp),
+            modifier = Modifier.align(Alignment.BottomStart).padding(start = 16.dp, end = 80.dp, bottom = 104.dp),
         )
 
         AnimatedVisibility(

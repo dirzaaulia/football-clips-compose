@@ -14,4 +14,8 @@
 }
 
 # Keep BuildConfig fields for runtime environment detection (Release Track, Version Name)
--keep class com.dirzaaulia.footballclips.BuildConfig { *; }
+-keep class com.dirzaaulia.footballclips.BuildConfig { *; }
+
+# Keep AnalyticsEventDto serializer for PostgREST telemetry in R8 release builds
+-keep class com.dirzaaulia.footballclips.data.analytics.AnalyticsEventDto { *; }
+-keep class com.dirzaaulia.footballclips.data.analytics.AnalyticsEventDto$Companion { *; }

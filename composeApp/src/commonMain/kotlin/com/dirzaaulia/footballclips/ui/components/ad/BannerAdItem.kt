@@ -19,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -97,7 +96,6 @@ private fun AdCardContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(cardHeight)
-                .alpha(if (isLoading) 0f else 1f)
                 .clip(RoundedCornerShape(18.dp)),
         )
     }
@@ -108,9 +106,9 @@ private fun resolveAdHeight(style: NativeAdStyle, isLandscape: Boolean, maxHeigh
     NativeAdStyle.HERO_LANDSCAPE,
     -> if (isLandscape) 180.dp else 240.dp
     NativeAdStyle.MATCH -> if (isLandscape) 130.dp else 150.dp
-    NativeAdStyle.HIGHLIGHT -> if (isLandscape) 120.dp else 145.dp
-    NativeAdStyle.STANDINGS -> if (isLandscape) 110.dp else 130.dp
-    NativeAdStyle.SHORTS -> if (isLandscape) 280.dp else (maxHeight - 48.dp).coerceIn(420.dp, 600.dp)
+    NativeAdStyle.HIGHLIGHT -> if (isLandscape) 180.dp else 275.dp
+    NativeAdStyle.STANDINGS -> if (isLandscape) 115.dp else 132.dp
+    NativeAdStyle.SHORTS -> if (isLandscape) 280.dp else (maxHeight - 116.dp).coerceIn(380.dp, 540.dp)
 }
 
 private fun resolveAdShape(style: NativeAdStyle): RoundedCornerShape = when (style) {

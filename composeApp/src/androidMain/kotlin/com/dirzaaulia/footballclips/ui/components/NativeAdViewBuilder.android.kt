@@ -74,13 +74,13 @@ internal fun createHeroAdView(ctx: Context, nativeView: NativeAdView, nativeAd: 
     rootLayout.addView(mediaView)
 
     val adBadgeDrawable = GradientDrawable().apply {
-        setColor(AndroidColor.TRANSPARENT)
-        setStroke(2, AndroidColor.parseColor("#D4AF37"))
+        setColor(AndroidColor.parseColor("#CC0B0C10"))
+        setStroke(1.dpToPx(ctx), AndroidColor.parseColor("#DFFF00"))
         cornerRadius = 8.dpToPx(ctx).toFloat()
     }
     val adBadgeView = TextView(ctx).apply {
-        text = "Ad"
-        setTextColor(AndroidColor.parseColor("#D4AF37"))
+        text = "Sponsored"
+        setTextColor(AndroidColor.parseColor("#DFFF00"))
         textSize = 10f
         setTypeface(null, Typeface.BOLD)
         background = adBadgeDrawable
@@ -153,13 +153,12 @@ internal fun createHeroAdView(ctx: Context, nativeView: NativeAdView, nativeAd: 
     footerLayout.addView(textColumn)
 
     val ctaDrawable = GradientDrawable().apply {
-        setColor(AndroidColor.TRANSPARENT)
-        setStroke(2, AndroidColor.parseColor("#D4AF37"))
-        cornerRadius = 14.dpToPx(ctx).toFloat()
+        setColor(AndroidColor.parseColor("#DFFF00"))
+        cornerRadius = 12.dpToPx(ctx).toFloat()
     }
     val ctaView = TextView(ctx).apply {
         text = nativeAd.callToAction ?: "Open"
-        setTextColor(AndroidColor.parseColor("#D4AF37"))
+        setTextColor(AndroidColor.parseColor("#0B0C10"))
         textSize = 11f
         setTypeface(null, Typeface.BOLD)
         background = ctaDrawable

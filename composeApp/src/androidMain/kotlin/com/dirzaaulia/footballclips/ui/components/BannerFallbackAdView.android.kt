@@ -69,7 +69,7 @@ internal fun BannerFallbackAdView(
                     addView(
                         adView,
                         FrameLayout.LayoutParams(
-                            FrameLayout.LayoutParams.WRAP_CONTENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT,
                             FrameLayout.LayoutParams.WRAP_CONTENT,
                             Gravity.CENTER,
                         ),
@@ -89,6 +89,7 @@ internal fun BannerFallbackAdView(
     }
 }
 
+@Suppress("DEPRECATION")
 private fun resolveBannerAdSize(
     context: Context,
     style: NativeAdStyle,
@@ -97,7 +98,7 @@ private fun resolveBannerAdSize(
     return if (style == NativeAdStyle.SHORTS) {
         AdSize.MEDIUM_RECTANGLE
     } else {
-        AdSize.getLargeAnchoredAdaptiveBannerAdSize(context, widthDp)
+        AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(context, widthDp)
     }
 }
 

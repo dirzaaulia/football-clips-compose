@@ -10,12 +10,15 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class AnalyticsEventDto(
     @SerialName("event_name")
@@ -24,8 +27,10 @@ data class AnalyticsEventDto(
     val userId: String? = null,
     @SerialName("device_id")
     val deviceId: String? = null,
+    @EncodeDefault
     @SerialName("platform")
     val platform: String = "android",
+    @EncodeDefault
     @SerialName("payload")
     val payload: JsonObject = JsonObject(emptyMap()),
 )
@@ -96,6 +101,7 @@ class AppAnalyticsImpl(
                 )
                 client.post(eventsEndpoint) {
                     contentType(ContentType.Application.Json)
+                    header("apikey", DatabaseConstants.DATABASE_ANON_KEY)
                     header("Prefer", "return=minimal")
                     setBody(dto)
                 }

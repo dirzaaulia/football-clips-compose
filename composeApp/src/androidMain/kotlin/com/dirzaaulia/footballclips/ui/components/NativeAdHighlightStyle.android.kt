@@ -21,21 +21,21 @@ internal fun createHighlightAdView(ctx: Context, nativeView: NativeAdView, nativ
     )
 
     val rootLayout = LinearLayout(ctx).apply {
-        orientation = LinearLayout.HORIZONTAL
-        gravity = Gravity.CENTER_VERTICAL
+        orientation = LinearLayout.VERTICAL
         layoutParams = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT,
         )
-        setBackgroundColor(AndroidColor.parseColor("#18181B"))
-        setPadding(12.dpToPx(ctx), 12.dpToPx(ctx), 12.dpToPx(ctx), 12.dpToPx(ctx))
+        setBackgroundColor(AndroidColor.parseColor("#111318"))
     }
 
-    // MediaView container strictly enforcing 120dp x 120dp per Google AdMob Policy
     val mediaContainer = FrameLayout(ctx).apply {
-        layoutParams = LinearLayout.LayoutParams(120.dpToPx(ctx), 120.dpToPx(ctx)).apply {
-            setMargins(0, 0, 12.dpToPx(ctx), 0)
-        }
+        layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            0,
+            1f,
+        )
+        setBackgroundColor(AndroidColor.parseColor("#0B0C10"))
     }
 
     val mediaView = MediaView(ctx).apply {
@@ -48,44 +48,45 @@ internal fun createHighlightAdView(ctx: Context, nativeView: NativeAdView, nativ
     mediaView.mediaContent = nativeAd.mediaContent
     mediaContainer.addView(mediaView)
 
-    val adBadgeDrawable = GradientDrawable().apply {
-        setColor(AndroidColor.TRANSPARENT)
-        setStroke(2, AndroidColor.parseColor("#D4AF37"))
-        cornerRadius = 6.dpToPx(ctx).toFloat()
+    val badgeDrawable = GradientDrawable().apply {
+        setColor(AndroidColor.parseColor("#CC0B0C10"))
+        setStroke(1.dpToPx(ctx), AndroidColor.parseColor("#DFFF00"))
+        cornerRadius = 10.dpToPx(ctx).toFloat()
     }
     val adBadgeView = TextView(ctx).apply {
-        text = "Ad"
-        setTextColor(AndroidColor.parseColor("#D4AF37"))
-        textSize = 9f
+        text = "Sponsored"
+        setTextColor(AndroidColor.parseColor("#DFFF00"))
+        textSize = 10f
         setTypeface(null, Typeface.BOLD)
-        background = adBadgeDrawable
-        setPadding(6.dpToPx(ctx), 2.dpToPx(ctx), 6.dpToPx(ctx), 2.dpToPx(ctx))
+        background = badgeDrawable
+        setPadding(8.dpToPx(ctx), 3.dpToPx(ctx), 8.dpToPx(ctx), 3.dpToPx(ctx))
         layoutParams = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.WRAP_CONTENT,
             FrameLayout.LayoutParams.WRAP_CONTENT,
         ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            setMargins(6.dpToPx(ctx), 6.dpToPx(ctx), 0, 0)
+            gravity = Gravity.TOP or Gravity.END
+            setMargins(0, 10.dpToPx(ctx), 10.dpToPx(ctx), 0)
         }
     }
     mediaContainer.addView(adBadgeView)
     rootLayout.addView(mediaContainer)
 
-    // Right Column: Headline, Body, Icon & CTA
-    val textColumn = LinearLayout(ctx).apply {
+    val footer = LinearLayout(ctx).apply {
         orientation = LinearLayout.VERTICAL
-        layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+        )
+        setPadding(14.dpToPx(ctx), 10.dpToPx(ctx), 14.dpToPx(ctx), 12.dpToPx(ctx))
     }
 
-    val headerRow = LinearLayout(ctx).apply {
+    val topRow = LinearLayout(ctx).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT,
-        ).apply {
-            setMargins(0, 0, 0, 4.dpToPx(ctx))
-        }
+        )
     }
 
     val iconView = ImageView(ctx).apply {
@@ -93,57 +94,54 @@ internal fun createHighlightAdView(ctx: Context, nativeView: NativeAdView, nativ
             setMargins(0, 0, 8.dpToPx(ctx), 0)
         }
     }
-    headerRow.addView(iconView)
+    topRow.addView(iconView)
     nativeView.iconView = iconView
 
     val headlineView = TextView(ctx).apply {
         setTextColor(AndroidColor.WHITE)
-        textSize = 13f
+        textSize = 14f
         setTypeface(null, Typeface.BOLD)
         maxLines = 1
         ellipsize = TextUtils.TruncateAt.END
+        layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+            setMargins(0, 0, 10.dpToPx(ctx), 0)
+        }
     }
-    headerRow.addView(headlineView)
+    topRow.addView(headlineView)
     nativeView.headlineView = headlineView
 
-    textColumn.addView(headerRow)
-
-    val bodyView = TextView(ctx).apply {
-        setTextColor(AndroidColor.parseColor("#A1A1AA"))
-        textSize = 11f
-        maxLines = 2
-        ellipsize = TextUtils.TruncateAt.END
-    }
-    textColumn.addView(bodyView)
-    nativeView.bodyView = bodyView
-
     val ctaBackground = GradientDrawable().apply {
-        setColor(AndroidColor.parseColor("#D4AF37"))
-        cornerRadius = 8.dpToPx(ctx).toFloat()
+        setColor(AndroidColor.parseColor("#DFFF00"))
+        cornerRadius = 10.dpToPx(ctx).toFloat()
     }
     val ctaView = TextView(ctx).apply {
-        setTextColor(AndroidColor.BLACK)
+        setTextColor(AndroidColor.parseColor("#0B0C10"))
         textSize = 11f
         setTypeface(null, Typeface.BOLD)
         background = ctaBackground
         gravity = Gravity.CENTER
         setPadding(12.dpToPx(ctx), 6.dpToPx(ctx), 12.dpToPx(ctx), 6.dpToPx(ctx))
-        layoutParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-        ).apply {
-            setMargins(0, 8.dpToPx(ctx), 0, 0)
-        }
     }
-    textColumn.addView(ctaView)
+    topRow.addView(ctaView)
     nativeView.callToActionView = ctaView
+    footer.addView(topRow)
 
-    rootLayout.addView(textColumn)
+    val bodyView = TextView(ctx).apply {
+        setTextColor(AndroidColor.parseColor("#94A3B8"))
+        textSize = 12f
+        maxLines = 1
+        ellipsize = TextUtils.TruncateAt.END
+        setPadding(0, 4.dpToPx(ctx), 0, 0)
+    }
+    footer.addView(bodyView)
+    nativeView.bodyView = bodyView
+
+    rootLayout.addView(footer)
     nativeView.addView(rootLayout)
 
     headlineView.text = nativeAd.headline
-    bodyView.text = nativeAd.body ?: nativeAd.advertiser
-    ctaView.text = nativeAd.callToAction ?: "View"
+    bodyView.text = nativeAd.body ?: nativeAd.advertiser ?: "Official Partner"
+    ctaView.text = nativeAd.callToAction ?: "Open"
     populateIcon(iconView, nativeAd)
 
     nativeView.registerNativeAd(nativeAd, mediaView)

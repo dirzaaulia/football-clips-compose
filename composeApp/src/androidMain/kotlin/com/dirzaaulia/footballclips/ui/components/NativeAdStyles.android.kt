@@ -26,7 +26,7 @@ internal fun createMatchAdView(ctx: Context, nativeView: NativeAdView, nativeAd:
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT,
         )
-        setBackgroundColor(AndroidColor.parseColor("#18181B"))
+        setBackgroundColor(AndroidColor.parseColor("#111318"))
         setPadding(12.dpToPx(ctx), 8.dpToPx(ctx), 12.dpToPx(ctx), 8.dpToPx(ctx))
     }
 
@@ -42,13 +42,13 @@ internal fun createMatchAdView(ctx: Context, nativeView: NativeAdView, nativeAd:
     }
 
     val adBadgeDrawable = GradientDrawable().apply {
-        setColor(AndroidColor.parseColor("#27272A"))
-        setStroke(1.dpToPx(ctx), AndroidColor.parseColor("#D4AF37"))
+        setColor(AndroidColor.parseColor("#1C1E24"))
+        setStroke(1.dpToPx(ctx), AndroidColor.parseColor("#DFFF00"))
         cornerRadius = 6.dpToPx(ctx).toFloat()
     }
     val adBadgeView = TextView(ctx).apply {
         text = "Sponsored"
-        setTextColor(AndroidColor.parseColor("#D4AF37"))
+        setTextColor(AndroidColor.parseColor("#DFFF00"))
         textSize = 9f
         setTypeface(null, Typeface.BOLD)
         background = adBadgeDrawable
@@ -123,13 +123,12 @@ internal fun createMatchAdView(ctx: Context, nativeView: NativeAdView, nativeAd:
     }
 
     val ctaBackground = GradientDrawable().apply {
-        setColor(AndroidColor.parseColor("#27272A"))
-        setStroke(1.dpToPx(ctx), AndroidColor.parseColor("#52525B"))
+        setColor(AndroidColor.parseColor("#DFFF00"))
         cornerRadius = 8.dpToPx(ctx).toFloat()
     }
     val ctaView = TextView(ctx).apply {
         text = nativeAd.callToAction ?: "View"
-        setTextColor(AndroidColor.parseColor("#7098F8"))
+        setTextColor(AndroidColor.parseColor("#0B0C10"))
         textSize = 11f
         setTypeface(null, Typeface.BOLD)
         background = ctaBackground
@@ -165,7 +164,7 @@ internal fun createStandingsAdView(ctx: Context, nativeView: NativeAdView, nativ
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT,
         )
-        setBackgroundColor(AndroidColor.parseColor("#181C20"))
+        setBackgroundColor(AndroidColor.parseColor("#111318"))
         setPadding(10.dpToPx(ctx), 8.dpToPx(ctx), 10.dpToPx(ctx), 8.dpToPx(ctx))
     }
 
@@ -234,17 +233,17 @@ internal fun createStandingsAdView(ctx: Context, nativeView: NativeAdView, nativ
     nativeView.bodyView = bodyView
 
     val ctaBg = GradientDrawable().apply {
-        setColor(AndroidColor.parseColor("#7098F8"))
-        cornerRadius = 6.dpToPx(ctx).toFloat()
+        setColor(AndroidColor.parseColor("#DFFF00"))
+        cornerRadius = 8.dpToPx(ctx).toFloat()
     }
     val ctaView = TextView(ctx).apply {
         text = nativeAd.callToAction ?: "View"
-        setTextColor(AndroidColor.parseColor("#0F172A"))
+        setTextColor(AndroidColor.parseColor("#0B0C10"))
         textSize = 11f
         setTypeface(null, Typeface.BOLD)
         background = ctaBg
         gravity = Gravity.CENTER
-        setPadding(10.dpToPx(ctx), 4.dpToPx(ctx), 10.dpToPx(ctx), 4.dpToPx(ctx))
+        setPadding(12.dpToPx(ctx), 5.dpToPx(ctx), 12.dpToPx(ctx), 5.dpToPx(ctx))
         layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
             LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -257,6 +256,6 @@ internal fun createStandingsAdView(ctx: Context, nativeView: NativeAdView, nativ
 
     rootLayout.addView(textCol)
     nativeView.addView(rootLayout)
-
+    nativeView.registerNativeAd(nativeAd, mediaView)
 }
 
