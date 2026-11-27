@@ -3,6 +3,7 @@ package com.dirzaaulia.footballclips.data.admob
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import com.dirzaaulia.footballclips.data.analytics.AppAnalytics
 import com.dirzaaulia.footballclips.util.ActivityHolder
 import com.dirzaaulia.footballclips.util.getBuildConfigString
 import com.dirzaaulia.footballclips.util.isDebugBuild
@@ -17,22 +18,35 @@ import java.util.concurrent.TimeUnit
 
 private const val TAG_INTERSTITIAL = "AdMob_Interstitial"
 
-actual class AdMobManager(private val context: Context) {
+actual class AdMobManager(
+    private val context: Context,
+    analytics: AppAnalytics? = null,
+) {
 
     private var interstitialAd: InterstitialAd? = null
     private var lastInterstitialTime: Long = 0
+    private var interstitialCooldownUntilMs: Long = 0
     private val interstitialCooldown = TimeUnit.MINUTES.toMillis(3)
+    private val interstitialRetryCooldown = TimeUnit.SECONDS.toMillis(60)
+    private val appOpenAdManager = AppOpenAdManager(context)
 
     init {
+        AdMobDiagnostics.attachAnalytics(analytics)
         AdMobInitializer.initialize(context) {
             loadInterstitial()
             preloadNativeAd()
+            appOpenAdManager.preload()
         }
     }
 
     private fun loadInterstitial() {
+        if (System.currentTimeMillis() < interstitialCooldownUntilMs) return
         AdMobInitializer.runWhenInitialized(context) {
-            val interstitialId = getBuildConfigString("ADMOB_INTERSTITIAL_ID", "ca-app-pub-6717632447198427/9984137502")
+            val interstitialId = if (isDebugBuild) {
+                "ca-app-pub-3940256099942544/1033173712"
+            } else {
+                getBuildConfigString("ADMOB_INTERSTITIAL_ID", "ca-app-pub-6717632447198427/9984137502")
+            }
             Log.d(TAG_INTERSTITIAL, "🔄 LOADING INTERSTITIAL AD (Unit ID: $interstitialId)")
             val adRequest = AdRequest.Builder(interstitialId).build()
             InterstitialAd.load(
@@ -40,14 +54,18 @@ actual class AdMobManager(private val context: Context) {
                 object : AdLoadCallback<InterstitialAd> {
                     override fun onAdLoaded(ad: InterstitialAd) {
                         interstitialAd = ad
+                        interstitialCooldownUntilMs = 0L
+                        AdMobDiagnostics.recordInterstitialState("Ready")
                         Log.d(TAG_INTERSTITIAL, "🟢 INTERSTITIAL LOADED SUCCESSFULLY")
                     }
 
                     override fun onAdFailedToLoad(adError: LoadAdError) {
                         interstitialAd = null
+                        interstitialCooldownUntilMs = System.currentTimeMillis() + interstitialRetryCooldown
+                        AdMobDiagnostics.recordInterstitialState("NO_FILL")
                         Log.e(TAG_INTERSTITIAL, formatAdError(adError, "INTERSTITIAL"))
                     }
-                }
+                },
             )
         }
     }
@@ -98,6 +116,7 @@ actual class AdMobManager(private val context: Context) {
                 }
             }
             interstitialAd?.show(activity)
+            AdMobDiagnostics.recordInterstitialState("Shown", shown = true)
         } else {
             if (interstitialAd == null) {
                 Log.d(TAG_INTERSTITIAL, "ℹ️ INTERSTITIAL NOT READY: Fetching new ad for next time")
@@ -107,6 +126,10 @@ actual class AdMobManager(private val context: Context) {
             }
             onAdDismissed()
         }
+    }
+
+    fun showAppOpenIfAvailable(activity: Activity, onDone: () -> Unit = {}) {
+        appOpenAdManager.showIfAvailable(activity, onDone)
     }
 
     actual fun openAdInspector() {

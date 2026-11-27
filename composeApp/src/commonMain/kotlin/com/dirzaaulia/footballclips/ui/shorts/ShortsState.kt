@@ -33,6 +33,7 @@ sealed interface ShortsUiAction {
     data class OnPageChanged(val pageIndex: Int) : ShortsUiAction
     data object TogglePlayPause : ShortsUiAction
     data object ToggleMute : ShortsUiAction
+    data object OnAutoMuted : ShortsUiAction
     data class LikeShort(val videoId: String) : ShortsUiAction
     data class SelectCategory(val category: String?) : ShortsUiAction
     data object Retry : ShortsUiAction

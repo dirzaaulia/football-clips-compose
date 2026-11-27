@@ -29,6 +29,7 @@ import com.dirzaaulia.footballclips.domain.model.FootballShort
 import com.dirzaaulia.footballclips.ui.components.ad.BannerAdItem
 import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
 import com.dirzaaulia.footballclips.ui.player.YouTubePlayerView
+import kotlin.math.abs
 
 @Composable
 fun ShortsRoute(
@@ -96,15 +97,18 @@ private fun ShortsPagerContent(
 
     VerticalPager(
         state = pagerState,
+        beyondViewportPageCount = 1,
         modifier = modifier.fillMaxSize().background(Color.Black),
         key = { state.items[it].stableId },
     ) { page ->
         when (val item = state.items[page]) {
             is ShortsFeedItem.Video -> {
+                val isCurrent = page == pagerState.currentPage
                 ShortVideoPage(
                     short = item.short,
-                    isCurrent = page == pagerState.currentPage,
-                    isPlaying = state.isPlaying,
+                    isCurrent = isCurrent,
+                    isAdjacent = abs(page - pagerState.currentPage) <= 1,
+                    isPlaying = isCurrent && state.isPlaying,
                     isMuted = state.isMuted,
                     onAction = onAction,
                     onOpenYouTube = { onOpenYouTube(item.short.youtubeVideoId) },
@@ -145,6 +149,7 @@ private fun ShortAdPage(
 private fun ShortVideoPage(
     short: FootballShort,
     isCurrent: Boolean,
+    isAdjacent: Boolean,
     isPlaying: Boolean,
     isMuted: Boolean,
     onAction: (ShortsUiAction) -> Unit,
@@ -153,7 +158,7 @@ private fun ShortVideoPage(
     var isPlaybackActive by remember(short.youtubeVideoId) { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        if (isCurrent) {
+        if (isAdjacent) {
             YouTubePlayerView(
                 videoId = short.youtubeVideoId,
                 backupVideoId = null,
@@ -165,6 +170,8 @@ private fun ShortVideoPage(
                 onDismiss = { isPlaybackActive = true },
                 onPlaybackStarted = { isPlaybackActive = true },
                 isShort = true,
+                shouldAutoPlay = isCurrent,
+                onAutoMuted = { onAction(ShortsUiAction.OnAutoMuted) },
             )
         }
 

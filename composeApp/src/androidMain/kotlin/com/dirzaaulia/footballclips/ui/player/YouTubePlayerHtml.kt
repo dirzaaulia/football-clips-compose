@@ -2,11 +2,16 @@ package com.dirzaaulia.footballclips.ui.player
 
 import androidx.compose.foundation.layout.fillMaxSize
 
-internal fun buildYouTubeHtml(videoId: String, isShort: Boolean = false): String {
+internal fun buildYouTubeHtml(
+    videoId: String,
+    isShort: Boolean = false,
+    autoPlay: Boolean = true,
+): String {
     val scaleTransform = if (isShort) "scale(1.18)" else "none"
     val pointerEvents = if (isShort) "none" else "auto"
     val controlsVal = if (isShort) 0 else 1
     val fsVal = if (isShort) 0 else 1
+    val autoPlayVal = if (autoPlay) 1 else 0
     val loopConfig = if (isShort) "'loop': 1, 'playlist': '$videoId'," else ""
 
     return """
@@ -31,13 +36,33 @@ internal fun buildYouTubeHtml(videoId: String, isShort: Boolean = false): String
                 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
                 var player;
+                var fcShouldAutoPlay = ${if (autoPlay) "true" else "false"};
+                var fcUserPaused = false;
+
+                function fcPlayWithFallback() {
+                    if (typeof player === 'undefined' || !player.playVideo) return;
+                    fcUserPaused = false;
+                    player.playVideo();
+                    setTimeout(function() {
+                        if (fcUserPaused || typeof player.getPlayerState !== 'function') return;
+                        var st = player.getPlayerState();
+                        if (st !== 1 && st !== 3) {
+                            if (player.mute) player.mute();
+                            player.playVideo();
+                            if (window.FCBridge && window.FCBridge.postAutoMuted) {
+                                window.FCBridge.postAutoMuted();
+                            }
+                        }
+                    }, 700);
+                }
+
                 function onYouTubeIframeAPIReady() {
                     player = new YT.Player('player', {
                         height: '100%',
                         width: '100%',
                         videoId: '$videoId',
                         playerVars: {
-                            'autoplay': 1,
+                            'autoplay': $autoPlayVal,
                             'playsinline': 1,
                             'rel': 0,
                             'controls': $controlsVal,
@@ -56,7 +81,9 @@ internal fun buildYouTubeHtml(videoId: String, isShort: Boolean = false): String
                                 } else {
                                     window.location.href = "fc-ready://ready";
                                 }
-                                event.target.playVideo();
+                                if (fcShouldAutoPlay) {
+                                    fcPlayWithFallback();
+                                }
                             },
                             'onStateChange': function(event) {
                                 if (window.FCBridge && window.FCBridge.postStateChange) {

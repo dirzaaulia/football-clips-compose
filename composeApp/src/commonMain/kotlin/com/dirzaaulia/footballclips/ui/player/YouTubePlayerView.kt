@@ -16,4 +16,6 @@ expect fun YouTubePlayerView(
     onDismiss: (Boolean) -> Unit = {},
     onPlaybackStarted: () -> Unit = {},
     isShort: Boolean = false,
+    shouldAutoPlay: Boolean = true,
+    onAutoMuted: () -> Unit = {},
 )

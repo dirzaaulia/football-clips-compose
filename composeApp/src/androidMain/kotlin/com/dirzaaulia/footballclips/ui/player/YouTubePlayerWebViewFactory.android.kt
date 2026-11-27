@@ -24,6 +24,8 @@ internal fun createConfiguredWebView(
     onInstanceCreated: (WebView) -> Unit,
     onPlaybackStarted: () -> Unit,
     isShort: Boolean,
+    shouldAutoPlay: Boolean = true,
+    onAutoMuted: () -> Unit = {},
 ): WebView {
     return WebView(context).apply {
         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
@@ -54,6 +56,7 @@ internal fun createConfiguredWebView(
                     onSwitchedToBackup = onSwitchedToBackup,
                 )
             },
+            onAutoMuted = onAutoMuted,
         )
         addJavascriptInterface(bridge, "FCBridge")
 
@@ -121,7 +124,7 @@ internal fun createConfiguredWebView(
                 userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
             }
         }
-        loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(currentVideoId, isShort), "text/html", "UTF-8", null)
+        loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(currentVideoId, isShort, shouldAutoPlay), "text/html", "UTF-8", null)
         onInstanceCreated(this)
     }
 }

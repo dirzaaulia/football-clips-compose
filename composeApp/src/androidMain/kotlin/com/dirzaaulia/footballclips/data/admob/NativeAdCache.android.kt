@@ -39,17 +39,28 @@ fun formatAdError(adError: LoadAdError, adType: String = "NATIVE"): String {
 }
 
 object NativeAdCache {
-    private const val MAX_CACHE_SIZE = 5
+    private const val MAX_CACHE_SIZE = 2
     private const val CACHE_EXPIRATION_MS = 60 * 60 * 1000L // 1 hour
+    private const val NO_FILL_COOLDOWN_MS = 60 * 1000L // 60s circuit breaker on NO_FILL
 
     private class CachedNativeAd(
         val ad: NativeAd,
-        val loadedTimestamp: Long = System.currentTimeMillis()
+        val loadedTimestamp: Long = System.currentTimeMillis(),
     ) {
         fun isExpired(): Boolean = System.currentTimeMillis() - loadedTimestamp >= CACHE_EXPIRATION_MS
     }
 
     private val cache = ConcurrentHashMap<String, Queue<CachedNativeAd>>()
+    private val noFillCooldownUntil = ConcurrentHashMap<String, Long>()
+
+    private fun isInCooldown(adUnitId: String): Boolean {
+        val until = noFillCooldownUntil[adUnitId] ?: return false
+        return System.currentTimeMillis() < until
+    }
+
+    private fun markNoFillCooldown(adUnitId: String) {
+        noFillCooldownUntil[adUnitId] = System.currentTimeMillis() + NO_FILL_COOLDOWN_MS
+    }
 
     fun getAd(adUnitId: String): NativeAd? {
         val queue = cache[adUnitId] ?: return null
@@ -79,6 +90,10 @@ object NativeAdCache {
     }
 
     fun preloadAd(context: Context, adUnitId: String) {
+        if (isInCooldown(adUnitId)) {
+            Log.d(TAG_NATIVE, "⏳ PRELOAD SKIPPED: Native unit in 60s NO_FILL cooldown")
+            return
+        }
         AdMobInitializer.runWhenInitialized(context) {
             val queue = cache.getOrPut(adUnitId) { ConcurrentLinkedQueue() }
             val needed = MAX_CACHE_SIZE - queue.size
@@ -94,11 +109,14 @@ object NativeAdCache {
                 NativeAdLoader.load(request, needed, object : NativeAdLoaderCallback {
                     override fun onNativeAdLoaded(nativeAd: NativeAd) {
                         Log.d(TAG_NATIVE, "🟢 PRELOAD SUCCESS: NativeAd '${nativeAd.headline}' pre-fetched into pool")
+                        noFillCooldownUntil.remove(adUnitId)
                         putAd(adUnitId, nativeAd)
                     }
 
                     override fun onAdFailedToLoad(adError: LoadAdError) {
                         Log.e(TAG_NATIVE, formatAdError(adError, "NATIVE PRELOAD"))
+                        markNoFillCooldown(adUnitId)
+                        AdMobDiagnostics.recordNativeNoFill("preload", "Code ${adError.code}: ${adError.message}")
                     }
 
                     override fun onAdLoadingCompleted() {
@@ -114,46 +132,59 @@ object NativeAdCache {
     fun fetchOrLoadAd(
         context: Context,
         adUnitId: String,
+        placement: String = "unknown",
         onAdLoaded: (NativeAd) -> Unit,
-        onAdFailed: (String) -> Unit
+        onAdFailed: (String) -> Unit,
     ) {
         val cachedAd = getAd(adUnitId)
         if (cachedAd != null) {
             Log.d(TAG_NATIVE, "⚡ FETCH HIT: Serving preloaded NativeAd '${cachedAd.headline}'")
+            AdMobDiagnostics.recordNativeFill(placement)
             onAdLoaded(cachedAd)
             preloadAd(context, adUnitId)
             return
         }
 
+        if (isInCooldown(adUnitId)) {
+            Log.d(TAG_NATIVE, "⏳ FETCH BYPASSED: Native unit in NO_FILL cooldown, routing $placement to Banner fallback")
+            onAdFailed("NO_FILL_COOLDOWN")
+            return
+        }
+
         AdMobInitializer.runWhenInitialized(context) {
-            loadDirect(context, adUnitId, onAdLoaded, onAdFailed)
+            loadDirect(context, adUnitId, placement, onAdLoaded, onAdFailed)
         }
     }
 
     private fun loadDirect(
         context: Context,
         adUnitId: String,
+        placement: String,
         onAdLoaded: (NativeAd) -> Unit,
-        onAdFailed: (String) -> Unit
+        onAdFailed: (String) -> Unit,
     ) {
-        Log.d(TAG_NATIVE, "📡 FETCH MISS: Requesting native ad directly for $adUnitId")
+        Log.d(TAG_NATIVE, "📡 FETCH MISS: Requesting native ad directly for $adUnitId ($placement)")
         val types = listOf(NativeAd.NativeAdType.NATIVE)
         val request = NativeAdRequest.Builder(adUnitId, types).build()
         try {
             NativeAdLoader.load(request, 1, object : NativeAdLoaderCallback {
                 override fun onNativeAdLoaded(nativeAd: NativeAd) {
                     Log.d(TAG_NATIVE, "🟢 DIRECT NATIVE LOAD SUCCESS: NativeAd '${nativeAd.headline}' loaded")
+                    noFillCooldownUntil.remove(adUnitId)
+                    AdMobDiagnostics.recordNativeFill(placement)
                     onAdLoaded(nativeAd)
-                    preloadAd(context, adUnitId)
                 }
 
                 override fun onAdFailedToLoad(adError: LoadAdError) {
                     Log.e(TAG_NATIVE, formatAdError(adError, "DIRECT NATIVE LOAD ($adUnitId)"))
+                    markNoFillCooldown(adUnitId)
+                    AdMobDiagnostics.recordNativeNoFill(placement, "Code ${adError.code}: ${adError.message}")
                     onAdFailed(adError.message)
                 }
             })
         } catch (t: Throwable) {
             Log.e(TAG_NATIVE, "💥 DIRECT NATIVE LOAD EXCEPTION: ${t.message}", t)
+            AdMobDiagnostics.recordNativeNoFill(placement, t.message ?: "Exception")
             onAdFailed(t.message ?: "Native ad load exception")
         }
     }

@@ -14,6 +14,7 @@ import { UserAnalyticsEvent, AppSessionItem } from '../types';
 import { AnalyticsFunnel } from './analytics/AnalyticsFunnel';
 import { SessionJourneyExplorer } from './analytics/SessionJourneyExplorer';
 import { ActivityNarrativeStream } from './analytics/ActivityNarrativeStream';
+import { AdMonetizationDeck } from './analytics/AdMonetizationDeck';
 import { DeviceLocationTable } from './analytics/DeviceLocationTable';
 
 interface AnalyticsPipelineViewProps {
@@ -201,6 +202,9 @@ export function AnalyticsPipelineView({
           </div>
         )}
       </div>
+
+      {/* AdMob Waterfall & Fill Telemetry */}
+      <AdMonetizationDeck events={filteredEvents} />
 
       {/* Device Models & Geographic Breakdown Table */}
       <DeviceLocationTable

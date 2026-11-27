@@ -8,6 +8,7 @@ internal class YouTubePlayerBridge(
     private val onReady: () -> Unit,
     private val onStateChange: (Int) -> Unit,
     private val onError: (Int) -> Unit,
+    private val onAutoMuted: () -> Unit = {},
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -24,5 +25,10 @@ internal class YouTubePlayerBridge(
     @JavascriptInterface
     fun postError(errorCode: Int) {
         mainHandler.post { onError(errorCode) }
+    }
+
+    @JavascriptInterface
+    fun postAutoMuted() {
+        mainHandler.post { onAutoMuted() }
     }
 }

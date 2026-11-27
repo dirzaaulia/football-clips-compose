@@ -61,6 +61,7 @@ class ShortsViewModel(
             is ShortsUiAction.OnPageChanged -> updatePageIndex(action.pageIndex)
             is ShortsUiAction.TogglePlayPause -> togglePlayPause()
             is ShortsUiAction.ToggleMute -> toggleMute()
+            is ShortsUiAction.OnAutoMuted -> (_uiState.value as? ShortsUiState.Success)?.let { _uiState.value = it.copy(isMuted = true) }
             is ShortsUiAction.LikeShort -> handleLike(action.videoId)
             is ShortsUiAction.SelectCategory -> loadShorts(action.category)
             is ShortsUiAction.Retry -> loadShorts()

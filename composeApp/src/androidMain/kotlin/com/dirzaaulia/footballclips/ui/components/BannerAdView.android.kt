@@ -1,11 +1,8 @@
 package com.dirzaaulia.footballclips.ui.components.ad
 
-import android.app.Activity
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,7 +11,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import com.dirzaaulia.footballclips.ui.components.ad.NativeAdStyle
 import com.dirzaaulia.footballclips.data.admob.NativeAdCache
 import com.dirzaaulia.footballclips.ui.home.findActivity
 import com.dirzaaulia.footballclips.util.ActivityHolder
@@ -23,19 +19,18 @@ import com.dirzaaulia.footballclips.util.isDebugBuild
 import com.google.android.libraries.ads.mobile.sdk.nativead.NativeAd
 import com.google.android.libraries.ads.mobile.sdk.nativead.NativeAdView
 
-private const val TAG = "BannerAdView"
-
 @Composable
 actual fun BannerAdView(
     onAdLoaded: () -> Unit,
     onAdFailed: (String) -> Unit,
     modifier: Modifier,
-    style: NativeAdStyle
+    style: NativeAdStyle,
 ) {
     val context = LocalContext.current
     val activity = context.findActivity() ?: ActivityHolder.currentActivity
     var nativeAdState by remember { mutableStateOf<NativeAd?>(null) }
-    var isAdLoaded by remember { mutableStateOf(false) }
+    var isNativeLoaded by remember { mutableStateOf(false) }
+    var useBannerFallback by remember { mutableStateOf(false) }
 
     LaunchedEffect(style) {
         val appContext = activity?.applicationContext ?: context.applicationContext
@@ -49,37 +44,41 @@ actual fun BannerAdView(
         NativeAdCache.fetchOrLoadAd(
             context = appContext,
             adUnitId = adUnitId,
+            placement = style.name.lowercase(),
             onAdLoaded = { ad ->
                 nativeAdState = ad
-                isAdLoaded = true
+                isNativeLoaded = true
                 onAdLoaded()
             },
-            onAdFailed = { error ->
-                onAdFailed(error)
-            }
+            onAdFailed = {
+                useBannerFallback = true
+            },
         )
     }
 
-    if (isAdLoaded && nativeAdState != null) {
+    if (useBannerFallback) {
+        BannerFallbackAdView(
+            style = style,
+            onAdLoaded = onAdLoaded,
+            onAdFailed = onAdFailed,
+            modifier = modifier,
+        )
+    } else if (isNativeLoaded && nativeAdState != null) {
         Box(modifier = modifier) {
             AndroidView(
                 factory = { ctx ->
-                    val nativeAdView = NativeAdView(ctx)
-                    nativeAdView.tag = nativeAdState
-                    nativeAdState?.let { ad ->
-                        bindAdView(ctx, nativeAdView, ad, style)
+                    NativeAdView(ctx).apply {
+                        tag = nativeAdState
+                        nativeAdState?.let { ad -> bindAdView(ctx, this, ad, style) }
                     }
-                    nativeAdView
                 },
                 update = { nativeAdView ->
                     if (nativeAdView.tag != nativeAdState) {
                         nativeAdView.tag = nativeAdState
-                        nativeAdState?.let { ad ->
-                            bindAdView(nativeAdView.context, nativeAdView, ad, style)
-                        }
+                        nativeAdState?.let { ad -> bindAdView(nativeAdView.context, nativeAdView, ad, style) }
                     }
                 },
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             )
         }
     }

@@ -41,6 +41,8 @@ actual fun YouTubePlayerView(
     onDismiss: (Boolean) -> Unit,
     onPlaybackStarted: () -> Unit,
     isShort: Boolean,
+    shouldAutoPlay: Boolean,
+    onAutoMuted: () -> Unit,
 ) {
     val context = LocalContext.current
     val activity = remember(context) { context.findActivity() }
@@ -64,15 +66,15 @@ actual fun YouTubePlayerView(
     var retryNonce by remember { mutableStateOf(0) }
     var webViewInstance by remember { mutableStateOf<WebView?>(null) }
 
-    LaunchedEffect(currentVideoId, isLoading, errorState, retryNonce) {
-        if (isLoading && errorState == PlayerErrorState.NONE) {
+    LaunchedEffect(currentVideoId, isLoading, errorState, retryNonce, shouldAutoPlay) {
+        if (shouldAutoPlay && isLoading && errorState == PlayerErrorState.NONE) {
             delay(7000)
-            if (isLoading && errorState == PlayerErrorState.NONE) {
+            if (shouldAutoPlay && isLoading && errorState == PlayerErrorState.NONE) {
                 if (backupVideoId != null && !hasSwitchedToBackup && backupVideoId != currentVideoId && isBackupAllowed) {
                     hasSwitchedToBackup = true
                     currentVideoId = backupVideoId
                     isLoading = true
-                    webViewInstance?.loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(backupVideoId, isShort), "text/html", "UTF-8", null)
+                    webViewInstance?.loadDataWithBaseURL("https://dirzaaulia.com", buildYouTubeHtml(backupVideoId, isShort, shouldAutoPlay), "text/html", "UTF-8", null)
                 } else {
                     errorState = PlayerErrorState.NETWORK_TIMEOUT
                     isLoading = false
@@ -81,12 +83,12 @@ actual fun YouTubePlayerView(
         }
     }
 
-    LaunchedEffect(isPlaying, webViewInstance) {
+    LaunchedEffect(isPlaying, shouldAutoPlay, webViewInstance) {
         if (webViewInstance != null) {
-            val js = if (isPlaying) {
-                "if (typeof player !== 'undefined' && player.playVideo) { player.playVideo(); }"
+            val js = if (isPlaying && shouldAutoPlay) {
+                "fcShouldAutoPlay = true; if (typeof fcPlayWithFallback === 'function') { fcPlayWithFallback(); } else if (typeof player !== 'undefined' && player.playVideo) { player.playVideo(); }"
             } else {
-                "if (typeof player !== 'undefined' && player.pauseVideo) { player.pauseVideo(); }"
+                "fcShouldAutoPlay = false; fcUserPaused = true; if (typeof player !== 'undefined' && player.pauseVideo) { player.pauseVideo(); }"
             }
             webViewInstance?.evaluateJavascript(js, null)
         }
@@ -107,7 +109,7 @@ actual fun YouTubePlayerView(
         activity = activity,
         customView = customView,
         webViewInstance = webViewInstance,
-        isPlaying = isPlaying,
+        isPlaying = isPlaying && shouldAutoPlay,
     )
 
     val playerModifier = resolvePlayerModifier(modifier, customView)
@@ -134,6 +136,8 @@ actual fun YouTubePlayerView(
                         onInstanceCreated = { webViewInstance = it },
                         onPlaybackStarted = onPlaybackStarted,
                         isShort = isShort,
+                        shouldAutoPlay = shouldAutoPlay,
+                        onAutoMuted = onAutoMuted,
                     )
                 },
                 onRelease = { wv -> cleanupWebView(wv) },

@@ -16,6 +16,10 @@ import com.revenuecat.purchases.LogLevel
 import com.revenuecat.purchases.Purchases
 import com.revenuecat.purchases.PurchasesConfiguration
 import java.lang.ref.WeakReference
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
@@ -98,21 +102,29 @@ class FootballClipsApplication : Application(), SingletonImageLoader.Factory, Co
         }
 
 
+        var startedActivities = 0
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
                 currentActivity = WeakReference(activity)
                 com.dirzaaulia.footballclips.util.ActivityHolder.currentActivity = activity
             }
             override fun onActivityStarted(activity: Activity) {
+                val isForegroundReturn = startedActivities == 0
+                startedActivities++
                 currentActivity = WeakReference(activity)
                 com.dirzaaulia.footballclips.util.ActivityHolder.currentActivity = activity
+                if (isForegroundReturn) {
+                    tryShowAppOpenAd(activity)
+                }
             }
             override fun onActivityResumed(activity: Activity) {
                 currentActivity = WeakReference(activity)
                 com.dirzaaulia.footballclips.util.ActivityHolder.currentActivity = activity
             }
             override fun onActivityPaused(activity: Activity) {}
-            override fun onActivityStopped(activity: Activity) {}
+            override fun onActivityStopped(activity: Activity) {
+                startedActivities = (startedActivities - 1).coerceAtLeast(0)
+            }
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
             override fun onActivityDestroyed(activity: Activity) {
                 if (currentActivity?.get() == activity) {
@@ -123,5 +135,21 @@ class FootballClipsApplication : Application(), SingletonImageLoader.Factory, Co
                 }
             }
         })
+    }
+
+    private fun tryShowAppOpenAd(activity: Activity) {
+        try {
+            val koin = org.koin.core.context.GlobalContext.get()
+            val prefs = koin.getOrNull<com.dirzaaulia.footballclips.data.local.PreferenceManager>()
+            val billing = koin.getOrNull<com.dirzaaulia.footballclips.data.billing.BillingManager>()
+            if (billing?.isPremium?.value == true) return
+            CoroutineScope(Dispatchers.Main).launch {
+                val removed = prefs?.isAdsRemoved?.firstOrNull() ?: false
+                if (!removed) {
+                    koin.getOrNull<com.dirzaaulia.footballclips.data.admob.AdMobManager>()
+                        ?.showAppOpenIfAvailable(activity)
+                }
+            }
+        } catch (_: Throwable) {}
     }
 }

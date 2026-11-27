@@ -92,6 +92,7 @@ android {
         buildConfigField("String", "ADMOB_BANNER_ID", "\"${getSecret("ADMOB_BANNER_ID")}\"")
         buildConfigField("String", "ADMOB_NATIVE_ID", "\"${getSecret("ADMOB_NATIVE_ID", "ca-app-pub-6717632447198427/5222531302")}\"")
         buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"${getSecret("ADMOB_INTERSTITIAL_ID")}\"")
+        buildConfigField("String", "ADMOB_APP_OPEN_ID", "\"${getSecret("ADMOB_APP_OPEN_ID", "ca-app-pub-6717632447198427/4453915473")}\"")
         buildConfigField("String", "RELEASE_TRACK", "\"${targetTrack.lowercase()}\"")
         buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
         androidResources {
