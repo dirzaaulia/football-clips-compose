@@ -18,11 +18,12 @@ type rssFetcher interface {
 }
 
 type IngestShortsUseCase struct {
-	rssClient  rssFetcher
-	enricher   detailsEnricher
-	shortsRepo ports.ShortsRepository
-	logger     *slog.Logger
-	httpClient *http.Client
+	rssClient        rssFetcher
+	enricher         detailsEnricher
+	shortsRepo       ports.ShortsRepository
+	logger           *slog.Logger
+	httpClient       *http.Client
+	embedPageChecker func(ctx context.Context, videoID string) bool
 }
 
 type channelTarget struct {
@@ -41,12 +42,20 @@ func NewIngestShortsUseCase(rss rssFetcher, repo ports.ShortsRepository, logger 
 			return http.ErrUseLastResponse
 		},
 	}
-	return &IngestShortsUseCase{rssClient: rss, shortsRepo: repo, logger: logger, httpClient: client}
+	uc := &IngestShortsUseCase{rssClient: rss, shortsRepo: repo, logger: logger, httpClient: client}
+	uc.embedPageChecker = uc.isEmbedPagePlayable
+	return uc
 }
 
 // WithEnricher attaches a YouTube Data API details enricher to enforce embeddable verification.
 func (uc *IngestShortsUseCase) WithEnricher(enricher detailsEnricher) *IngestShortsUseCase {
 	uc.enricher = enricher
+	return uc
+}
+
+// WithEmbedPageChecker overrides the /embed/ HTML verification probe (used in tests).
+func (uc *IngestShortsUseCase) WithEmbedPageChecker(fn func(ctx context.Context, videoID string) bool) *IngestShortsUseCase {
+	uc.embedPageChecker = fn
 	return uc
 }
 

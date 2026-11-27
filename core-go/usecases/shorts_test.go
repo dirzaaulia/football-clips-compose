@@ -92,18 +92,24 @@ func TestIngestShortsEmbeddableFilter(t *testing.T) {
 			{VideoID: "vid_noembed", Title: "Rice Strike #shorts", PublishedAt: &now},
 			{VideoID: "vid_geoblock", Title: "Odegaard Assist #shorts", PublishedAt: &now},
 			{VideoID: "vid_toolong", Title: "Training Session #shorts", PublishedAt: &now},
+			{VideoID: "vid_embed_unplayable", Title: "UEFA Golazo #shorts", PublishedAt: &now},
 		},
 	}
 	enricher := &mockEnricher{
 		results: map[string]domain.VideoCandidate{
-			"vid_ok":       {VideoID: "vid_ok", IsEmbeddable: true, WatchabilityPct: 100.0, DurationSeconds: 32},
-			"vid_noembed":  {VideoID: "vid_noembed", IsEmbeddable: false, WatchabilityPct: 100.0, DurationSeconds: 28},
-			"vid_geoblock": {VideoID: "vid_geoblock", IsEmbeddable: true, WatchabilityPct: 15.0, DurationSeconds: 25},
-			"vid_toolong":  {VideoID: "vid_toolong", IsEmbeddable: true, WatchabilityPct: 100.0, DurationSeconds: 240},
+			"vid_ok":               {VideoID: "vid_ok", IsEmbeddable: true, WatchabilityPct: 100.0, DurationSeconds: 32},
+			"vid_noembed":          {VideoID: "vid_noembed", IsEmbeddable: false, WatchabilityPct: 100.0, DurationSeconds: 28},
+			"vid_geoblock":         {VideoID: "vid_geoblock", IsEmbeddable: true, WatchabilityPct: 15.0, DurationSeconds: 25},
+			"vid_toolong":          {VideoID: "vid_toolong", IsEmbeddable: true, WatchabilityPct: 100.0, DurationSeconds: 240},
+			"vid_embed_unplayable": {VideoID: "vid_embed_unplayable", IsEmbeddable: true, WatchabilityPct: 100.0, DurationSeconds: 30},
 		},
 	}
 	repo := &mockShortsRepo{}
-	uc := usecases.NewIngestShortsUseCase(rss, repo, nil).WithEnricher(enricher)
+	uc := usecases.NewIngestShortsUseCase(rss, repo, nil).
+		WithEnricher(enricher).
+		WithEmbedPageChecker(func(_ context.Context, vid string) bool {
+			return vid != "vid_embed_unplayable"
+		})
 
 	count, err := uc.Execute(context.Background(), 10)
 	if err != nil {

@@ -3,8 +3,10 @@ package usecases
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dirzaaulia/footballclips/core-go/domain"
@@ -33,7 +35,7 @@ func (uc *IngestShortsUseCase) filterEmbeddableShorts(
 	if uc.enricher != nil && uc.enricher.HasAPIKey() {
 		enriched, err := uc.enrichWithAPI(ctx, pending)
 		if err == nil {
-			return buildVerifiedShorts(pending, enriched, now)
+			return uc.buildVerifiedShorts(ctx, pending, enriched, now)
 		}
 		uc.logger.Warn("[SHORTS_ENRICH_FALLBACK]", slog.String("err", err.Error()))
 	}
@@ -54,7 +56,8 @@ func (uc *IngestShortsUseCase) enrichWithAPI(
 	return uc.enricher.EnrichCandidateDetails(ctx, cands)
 }
 
-func buildVerifiedShorts(
+func (uc *IngestShortsUseCase) buildVerifiedShorts(
+	ctx context.Context,
 	pending []pendingShort,
 	enriched []domain.VideoCandidate,
 	now time.Time,
@@ -62,10 +65,10 @@ func buildVerifiedShorts(
 	var result []domain.FootballShort
 	for i, p := range pending {
 		c := enriched[i]
-		if !c.IsEmbeddable || c.WatchabilityPct < 50.0 {
+		if !c.IsEmbeddable || c.WatchabilityPct < 50.0 || c.DurationSeconds > 180 {
 			continue
 		}
-		if c.DurationSeconds > 180 {
+		if uc.embedPageChecker != nil && !uc.embedPageChecker(ctx, c.VideoID) {
 			continue
 		}
 		dur := c.DurationSeconds
@@ -84,9 +87,13 @@ func (uc *IngestShortsUseCase) filterWithOEmbedFallback(
 ) []domain.FootballShort {
 	var result []domain.FootballShort
 	for _, p := range pending {
-		if uc.isEmbeddableOEmbed(ctx, p.candidate.VideoID) {
-			result = append(result, toFootballShort(p, 45, now))
+		if !uc.isEmbeddableOEmbed(ctx, p.candidate.VideoID) {
+			continue
 		}
+		if uc.embedPageChecker != nil && !uc.embedPageChecker(ctx, p.candidate.VideoID) {
+			continue
+		}
+		result = append(result, toFootballShort(p, 45, now))
 	}
 	return result
 }
@@ -107,6 +114,42 @@ func (uc *IngestShortsUseCase) isEmbeddableOEmbed(ctx context.Context, videoID s
 	}
 	_ = resp.Body.Close()
 	return resp.StatusCode == http.StatusOK
+}
+
+func (uc *IngestShortsUseCase) isEmbedPagePlayable(ctx context.Context, videoID string) bool {
+	embedURL := "https://www.youtube.com/embed/" + videoID
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, embedURL, nil)
+	if err != nil {
+		return false
+	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36")
+	req.Header.Set("Referer", "https://footballclips.web.app/")
+	resp, err := uc.httpClient.Do(req)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+	bodyBytes, err := io.ReadAll(io.LimitReader(resp.Body, 512*1024))
+	if err != nil {
+		return false
+	}
+	html := string(bodyBytes)
+	blockedMarkers := []string{
+		"UNPLAYABLE",
+		"LOGIN_REQUIRED",
+		`"errorScreen"`,
+		"Playback on other websites has been disabled",
+		"Video unavailable",
+	}
+	for _, marker := range blockedMarkers {
+		if strings.Contains(html, marker) {
+			return false
+		}
+	}
+	return true
 }
 
 func toFootballShort(p pendingShort, durationSeconds int, now time.Time) domain.FootballShort {
