@@ -79,7 +79,7 @@ func main() {
 	syncUseCase := usecases.NewSyncScoresUseCase(espnClient, repo, logger, isShadow).WithFCM(fcmClient)
 	highlightUseCase := usecases.NewFindHighlightUseCase(ytClient, aiClient, repo, logger, isShadow).WithFCM(fcmClient)
 	standingsUseCase := usecases.NewSyncStandingsUseCase(espnClient, repo, logger)
-	shortsUseCase := usecases.NewIngestShortsUseCase(rssClient, repo, logger)
+	shortsUseCase := usecases.NewIngestShortsUseCase(rssClient, repo, logger).WithEnricher(ytClient)
 
 	websubHandler := websub.NewHandler(logger, func(n websub.Notification) {
 		logger.Info("[WEBSUB_PUSH_TRIGGER] Instant match highlight sweep",

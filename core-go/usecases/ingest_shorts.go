@@ -19,6 +19,7 @@ type rssFetcher interface {
 
 type IngestShortsUseCase struct {
 	rssClient  rssFetcher
+	enricher   detailsEnricher
 	shortsRepo ports.ShortsRepository
 	logger     *slog.Logger
 	httpClient *http.Client
@@ -43,6 +44,12 @@ func NewIngestShortsUseCase(rss rssFetcher, repo ports.ShortsRepository, logger 
 	return &IngestShortsUseCase{rssClient: rss, shortsRepo: repo, logger: logger, httpClient: client}
 }
 
+// WithEnricher attaches a YouTube Data API details enricher to enforce embeddable verification.
+func (uc *IngestShortsUseCase) WithEnricher(enricher detailsEnricher) *IngestShortsUseCase {
+	uc.enricher = enricher
+	return uc
+}
+
 func (uc *IngestShortsUseCase) Execute(ctx context.Context, channelLimit int) (int, error) {
 	existingIDs, err := uc.shortsRepo.GetExistingShortVideoIDs(ctx, 3000)
 	if err != nil {
@@ -54,7 +61,8 @@ func (uc *IngestShortsUseCase) Execute(ctx context.Context, channelLimit int) (i
 		return 0, err
 	}
 
-	discovered := uc.scanChannelsConcurrently(ctx, targets, existingIDs)
+	pending := uc.scanChannelsConcurrently(ctx, targets, existingIDs)
+	discovered := uc.filterEmbeddableShorts(ctx, pending, time.Now().UTC())
 
 	if len(checkedClubIDs) > 0 {
 		_ = uc.shortsRepo.MarkChannelsChecked(ctx, checkedClubIDs)
@@ -67,7 +75,11 @@ func (uc *IngestShortsUseCase) Execute(ctx context.Context, channelLimit int) (i
 	}
 
 	pruned, _ := uc.shortsRepo.PruneStaleShorts(ctx, 30, 3000)
-	uc.logger.Info("[SHORTS_CYCLE_DONE]", slog.Int("ingested", len(discovered)), slog.Int64("pruned", pruned))
+	uc.logger.Info("[SHORTS_CYCLE_DONE]",
+		slog.Int("candidates", len(pending)),
+		slog.Int("embeddable_ingested", len(discovered)),
+		slog.Int64("pruned", pruned),
+	)
 	return len(discovered), nil
 }
 
@@ -106,7 +118,7 @@ func (uc *IngestShortsUseCase) scanChannelsConcurrently(
 	ctx context.Context,
 	targets []channelTarget,
 	existingIDs map[string]bool,
-) []domain.FootballShort {
+) []pendingShort {
 	const workerCount = 10
 	jobs := make(chan channelTarget, len(targets))
 	for _, t := range targets {
@@ -115,7 +127,7 @@ func (uc *IngestShortsUseCase) scanChannelsConcurrently(
 	close(jobs)
 
 	var mu sync.Mutex
-	var discovered []domain.FootballShort
+	var pending []pendingShort
 	var wg sync.WaitGroup
 
 	for i := 0; i < workerCount; i++ {
@@ -126,12 +138,12 @@ func (uc *IngestShortsUseCase) scanChannelsConcurrently(
 				if ctx.Err() != nil {
 					return
 				}
-				uc.processSingleTarget(ctx, target, existingIDs, &mu, &discovered)
+				uc.processSingleTarget(ctx, target, existingIDs, &mu, &pending)
 			}
 		}()
 	}
 	wg.Wait()
-	return discovered
+	return pending
 }
 
 func (uc *IngestShortsUseCase) processSingleTarget(
@@ -139,7 +151,7 @@ func (uc *IngestShortsUseCase) processSingleTarget(
 	target channelTarget,
 	existingIDs map[string]bool,
 	mu *sync.Mutex,
-	discovered *[]domain.FootballShort,
+	pending *[]pendingShort,
 ) {
 	subCtx, cancel := context.WithTimeout(ctx, 6*time.Second)
 	defer cancel()
@@ -158,46 +170,26 @@ func (uc *IngestShortsUseCase) processSingleTarget(
 			continue
 		}
 
-		item := buildShortItem(v, target, now)
-		if item == nil {
+		pub := now
+		if v.PublishedAt != nil {
+			pub = *v.PublishedAt
+		}
+		hype := calculateHypeScore(v.Title, target.Name, pub)
+		if hype < 60 {
 			continue
 		}
 
 		mu.Lock()
 		if !existingIDs[v.VideoID] {
 			existingIDs[v.VideoID] = true
-			*discovered = append(*discovered, *item)
+			*pending = append(*pending, pendingShort{
+				candidate: v,
+				target:    target,
+				hype:      hype,
+				pub:       pub,
+			})
 		}
 		mu.Unlock()
-	}
-}
-
-func buildShortItem(v domain.VideoCandidate, target channelTarget, now time.Time) *domain.FootballShort {
-	pub := now
-	if v.PublishedAt != nil {
-		pub = *v.PublishedAt
-	}
-
-	hype := calculateHypeScore(v.Title, target.Name, pub)
-	if hype < 60 {
-		return nil
-	}
-
-	return &domain.FootballShort{
-		YouTubeVideoID:  v.VideoID,
-		Title:           v.Title,
-		ChannelID:       target.ChannelID,
-		ChannelName:     target.Name,
-		ClubID:          target.ClubID,
-		Category:        classifyShortCategory(v.Title),
-		ThumbnailURL:    fmt.Sprintf("https://img.youtube.com/vi/%s/hqdefault.jpg", v.VideoID),
-		DurationSeconds: 45,
-		LikeCount:       0,
-		HypeScore:       hype,
-		Source:          "RSS",
-		IsFeatured:      hype >= 85,
-		PublishedAt:     pub,
-		CreatedAt:       now,
 	}
 }
 

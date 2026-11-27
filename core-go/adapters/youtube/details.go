@@ -49,6 +49,11 @@ type youtubeVideosResponse struct {
 	} `json:"items"`
 }
 
+// HasAPIKey reports whether a YouTube Data API v3 key is configured.
+func (c *Client) HasAPIKey() bool {
+	return c.apiKey != ""
+}
+
 // EnrichCandidateDetails fetches real contentDetails and region restrictions from YouTube API.
 func (c *Client) EnrichCandidateDetails(
 	ctx context.Context,
@@ -58,16 +63,29 @@ func (c *Client) EnrichCandidateDetails(
 		return candidates, nil
 	}
 
+	for start := 0; start < len(candidates); start += 50 {
+		end := start + 50
+		if end > len(candidates) {
+			end = len(candidates)
+		}
+		if err := c.enrichBatch(ctx, candidates[start:end]); err != nil {
+			return candidates, err
+		}
+	}
+	return candidates, nil
+}
+
+func (c *Client) enrichBatch(ctx context.Context, batch []domain.VideoCandidate) error {
 	var ids []string
-	idMap := make(map[string]int)
-	for i, cand := range candidates {
+	idMap := make(map[string]int, len(batch))
+	for i, cand := range batch {
 		if cand.VideoID != "" {
 			ids = append(ids, cand.VideoID)
 			idMap[cand.VideoID] = i
 		}
-		if len(ids) >= 50 {
-			break
-		}
+	}
+	if len(ids) == 0 {
+		return nil
 	}
 
 	url := fmt.Sprintf(
@@ -75,46 +93,48 @@ func (c *Client) EnrichCandidateDetails(
 		strings.Join(ids, ","),
 		c.apiKey,
 	)
-
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return candidates, fmt.Errorf("create videos.list req: %w", err)
+		return fmt.Errorf("create videos.list req: %w", err)
 	}
-
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return candidates, fmt.Errorf("execute videos.list: %w", err)
+		return fmt.Errorf("execute videos.list: %w", err)
 	}
 	defer resp.Body.Close()
 
 	c.recordQuota(1)
-
 	if resp.StatusCode != http.StatusOK {
-		return candidates, fmt.Errorf("videos.list failed with status %d", resp.StatusCode)
+		return fmt.Errorf("videos.list failed with status %d", resp.StatusCode)
 	}
 
 	var payload youtubeVideosResponse
 	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
-		return candidates, fmt.Errorf("decode videos.list: %w", err)
+		return fmt.Errorf("decode videos.list: %w", err)
 	}
+	applyBatchDetails(batch, idMap, payload)
+	return nil
+}
 
+func applyBatchDetails(
+	batch []domain.VideoCandidate,
+	idMap map[string]int,
+	payload youtubeVideosResponse,
+) {
 	for _, it := range payload.Items {
 		idx, exists := idMap[it.ID]
 		if !exists {
 			continue
 		}
-		cand := &candidates[idx]
+		cand := &batch[idx]
 		cand.DurationSeconds = parseISODuration(it.ContentDetails.Duration)
 		cand.IsEmbeddable = it.Status.Embeddable
-
 		reg := &domain.RegionInfo{
 			Allowed: it.ContentDetails.RegionRestriction.Allowed,
 			Blocked: it.ContentDetails.RegionRestriction.Blocked,
 		}
 		cand.WatchabilityPct = domain.CalculateWorldwideWatchability(reg)
 	}
-
-	return candidates, nil
 }
 
 // normalizeText converts accents and diacritics to basic ascii lowercase.
