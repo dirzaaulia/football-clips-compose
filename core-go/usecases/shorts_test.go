@@ -88,16 +88,17 @@ func TestIngestShortsEmbeddableFilter(t *testing.T) {
 	now := time.Now().UTC()
 	rss := &mockShortsRSS{
 		videos: []domain.VideoCandidate{
-			{VideoID: "vid_ok", Title: "Amazing Saka Golazo #shorts", PublishedAt: &now},
-			{VideoID: "vid_noembed", Title: "Rice Strike #shorts", PublishedAt: &now},
-			{VideoID: "vid_geoblock", Title: "Odegaard Assist #shorts", PublishedAt: &now},
-			{VideoID: "vid_toolong", Title: "Training Session #shorts", PublishedAt: &now},
-			{VideoID: "vid_embed_unplayable", Title: "UEFA Golazo #shorts", PublishedAt: &now},
+			{VideoID: "vid_ok", Title: "Amazing Saka Golazo", PublishedAt: &now},
+			{VideoID: "vid_noembed", Title: "Rice Strike", PublishedAt: &now},
+			{VideoID: "vid_geoblock", Title: "Odegaard Assist", PublishedAt: &now},
+			{VideoID: "vid_toolong", Title: "Training Session", PublishedAt: &now},
+			{VideoID: "vid_embed_unplayable", Title: "UEFA Golazo", PublishedAt: &now},
+			{VideoID: "vid_fake_hashtag", Title: "Full Clip #shorts", PublishedAt: &now},
 		},
 	}
 	enricher := &mockEnricher{
 		results: map[string]domain.VideoCandidate{
-			"vid_ok":               {VideoID: "vid_ok", IsEmbeddable: true, WatchabilityPct: 100.0, DurationSeconds: 32},
+			"vid_ok":               {VideoID: "vid_ok", IsEmbeddable: true, WatchabilityPct: 100.0, DurationSeconds: 32, ViewCount: 850000, LikeCount: 45000},
 			"vid_noembed":          {VideoID: "vid_noembed", IsEmbeddable: false, WatchabilityPct: 100.0, DurationSeconds: 28},
 			"vid_geoblock":         {VideoID: "vid_geoblock", IsEmbeddable: true, WatchabilityPct: 15.0, DurationSeconds: 25},
 			"vid_toolong":          {VideoID: "vid_toolong", IsEmbeddable: true, WatchabilityPct: 100.0, DurationSeconds: 240},
@@ -107,6 +108,9 @@ func TestIngestShortsEmbeddableFilter(t *testing.T) {
 	repo := &mockShortsRepo{}
 	uc := usecases.NewIngestShortsUseCase(rss, repo, nil).
 		WithEnricher(enricher).
+		WithShortFormChecker(func(_ context.Context, vid, _ string) bool {
+			return vid != "vid_fake_hashtag"
+		}).
 		WithEmbedPageChecker(func(_ context.Context, vid string) bool {
 			return vid != "vid_embed_unplayable"
 		})
@@ -118,7 +122,11 @@ func TestIngestShortsEmbeddableFilter(t *testing.T) {
 	if count != 1 || len(repo.upserted) != 1 {
 		t.Fatalf("expected 1 embeddable short, got count=%d upserted=%d", count, len(repo.upserted))
 	}
-	if repo.upserted[0].YouTubeVideoID != "vid_ok" || repo.upserted[0].DurationSeconds != 32 {
-		t.Fatalf("unexpected upserted short: %+v", repo.upserted[0])
+	got := repo.upserted[0]
+	if got.YouTubeVideoID != "vid_ok" || got.DurationSeconds != 32 || got.LikeCount != 45000 || got.HypeScore < 90 {
+		t.Fatalf("unexpected upserted short: %+v", got)
+	}
+	if usecases.ClassifyHypeLevel(got.HypeScore) != "LEGENDARY" {
+		t.Fatalf("expected LEGENDARY hype level for score=%d", got.HypeScore)
 	}
 }

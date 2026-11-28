@@ -27,6 +27,8 @@ type VideoCandidate struct {
 	ThumbnailURL      *string              `json:"thumbnail_url,omitempty"`
 	PublishedAt       *time.Time           `json:"published_at,omitempty"`
 	IsEmbeddable      bool                 `json:"is_embeddable"`
+	ViewCount         int64                `json:"view_count,omitempty"`
+	LikeCount         int64                `json:"like_count,omitempty"`
 	Tier              int                  `json:"tier"`
 	WatchabilityPct   float64              `json:"watchability_pct"`
 	AIRank            *int                 `json:"ai_rank,omitempty"`

@@ -24,6 +24,7 @@ type IngestShortsUseCase struct {
 	logger           *slog.Logger
 	httpClient       *http.Client
 	embedPageChecker func(ctx context.Context, videoID string) bool
+	shortFormChecker func(ctx context.Context, videoID, title string) bool
 }
 
 type channelTarget struct {
@@ -44,6 +45,7 @@ func NewIngestShortsUseCase(rss rssFetcher, repo ports.ShortsRepository, logger 
 	}
 	uc := &IngestShortsUseCase{rssClient: rss, shortsRepo: repo, logger: logger, httpClient: client}
 	uc.embedPageChecker = uc.isEmbedPagePlayable
+	uc.shortFormChecker = uc.isShortFormVideo
 	return uc
 }
 
@@ -56,6 +58,12 @@ func (uc *IngestShortsUseCase) WithEnricher(enricher detailsEnricher) *IngestSho
 // WithEmbedPageChecker overrides the /embed/ HTML verification probe (used in tests).
 func (uc *IngestShortsUseCase) WithEmbedPageChecker(fn func(ctx context.Context, videoID string) bool) *IngestShortsUseCase {
 	uc.embedPageChecker = fn
+	return uc
+}
+
+// WithShortFormChecker overrides the HEAD /shorts/ verification probe (used in tests).
+func (uc *IngestShortsUseCase) WithShortFormChecker(fn func(ctx context.Context, videoID, title string) bool) *IngestShortsUseCase {
+	uc.shortFormChecker = fn
 	return uc
 }
 
@@ -175,7 +183,7 @@ func (uc *IngestShortsUseCase) processSingleTarget(
 		mu.Lock()
 		already := existingIDs[v.VideoID]
 		mu.Unlock()
-		if already || isCommercialSpam(v.Title) || !uc.isShortFormVideo(subCtx, v.VideoID, v.Title) {
+		if already || isCommercialSpam(v.Title) || !uc.shortFormChecker(subCtx, v.VideoID, v.Title) {
 			continue
 		}
 
@@ -183,10 +191,7 @@ func (uc *IngestShortsUseCase) processSingleTarget(
 		if v.PublishedAt != nil {
 			pub = *v.PublishedAt
 		}
-		hype := calculateHypeScore(v.Title, target.Name, pub)
-		if hype < 60 {
-			continue
-		}
+		hype := calculateHypeScore(v.Title, target.Name, pub, 0, 0)
 
 		mu.Lock()
 		if !existingIDs[v.VideoID] {
@@ -212,9 +217,6 @@ func (uc *IngestShortsUseCase) isShortFormVideo(ctx context.Context, videoID, ti
 		if strings.Contains(tLow, m) {
 			return false
 		}
-	}
-	if strings.Contains(tLow, "#shorts") || strings.Contains(tLow, "#short") {
-		return true
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodHead, "https://www.youtube.com/shorts/"+videoID, nil)
 	if err != nil {

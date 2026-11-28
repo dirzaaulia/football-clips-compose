@@ -23,11 +23,11 @@ export interface UseInfiniteHighlightsResult {
 }
 
 const FALLBACK_COMPETITIONS = [
-  'CL', 'EL', 'ECL', 'PL', 'PD', 'SA', 'BL1', 'FL1',
-  'SPL', 'MLS', 'DED', 'PPL', 'IDN', 'BRA', 'ARG',
-  'ACL', 'ACL2', 'ENG2', 'JPN1', 'TUR1', 'MEX1', 'BEL1',
-  'FAC', 'EFL', 'CDR', 'DFB', 'CIT', 'LIB', 'SUD', 'REC',
-  'UNL', 'WCQ_CONMEBOL', 'WCQ_AFC', 'WCQ_UEFA', 'CNL', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI',
+  'CL', 'PL', 'PD', 'SA', 'BL1', 'FL1', 'EL', 'ECL',
+  'IDN', 'ACL', 'ACL2', 'SPL', 'MLS', 'JPN1',
+  'FAC', 'EFL', 'CDR', 'DFB', 'CIT', 'DED', 'ENG2', 'BEL1', 'PPL', 'TUR1',
+  'LIB', 'BRA', 'ARG', 'MEX1', 'SUD', 'REC',
+  'UNL', 'WCQ_AFC', 'WCQ_UEFA', 'WCQ_CONMEBOL', 'CNL', 'WCQ_CONCACAF', 'WCQ_CAF', 'FRI',
 ];
 
 export function useInfiniteHighlights(

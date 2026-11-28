@@ -9,6 +9,7 @@
     "name": { "type": "string" },
     "short_name": { "type": "string" },
     "competition_code": { "type": "string" },
+    "competition_codes": { "type": "array", "items": { "type": "string" } },
     "competition_name": { "type": "string" },
     "crest_url": { "type": "string" },
     "youtube_handle": { "type": ["string", "null"] },

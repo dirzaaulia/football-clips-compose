@@ -46,6 +46,10 @@ type youtubeVideosResponse struct {
 		Status struct {
 			Embeddable bool `json:"embeddable"`
 		} `json:"status"`
+		Statistics struct {
+			ViewCount string `json:"viewCount"`
+			LikeCount string `json:"likeCount"`
+		} `json:"statistics"`
 	} `json:"items"`
 }
 
@@ -89,7 +93,7 @@ func (c *Client) enrichBatch(ctx context.Context, batch []domain.VideoCandidate)
 	}
 
 	url := fmt.Sprintf(
-		"https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status&id=%s&key=%s",
+		"https://www.googleapis.com/youtube/v3/videos?part=contentDetails,status,statistics&id=%s&key=%s",
 		strings.Join(ids, ","),
 		c.apiKey,
 	)
@@ -129,6 +133,8 @@ func applyBatchDetails(
 		cand := &batch[idx]
 		cand.DurationSeconds = parseISODuration(it.ContentDetails.Duration)
 		cand.IsEmbeddable = it.Status.Embeddable
+		cand.ViewCount, _ = strconv.ParseInt(it.Statistics.ViewCount, 10, 64)
+		cand.LikeCount, _ = strconv.ParseInt(it.Statistics.LikeCount, 10, 64)
 		reg := &domain.RegionInfo{
 			Allowed: it.ContentDetails.RegionRestriction.Allowed,
 			Blocked: it.ContentDetails.RegionRestriction.Blocked,

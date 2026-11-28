@@ -1,4 +1,5 @@
 import { database } from './database';
+import { diversifyShortsFeed } from './shortsDiversifier';
 
 export interface FootballShortRecord {
   id: string;
@@ -25,13 +26,14 @@ export interface GetShortsOptions {
 
 export async function getShorts(options: GetShortsOptions = {}): Promise<FootballShortRecord[]> {
   const { category, limit = 50, offset = 0 } = options;
+  const fetchLimit = Math.min(150, limit * 3);
   try {
     let query = database
       .from('football_shorts')
       .select('*')
       .order('published_at', { ascending: false })
       .order('hype_score', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .range(offset, offset + fetchLimit - 1);
 
     if (category && category !== 'ALL') {
       query = query.eq('category', category);
@@ -43,7 +45,7 @@ export async function getShorts(options: GetShortsOptions = {}): Promise<Footbal
       return [];
     }
 
-    return (data || []) as FootballShortRecord[];
+    return diversifyShortsFeed((data || []) as FootballShortRecord[], limit, 4);
   } catch (err) {
     console.error('Exception fetching shorts:', err);
     return [];

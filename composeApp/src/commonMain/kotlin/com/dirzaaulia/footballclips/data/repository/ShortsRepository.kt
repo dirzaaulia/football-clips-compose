@@ -36,9 +36,10 @@ class ShortsRepositoryImpl(
                 header("Authorization", "Bearer $databaseApiKey")
 
                 url {
+                    val fetchLimit = (limit * 3).coerceAtMost(120)
                     parameters.append("select", "*")
                     parameters.append("order", "published_at.desc,hype_score.desc")
-                    parameters.append("limit", limit.toString())
+                    parameters.append("limit", fetchLimit.toString())
                     parameters.append("offset", offset.toString())
                     if (!category.isNullOrBlank()) {
                         parameters.append("category", "eq.$category")
@@ -46,7 +47,8 @@ class ShortsRepositoryImpl(
                 }
             }
             val dtos: List<FootballShortDto> = response.body()
-            NetworkResult.Success(dtos.map { it.toDomain() })
+            val diversified = diversifyShortsFeed(dtos.map { it.toDomain() }, limit = limit, cooldown = 4)
+            NetworkResult.Success(diversified)
         } catch (e: Exception) {
             NetworkResult.Exception(e)
         }

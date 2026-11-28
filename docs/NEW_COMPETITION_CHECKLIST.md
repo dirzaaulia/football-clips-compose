@@ -32,7 +32,8 @@ Create a dated SQL migration inserting/upserting into:
    - `emblem_url`, `emblem_dark_url`, `youtube_handle`, `youtube_channel_id`, `backup_channel_handles`, `backup_channel_ids`
    - `is_active = true`, `display_order`
 2. `public.supported_clubs`:
-   - Upsert all participating teams (`id`, `team_id`, `name`, `short_name`, `competition_code`, `competition_name`, `crest_url`, `youtube_handle`, `youtube_channel_id`, `channel_tier`, `backup_channel_handle`, `is_active = true`).
+   - Upsert all participating teams using `ON CONFLICT (team_id) DO UPDATE` (`id`, `team_id`, `name`, `short_name`, `competition_code`, `competition_codes`, `competition_name`, `crest_url`, `youtube_handle`, `youtube_channel_id`, `channel_tier`, `backup_channel_handle`, `is_active = true`).
+   - **No Duplicate Clubs**: `supported_clubs(team_id)` enforces a `UNIQUE` index. If a club already exists in a domestic league, keep its domestic `competition_code` and append the new competition to `competition_codes TEXT[]`.
 
 ---
 

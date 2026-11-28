@@ -71,11 +71,15 @@ func (uc *IngestShortsUseCase) buildVerifiedShorts(
 		if uc.embedPageChecker != nil && !uc.embedPageChecker(ctx, c.VideoID) {
 			continue
 		}
+		p.hype = calculateHypeScore(p.candidate.Title, p.target.Name, p.pub, c.ViewCount, c.LikeCount)
+		if p.hype < 55 {
+			continue
+		}
 		dur := c.DurationSeconds
 		if dur <= 0 {
 			dur = 45
 		}
-		result = append(result, toFootballShort(p, dur, now))
+		result = append(result, toFootballShort(p, dur, int(c.LikeCount), now))
 	}
 	return result
 }
@@ -87,13 +91,13 @@ func (uc *IngestShortsUseCase) filterWithOEmbedFallback(
 ) []domain.FootballShort {
 	var result []domain.FootballShort
 	for _, p := range pending {
-		if !uc.isEmbeddableOEmbed(ctx, p.candidate.VideoID) {
+		if p.hype < 55 || !uc.isEmbeddableOEmbed(ctx, p.candidate.VideoID) {
 			continue
 		}
 		if uc.embedPageChecker != nil && !uc.embedPageChecker(ctx, p.candidate.VideoID) {
 			continue
 		}
-		result = append(result, toFootballShort(p, 45, now))
+		result = append(result, toFootballShort(p, 45, 0, now))
 	}
 	return result
 }
@@ -152,7 +156,7 @@ func (uc *IngestShortsUseCase) isEmbedPagePlayable(ctx context.Context, videoID 
 	return true
 }
 
-func toFootballShort(p pendingShort, durationSeconds int, now time.Time) domain.FootballShort {
+func toFootballShort(p pendingShort, durationSeconds, likeCount int, now time.Time) domain.FootballShort {
 	return domain.FootballShort{
 		YouTubeVideoID:  p.candidate.VideoID,
 		Title:           p.candidate.Title,
@@ -162,7 +166,7 @@ func toFootballShort(p pendingShort, durationSeconds int, now time.Time) domain.
 		Category:        classifyShortCategory(p.candidate.Title),
 		ThumbnailURL:    fmt.Sprintf("https://img.youtube.com/vi/%s/hqdefault.jpg", p.candidate.VideoID),
 		DurationSeconds: durationSeconds,
-		LikeCount:       0,
+		LikeCount:       likeCount,
 		HypeScore:       p.hype,
 		Source:          "RSS",
 		IsFeatured:      p.hype >= 85,
